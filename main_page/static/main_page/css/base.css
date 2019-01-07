@@ -8,6 +8,7 @@ html, body {
 
 .sidebar {
   background-color: #76c6eb;
+  min-height: 100% !important;
 }
 
 #logo {
@@ -31,3 +32,4 @@ html, body {
 .content-container {
   padding: 3%;
 }
+ 
