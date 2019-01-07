@@ -36,12 +36,13 @@ def cpr_age(cpr):
 def check_cpr(cpr):
   pass
 
-def generate_plot(data_points):
+def generate_plot(data_points1, data_points2):
   """
   Generate GFR plot
 
   Args:
-    data_points: Data points from study
+    data_points1: Data points for first graph
+    data_points2: Data points for second graph
 
   Remark:
     Generate as one image, with multiple subplots, to simplify storage as dicom object
@@ -58,6 +59,7 @@ def generate_plot(data_points):
 
   fig, ax = plt.subplots(1, 2)
 
+  # Generate backgrounds for second graph
   ax[1].set_xlim(0, 100)
   ax[1].set_ylim(0, 130)
   ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')

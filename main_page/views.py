@@ -27,6 +27,35 @@ def new_study(request):
     'study_form': forms.NewStudy(initial={'study_date': datetime.date.today})
   }
 
+  # Handle POST requests
+  if request.method == 'POST':
+    # Create and store dicom object for new study
+    cpr = request.POST['cpr']
+    name = request.POST['name']
+    study_date = request.POST['study_date']
+    ris_nr = request.POST['ris_nr']
+
+    print(request.POST)
+    print(cpr)
+    print(name)
+    print(study_date)
+    print(ris_nr)
+
+    success, error_msg = ris.is_valid_study(cpr, name, study_date, ris_nr)
+
+    print(success)
+    print(error_msg)
+
+    if success:
+      ris.store_study(cpr, name, study_date, ris_nr)
+
+    else:
+      # Report error messages back to user
+      print(error_msg)
+
+      context['error_msg'] = error_msg
+      return HttpResponse(template.render(context, request))
+
   return HttpResponse(template.render(context, request))
 
 

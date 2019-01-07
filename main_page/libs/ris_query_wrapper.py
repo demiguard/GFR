@@ -4,9 +4,15 @@ import os
 import shutil
 import glob
 import datetime
+import calendar
 
 class ExaminationInfo():
   def __init__(self):
+    # TODO: Make this a directory so we can easily create a function for the try-catch when retreiving info
+    # self.info = {
+    #   'risnr': ''
+    # }
+
     self.risnr = ''
     self.name = ''
     self.cpr = ''
@@ -167,8 +173,6 @@ def get_examination(rigs_nr, resp_dir):
   except KeyError:
     examination_info.age = calculate_age(examination_info.cpr)
 
-  print(examination_info.age)
-
   # Custom tags
   # try:
   #   examination_info.factor = obj[, ]
@@ -269,7 +273,6 @@ def get_all(hosp_aet):
   ]
 
   for key, obj in dcm_objs.items():
-    print(key)
     if obj.RequestedProcedureDescription in accepted_procedures:
       examination_info = ExaminationInfo()
       
@@ -285,3 +288,139 @@ def get_all(hosp_aet):
       os.remove(key)
 
   return sorted(ret, key=lambda x: x.name)
+
+def check_cpr(cpr):  
+  """
+  Checks whether a given cpr number, as a string, is valid
+
+  Args:
+    cpr: cpr number to check
+
+  Returns:
+    None if valid cpr number, otherwise a string containing an error message
+  """
+  if len(cpr) == 10: # No '-' char
+    if cpr.isdigit():
+      # Extract birthday
+      byear = cpr[0:2]
+      bmonth = cpr[2:4]
+      bday = cpr[4:6]
+      control_num = cpr[6:]
+
+      # TODO: Perform checking based on official CPR protocol: https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+
+      return None
+  elif len(cpr) == 11: # Cpr string contains '-' char
+    if cpr[6] == '-':
+      cpr = cpr.replace('-', '')
+
+      if cpr.isdigit():
+        # TODO: Perform further checking, see above todo.
+
+        return None
+
+  return "Incorrect CPR nr."
+
+def check_name(name):
+  if name == '':
+    return "No name given"
+  
+  if ' ' in name:
+    return None
+
+  return "No first or lastname given"
+
+def check_date(date):
+  """
+  Checks whether a given study date is valid
+
+  Args:
+    date: study date to check
+
+  Returns
+    None if valid, otherwise returns a string containing an error message
+  """
+  if date.count('-') == 2:
+    date = date.replace('-', '')
+
+    if len(date) == 8:
+      if date.isdigit():
+        # Extract and validate specifics
+        year = int(date[:4])
+        month = int(date[4:6])
+        day = int(date[6:])
+
+        if month < 13 and month > 0:
+          days_in_month = calendar.monthrange(year, month)[1] + 1
+
+          if day > 0 and day < days_in_month:
+            return None
+          else:
+            return "Invalid day in study date"
+        else:
+          return "Invalid month in study date"
+      else:
+        return "Invalid study date, contains none digit characters"
+    else:
+      return "Invalid study date, check format"
+
+  return "Invalid study date, check format"
+
+def check_ris_nr(ris_nr):
+  """
+  Checs if a given RIGS nr is valid
+
+  Args:
+    ris_nr: RIGS nr to check
+
+  Returns:
+    None if valid RIGS nr, otherwise returns a string containing an error message
+  """
+  if 'REGH' in ris_nr:
+    return None
+
+  return "Invalid RIGS nr, check format"
+
+def is_valid_study(cpr, name, study_date, ris_nr):
+  """
+  Checks whether given study information is vaild.
+
+  Args:
+    cpr: cpr nr of patient
+    name: name of patient
+    study_date: date of the study
+    ris_nr: RIGS number of the study
+
+  Returns:
+    tuple of the type (bool, string), if the study is valid then bool is True and
+    string is None.
+    Otherwise if the study is invalid bool is False and string contains an error
+    message describing the all points where the study is invalid.
+  """
+  error_strings = []
+  
+  # Validate every input
+  error_strings.append(check_cpr(cpr))
+  error_strings.append(check_name(name))
+  error_strings.append(check_date(study_date))
+  error_strings.append(check_ris_nr(ris_nr))
+
+  # Filter out None values
+  error_strings = list(filter(lambda x: x, error_strings))
+
+  return (len(error_strings) == 0, '\n'.join(error_strings))
+
+def store_study(cpr, name, study_date, ris_nr):
+  """
+  Stores a given study in the RIGS database
+
+  Args:
+    cpr: cpr nr of patient
+    name: name of patient
+    study_date: date of the study
+    ris_nr: RIGS number of the study
+
+  Remark:
+    Validation of the study is expected, before storing it
+  """
+  pass

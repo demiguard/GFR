@@ -5,11 +5,13 @@
 {% block content %}
   <h2>Lav ny undersøgelse</h2> <br>
 
-  <form method="POST">
+  <form method="POST" class="form">
     {% csrf_token %}
     {% bootstrap_form study_form %}
     {% buttons %}
-      <input type="submit" value="Opret">
+      <button type="submit" class="btn">
+        Opret
+      </button>
     {% endbuttons %}
   </form>
 {% endblock %}
