@@ -21,6 +21,12 @@ class ExaminationInfo():
     self.height = ''
     self.weight = ''
     self.age = ''
+    self.GFR = ''
+    self.GFR_normalized = ''
+    self.image = ''   #Path image
+    
+
+# Class done    
 
 # TODO: Move these to config file
 RIGS_AET = "VIMCM"
@@ -349,8 +355,8 @@ def check_date(date):
         year = int(date[:4])
         month = int(date[4:6])
         day = int(date[6:])
-
-        if month < 13 and month > 0:
+django dynamic images
+django dynamic images
           days_in_month = calendar.monthrange(year, month)[1] + 1
 
           if day > 0 and day < days_in_month:

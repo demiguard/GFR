@@ -112,3 +112,29 @@ def fetch_study(request):
   }
 
   return HttpResponse(template.render(context, request))
+
+def present_study(request,rigs_nr):
+  """
+
+
+  Args:
+    request: The HTTP request
+    rigs_nr: The number 
+  returns:
+  
+  """
+
+  directory = "./tmp"
+
+  image_dir
+
+  exam = ris.get_examination(rigs_nr,directory)
+
+  template = loader.get_template('main_page/present_study.html')
+  
+  context = {
+    'exam' : exam,
+  }
+
+
+  return HttpResponse  
