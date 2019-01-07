@@ -364,8 +364,8 @@ def check_date(date):
         year = int(date[:4])
         month = int(date[4:6])
         day = int(date[6:])
-django dynamic images
-django dynamic images
+
+        if month > 0 and month < 13:
           days_in_month = calendar.monthrange(year, month)[1] + 1
 
           if day > 0 and day < days_in_month:
