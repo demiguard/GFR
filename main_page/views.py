@@ -126,8 +126,6 @@ def present_study(request,rigs_nr):
 
   directory = "./tmp"
 
-  image_dir
-
   exam = ris.get_examination(rigs_nr,directory)
 
   template = loader.get_template('main_page/present_study.html')
