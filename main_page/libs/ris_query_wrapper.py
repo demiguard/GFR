@@ -27,10 +27,17 @@ RIGS_AET = "VIMCM"
 RIGS_IP = "10.143.128.247"
 RIGS_PORT = "3320"
 
+# NOTE: This is currently setup for storage on the local test server 
+# (ONLY change this to the actual PACS server when in production)
+PACS_AET = 'TEST_DCM4CHEE'
+PACS_IP = 'localhost'
+PACS_PORT = '104' # Or 11112 if no port-forwarding
+
 CALLING_AET = "RH_EDTA"
 
-FINDSCU = "findscu"
 DUMP2DCM = "dump2dcm"
+FINDSCU = "findscu"
+STORESCU = 'storescu'
 
 def execute_query(cmd):
   """Executes a query and 
@@ -141,6 +148,8 @@ def get_examination(rigs_nr, resp_dir):
     ExaminationInfo instance containing examination information for the specified
     RIGS nr.
   """
+  # TODO: Add error handling for invalid filepath
+  # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
   obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
 
   examination_info = ExaminationInfo()
@@ -410,17 +419,31 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
   return (len(error_strings) == 0, '\n'.join(error_strings))
 
-def store_study(cpr, name, study_date, ris_nr):
+def store_study(ris_nr, resp_dir):
   """
   Stores a given study in the RIGS database
 
   Args:
-    cpr: cpr nr of patient
-    name: name of patient
-    study_date: date of the study
     ris_nr: RIGS number of the study
+    resp_dir: 
 
   Remark:
     Validation of the study is expected, before storing it
   """
-  pass
+  # Construct dicom obj to store
+  obj_path = ""
+
+  # Construct query and store
+  store_query = [
+    STORESCU,
+    '-aet',
+    CALLING_AET,
+    '-aec',
+    PACS_AET,
+    PACS_IP,
+    PACS_PORT,
+    obj_path
+  ]
+  
+  # TODO: Handle errors in the case of execution failure
+  out = execute_query(store_query)
