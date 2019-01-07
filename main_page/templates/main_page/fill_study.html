@@ -1,0 +1,27 @@
+{% extends 'main_page/base.html' %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+  <h2>Udfyld undersøgelse</h2>
+  <strong>Undersøgelse rigs nr.:</strong><p>{{ rigsnr }}</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    
+    {% bootstrap_form study_info_form %}
+    {% bootstrap_form study_type_form %}
+    
+    <h5>Prøve	Prøvetidspunkt (TT:mm):	Prøvetælletal (cpm)</h5>
+    {% for i in test_context.test_range %}
+      {% bootstrap_label forloop.counter %}. {% bootstrap_form test_context.test_form layout='inline' %}
+    {% endfor %}
+
+    {% buttons %}
+      <input type="submit" value="Beregn">
+      <input type="submit" value="Beregn udenom databasen">
+      <input type="submit" value="Gem">
+      <input type="submit" value="Afbryd">
+    {% endbuttons %}
+  </form>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% load static %}
+
+<html>
+  <head>
+    <title>GPRcalc</title>
+
+    <!-- Load base css -->
+    <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/base.css' %}">
+
+    <!-- Load Boostrap 4 css -->
+    <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/bootstrap/bootstrap.css' %}">
+
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <div class="container-fluid full-height">
+      <div class="row full-height">
+        <div class="col-2 sidebar">
+          <img id="logo" src="{% static 'main_page/images/regionh.png' %}">
+          <h3 id="sidebar-title">GPRcalc</h3>
+          <ul id="sidebar-list">
+            <li><a href="{% url 'main_page:new_study' %}">Lav undersøgelse</a></li>
+            <li><a href="{% url 'main_page:list_studies' %}">Udfyld undersøgelse</a></li>
+            <li><a href="{% url 'main_page:fetch_study' %}">Hent undersøgelse</a></li>
+          </ul>
+        </div>
+        <div class="col-10 content-container">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

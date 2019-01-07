@@ -1,0 +1,33 @@
+html, body {
+  height: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.sidebar {
+  background-color: #76c6eb;
+}
+
+#logo {
+  width: 90%;
+  padding: 5%;
+}
+
+#sidebar-list {
+  list-style-type: none;
+}
+
+#sidebar-list a {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+#sidebar-title {
+  text-align: center;
+}
+
+.content-container {
+  padding: 3%;
+}

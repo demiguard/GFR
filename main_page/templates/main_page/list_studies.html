@@ -1,0 +1,42 @@
+{% extends 'main_page/base.html' %}
+
+{% load bootstrap4 %}
+{% load staticfiles %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/list_studies.css' %}">
+{% endblock %}
+
+{% block content %}
+  <h2>Vælg undersøgelse</h2> <br>
+
+  <!-- <ul class="list-group">
+    {% for booking in bookings %}
+      <li class="list-group-item">{{ booking.name }}</li>
+    {% endfor %}
+  </ul> -->
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Cpr nr.</th>
+        <th>Dato</th>
+        <th>Ris nr.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+        <!-- Make each row redirect to fill_study/rigsnr with rigsnr being the rigs nr. of the patient clicked -->
+        <!-- TODO: Make the table rows seem clickable by adding a :hover effect -->
+        <tr onclick="document.location='{% url "main_page:fill_study" booking.risnr %}'">
+          <td>{{ booking.name }}</td>
+          <td>{{ booking.cpr }}</td>
+          <td>{{ booking.date }}</td>
+          <td>{{ booking.risnr }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}

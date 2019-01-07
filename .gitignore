@@ -1,0 +1,6 @@
+# Cached dicom objects
+tmp/
+
+# Python cache
+__pycache__/
+*.pyc
