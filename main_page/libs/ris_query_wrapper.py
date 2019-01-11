@@ -52,7 +52,7 @@ RIGS_PORT = "3320"
 # (ONLY change this to the actual PACS server when in production)
 PACS_AET = 'TEST_DCM4CHEE'
 PACS_IP = 'localhost'
-PACS_PORT = '104' # Or 11112 cprif no port-forwarding
+PACS_PORT = '104' # Or 11112 if no port-forwarding
 
 CALLING_AET = "RH_EDTA"
 
@@ -285,16 +285,16 @@ def get_all(hosp_aet):
   edta_obj = pydicom.dcmread('main_page/libs/edta_query.dcm')
 
   # Create dcm filter
-  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStatihttps://www.geeksforgeeks.org/python-uploading-images-in-django/ = hosp_aet
+  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = hosp_aet
 
   # Date filtering (removed)
-  #curr_date = datetime.datetime.today().strftime('%Y%m%d')https://www.geeksforgeeks.org/python-uploading-images-in-django/
-  #edta_obj.Schedulecsv_pathduledProcedureStepStartDate = curr_date
+  #curr_date = datetime.datetime.today().strftime('%Y%m%d')
+  #edta_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = curr_date
 
-  query_file = 'maincsv_path.format(hosp_aet)
-  edta_obj.save_as(qcsv_path
+  query_file = 'main_page/libs/edta_query_{0}'.format(hosp_aet)
+  edta_obj.save_as(query_file)
 
-  resp_dir = './tmp'csv_path
+  resp_dir = './tmp'
   try:
     os.mkdir(resp_dir)
   except FileExistsError:
@@ -340,11 +340,11 @@ def get_all(hosp_aet):
 
       ret.append(examination_info)
 
-      # Save to dcm file with rigs nr. as https://www.geeksforgeeks.org/python-uploading-images-in-django/ove corresponding rsp file
-      obj.save_as('{0}/{1}.dcm'.format(reshttps://www.geeksforgeeks.org/python-uploading-images-in-django/ionNumber))
+      # Save to dcm file with rigs nr. as  corresponding rsp file
+      obj.save_as('{0}/{1}.dcm'.format(resp_dir))
       os.remove(key)
 
-  return sorted(ret, key=lambda x: x.name)https://www.geeksforgeeks.org/python-uploading-images-in-django/
+  return sorted(ret, key=lambda x: x.name)
 
 def check_cpr(cpr):  
   """
@@ -370,6 +370,7 @@ def check_cpr(cpr):
       cpr = cpr.replace('-', '')
 
       if cpr.isdigit():
+
         cpr_char_arr = list(cpr)
         cpr_int_arr = [int(i) for i in cpr]
         control_arr = [4,3,2,7,6,5,4,3,2,1]
