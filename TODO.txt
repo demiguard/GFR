@@ -1,0 +1,8 @@
+main_page/views.py:      #TODO redirect to fill_study/ris_nr 
+                         #TODO redirect from new_study to fill_study with new study
+main_page/libs/ris_query_wrapper.py: # TODO: Move these to config file
+main_page/libs/ris_query_wrapper.py: # TODO: Add error handling for invalid filepath
+main_page/libs/ris_query_wrapper.py: # TODO: Figure out smart function for passing info
+main_page/libs/ris_query_wrapper.py: # TODO: Error handling for failed findscu execution
+main_page/libs/ris_query_wrapper.py: # TODO: Handle errors in the case of execution failure
+main_page/libs/clearance_math/clearance_math.py:  # TODO: These values define changed
