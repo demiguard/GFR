@@ -16,12 +16,14 @@
     <div class="container-fluid">
       <div class="row">
         <div class="sidebar col-2">
-          <img id="logo" src="{% static 'main_page/images/regionh.png' %}">
-          <h3 id="sidebar-title">GPRcalc</h3>
-          <ul id="sidebar-list">
-            <li><a href="{% url 'main_page:list_studies' %}">Udfyld undersøgelse</a></li>
-            <li><a href="{% url 'main_page:fetch_study' %}">Hent undersøgelse</a></li>
-          </ul>
+          <div class= "col-2 position-fixed">
+            <img id="logo" src="{% static 'main_page/images/regionh.png' %}">
+            <h3 id="sidebar-title">GPRcalc</h3>
+            <ul id="sidebar-list">
+              <li><a href="{% url 'main_page:list_studies' %}">Udfyld undersøgelse</a></li>
+              <li><a href="{% url 'main_page:fetch_study' %}">Hent undersøgelse</a></li>
+            </ul>
+          </div>
         </div>
         <div class="col-10 content-container">
           {% block content %}{% endblock %}
