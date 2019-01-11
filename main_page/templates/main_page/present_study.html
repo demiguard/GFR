@@ -1,0 +1,16 @@
+{% extends 'main_page/base.html' %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+
+<h2> Resultat af {{ name }}'s undersøgelse den {{ date }} </h2>
+
+<p> Køn: {{ sex }} </p>
+<p> Alder: {{ age }}</p>
+<p> Body Surface Area: {{ BSA }}</p>
+
+<h3> GFR: {{ GFR }} </h3>
+<h3> GFR-normaliseret: {{ GFR_N }} </h3>
+
+{% endblock %}

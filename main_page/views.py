@@ -4,6 +4,7 @@ from django.template import loader
 
 from . import forms
 from .libs import ris_query_wrapper as ris
+from .libs.clearance_math import clearance_math
 
 import datetime
 
@@ -24,7 +25,8 @@ def new_study(request):
   template = loader.get_template('main_page/new_study.html')
 
   context = {
-    'study_form': forms.NewStudy(initial={'study_date': datetime.date.today})
+    'study_form': forms.NewStudy(initial={'study_date': datetime.date.today}),
+    'error_msg' : ''
   }
 
   # Handle POST requests
@@ -48,13 +50,13 @@ def new_study(request):
 
     if success:
       ris.store_study(cpr, name, study_date, ris_nr)
-
+      #TODO redirect to fill_study/ris_nr 
     else:
       # Report error messages back to user
       print(error_msg)
 
       context['error_msg'] = error_msg
-      return HttpResponse(template.render(context, request))
+      #return HttpResponse(template.render(context, request))
 
   return HttpResponse(template.render(context, request))
 
@@ -79,19 +81,22 @@ def fill_study(request, rigs_nr):
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
   
-  exam_info = ris.get_examination(rigs_nr, './tmp') # './tmp' should be put in a configurable thing...
+  exam = ris.get_examination(rigs_nr, './tmp') # './tmp' should be put in a configurable thing...
+  exam_info = exam.info
 
   test_range = range(6)
   test_form = forms.FillStudyTest()
 
+  print("name:", exam_info['name'])
+
   context = {
     'rigsnr': rigs_nr,
     'study_info_form': forms.FillStudyInfo(initial={
-      'name': exam_info.name,
-      'sex': exam_info.sex,
-      'height': exam_info.height,
-      'weight': exam_info.weight,
-      'age': exam_info.age
+      'name': exam_info['name'],
+      'sex': exam_info['sex'],
+      'height': exam_info['height'],
+      'weight': exam_info['weight'],
+      'age': exam_info['age']
     }),
     'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
     'test_context': {
@@ -113,9 +118,9 @@ def fetch_study(request):
 
   return HttpResponse(template.render(context, request))
 
-def present_study(request,rigs_nr):
+def present_study(request, rigs_nr, hospital='RH'): #change default value
   """
-
+  Function for presenting the result
 
   Args:
     request: The HTTP request
@@ -124,15 +129,25 @@ def present_study(request,rigs_nr):
   
   """
 
-  directory = "./tmp"
+  DICOM_directory = "./tmp"
 
-  exam = ris.get_examination(rigs_nr,directory)
+  exam = ris.get_examination(rigs_nr, DICOM_directory)
+
+
+  plot_path = clearance_math.generate_plot([],[], rigs_nr,hospital)
 
   template = loader.get_template('main_page/present_study.html')
   
   context = {
-    'exam' : exam,
+    'name'  : exam.info['name'],
+    'age'   : exam.info['age'],
+    'date'  : exam.info['date'],
+    'BSA'   : exam.info['BSA'],
+    'sex'   : exam.info['sex'],
+    'GFR'   : exam.info['GFR'],
+    'GFR_N' : exam.info['GFR_N'],
+    'image_path' : plot_path
   }
 
 
-  return HttpResponse  
+  return HttpResponse(template.render(context,request))

@@ -1,17 +1,26 @@
 import numpy
 import matplotlib.pyplot as plt
+import pandas
 
-def surface_area(height, weight):
+def surface_area(height, weight, method = "Du Bois"):
   """Estimate the surface area of a human being, based on height and height
 
   Args:
-    height:
-    weight:
+    height: Height of person in centimeters 
+    weight: Weight of person in Kilograms
+    method: Method for calculating the Body surface area
 
   Returns:
 
   """
-  pass
+  if method == "Du Bois": 
+      return 0.007184*(weight**0.425)*(height**0.725)
+  elif method == "Mosteller":
+      return 0.016667*(weight**0.5)*(height**0.5)
+  elif method == "Haycock":
+      return 0.24265*(weight**0.5378)*(height**0.3964)
+  else:
+    return -1
 
 def dosis(inj, fac, stc):
   """Compute dosis based on args.
@@ -36,7 +45,36 @@ def cpr_age(cpr):
 def check_cpr(cpr):
   pass
 
-def generate_plot(data_points1, data_points2):
+def import_csv(csv_path, dicom, machine =''):
+  """
+  Imports a generated csv file and extracts the data
+
+  Params:
+    machine : Is the machine that made CSV file, used to figure out the encoding of the CSV file
+    dicom   : A Dicom object for data to written to. Note that data in the object may be overwritten.
+
+  Returns:
+    Error_msg: A string list containing any Error messages
+    Changed_tags: A uint list containing all tags that have been written to 
+
+  Remarks:
+    It's the user responsibility to save the Dicom object
+  """
+
+
+
+
+  Error_msg = []
+  Changed_tags = []
+
+
+
+
+  return Error_msg, Changed_tags
+
+
+
+def generate_plot(data_points1, data_points2, rigs_nr, hosp_dir='RH', imageHeight = 10.8, imageWidth = 19.2):
   """
   Generate GFR plot
 
@@ -44,11 +82,15 @@ def generate_plot(data_points1, data_points2):
     data_points1: Data points for first graph
     data_points2: Data points for second graph
 
+
+
   Remark:
-    Generate as one image, with multiple subplots, to simplify storage as dicom object
+    Generate as one image, with multiple subplots.
   """
-  # Generate background fills
-  # TODO: These values defining the background fills should possibly be changed
+  # Generate background fill19.2
+  # TODO: These values defin19.2e changed
+  save_dir = 'main_page/Graphs/{0}'.format(hosp_dir)
+
   x =           [0, 40, 100]
   zeros =       [0, 0, 0]
   darkred_y =   [30, 30, 10]
@@ -77,8 +119,10 @@ def generate_plot(data_points1, data_points2):
   ax[1].set_ylabel('GFR (ml/min pr. 1.73m²)')
   ax[1].grid(color='black')
 
-  fig.set_figheight(10.8)
-  fig.set_figwidth(19.2)
+  fig.set_figheight(imageHeight)
+  fig.set_figwidth(imageWidth)
   plt.legend()
-  plt.savefig("test.png")
-  plt.show()
+  image_path = "{0}/{1}.png".format(save_dir,rigs_nr)
+  plt.savefig(image_path)
+  
+  return image_path

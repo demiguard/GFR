@@ -8,10 +8,22 @@ import calendar
 
 class ExaminationInfo():
   def __init__(self):
-    # TODO: Make this a directory so we can easily create a function for the try-catch when retreiving info
-    # self.info = {
-    #   'risnr': ''
-    # }
+    self.info = {
+      'ris_nr':'',
+      'name'  :'',
+      'cpr'   :'',
+      'age'   :'',
+      'date'  :'',
+      'sex'   :'',
+      'height':'',
+      'weight':'',
+      'BSA'   :'',
+      'GFR'   :'',
+      'GFR_N' :''
+    }
+
+    """
+    Old Pre-directory code
 
     self.risnr = ''
     self.name = ''
@@ -21,10 +33,11 @@ class ExaminationInfo():
     self.height = ''
     self.weight = ''
     self.age = ''
+    self.BSA = ''
     self.GFR = ''
     self.GFR_normalized = ''
     self.image = ''   #Path image
-    
+    """
 
 # Class done    
 
@@ -37,7 +50,7 @@ RIGS_PORT = "3320"
 # (ONLY change this to the actual PACS server when in production)
 PACS_AET = 'TEST_DCM4CHEE'
 PACS_IP = 'localhost'
-PACS_PORT = '104' # Or 11112 if no port-forwarding
+PACS_PORT = '104' # Or 11112 cprif no port-forwarding
 
 CALLING_AET = "RH_EDTA"
 
@@ -122,26 +135,51 @@ def calculate_sex(cprnr):
 
 def calculate_age(cprnr):
   """
-  Determine the age of a patient
+  Determine the age of a patient based on CPR
+  
+  Params:
+    cprnr: CPR number on the form DDMMYY-CCCC, where D - Day, M - Month, Y - year, C - control
+  
+  Returns: 
+    The age in int format
+
   """
   year_of_birth = int(cprnr[4:6])
   month_of_birth = int(cprnr[2:4])
   day_of_birth = int(cprnr[0:2])
-  
+  Control = int(cprnr[7]) #SINGLE diget
+
   current_time = datetime.datetime.now()
   
-  # Check year (assume higher likelihood of kids, than people over 100)
-  if year_of_birth < current_time.year - 2000:
-    by_year = current_time.year - 2000 - year_of_birth
-  else: 
-    by_year = current_time.year - 1900 - year_of_birth
+  century = []
+  
+  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+  #
+  # 
 
-  # Check month and day
-  if month_of_birth <= current_time.month:
-    if day_of_birth <= current_time.day:
-      by_year += 1
+  if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
+    century.append(1900)
+  elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
+    century.append(2000)
+  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
-  return by_year
+# Age with no birthday
+  if 2000 in century :
+    age = current_time.year - 2000 - year_of_birth - 1
+  elif 1900 in century : 
+    age = current_time.year - 1900 - year_of_birth - 1  
+  else:  #This is only used if resurrect dead people, Necromancy I guess
+    print("ERROR - DEAD PERSON DETECTED") 
+    age = current_time.year - 1800 - year_of_birth - 1
+
+# Have you had your birthday this year
+
+  if month_of_birth < current_time.month:
+    age += 1
+  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
+    age += 1
+
+  return age
 
 def get_examination(rigs_nr, resp_dir):
   """
@@ -160,33 +198,39 @@ def get_examination(rigs_nr, resp_dir):
 
   examination_info = ExaminationInfo()
   
+  for key in examination_info.info:
+    # TODO: Figure out smart function for passing info
+    #
+    pass
+
   # Remark: no need to format, since cached dcm objects are alread formatted.
-  examination_info.risnr = obj.AccessionNumber
-  examination_info.cpr = format_cpr(obj.PatientID)
-  examination_info.date = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
-  examination_info.name = format_name(obj.PatientName)
+  examination_info.info['ris_ nr'] = obj.AccessionNumber
+  examination_info.info['cpr'] = format_cpr(obj.PatientID)
+  examination_info.info['date'] = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
+  examination_info.info['name'] = format_name(obj.PatientName)
 
   # Try to read optional patient/examination attributes from previous examinations
   try:
-    examination_info.sex = obj[0x0010, 0x0040]
+    examination_info.info['sex'] = obj[0x0010, 0x0040]
   except KeyError:
     # Depermine patient sex based on cpr nr.
-    examination_info.sex = calculate_sex(examination_info.cpr)
+    examination_info.info['sex'] = calculate_sex(examination_info.info['cpr'])
+
 
   try:
-    examination_info.weight = obj[0x0010, 0x0030]
+    examination_info.info['weight'] = obj[0x0010, 0x0030]
   except KeyError:
     pass
 
   try:
-    examination_info.height = obj[0x0010, 0x0020]
+    examination_info.info['height'] = obj[0x0010, 0x0020]
   except KeyError:
     pass
 
   try:
-    examination_info.age = obj[0x0010, 0x1010]
+    examination_info.info['age'] = obj[0x0010, 0x1010]
   except KeyError:
-    examination_info.age = calculate_age(examination_info.cpr)
+    examination_info.info['age'] = calculate_age(examination_info.info['cpr'])
 
   # Custom tags
   # try:

@@ -5,6 +5,8 @@
 {% block content %}
   <h2>Lav ny undersøgelse</h2> <br>
 
+  <h3> {{ error_msg }} 
+
   <form method="POST" class="form">
     {% csrf_token %}
     {% bootstrap_form study_form %}
