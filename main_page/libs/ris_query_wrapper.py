@@ -378,7 +378,7 @@ def check_cpr(cpr):
         p_cpr = pandas.Series(cpr_int_arr)
         p_con = pandas.Series(control_arr)
       
-        if pandas.sum(p_cpr*p_con) % 11 == 0
+        if pandas.sum(p_cpr*p_con) % 11 == 0:
           return None
 
   return "Incorrect CPR nr."

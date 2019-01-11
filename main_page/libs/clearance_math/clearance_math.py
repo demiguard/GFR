@@ -45,13 +45,14 @@ def cpr_age(cpr):
 def check_cpr(cpr):
   pass
 
-def import_csv(csv_path, dicom, machine =''):
+def import_csv(csv_path, dicom, Vials, machine =''):
   """
   Imports a generated csv file and extracts the data
 
   Params:
     machine : Is the machine that made CSV file, used to figure out the encoding of the CSV file
     dicom   : A Dicom object for data to written to. Note that data in the object may be overwritten.
+    vials   : A list with vials for the dicom
 
   Returns:
     Error_msg: A string list containing any Error messages
@@ -60,15 +61,8 @@ def import_csv(csv_path, dicom, machine =''):
   Remarks:
     It's the user responsibility to save the Dicom object
   """
-
-
-
-
   Error_msg = []
   Changed_tags = []
-
-
-
 
   return Error_msg, Changed_tags
 
