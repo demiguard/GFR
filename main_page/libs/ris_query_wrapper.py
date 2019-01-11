@@ -5,6 +5,8 @@ import shutil
 import glob
 import datetime
 import calendar
+import numpy
+import pandas
 
 class ExaminationInfo():
   def __init__(self):
@@ -154,9 +156,6 @@ def calculate_age(cprnr):
   century = []
   
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  #
-  # 
-
   if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
     century.append(1900)
   elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
@@ -215,7 +214,6 @@ def get_examination(rigs_nr, resp_dir):
   except KeyError:
     # Depermine patient sex based on cpr nr.
     examination_info.info['sex'] = calculate_sex(examination_info.info['cpr'])
-
 
   try:
     examination_info.info['weight'] = obj[0x0010, 0x0030]
@@ -287,16 +285,16 @@ def get_all(hosp_aet):
   edta_obj = pydicom.dcmread('main_page/libs/edta_query.dcm')
 
   # Create dcm filter
-  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = hosp_aet
+  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStatihttps://www.geeksforgeeks.org/python-uploading-images-in-django/ = hosp_aet
 
   # Date filtering (removed)
-  #curr_date = datetime.datetime.today().strftime('%Y%m%d')
-  #edta_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = curr_date
+  #curr_date = datetime.datetime.today().strftime('%Y%m%d')https://www.geeksforgeeks.org/python-uploading-images-in-django/
+  #edta_obj.Schedulecsv_pathduledProcedureStepStartDate = curr_date
 
-  query_file = 'main_page/libs/edta_query_{0}.dcm'.format(hosp_aet)
-  edta_obj.save_as(query_file)
+  query_file = 'maincsv_path.format(hosp_aet)
+  edta_obj.save_as(qcsv_path
 
-  resp_dir = './tmp'
+  resp_dir = './tmp'csv_path
   try:
     os.mkdir(resp_dir)
   except FileExistsError:
@@ -342,11 +340,11 @@ def get_all(hosp_aet):
 
       ret.append(examination_info)
 
-      # Save to dcm file with rigs nr. as filename, and remove corresponding rsp file
-      obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
+      # Save to dcm file with rigs nr. as https://www.geeksforgeeks.org/python-uploading-images-in-django/ove corresponding rsp file
+      obj.save_as('{0}/{1}.dcm'.format(reshttps://www.geeksforgeeks.org/python-uploading-images-in-django/ionNumber))
       os.remove(key)
 
-  return sorted(ret, key=lambda x: x.name)
+  return sorted(ret, key=lambda x: x.name)https://www.geeksforgeeks.org/python-uploading-images-in-django/
 
 def check_cpr(cpr):  
   """
@@ -366,17 +364,21 @@ def check_cpr(cpr):
       bday = cpr[4:6]
       control_num = cpr[6:]
 
-      # TODO: Perform checking based on official CPR protocol: https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-
       return None
   elif len(cpr) == 11: # Cpr string contains '-' char
     if cpr[6] == '-':
       cpr = cpr.replace('-', '')
 
       if cpr.isdigit():
-        # TODO: Perform further checking, see above todo.
+        cpr_char_arr = list(cpr)
+        cpr_int_arr = [int(i) for i in cpr]
+        control_arr = [4,3,2,7,6,5,4,3,2,1]
 
-        return None
+        p_cpr = pandas.Series(cpr_int_arr)
+        p_con = pandas.Series(control_arr)
+      
+        if pandas.sum(p_cpr*p_con) % 11 == 0
+          return None
 
   return "Incorrect CPR nr."
 
