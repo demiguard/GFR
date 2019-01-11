@@ -341,7 +341,7 @@ def get_all(hosp_aet):
       ret.append(examination_info)
 
       # Save to dcm file with rigs nr. as  corresponding rsp file
-      obj.save_as('{0}/{1}.dcm'.format(resp_dir))
+      obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
       os.remove(key)
 
   return sorted(ret, key=lambda x: x.name)
