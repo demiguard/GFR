@@ -83,7 +83,7 @@ def generate_plot(data_points1, data_points2, rigs_nr, hosp_dir='RH', imageHeigh
   """
   # Generate background fill
   # TODO: These values define changed
-  save_dir = 'main_page/Graphs/{0}'.format(hosp_dir)
+  save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
 
   x =           [0, 40, 100]
   zeros =       [0, 0, 0]
@@ -95,6 +95,7 @@ def generate_plot(data_points1, data_points2, rigs_nr, hosp_dir='RH', imageHeigh
 
   fig, ax = plt.subplots(1, 2)
 
+
   # Generate backgrounds for second graph
   ax[1].set_xlim(0, 100)
   ax[1].set_ylim(0, 130)
@@ -104,10 +105,15 @@ def generate_plot(data_points1, data_points2, rigs_nr, hosp_dir='RH', imageHeigh
   ax[1].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
   ax[1].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
   
+  titlesize = 8
+  labelsize = 18
+
   # Set titles and labels
   ax[0].set_xlabel('min. efter inj.')
   ax[0].set_ylabel('log(CPM)')
   ax[0].grid(color='black')
+  plt.rc('axes', titlesize=titlesize)
+  plt.rc('axes', labelsize=labelsize)
 
   ax[1].set_xlabel('Alder (år)')
   ax[1].set_ylabel('GFR (ml/min pr. 1.73m²)')

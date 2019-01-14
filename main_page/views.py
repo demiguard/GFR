@@ -132,9 +132,12 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   DICOM_directory = "./tmp"
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
+  #MATH
 
 
+  #Display
   plot_path = clearance_math.generate_plot([],[], rigs_nr,hospital)
+  plot_path = plot_path[17:] # #hacky
 
   template = loader.get_template('main_page/present_study.html')
   
@@ -146,7 +149,8 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
     'sex'   : exam.info['sex'],
     'GFR'   : exam.info['GFR'],
     'GFR_N' : exam.info['GFR_N'],
-    'image_path' : plot_path
+    'image_path' : plot_path,
+    'Nyrefunction' : ''
   }
 
 
