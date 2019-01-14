@@ -81,8 +81,8 @@ def generate_plot(data_points1, data_points2, rigs_nr, hosp_dir='RH', imageHeigh
   Remark:
     Generate as one image, with multiple subplots.
   """
-  # Generate background fill19.2
-  # TODO: These values defin19.2e changed
+  # Generate background fill
+  # TODO: These values define changed
   save_dir = 'main_page/Graphs/{0}'.format(hosp_dir)
 
   x =           [0, 40, 100]

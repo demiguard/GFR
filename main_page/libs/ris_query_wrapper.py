@@ -209,26 +209,20 @@ def get_examination(rigs_nr, resp_dir):
   examination_info.info['name'] = format_name(obj.PatientName)
 
   # Try to read optional patient/examination attributes from previous examinations
-  try:
-    examination_info.info['sex'] = obj[0x0010, 0x0040]
-  except KeyError:
-    # Depermine patient sex based on cpr nr.
-    examination_info.info['sex'] = calculate_sex(examination_info.info['cpr'])
+  def try_get_exam_info(key, tags, err_callback, *args, **kwargs):
+    try:
+      examination_info.info[key] = obj[tags[0], tags[1]]
+    except KeyError:
+      examination_info.info[key] = err_callback(*args, **kwargs)
 
-  try:
-    examination_info.info['weight'] = obj[0x0010, 0x0030]
-  except KeyError:
+  def no_callback(*args, **kwargs):
     pass
 
-  try:
-    examination_info.info['height'] = obj[0x0010, 0x0020]
-  except KeyError:
-    pass
-
-  try:
-    examination_info.info['age'] = obj[0x0010, 0x1010]
-  except KeyError:
-    examination_info.info['age'] = calculate_age(examination_info.info['cpr'])
+  # Depermine patient sex based on cpr nr. if not able to retreive it
+  try_get_exam_info('sex', (0x0010, 0x0040), calculate_sex, examination_info.info['cpr'])
+  try_get_exam_info('weight', (0x0010, 0x0030), no_callback)
+  try_get_exam_info('height', (0x0010, 0x0020), no_callback)
+  try_get_exam_info('age', (0x0010, 0x1010), calculate_age, examination_info.info['cpr'])
 
   # Custom tags
   # try:
@@ -356,30 +350,24 @@ def check_cpr(cpr):
   Returns:
     None if valid cpr number, otherwise a string containing an error message
   """
+  # Validate length and position of '-' char
   if len(cpr) == 10: # No '-' char
-    if cpr.isdigit():
-      # Extract birthday
-      byear = cpr[0:2]
-      bmonth = cpr[2:4]
-      bday = cpr[4:6]
-      control_num = cpr[6:]
-
-      return None
+    pass
   elif len(cpr) == 11: # Cpr string contains '-' char
     if cpr[6] == '-':
       cpr = cpr.replace('-', '')
+  else: 
+    return "Incorrect CPR nr."
 
-      if cpr.isdigit():
-
-        cpr_char_arr = list(cpr)
-        cpr_int_arr = [int(i) for i in cpr]
-        control_arr = [4,3,2,7,6,5,4,3,2,1]
-
-        p_cpr = pandas.Series(cpr_int_arr)
-        p_con = pandas.Series(control_arr)
-      
-        if pandas.sum(p_cpr*p_con) % 11 == 0:
-          return None
+  # Check if digits and validate checksum
+  if cpr.isdigit():
+    cpr_int_arr = [int(i) for i in cpr]
+    control_arr = [4,3,2,7,6,5,4,3,2,1]
+    p_cpr = pandas.Series(cpr_int_arr)
+    p_con = pandas.Series(control_arr)
+  
+    if pandas.sum(p_cpr*p_con) % 11 == 0:
+      return None
 
   return "Incorrect CPR nr."
 
