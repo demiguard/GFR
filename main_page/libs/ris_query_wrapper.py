@@ -41,7 +41,7 @@ class ExaminationInfo():
     self.image = ''   #Path image
     """
 
-# Class done    
+# Class done
 
 # TODO: Move these to config file
 RIGS_AET = "VIMCM"
@@ -366,7 +366,7 @@ def check_cpr(cpr):
     p_cpr = pandas.Series(cpr_int_arr)
     p_con = pandas.Series(control_arr)
   
-    if pandas.sum(p_cpr*p_con) % 11 == 0:
+    if (p_cpr * p_con).sum() % 11 == 0:
       return None
 
   return "Incorrect CPR nr."
@@ -458,7 +458,7 @@ def is_valid_study(cpr, name, study_date, ris_nr):
   # Filter out None values
   error_strings = list(filter(lambda x: x, error_strings))
 
-  return (len(error_strings) == 0, '\n'.join(error_strings))
+  return (len(error_strings) == 0, error_strings)
 
 def store_study(ris_nr, resp_dir):
   """

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.template import loader
+from django.shortcuts import redirect
 
 from . import forms
 from .libs import ris_query_wrapper as ris
@@ -37,26 +38,15 @@ def new_study(request):
     study_date = request.POST['study_date']
     ris_nr = request.POST['ris_nr']
 
-    print(request.POST)
-    print(cpr)
-    print(name)
-    print(study_date)
-    print(ris_nr)
-
-    success, error_msg = ris.is_valid_study(cpr, name, study_date, ris_nr)
-
-    print(success)
-    print(error_msg)
+    success, error_msgs = ris.is_valid_study(cpr, name, study_date, ris_nr)
 
     if success:
-      ris.store_study(cpr, name, study_date, ris_nr)
-      #TODO redirect to fill_study/ris_nr 
+      #ris.store_study(cpr, name, study_date, ris_nr)
+      
+      # redirect to fill_study/ris_nr 
+      return redirect('main_page:fill_study', rigs_nr=ris_nr)
     else:
-      # Report error messages back to user
-      print(error_msg)
-
-      context['error_msg'] = error_msg
-      #return HttpResponse(template.render(context, request))
+      context['error_msgs'] = error_msgs
 
   return HttpResponse(template.render(context, request))
 

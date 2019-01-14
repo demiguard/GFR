@@ -5,11 +5,17 @@
 {% block content %}
   <h2>Lav ny undersøgelse</h2> <br>
 
-  <h3> {{ error_msg }} 
-
   <form method="POST" class="form">
     {% csrf_token %}
     {% bootstrap_form study_form %}
+    
+    <!-- Display possible error messages -->
+    {% for err in error_msgs %}
+      <small style="color: coral;">{{ err }}</small> <br>
+    {% endfor %}
+    
+    <br>
+    
     {% buttons %}
       <button type="submit" class="btn">
         Opret
