@@ -2,6 +2,16 @@ import numpy
 import matplotlib.pyplot as plt
 import pandas
 
+class table_info():
+  def __init__(self, study_time, cnt, pos, rack, date, run_id):
+    self.time = study_time
+    self.cnt  = cnt
+    self.pos  = pos
+    self.rack = rack
+    self.date = date
+    self.run_id = run_id
+
+
 def surface_area(height, weight, method = "Du Bois"):
   """Estimate the surface area of a human being, based on height and height
 
@@ -45,7 +55,7 @@ def cpr_age(cpr):
 def check_cpr(cpr):
   pass
 
-def import_csv(csv_path, dicom, Vials, machine =''):
+def import_csv(csv_path, machine ='', method='Cr-51 Counts'):
   """
   Imports a generated csv file and extracts the data
 
@@ -61,10 +71,23 @@ def import_csv(csv_path, dicom, Vials, machine =''):
   Remarks:
     It's the user responsibility to save the Dicom object
   """
-  Error_msg = []
-  Changed_tags = []
 
-  return Error_msg, Changed_tags
+  data = pandas.read_csv(csv_path)
+
+  table_infos = []
+
+  for i in numpy.arange(data.shape[0]):
+    new_table_info = table_info(
+      data['Time'][i],
+      data[method][i],
+      data['Pos'][i],
+      data['Rack'][i],
+      data['Measurement date & time'][i], 
+      data['Run ID'][i]
+      )
+    table_infos.append(new_table_info)
+
+  return table_infos
 
 
 
