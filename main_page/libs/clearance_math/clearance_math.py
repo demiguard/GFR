@@ -1,6 +1,7 @@
 import numpy
 import matplotlib.pyplot as plt
 import pandas
+import datetime
 
 class table_info():
   def __init__(self, study_time, cnt, pos, rack, date, run_id):
@@ -21,7 +22,7 @@ def surface_area(height, weight, method = "Du Bois"):
     method: Method for calculating the Body surface area
 
   Returns:
-
+    A float estimating the surface area of a human
   """
   if method == "Du Bois": 
       return 0.007184*(weight**0.425)*(height**0.725)
@@ -32,6 +33,75 @@ def surface_area(height, weight, method = "Du Bois"):
   else:
     return -1
 
+def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
+  """
+  Calculate the Clearence, using the functions from clearance_function.php
+
+  
+  Argument:
+    inj_time: A Date from datetime containing information when injection happened 
+    sample_time: a list of dates from datetime containing formation when the bloodsample was taken
+    tec99_cnt: A list of int containing the counts from
+    BSA: a float, representing body surface area, Use Surface_area
+    dosis: A float with calculation of the dosis size, Use dosis
+
+  Optional Arguments
+    method for calculating 
+
+  return
+    clearence, clearence-normalized
+  """
+  
+  delta_times = [] #timedelta list from timedate
+  for time in sample_time:
+    #Compute how many minutes between injection and 
+    delta_times.append(time-inj_time).second / 60
+
+  if method == "EPV":
+    #In this method deltatimes and tec99_cnt lenght is equal to one
+    #Magical number a credible doctor once found
+    magic_number_1 = 0.213
+    magic_number_2 = 104
+    magic_number_3 = 1.88
+    magic_number_4 = 928
+
+    clearence = 
+      (magic_number_1 * delta_times[0] - magic_number_2) * 
+      numpy.log(tec99_cnt[0] * BSA / dosis )
+      + magic_number_3 * delta_times[0] - magic_number_4
+    #
+    magic_number_5 = 1.73
+    clearence_normalized = clearence * BSA / magic_number_5 
+  elif method == "EPB":
+    #
+    #Magical Numbers
+    magic_number_1 = 5867
+    magic_number_2 = 1.1792
+    
+    ECV = magic_number_1 * BSA ** magic_number_2
+
+    magic_number_3 = 1.01
+    magic_number_4 = -0.00011
+    magic_number_5 = 0.538
+    magic_number_6 = -0.178 
+  
+    g =
+      magic_number_3 * numpy.exp(magic_number_4 * delta_times[0]) 
+      + magic_number_5 * numpy.exp(magic_number_6 * delta_times[0])
+    
+    clearence = (numpy.log(tec99_cnt[0]* ECV / dosis)*ECV)/(delta_times[0]*g)
+    
+    magic_number_7 = 1.73
+
+    clearence_normalized =  clearence * magic_number_7 / BSA
+  elif method == "Multi-4"
+    pass
+  else:
+    print("this shouldnt happen")
+    return -1, -1
+
+  return clearence, clearence_normalized
+
 def dosis(inj, fac, stc):
   """Compute dosis based on args.
 
@@ -41,7 +111,7 @@ def dosis(inj, fac, stc):
     stc: standard count
 
   """
-  pass
+ return inj*fac*stcx
 
 def cpr_birth(cpr):
   pass
