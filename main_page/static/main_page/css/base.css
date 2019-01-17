@@ -29,6 +29,11 @@ html, body {
   text-align: center;
 }
 
+#sidebar-title a {
+  text-decoration: none;
+  color: #FFFFFF;
+}
+
 .content-container {
   padding: 3%;
 }
