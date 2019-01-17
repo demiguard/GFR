@@ -1,0 +1,2 @@
+# Ignore the compiled dcm query, it should be recreated from the dumps
+*.dcm

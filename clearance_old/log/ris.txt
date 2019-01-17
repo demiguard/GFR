@@ -1,0 +1,122 @@
+2013-01-25 12:16:14getting records
+2013-01-25 12:16:30got records
+2013-01-25 12:16:30filtering records
+2013-01-25 12:16:30formatting records
+2013-01-25 12:16:30sorting records
+2013-01-25 12:16:30printing records
+2013-01-25 12:17:07	getting records
+2013-01-25 12:17:24	got records
+2013-01-25 12:17:24	filtering records
+2013-01-25 12:17:24	formatting records
+2013-01-25 12:17:24	sorting records
+2013-01-25 12:17:24	printing records
+2013-01-25 12:21:19	getting records
+2013-01-25 12:21:35	got records
+2013-01-25 12:21:35	filtering records
+2013-01-25 12:21:35	formatting records
+2013-01-25 12:21:35	sorting records
+2013-01-25 12:21:35	printing records
+2013-01-25 12:23:24	getting records
+2013-01-25 12:23:44	got records
+2013-01-25 12:23:44	filtering records
+2013-01-25 12:23:44	formatting records
+2013-01-25 12:23:44	sorting records
+2013-01-25 12:23:44	printing records
+2013-01-25 12:24:02	getting records
+2013-01-25 12:24:27	getting records
+2013-01-25 12:24:29	got records
+2013-01-25 12:24:29	filtering records
+2013-01-25 12:24:29	formatting records
+2013-01-25 12:24:29	sorting records
+2013-01-25 12:24:29	printing records
+2013-01-25 12:24:45	got records
+2013-01-25 12:24:45	filtering records
+2013-01-25 12:24:45	formatting records
+2013-01-25 12:24:45	sorting records
+2013-01-25 12:24:45	printing records
+2013-01-25 12:27:15 [ris.php] getting records
+2013-01-25 12:27:15 [C-FIND] Querying BROKER
+2013-01-25 12:27:35 [C-FIND] Parsing records
+2013-01-25 12:27:35 [ris.php] got records
+2013-01-25 12:27:35 [ris.php] filtering records
+2013-01-25 12:27:35 [ris.php] formatting records
+2013-01-25 12:27:35 [ris.php] sorting records
+2013-01-25 12:27:35 [ris.php] printing records
+2013-01-25 14:26:47 [ris.php] getting records
+2013-01-25 14:26:47 [C-FIND] Querying BROKER
+2013-01-25 14:27:03 [C-FIND] Parsing records
+2013-01-25 14:27:03 [ris.php] filtering records
+2013-01-25 14:27:03 [ris.php] formatting records
+2013-01-25 14:27:03 [ris.php] sorting records
+2013-01-25 14:27:03 [ris.php] printing records
+2013-01-25 14:27:29 [ris.php] getting records
+2013-01-25 14:27:29 [C-FIND] Querying BROKER
+2013-01-25 14:27:45 [C-FIND] Parsing records
+2013-01-25 14:27:45 [ris.php] filtering records
+2013-01-25 14:27:45 [ris.php] formatting records
+2013-01-25 14:27:45 [ris.php] sorting records
+2013-01-25 14:27:45 [ris.php] printing records
+2013-01-25 14:30:42 [ris.php] getting records
+2013-01-25 14:30:42 [C-FIND] Querying BROKER
+2013-01-25 14:30:59 [C-FIND] Parsing records
+2013-01-25 14:30:59 [ris.php] filtering records
+2013-01-25 14:30:59 [ris.php] formatting records
+2013-01-25 14:30:59 [ris.php] sorting records
+2013-01-25 14:30:59 [ris.php] printing records
+2013-01-25 14:52:11 [ris.php] getting records
+2013-01-25 14:52:11 [C-FIND] Querying BROKER
+2013-01-25 14:52:27 [C-FIND] Parsing records
+2013-01-25 14:52:27 [ris.php] filtering records
+2013-01-25 14:52:27 [ris.php] formatting records
+2013-01-25 14:52:27 [ris.php] sorting records
+2013-01-25 14:52:27 [ris.php] printing records
+2013-01-25 14:56:16 [ris.php] Using cache
+2013-01-25 14:56:37 [ris.php] Using cache
+2013-01-25 15:56:24 [ris.php] getting records
+2013-01-25 15:56:24 [C-FIND] Querying BROKER
+2013-01-25 15:56:41 [C-FIND] Parsing records
+2013-01-25 15:56:41 [ris.php] filtering records
+2013-01-25 15:56:41 [ris.php] formatting records
+2013-01-25 15:56:41 [ris.php] sorting records
+2013-01-25 15:56:41 [ris.php] printing records
+2013-01-25 15:58:46 [ris.php] Using cache
+2013-01-25 15:59:28 [ris.php] Using cache
+2013-01-25 16:01:35 [ris.php] Using cache
+2013-01-25 16:17:26 [ris.php] getting records
+2013-01-25 16:17:26 [C-FIND] Querying BROKER
+2013-01-25 16:17:43 [C-FIND] Parsing records
+2013-01-25 16:17:43 [ris.php] filtering records
+2013-01-25 16:17:43 [ris.php] formatting records
+2013-01-25 16:17:43 [ris.php] sorting records
+2013-01-25 16:17:43 [ris.php] printing records
+2013-01-25 16:18:45 [ris.php] getting records
+2013-01-25 16:18:45 [C-FIND] Querying BROKER
+2013-01-25 16:19:13 [C-FIND] Parsing records
+2013-01-25 16:19:13 [ris.php] filtering records
+2013-01-25 16:19:13 [ris.php] formatting records
+2013-01-25 16:19:13 [ris.php] sorting records
+2013-01-25 16:19:13 [ris.php] printing records
+2013-01-25 16:19:54 [ris.php] getting records
+2013-01-25 16:19:54 [C-FIND] Querying BROKER
+2013-01-25 16:20:12 [C-FIND] Parsing records
+2013-01-25 16:20:12 [ris.php] filtering records
+2013-01-25 16:20:12 [ris.php] formatting records
+2013-01-25 16:20:12 [ris.php] sorting records
+2013-01-25 16:20:12 [ris.php] printing records
+2013-01-25 16:20:45 [ris.php] getting records
+2013-01-25 16:20:45 [C-FIND] Querying BROKER
+2013-01-25 16:20:53 [ris.php] Using cache
+2013-01-25 16:21:01 [C-FIND] Parsing records
+2013-01-25 16:21:01 [ris.php] filtering records
+2013-01-25 16:21:01 [ris.php] formatting records
+2013-01-25 16:21:01 [ris.php] sorting records
+2013-01-25 16:21:01 [ris.php] printing records
+2013-01-25 16:21:31 [ris.php] Using cache
+2013-01-25 16:22:08 [ris.php] Using cache
+2013-01-25 16:22:20 [ris.php] Using cache
+2013-01-25 16:23:58 [ris.php] Using cache
+2013-01-25 16:24:09 [ris.php] Using cache
+2013-01-25 16:24:52 [ris.php] Using cache
+2013-01-25 16:26:05 [ris.php] Using cache
+2013-01-25 16:26:10 [ris.php] Using cache
+2013-01-25 16:27:26 [ris.php] Using cache
