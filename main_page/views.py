@@ -10,6 +10,7 @@ from .libs.clearance_math import clearance_math
 import datetime
 import glob
 import os
+import pandas
 
 # Create your views here.
 def index(request):
@@ -79,11 +80,25 @@ def fill_study(request, rigs_nr):
   test_range = range(6)
   test_form = forms.FillStudyTest()
 
+  # Get list of csv files
   csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
   csv_names = [os.path.basename(path) for path in csv_files]
-  
 
-  print("name:", exam_info['name'])
+  # Read required data from each csv file  
+  csv_data = []
+  for file in csv_files:
+    temp_p = pandas.read_csv(file)
+    curr_data = [[] for _ in range(temp_p.shape[0])]
+
+    for i, row in temp_p.iterrows():
+      curr_data[i].append(row['Rack'])
+      curr_data[i].append(row['Pos'])
+      curr_data[i].append(row['Cr-51 Counts'])
+      curr_data[i].append(row['Cr-51 CPM'])
+
+    csv_data.append(curr_data)
+
+  csv_data = zip(csv_names, csv_data)
 
   context = {
     'rigsnr': rigs_nr,
@@ -99,7 +114,7 @@ def fill_study(request, rigs_nr):
       'test_range': test_range,
       'test_form': test_form
     },
-    'csv_names' : csv_names
+    'csv_data': csv_data
   }
 
   return HttpResponse(template.render(context, request))

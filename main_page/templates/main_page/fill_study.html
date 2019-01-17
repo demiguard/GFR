@@ -24,9 +24,28 @@
         </tr>        
       </thead>
       <tbody>
-        {% for name in csv_names %}
+        {% for name, data in csv_data %}
           <tr>
             <td>{{ name }}</td>
+            <!-- <td>{{ csv_data }}</td> -->
+              <thead>
+                <tr>
+                  <th>Rack</th>
+                  <th>Position</th>
+                  <th>Cr-51 Counts</th>
+                  <th>Cr-51 CPM</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for data_row in data %}
+                  <tr>
+                    <td>{{ data_row.0 }}</td>
+                    <td>{{ data_row.1 }}</td>
+                    <td>{{ data_row.2 }}</td>
+                    <td>{{ data_row.3 }}</td>
+                  </tr>  
+                {% endfor %}
+              </tbody>
           </tr>
         {% endfor %}
       </tbody>
