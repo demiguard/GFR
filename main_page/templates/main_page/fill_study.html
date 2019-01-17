@@ -12,10 +12,25 @@
     {% bootstrap_form study_info_form %}
     {% bootstrap_form study_type_form %}
     
-    <h5>Prøve	Prøvetidspunkt (TT:mm):	Prøvetælletal (cpm)</h5>
+    <!-- <h5>Prøve	Prøvetidspunkt (TT:mm):	Prøvetælletal (cpm)</h5>
     {% for i in test_context.test_range %}
       {% bootstrap_label forloop.counter %}. {% bootstrap_form test_context.test_form layout='inline' %}
-    {% endfor %}
+    {% endfor %} -->
+
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Undersøgelse</th>
+        </tr>        
+      </thead>
+      <tbody>
+        {% for name in csv_names %}
+          <tr>
+            <td>{{ name }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
     {% buttons %}
       <input type="submit" value="Beregn">

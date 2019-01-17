@@ -8,6 +8,8 @@ from .libs import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
 
 import datetime
+import glob
+import os
 
 # Create your views here.
 def index(request):
@@ -77,6 +79,10 @@ def fill_study(request, rigs_nr):
   test_range = range(6)
   test_form = forms.FillStudyTest()
 
+  csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
+  csv_names = [os.path.basename(path) for path in csv_files]
+  
+
   print("name:", exam_info['name'])
 
   context = {
@@ -92,7 +98,8 @@ def fill_study(request, rigs_nr):
     'test_context': {
       'test_range': test_range,
       'test_form': test_form
-    }
+    },
+    'csv_names' : csv_names
   }
 
   return HttpResponse(template.render(context, request))
