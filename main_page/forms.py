@@ -28,15 +28,15 @@ class FillStudyDaily(forms.Form):
   standard = forms.IntegerField(label='Standard tælletal')
 
 class FillStudyInfo(forms.Form):
-  name = forms.CharField(label='Navn')
-  sex = forms.CharField(label='Køn')
-  age = forms.IntegerField(label='Alder')
-  height = forms.FloatField(label='Højde (cm)')
-  weight = forms.FloatField(label='Vægt (kg)')
-  vial = forms.IntegerField(label='Sprøjte')
-  vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)')
-  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)')
-  injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)')
+  name = forms.CharField(label='Navn', required=False)
+  sex = forms.CharField(label='Køn', required=False)
+  age = forms.IntegerField(label='Alder', required=False, min_value=0)
+  height = forms.FloatField(label='Højde (cm)', required=False, min_value=0, max_value=300)
+  weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0, max_value=1000)
+  vial = forms.IntegerField(label='Sprøjte', required=False, min_value=0)
+  vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False, min_value=0)
+  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
+  injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
 
 class FillStudyType(forms.Form):
   types = [
@@ -48,5 +48,5 @@ class FillStudyType(forms.Form):
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
 
 class FillStudyTest(forms.Form):
-  test_time = forms.TimeField(label='', required=False)
-  test_value = forms.FloatField(label='', required=False)
+  test_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
+  test_value = forms.FloatField(label='Prøvetælletal (cpm)', required=False, min_value=0)

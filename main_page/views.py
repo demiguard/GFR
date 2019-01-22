@@ -71,6 +71,30 @@ def list_studies(request):
   return HttpResponse(template.render(context, request))
 
 def fill_study(request, rigs_nr):
+  if request.method == 'POST':
+    print(request.POST)
+
+    if 'calculate' in request.POST: # 'Beregn' clicked
+      print("Calculate")
+
+      # Redirect to study presentation page
+
+    elif 'calculate-nodb' in request.POST: # 'Beregn udenom databasen' clicked
+      print("Calcuate around database")
+
+      # Redirect to study presentation page, without saving to database
+
+    elif 'save' in request.POST: # 'Gem' clicked - save in temp database
+      print("Save in database")
+
+      # Redirect back to list_studies
+
+    elif 'cancel' in request.POST: # 'Afbryd' clicked
+      print("Cancel filling out parient info")
+
+      # Discard form info and redirect back to list_studies
+
+
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
   
@@ -79,10 +103,12 @@ def fill_study(request, rigs_nr):
 
   test_range = range(6)
   test_form = forms.FillStudyTest()
+  for f in test_form:
+    f.field.widget.attrs['class'] = 'form-control'
 
   # Get list of csv files
   csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
-  csv_names = [os.path.basename(path) for path in csv_files]
+  csv_names = [os.path.basename(path).split('.')[0] for path in csv_files]
 
   # Read required data from each csv file  
   csv_data = []
