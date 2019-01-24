@@ -49,4 +49,5 @@ class FillStudyType(forms.Form):
 
 class FillStudyTest(forms.Form):
   test_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
+  test_date = forms.DateField(label='Dato (YYYY-MM-DD)', required=False)
   test_value = forms.FloatField(label='Prøvetælletal (cpm)', required=False, min_value=0)

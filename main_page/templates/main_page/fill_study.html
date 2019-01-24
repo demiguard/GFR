@@ -24,8 +24,11 @@
     <!-- Add test info -->
     <strong>Tilføj prøve:</strong>
     <!-- 'Tilføj manuelt' buttons -->
-    <p>Indtast prøve manuelt:</p>
     <div class="form-row">
+      <div class="form-group col-md-3">
+        {{ test_context.test_form.test_date.label }}
+        {{ test_context.test_form.test_date }}
+      </div>
       <div class="form-group col-md-3">
         {{ test_context.test_form.test_time.label }}
         {{ test_context.test_form.test_time }}
@@ -36,7 +39,7 @@
       </div>
     </div>
     {% buttons %}
-      <input type="button" value="Tilføj">
+      <input type="button" value="Tilføj" id="add-test">
     {% endbuttons %}
 
     <!-- Select test values from csv file -->
