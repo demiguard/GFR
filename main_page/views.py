@@ -171,6 +171,19 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
   #MATH
+  #Compute Body surface area
+  Body_surface_area = clearance_math.surface_area(int(exam.info['height']),int(exam.info['weight']))
+  exam.info['BSA'] = str(Body_surface_area)
+
+  GFR, GFR_N = clearance_math.calc_clearance(
+    exam.info['inj_time'],
+    exam.info['sam_t'],
+    exam.info['tch_cnt'], 
+    exam.info['BSA'],
+    exam.info['dosis'],
+    method=exam.info['method']
+  )
+
 
 
   #Display

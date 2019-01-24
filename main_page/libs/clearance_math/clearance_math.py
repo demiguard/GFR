@@ -2,6 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 import pandas
 import datetime
+from PIL import Image
 from scipy.stats import linregress
 
 class table_info():
@@ -53,7 +54,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     clearence, clearence-normalized
   """
   
-  delta_times = [(time - inj_time).seconds / 60 for time in sample_time] #timedelta list from timedate
+  delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_time] #timedelta list from timedate
   # for time in sample_time:
   #   #Compute how many minutes between injection and 
   #   delta_times.append((time-inj_time).seconds / 60)
@@ -192,6 +193,36 @@ def generate_plot(
   Remark:
     Generate as one image, with multiple subplots.
   """
+
+  def fig2data ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a 4D numpy array with RGBA channels and return it
+    @param fig a matplotlib figure
+    @return a numpy 3D array of RGBA values
+    """
+    # draw the renderer
+    fig.canvas.draw ( )
+ 
+    # Get the RGBA buffer from the figure
+    w,h = fig.canvas.get_width_height()
+    buf = numpy.fromstring ( fig.canvas.tostring_argb(), dtype=numpy.uint8 )
+    buf.shape = ( w, h,4 )
+ 
+    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
+    buf = numpy.roll ( buf, 3, axis = 2 )
+    return buf
+
+  def fig2img ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a PIL Image in RGBA format and return it
+    @param fig a matplotlib figure
+    @return a Python Imaging Library ( PIL ) image
+    """
+    # put the figure pixmap into a numpy array
+    buf = fig2data ( fig )
+    w, h, d = buf.shape
+    return Image.frombytes( "RGBA", ( w ,h ), buf.tostring( ) )
+
   # Generate background fill
   # TODO: These values define changed
   save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
@@ -236,9 +267,10 @@ def generate_plot(
   fig.set_figheight(imageHeight)
   fig.set_figwidth(imageWidth)
   plt.legend()
-  image_path = "{0}/{1}.png".format(save_dir,rigs_nr)
+  image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
   if save_fig : 
-    plt.savefig(image_path)
+    im = fig2img(fig)
+    im.save(image_path)
   if show_fig :
     plt.show()
 

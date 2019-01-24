@@ -11,17 +11,22 @@ import pandas
 class ExaminationInfo():
   def __init__(self):
     self.info = {
-      'ris_nr':'',
-      'name'  :'',
-      'cpr'   :'',
-      'age'   :'',
-      'date'  :'',
-      'sex'   :'',
-      'height':'',
-      'weight':'',
-      'BSA'   :'',
-      'GFR'   :'',
-      'GFR_N' :''
+      'ris_nr' :'',
+      'name'   :'',
+      'cpr'    :'',
+      'age'    :'',
+      'date'   :'',
+      'sex'    :'',
+      'height' :'',
+      'weight' :'',
+      'BSA'    :'',
+      'GFR'    :'',
+      'GFR_N'  :'',
+      'Method' :'',
+      'inj_t'  : datetime.datetime(0,0,0,0,0),
+      'sam_t'  : [], #Datetime list
+      'tch_cnt': [], #list of technisium count
+      'dosis'  : 0
     }
 
     """
@@ -59,6 +64,8 @@ CALLING_AET = "RH_EDTA"
 DUMP2DCM = "dump2dcm"
 FINDSCU = "findscu"
 STORESCU = 'storescu'
+
+
 
 def execute_query(cmd):
   """Executes a query and 
