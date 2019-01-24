@@ -36,7 +36,7 @@ $('#add-test').click(function() {
   var ttime_serialized = $('#id_test_time').serialize();
   var test_time = ttime_serialized.split('=')[1];
   test_time = test_time.replace("%3A", ":");
-  var TIME_FORMAT = /^([0-1][0-9]|[2][0-4]):[0-5][0-9]$/;
+  var TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
 
   var tdate_serialized = $('#id_test_date').serialize();
   var test_date = tdate_serialized.split('=')[1];
@@ -56,7 +56,7 @@ $('#add-test').click(function() {
       var html_field_input_end = "\" value=\""
       var html_field_end = "\" readonly></div>";
       //var html_remove_btn = "<button type=\"button\" class=\"btn btn-default btn-lg\"><span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\"></span></button>"
-      var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn form-group col-md-1\">";
+      var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger form-group col-md-1\">";
 
       $('#test-data-container').append(html_row_base_begin);
       $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_date" + html_field_input_end + test_date + html_field_end);
@@ -66,7 +66,7 @@ $('#add-test').click(function() {
       $('#test-data-container').append(html_row_base_end);
 
       // Register on click event-handler for remove row button
-      $('.row-remove-btn').on('click', function(event) {
+      $('.row-remove-btn').on('click', function() {
         $(this).parent().remove();
       });
 
@@ -83,6 +83,11 @@ $('#add-test').click(function() {
   }
 });
 
+// row on click handler
 $('.csv_row').on('click', function() {
-  
+  // Extract count value from table
+  var count_value = $(this).children().eq(2).html();
+
+  // Insert count value into 'Prøvetælletal' field
+  $('#id_test_value').val(count_value);
 });

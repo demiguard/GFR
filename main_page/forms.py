@@ -37,6 +37,7 @@ class FillStudyInfo(forms.Form):
   vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False, min_value=0)
   vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
+  injection_date = forms.DateField(label='Injektionsdato (YYYY-MM-DD)', required=False)
 
 class FillStudyType(forms.Form):
   types = [

@@ -82,19 +82,26 @@ def execute_query(cmd):
   """
   return check_output(cmd)
 
-def store_dicom(dicom_obj_path, tags, value, Value_rep, ):
-   """
-    Stores value in the tags of the dicom
-    Value Rep is 
+def store_dicom(dicom_obj_path, tags, values, value_reps):
+  """
+  Stores value in the tags of the dicom
+  Value Rep is 
 
-    Args:
-      dicom_obj: The object to store
+  Args:
+    dicom_obj: The object to store
 
-    Remarks
-      Using this function it's only posible to store sequences of a single type.
-      So for instance it can store a sequence of sequences of dates, but not a
-      a sequence containing a sequence of dates and floats
-   """
+  Remarks
+    Using this function it's only posible to store sequences of a single type.
+    So for instance it can store a sequence of sequences of dates, but not a
+    a sequence containing a sequence of dates and floats
+  """
+  ds = pydicom.dcmread(dicom_obj_path)
+
+  for tag, val, val_rep in zip(tags, values, value_reps):
+    ds.add_new(tag, val_rep, val)
+  
+  ds.save_as(dicom_obj_path)
+
 
 def parse_bookings(resp_dir):
   """

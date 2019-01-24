@@ -7,11 +7,13 @@ from . import forms
 from .libs import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
 
+from dateutil import parser as date_parser
 import datetime
 import glob
 import os
 import pandas
 import numpy
+import pydicom
 
 # Create your views here.
 def index(request):
@@ -76,16 +78,150 @@ def fill_study(request, rigs_nr):
     print(request.POST)
 
     if 'calculate' in request.POST: # 'Bere  exam.info['BSA'],
-      print("Calculate")
+      # Extract study data 
+      # Construct datetime for injection time
+      inj_time = request.POST['injection_time']
+      inj_date = request.POST['injection_date']
+      inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
-      # Extract study data
+      # Construct datetimes for study times
+      sample_dates = request.POST.getlist('test_date')[:-1]
+      sample_times = request.POST.getlist('test_time')[:-1]
       
+      sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
+                            for time, date in zip(sample_times, sample_dates)])
 
-      # Calculate
+      # Measured tec99 counts
+      tec_counts = numpy.array([int(x) for x in request.POST.getlist('test_value')[:-1]])
+
+      # Compute surface area
+      weight = float(request.POST['weight'])
+      height = float(request.POST['height'])
+      BSA = clearance_math.surface_area(weight, height)
+
+      # Compute dosis
+      inj_weight_before = float(request.POST['vial_weight_before'])
+      inj_weight_after = float(request.POST['vial_weight_after'])
+      inj_weight = inj_weight_before - inj_weight_after
+      
+      # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
+      STD_CNT = 8071
+      FACTOR = 980
+      dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
+
+      # Determine study method
+      # TODO: Possibly make an Enum in the future
+      study_type = int(request.POST['study_type'])
+      if study_type == 0:
+        method = "EPV"
+      elif study_type == 1:
+        method = "EPB"
+      elif study_type == 2:
+        method = "Multi-4"
+      else:
+        method="INVALID METHOD"
+
+      # Calculate GFR
+      gfr, gfr_norm = clearance_math.calc_clearance(
+        inj_datetime, 
+        sample_datetimes,
+        tec_counts,
+        BSA,
+        dosis,
+        method=method
+      )
+
+      # Generate plot
+      if study_type >= 1: # Not EPV or EPB
+        data_points1 = numpy.array([sample_datetimes, tec_counts])
+      else:
+        data_points1 = numpy.array([[], []])
+      
+      age = int(request.POST['age'])
+      data_points2 = numpy.array([[age], [gfr_norm]])
+
+      plot_path = clearance_math.generate_plot(
+        data_points1,
+        data_points2,
+        rigs_nr
+      )
+
+      # Save GFR and extracted study data to DICOM corresponding DICOM object
+      # TODO: Update these to the ones Flemming found
+      BSA_TAG = (0x0017, 0x0017)
+      GFR_TAG = (0xDEAD, 0xBEEF)
+      GFR_NORM_TAG = (0xDEAD, 0xBEFF)
+      INJ_WEIGHT_DIFF_TAG = (0xCAAF, 0x0001)
+      INJ_WEIGHT_BEFORE_TAG = (0xCAAF, 0x8085)
+      INJ_WEIGHT_AFTER_TAG = (0xCAAF, 0x0807)
+      INJ_DATETIME_TAG = (0xCAAF, 0xABCD)
+      METHOD_TAG = (0x0667, 0x0667)
+      WEIGHT_TAG = (0x0010, 0x1030)
+      HEIGHT_TAG = (0x0010, 0x1020)
+
+      BSA_REP = "FL"
+      GFR_REP = "FL"
+      GFR_NORM_REP = "FL" 
+      INJ_WEIGHT_DIFF_REP = "FL"
+      INJ_WEIGHT_BEFORE_REP = "FL"
+      INJ_WEIGHT_AFTER_REP = "FL"
+      INJ_DATETIME_REP = "DT"
+      METHOD_REP = "ST"
+      WEIGHT_REP = "DS"
+      HEIGHT_REP = "DS"
+      
+      # Tag location for where to store
+      store_tags = [
+        BSA_TAG,
+        GFR_TAG,
+        GFR_NORM_TAG,
+        INJ_WEIGHT_DIFF_TAG,
+        INJ_WEIGHT_BEFORE_TAG,
+        INJ_WEIGHT_AFTER_TAG,
+        INJ_DATETIME_TAG,
+        METHOD_TAG,
+        WEIGHT_TAG,
+        HEIGHT_TAG
+      ]
+
+      # Values to store
+      store_values = [
+        BSA,
+        gfr,
+        gfr_norm,
+        inj_weight,
+        inj_weight_before,
+        inj_weight_after,
+        inj_datetime,
+        method,
+        weight,
+        height
+      ]
+
+      # Dicom value representations for each element
+      store_value_reps = [
+        BSA_REP,
+        GFR_REP,
+        GFR_NORM_REP,
+        INJ_WEIGHT_DIFF_REP,
+        INJ_WEIGHT_BEFORE_REP,
+        INJ_WEIGHT_AFTER_REP,
+        INJ_DATETIME_REP,
+        METHOD_REP,
+        WEIGHT_REP,
+        HEIGHT_REP
+      ]
+
+      ris.store_dicom('./tmp/{0}.dcm'.format(rigs_nr), store_tags, store_values, store_value_reps)
+      
+      print(rigs_nr)
+
+      # Store dicom object in PACS
+      # TODO: SET ADDRESS FOR PACS INSTEAD OF TESTING SERVER
 
 
       # Redirect to study presentation page  exam.info['BSA'],
-    
+
 
     elif 'calculate-nodb' in request.POST: # 'Beregn udenom databasen' clicked
       print("Calcuate around database")

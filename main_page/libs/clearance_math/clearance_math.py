@@ -39,7 +39,6 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   """
   Calculate the Clearence, using the functions from clearance_function.php
 
-  
   Argument:
     inj_time: A Date from datetime containing information when injection happened 
     sample_time: a list of dates from datetime containing formation when the bloodsample was taken
