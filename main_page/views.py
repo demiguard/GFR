@@ -11,6 +11,7 @@ import datetime
 import glob
 import os
 import pandas
+import numpy
 
 # Create your views here.
 def index(request):
@@ -74,10 +75,12 @@ def fill_study(request, rigs_nr):
   if request.method == 'POST':
     print(request.POST)
 
-    if 'calculate' in request.POST: # 'Beregn' clicked
+    if 'calculate' in request.POST: # 'Bere  exam.info['BSA'],
+   
       print("Calculate")
 
-      # Redirect to study presentation page
+      # Redirect to study presentation page  exam.info['BSA'],
+    
 
     elif 'calculate-nodb' in request.POST: # 'Beregn udenom databasen' clicked
       print("Calcuate around database")
@@ -171,11 +174,35 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
   #MATH
+  #Compute Body surface area
+  height = float(exam.info['height'])
+  weight = float(exam.info['weight'])
+
+  print(type(height), type(weight))
+
+  Body_surface_area = clearance_math.surface_area(height, weight)
+  exam.info['BSA'] = str(Body_surface_area)
+
+  # GFR, GFR_N = clearance_math.calc_clearance(
+    # exam.info['inj_time'],
+    # exam.info['sam_t'],
+    # exam.info['tch_cnt'], 
+    # exam.info['BSA'],
+    # exam.info['dosis'],
+    # method=exam.info['method']
+  # )
 
 
   #Display
-  plot_path = clearance_math.generate_plot([],[], rigs_nr,hospital)
+  plot_path = clearance_math.generate_plot(
+    numpy.array([[],[]]),
+    numpy.array([[],[]]),
+    rigs_nr,hospital
+  )
   plot_path = plot_path[17:] # #hacky
+  #Write to Dicom object
+
+  #
 
   template = loader.get_template('main_page/present_study.html')
   
