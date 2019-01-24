@@ -17,15 +17,15 @@ class ExaminationInfo():
       'age'    :'',
       'date'   :'',
       'sex'    :'',
-      'height' :'',
-      'weight' :'',
+      'height' :0.0,
+      'weight' :0.0,
       'BSA'    :'',
       'GFR'    :'',
       'GFR_N'  :'',
       'Method' :'',
-      'inj_t'  : datetime.datetime(0,0,0,0,0),
-      'sam_t'  : [], #Datetime list
-      'tch_cnt': [], #list of technisium count
+      'inj_t'  : datetime.datetime(2000,1,1,0,0),
+      'sam_t'  : numpy.array([]), #Datetime list
+      'tch_cnt': numpy.array([]), #list of technisium count
       'dosis'  : 0
     }
 
@@ -81,6 +81,20 @@ def execute_query(cmd):
     in the execution of the query command
   """
   return check_output(cmd)
+
+def store_dicom(dicom_obj_path, tags, value, Value_rep, ):
+   """
+    Stores value in the tags of the dicom
+    Value Rep is 
+
+    Args:
+      dicom_obj: The object to store
+
+    Remarks
+      Using this function it's only posible to store sequences of a single type.
+      So for instance it can store a sequence of sequences of dates, but not a
+      a sequence containing a sequence of dates and floats
+   """
 
 def parse_bookings(resp_dir):
   """
@@ -218,7 +232,7 @@ def get_examination(rigs_nr, resp_dir):
   # Try to read optional patient/examination attributes from previous examinations
   def try_get_exam_info(key, tags, err_callback, *args, **kwargs):
     try:
-      examination_info.info[key] = obj[tags[0], tags[1]]
+      examination_info.info[key] = obj[tags[0], tags[1]].value
     except KeyError:
       examination_info.info[key] = err_callback(*args, **kwargs)
 
