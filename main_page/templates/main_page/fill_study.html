@@ -23,7 +23,6 @@
 
     <!-- Add test info -->
     <strong>Tilføj prøve:</strong>
-    <!-- 'Tilføj manuelt' buttons -->
     <div class="form-row">
       <div class="form-group col-md-3">
         {{ test_context.test_form.test_date.label }}
@@ -68,7 +67,7 @@
                 </thead>
                 <tbody>
                   {% for data_row in data %}
-                    <tr>
+                    <tr class="csv_row">
                       <td>{{ data_row.0 }}</td>
                       <td>{{ data_row.1 }}</td>
                       <td>{{ data_row.2 }}</td>

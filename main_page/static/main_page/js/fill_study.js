@@ -82,3 +82,7 @@ $('#add-test').click(function() {
     $('#id_test_date').css('border', '2px solid lightcoral');
   }
 });
+
+$('.csv_row').on('click', function() {
+  
+});

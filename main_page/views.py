@@ -76,8 +76,13 @@ def fill_study(request, rigs_nr):
     print(request.POST)
 
     if 'calculate' in request.POST: # 'Bere  exam.info['BSA'],
-   
       print("Calculate")
+
+      # Extract study data
+      
+
+      # Calculate
+
 
       # Redirect to study presentation page  exam.info['BSA'],
     

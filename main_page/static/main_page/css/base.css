@@ -6,6 +6,13 @@ html, body {
   min-height: 100%;
 }
 
+/* Remove all form field spinners */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
 .sidebar {
   background-color: #76c6eb;
   min-height: 100% !important;
