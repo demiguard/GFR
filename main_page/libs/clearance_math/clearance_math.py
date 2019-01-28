@@ -168,7 +168,20 @@ def import_csv(csv_path, machine ='', method='Cr-51 Counts'):
 
   return table_infos
 
+def compute_times(inj_time, times):
+  """
+  Calculates the times between the injection, and when samples are taken
 
+  Args:
+    inj_time : Datetime object with matching 
+    times    : [List of Datetime objects with time of sample]
+
+  returns
+    A numpy array of the difference in minutes
+
+  Remarks: List comp are REALLY HARD
+  """
+  return numpy.array([(time - inj_time).seconds / 60 for time in times])
 
 def generate_plot(
   data_points1,

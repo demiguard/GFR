@@ -149,7 +149,7 @@ Calc_GFR , Calc_GFR_N = clearance_math.calc_clearance(
 
 print("Calculated GFR ",Calc_GFR,"True GFR:",GFR, "\nCalculated GFR Normalized:", Calc_GFR_N, "True GFR Normalized:", GFR_N , "\n\n")
 clearance_math.generate_plot(
-    numpy.array([[(time - inj_time).seconds / 60 for time in times ],cpms]),
+    numpy.array([clearance_math.compute_times(inj_time, times),cpms]),
     numpy.array([[age],[Calc_GFR_N]]),
     "Test_case_3",
     show_fig=True,
