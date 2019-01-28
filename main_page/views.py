@@ -14,6 +14,7 @@ import os
 import pandas
 import numpy
 import pydicom
+import PIL
 
 # Create your views here.
 def index(request):
@@ -105,8 +106,10 @@ def fill_study(request, rigs_nr):
       inj_weight = inj_weight_before - inj_weight_after
       
       # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-      STD_CNT = 7525
-      FACTOR = 980
+
+      STD_CNT = int(request.POST['std_cnt'])
+      FACTOR = int(request.POST['thin_fac'])
+
       dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
       # Determine study method
@@ -358,36 +361,14 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   DICOM_directory = "./tmp"
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
-  #MATH
-  #Compute Body surface area
-  height = float(exam.info['height'])
-  weight = float(exam.info['weight'])
-
-  print(type(height), type(weight))
-
-  Body_surface_area = clearance_math.surface_area(height, weight)
-  exam.info['BSA'] = str(Body_surface_area)
-
-  # GFR, GFR_N = clearance_math.calc_clearance(
-    # exam.info['inj_time'],
-    # exam.info['sam_t'],
-    # exam.info['tch_cnt'], 
-    # exam.info['BSA'],
-    # exam.info['dosis'],
-    # method=exam.info['method']
-  # )
-
-
+  
   #Display
-  plot_path = clearance_math.generate_plot(
-    numpy.array([[],[]]),
-    numpy.array([[],[]]),
-    rigs_nr,hospital
-  )
-  plot_path = plot_path[17:] # #hacky
-  #Write to Dicom object
-
-  #
+  pixel_arr = exam.info['image']
+  if pixel_arr.shape[0] != 0:
+    Im = PIL.Image.fromarray(pixel_arr)
+    Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
+  
+  plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
 
   template = loader.get_template('main_page/present_study.html')
   
@@ -397,6 +378,8 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
     'date'  : exam.info['date'],
     'BSA'   : exam.info['BSA'],
     'sex'   : exam.info['sex'],
+    'height': exam.info['height'],
+    'weight': exam.info['weight'],
     'GFR'   : exam.info['GFR'],
     'GFR_N' : exam.info['GFR_N'],
     'image_path' : plot_path,

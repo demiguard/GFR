@@ -26,25 +26,9 @@ class ExaminationInfo():
       'inj_t'  : datetime.datetime(2000,1,1,0,0),
       'sam_t'  : numpy.array([]), #Datetime list
       'tch_cnt': numpy.array([]), #list of technisium count
-      'dosis'  : 0
+      'dosis'  : 0,
+      'image'  : numpy.array([]) #pixeldata
     }
-
-    """
-    Old Pre-directory code
-
-    self.risnr = ''
-    self.name = ''
-    self.cpr = ''
-    self.date = ''
-    self.sex = ''
-    self.height = ''
-    self.weight = ''
-    self.age = ''
-    self.BSA = ''
-    self.GFR = ''
-    self.GFR_normalized = ''
-    self.image = ''   #Path image
-    """
 
 # Class done
 
@@ -102,6 +86,39 @@ def store_dicom(dicom_obj_path, tags, values, value_reps):
   
   ds.save_as(dicom_obj_path)
 
+def store_private_tag(dicom_obj_path, tag, tag_block, tag_group, value, value_rep):
+  """
+  For a tag tttt, tag_block bb and tag_group gg, value_rep VR. 
+  Store the value at the tag [0xtttt,0xbbgg] with VR and create
+  the value: VR [0xtttt,0x00bb] with 'LO' 
+
+  Args:
+    dicom_obj_path: Path to dicom object 
+    tag           : An uneven hex on the form 0xgggg 
+    tag_block     : A hex larger than 0x10 but less than 0xFF
+    tag_group     : A hex less than 0xFF
+
+  returns: 0 on success
+
+
+  """
+  if tag % 2 == 1     : return 1
+  if tag >  0xFFFF    : return 1
+  if tag <  0x0010    : return 1
+  if tag_block > 0xFF : return 1
+  if tag_block < 0x10 : return 1
+  if tag_group > 0xFF : return 1
+
+  ds = pydicom.dcmread(dicom_obj_path)
+  
+  for t, t_block, t_group, v, vr in zip(tag, tag_block, value, value_rep):
+    ds.add_new((t, t_block), 'LO', vr)
+    
+    save_tag = hex((tag_block << 8) + tag_group)
+
+    ds.add_new((t, save_tag), vr, v)
+
+  return 0
 
 def parse_bookings(resp_dir):
   """
@@ -248,45 +265,15 @@ def get_examination(rigs_nr, resp_dir):
 
   # Depermine patient sex based on cpr nr. if not able to retreive it
   try_get_exam_info('sex', (0x0010, 0x0040), calculate_sex, examination_info.info['cpr'])
-  try_get_exam_info('weight', (0x0010, 0x0030), no_callback)
-  try_get_exam_info('height', (0x0010, 0x0020), no_callback)
+  try_get_exam_info('weight', (0x0010, 0x1030), no_callback)
+  try_get_exam_info('height', (0x0010, 0x1020), no_callback)
   try_get_exam_info('age', (0x0010, 0x1010), calculate_age, examination_info.info['cpr'])
+  try_get_exam_info('BSA', (0x0000,0x0000) , no_callback)
+  try_get_exam_info('GFR', (0x0000,0x0000), no_callback)
+  try_get_exam_info('GFR_N', (0x0000,0x0000), no_callback)
 
-  # Custom tags
-  # try:
-  #   examination_info.factor = obj[, ]
-  # except KeyError:
-  #   pass
-    
-  # try:
-  #   examination_info.batch = obj[, ]
-  # except KeyError:
-  #   pass
-
-  # try:
-  #   examination_info.std_count = obj[, ]
-  # except KeyError:
-  #   pass
-  
-  # try:
-  #   examination_info.vial = obj[, ]
-  # except KeyError:
-  #   pass
-
-  # try:
-  #   examination_info.vial_before = obj[, ]
-  # except KeyError:
-  #   pass
-
-  # try:
-  #   examination_info.vial_after = obj[, ]
-  # except KeyError:
-  #   pass
-
-  # try:
-  #   examination_info.injection_time = obj[, ]
-  # except KeyError:
-  #   pass
+  if 'PixelData' in obj:
+    examination_info.info['image'] = numpy.array(obj.pixel_array)
 
   return examination_info
 
@@ -365,7 +352,7 @@ def get_all(hosp_aet):
       # Save to dcm file with rigs nr. as  corresponding rsp file
       obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
       os.remove(key)
-
+  
   return sorted(ret, key=lambda x: x.name)
 
 def check_cpr(cpr):  
