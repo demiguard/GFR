@@ -105,7 +105,7 @@ def fill_study(request, rigs_nr):
       inj_weight = inj_weight_before - inj_weight_after
       
       # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-      STD_CNT = 8071
+      STD_CNT = 7525
       FACTOR = 980
       dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
@@ -212,13 +212,57 @@ def fill_study(request, rigs_nr):
         HEIGHT_REP
       ]
 
-      ris.store_dicom('./tmp/{0}.dcm'.format(rigs_nr), store_tags, store_values, store_value_reps)
-      
+      dcm_obj_path = './tmp/{0}.dcm'.format(rigs_nr)
+      ris.store_dicom(dcm_obj_path, store_tags, store_values, store_value_reps)
+
       print(rigs_nr)
 
       # Store dicom object in PACS
       # TODO: SET ADDRESS FOR PACS INSTEAD OF TESTING SERVER
+      dcm_img_path = 'main_page/static/main_page/images/RH/{0}.dcm'.format(rigs_nr)
+      
+      img2dcm_query = [
+        'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
+        'main_page/static/main_page/images/RH/{0}.bmp'.format(rigs_nr),    # Input location
+        dcm_img_path,                 # Output location
+        '-sc',                        # Write as secondary capture SOP class
+        '-i',                         # Specify input image format
+        'BMP'
+      ]
 
+      # TODO: Check exit-code of query and handle errors
+      ris.execute_query(img2dcm_query)
+
+      # Read StudyInstanceUID from main dicom object, to allow storage of image together with it
+      dcm_obj = pydicom.dcmread(dcm_obj_path)
+      study_UID = dcm_obj.StudyInstanceUID
+
+      # Store both dicom objects; main dicom object and image object
+      img_obj = pydicom.dcmread(dcm_img_path)
+      img_obj.StudyInstanceUID = study_UID
+
+      dcm_obj.SeriesInstanceUID = img_obj.SeriesInstanceUID
+      dcm_obj.SOPClassUID = img_obj.SOPClassUID
+      dcm_obj.SOPInstanceUID = img_obj.SOPInstanceUID
+
+      img_obj.save_as(dcm_img_path)
+      dcm_obj.save_as(dcm_obj_path)
+
+      # Execute store query
+      store_query = [
+        'storescu',                   # Path to storescu # TODO: Change to absolute path, see above img2dcm
+        '-aet',                       # Set source arguments
+        ris.CALLING_AET,              # Calling AET (our own AET)
+        '-aec',                       # Set destination arguments
+        ris.PACS_AET,                 # Valid AET on PACS server
+        ris.PACS_IP,                  # IP of PACS server
+        '11112',                        # Port of PACS server
+        dcm_obj_path,                 # Store both obj and img
+        dcm_img_path
+      ]
+
+      # TODO: Check exit-code of query and handle errors
+      ris.execute_query(store_query)
 
       # Redirect to study presentation page  exam.info['BSA'],
 

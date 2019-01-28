@@ -260,6 +260,9 @@ def generate_plot(
   ax[1].set_ylabel('GFR (ml/min pr. 1.73m²)')
   ax[1].grid(color='black')
 
+  print(data_points1)
+  print(data_points2)
+
   ax[0].scatter(data_points1[0,:], data_points1[1,:])
   ax[1].scatter(data_points2[0,:], data_points2[1,:])
     

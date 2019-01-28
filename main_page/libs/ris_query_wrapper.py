@@ -57,7 +57,7 @@ RIGS_PORT = "3320"
 # (ONLY change this to the actual PACS server when in production)
 PACS_AET = 'TEST_DCM4CHEE'
 PACS_IP = 'localhost'
-PACS_PORT = '104' # Or 11112 if no port-forwarding
+PACS_PORT = '11112' # Or 11112 if no port-forwarding
 
 CALLING_AET = "RH_EDTA"
 
