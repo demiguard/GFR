@@ -33,6 +33,8 @@ class FillStudyInfo(forms.Form):
   age = forms.IntegerField(label='Alder', required=False, min_value=0)
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0, max_value=300)
   weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0, max_value=1000)
+  std_cnt = forms.IntegerField(label='Standart tælletal', min_value=0)
+  thin_fac = forms.IntegerField(label='Fortyndings factor', min_value = 0)
   vial = forms.IntegerField(label='Sprøjte', required=False, min_value=0)
   vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False, min_value=0)
   vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
