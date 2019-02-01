@@ -16,7 +16,17 @@ import numpy
 import pydicom
 import PIL
 
+#Handles Post Requests for Views
+
+# Fill Study Post Request
 def fill_study_post(request, rigs_nr):
+  """
+    Handles Post request for fill study
+
+    Args:
+        Request: The Post request
+        rigs_nr: The REGH number for the corosponding examination
+  """
   if 'calculate' in request.POST: # 'Bere  exam.info['BSA'],
     # Extract study data 
     # Construct datetime for injection time

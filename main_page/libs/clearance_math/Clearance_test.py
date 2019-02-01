@@ -155,3 +155,16 @@ clearance_math.generate_plot(
     show_fig=True,
     save_fig=False
 )
+
+clearance_math.generate_plot_text(
+    weight,
+    height,
+    BSA,
+    Calc_GFR,
+    Calc_GFR_N,
+    "TODO",
+    age,
+    "Test_case_3_text",
+    show_fig=True,
+    save_fig=False
+)

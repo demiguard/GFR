@@ -250,8 +250,8 @@ def generate_plot(
   fig, ax = plt.subplots(1, 2)
   
 
-  # Generate backgrounds for second graph
-  ax[1].set_xlim(0, 110)
+  # Generate backgroundsage = int(request.POST['age'])second graph
+  ax[1].set_xlim(0, 110)      
   ax[1].set_ylim(0, 160)
   ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
   ax[1].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
@@ -290,3 +290,133 @@ def generate_plot(
     plt.show()
 
   return image_path
+
+def generate_plot_text(
+  weight,
+  height,
+  BSA,
+  clearence,
+  clearence_norm,
+  kidney_function,
+  Age,
+  rigs_nr,
+  hosp_dir='RH',
+  image_Height = 10.8,
+  image_Width = 19.2,
+  save_fig = True,
+  show_fig = False
+  ):
+  """
+  Generate GFR plot
+
+  Args:
+    weight          : float, Weight of patient
+    height          : float, Height of patient
+    BSA             : float, Body Surface Area
+    clearnece       : float, clearence value of examination 
+    clearnece_norm  : float, Normalized Clearence of examination
+    kidney_function : string, describing the kidney function of the patient 
+    Age             : int, Age of Patient 
+    rigs_nr         : String
+
+  Remark:
+    Generate as one image, with multiple subplots.
+  """
+
+  def fig2data ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a 4D numpy array with RGBA channels and return it
+    @param fig a matplotlib figure
+    @return a numpy 3D array of RGBA values
+    """
+    # draw the renderer
+    fig.canvas.draw ( )
+ 
+    # Get the RGBA buffer from the figure
+    w,h = fig.canvas.get_width_height()
+    buf = numpy.fromstring ( fig.canvas.tostring_argb(), dtype=numpy.uint8 )
+    buf.shape = ( w, h,4 )
+ 
+    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
+    buf = numpy.roll ( buf, 3, axis = 2 )
+    return buf
+
+  def fig2img ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a PIL Image in RGBA format and return it
+    @param fig a matplotlib figure
+    @return a Python Imaging Library ( PIL ) image
+    """
+    # put the figure pixmap into a numpy array
+    buf = fig2data ( fig )
+    w, h, d = buf.shape
+    return Image.frombytes( "RGBA", ( w ,h ), buf.tostring( ) )
+
+  # Generate background fill
+  # TODO: These values define changed
+  save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
+
+  x =           [0, 40, 110]
+  zeros =       [0, 0, 0]
+  darkred_y =   [30, 30, 10]
+  light_red_y = [50, 50, 30]
+  yellow_y =    [75, 75, 35]
+  lightgrey_y = [160, 160, 160]
+  #grey_y =      [130, 130, 130]
+
+  fig, ax = plt.subplots(1, 2)
+  
+
+  # Generate backgroundsage = int(request.POST['age'])second graph
+  ax[0].set_xlim(0, 110)      
+  ax[0].set_ylim(0, 160)
+  ax[0].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
+  ax[0].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
+  ax[0].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
+  ax[0].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
+  #ax[0].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
+  
+  titlesize = 8
+  labelsize = 18
+
+  #Text setup for graph 1
+  weight_str          = "Vægt: {0} kg\n\n".format(weight)
+  height_str          = "Højde: {0} m\n\n".format(height)
+  BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
+  clearence_str       = "Clearence: {0:.2f} ml / min\n\n".format(clearence)
+  clearence_norm_str  = "Clearence, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
+  kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
+
+  print_str = "{0}{1}{2}{3}{4}{5}".format(
+    weight_str,
+    height_str,
+    BSA_str,
+    clearence_str,
+    clearence_norm_str,
+    kidney_function_str
+  )
+
+  ax[1].text(0, 0.25, print_str, ha='left', fontsize = 20) 
+  ax[1].axis('off')
+  
+  
+  plt.rc('axes', titlesize=titlesize)
+  plt.rc('axes', labelsize=labelsize)
+
+  ax[0].set_xlabel('Alder (år)')
+  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)')
+  ax[0].grid(color='black')
+  ax[0].scatter(Age, clearence_norm)
+    
+  fig.set_figheight(image_Height)
+  fig.set_figwidth(image_Width)
+  plt.legend()
+  image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
+  if save_fig : 
+    im = fig2img(fig)
+    im.save(image_path)
+  if show_fig :
+    plt.show()
+
+  return image_path
+

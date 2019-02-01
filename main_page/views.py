@@ -119,7 +119,8 @@ def fill_study(request, rigs_nr):
       'sex': exam_info['sex'],
       'height': exam_info['height'],
       'weight': exam_info['weight'],
-      'age': exam_info['age']
+      'age': exam_info['age'],
+      'injection_date' : datetime.date.today()
     }),
     'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
     'test_context': {
@@ -152,7 +153,6 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   returns:
   
   """
-
   DICOM_directory = "./tmp"
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
