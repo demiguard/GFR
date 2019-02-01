@@ -84,7 +84,6 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
   
   exam = ris.get_examination(rigs_nr, './tmp') # './tmp' should be put in a configurable thing...
-  exam_info = exam.info
 
   test_range = range(6)
   today = datetime.datetime.today()
@@ -116,11 +115,12 @@ def fill_study(request, rigs_nr):
   context = {
     'rigsnr': rigs_nr,
     'study_info_form': forms.FillStudyInfo(initial={
-      'name': exam_info['name'],
-      'sex': exam_info['sex'],
-      'height': exam_info['height'],
-      'weight': exam_info['weight'],
-      'age': exam_info['age'],
+      'cpr': exam.info['cpr'],
+      'name': exam.info['name'],
+      'sex': exam.info['sex'],
+      'height': exam.info['height'],
+      'weight': exam.info['weight'],
+      'age': exam.info['age'],
       'injection_date' : datetime.date.today()
     }),
     'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
@@ -159,12 +159,12 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   exam = ris.get_examination(rigs_nr, DICOM_directory)
   
   #Display
-  pixel_arr = exam.info['image']
-  if pixel_arr.shape[0] != 0:
-    Im = PIL.Image.fromarray(pixel_arr)
-    Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
+  # pixel_arr = exam.info['image']
+  # if pixel_arr.shape[0] != 0:
+  #   Im = PIL.Image.fromarray(pixel_arr)
+  #   Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
   
-  plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
+  # plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
 
   template = loader.get_template('main_page/present_study.html')
   
@@ -178,8 +178,8 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
     'weight': exam.info['weight'],
     'GFR'   : exam.info['GFR'],
     'GFR_N' : exam.info['GFR_N'],
-    'image_path' : plot_path,
-    'Nyrefunction' : ''
+    'image_path' : exam.info['image'],
+    'Nyrefunction' : clearance_math.kidney_function(float(exam.info['GFR_N']), exam.info['CPR'])
   }
 
 

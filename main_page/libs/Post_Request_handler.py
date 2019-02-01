@@ -47,7 +47,7 @@ def fill_study_post(request, rigs_nr):
     # Compute surface area
     weight = float(request.POST['weight'])
     height = float(request.POST['height'])
-    BSA = clearance_math.surface_area(weight, height)
+    BSA = clearance_math.surface_area(height, weight)
 
     # Compute dosis
     inj_weight_before = float(request.POST['vial_weight_before'])
@@ -91,9 +91,22 @@ def fill_study_post(request, rigs_nr):
     age = int(request.POST['age'])
     data_points2 = numpy.array([[age], [gfr_norm]])
 
-    plot_path = clearance_math.generate_plot(
-      data_points1,
-      data_points2,
+    # plot_path = clearance_math.generate_plot(
+    #   data_points1,
+    #   data_points2,
+    #   rigs_nr
+    # )
+
+    cpr = request.POST['cpr']
+
+    plot_path = clearance_math.generate_plot_text(
+      weight,
+      height,
+      BSA,
+      gfr,
+      gfr_norm,
+      clearance_math.kidney_function(gfr_norm, cpr),
+      cpr,
       rigs_nr
     )
 
@@ -174,7 +187,7 @@ def fill_study_post(request, rigs_nr):
       
     img2dcm_query = [
       'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
-      'main_page/static/main_page/images/RH/{0}.bmp'.format(rigs_nr),    # Input location
+      plot_path,                    # Input location of image
       dcm_img_path,                 # Output location
       '-sc',                        # Write as secondary capture SOP class
       '-i',                         # Specify input image format

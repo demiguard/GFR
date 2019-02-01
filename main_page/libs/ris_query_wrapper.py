@@ -192,14 +192,13 @@ def get_examination(rigs_nr, resp_dir):
   """
   # TODO: Add error handling for invalid filepath
   # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
-  obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
+  try:
+    obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
+  except FileNotFoundError:
+    #Get object from Database
+    pass
 
   examination_info = ExaminationInfo()
-  
-  for key in examination_info.info:
-    # TODO: Figure out smart function for passing info
-    #
-    pass
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
   examination_info.info['ris_ nr'] = obj.AccessionNumber

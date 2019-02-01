@@ -28,6 +28,7 @@ class FillStudyDaily(forms.Form):
   standard = forms.IntegerField(label='Standard tælletal')
 
 class FillStudyInfo(forms.Form):
+  cpr = forms.CharField(label='Cpr nr.', required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}))
   name = forms.CharField(label='Navn', required=False)
   sex = forms.CharField(label='Køn', required=False)
   age = forms.IntegerField(label='Alder', required=False, min_value=0)
