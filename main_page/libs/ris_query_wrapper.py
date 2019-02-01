@@ -1,4 +1,6 @@
 from subprocess import check_output
+from .clearance_math import clearance_math
+
 import pydicom
 import os
 import shutil
@@ -176,59 +178,6 @@ def format_date(date):
   day = date[6:8]
   return '{0}/{1}-{2}'.format(day, month, year)
 
-def calculate_sex(cprnr):
-  """
-  Determine wheter the patient is male or female
-  """
-  if int(cprnr[-1]) % 2 == 0:
-    return 'Dame'
-  else:
-    return 'Mand'
-
-def calculate_age(cprnr):
-  """
-  Determine the age of a patient based on CPR
-  
-  Params:
-    cprnr: CPR number on the form DDMMYY-CCCC, where D - Day, M - Month, Y - year, C - control
-  
-  Returns: 
-    The age in int format
-
-  """
-  year_of_birth = int(cprnr[4:6])
-  month_of_birth = int(cprnr[2:4])
-  day_of_birth = int(cprnr[0:2])
-  Control = int(cprnr[7]) #SINGLE diget
-
-  current_time = datetime.datetime.now()
-  
-  century = []
-  
-  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
-    century.append(1900)
-  elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
-    century.append(2000)
-  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
-
-# Age with no birthday
-  if 2000 in century :
-    age = current_time.year - 2000 - year_of_birth - 1
-  elif 1900 in century : 
-    age = current_time.year - 1900 - year_of_birth - 1  
-  else:  #This is only used if resurrect dead people, Necromancy I guess
-    print("ERROR - DEAD PERSON DETECTED") 
-    age = current_time.year - 1800 - year_of_birth - 1
-
-# Have you had your birthday this year
-
-  if month_of_birth < current_time.month:
-    age += 1
-  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
-    age += 1
-
-  return age
 
 def get_examination(rigs_nr, resp_dir):
   """
@@ -269,10 +218,10 @@ def get_examination(rigs_nr, resp_dir):
     pass
 
   # Depermine patient sex based on cpr nr. if not able to retreive it
-  try_get_exam_info('sex', (0x0010, 0x0040), calculate_sex, examination_info.info['cpr'])
+  try_get_exam_info('sex', (0x0010, 0x0040), clearance_math.calculate_sex, examination_info.info['cpr'])
   try_get_exam_info('weight', (0x0010, 0x1030), no_callback)
   try_get_exam_info('height', (0x0010, 0x1020), no_callback)
-  try_get_exam_info('age', (0x0010, 0x1010), calculate_age, examination_info.info['cpr'])
+  try_get_exam_info('age', (0x0010, 0x1010), clearance_math.calculate_age, examination_info.info['cpr'])
   try_get_exam_info('BSA', (0x0000,0x0000) , no_callback)
   try_get_exam_info('GFR', (0x0000,0x0000), no_callback)
   try_get_exam_info('GFR_N', (0x0000,0x0000), no_callback)

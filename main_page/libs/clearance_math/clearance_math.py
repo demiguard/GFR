@@ -122,17 +122,125 @@ def dosis(inj, fac, stc):
   """
   return int(inj*fac*stc)
 
-def cpr_birth(cpr):
-  pass
+def calculate_age(cprnr):
+  """
+  Determine the age of a patient based on CPR
+  
+  Params:
+    cprnr: CPR number on the form DDMMYY-CCCC, where D - Day, M - Month, Y - year, C - control
+  
+  Returns: 
+    The age in int format
 
-def cpr_runnr(cpr):
-  pass
+  """
+  year_of_birth = int(cprnr[4:6])
+  month_of_birth = int(cprnr[2:4])
+  day_of_birth = int(cprnr[0:2])
+  Control = int(cprnr[7]) #SINGLE diget
 
-def cpr_age(cpr):
-  pass
+  current_time = datetime.datetime.now()
+  
+  century = []
+  
+  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+  if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
+    century.append(1900)
+  elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
+    century.append(2000)
+  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
-def check_cpr(cpr):
-  pass
+# Age with no birthday
+  if 2000 in century :
+    age = current_time.year - 2000 - year_of_birth - 1
+  elif 1900 in century : 
+    age = current_time.year - 1900 - year_of_birth - 1  
+  else:  #This is only used if resurrect dead people, Necromancy I guess
+    print("ERROR - DEAD PERSON DETECTED") 
+    age = current_time.year - 1800 - year_of_birth - 1
+
+# Have you had your birthday this year
+
+  if month_of_birth < current_time.month:
+    age += 1
+  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
+    age += 1
+
+  return age
+
+def calculate_age_in_days(cpr):
+  """
+  DO NOT USE THIS FUNCTION ON PEOPLE BORN IN THE TWENTIES CENTURY
+  IT'S INTENTED FOR PEOPLE BORN IN 20XX
+
+  Arg:
+    cprnr: string, Cpr number of a person born in 20XX
+
+  REMARKS: DONT BE DUMB, READ FUNCTION DECRIPTION
+  YES, ALL CAPS IS NECESSARY, DONT YOU DARE QUESTION MY EGO
+  """
+  day_of_birth = int(cpr[0:2])
+  month_of_birth = int(cpr[2:4])
+  year_of_birth = int(cpr[4:6]) + 2000
+  birthdate = datetime.date(year_of_birth, month_of_birth, day_of_birth)
+  today = datetime.date.today()
+
+  return (today - birthdate).days
+
+def calculate_sex(cprnr):
+  """
+  Determine wheter the patient is male or female
+  """
+  if int(cprnr[-1]) % 2 == 0:
+    return 'Dame'
+  else:
+    return 'Mand'
+
+def kidney_function(clearence_norm, cpr):
+  """
+    Calculate the Kidney function compared to their age and gender
+  Args:
+    Clearence_norm: Float, Clearence of the patient
+    cpr:            string, cpr matching the patient
+  Returns
+    Kidney_function: string, Describing the kidney function of the patient
+  """
+  #Calculate Age and gender from Cpr number
+  age = calculate_age(cpr)
+  age_in_days = calculate_age_in_days(cpr)
+  gender = calculate_sex(cpr)
+  
+  #Calculate Mean GFR
+  if age < 2 : # Babies
+    magic_number_1 = 0.209
+    magic_number_2 = 1.44
+    Mean_GFR = 10**(magic_number_1 * numpy.log10(age_in_days) + magic_number_2)
+  elif age < 15 : # Childern
+    Mean_GFR = 109
+  elif age < 40: # Grown ups
+    if gender == 'Mand':
+      Mean_GFR = 111
+    else:
+      Mean_GFR = 103
+  else : #Elders
+    magic_number_1 = -1.16
+    magic_number_2 = 157.8
+    if gender == 'Mand':
+      Mean_GFR = magic_number_1 * age + magic_number_2
+    else:  
+      Female_reference_pct = 0.929 #
+      Mean_GFR = (magic_number_1 * age + magic_number_2) * Female_reference_pct
+
+  #Use the mean GFR to calculate the index GFR, Whatever that might be
+  index_GFR = 100 * (Mean_GFR - clearence_norm) / Mean_GFR
+  #From the index GFR, Conclude on the kidney function
+  if index_GFR < 25 : 
+    return "Normal"
+  elif index_GFR < 50 :
+    return "Moderat nedsat"
+  elif index_GFR < 75:
+    return "Middelsvært nedsat"
+  else:
+    return "Svært nedsat"
 
 def import_csv(csv_path, machine ='', method='Cr-51 Counts'):
   """
@@ -250,8 +358,8 @@ def generate_plot(
   fig, ax = plt.subplots(1, 2)
   
 
-  # Generate backgrounds for second graph
-  ax[1].set_xlim(0, 110)
+  # Generate backgroundsage = int(request.POST['age'])second graph
+  ax[1].set_xlim(0, 110)      
   ax[1].set_ylim(0, 160)
   ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
   ax[1].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
@@ -290,3 +398,133 @@ def generate_plot(
     plt.show()
 
   return image_path
+
+def generate_plot_text(
+  weight,
+  height,
+  BSA,
+  clearence,
+  clearence_norm,
+  kidney_function,
+  Age,
+  rigs_nr,
+  hosp_dir='RH',
+  image_Height = 10.8,
+  image_Width = 19.2,
+  save_fig = True,
+  show_fig = False
+  ):
+  """
+  Generate GFR plot
+
+  Args:
+    weight          : float, Weight of patient
+    height          : float, Height of patient
+    BSA             : float, Body Surface Area
+    clearnece       : float, clearence value of examination 
+    clearnece_norm  : float, Normalized Clearence of examination
+    kidney_function : string, describing the kidney function of the patient 
+    Age             : int, Age of Patient 
+    rigs_nr         : String
+
+  Remark:
+    Generate as one image, with multiple subplots.
+  """
+
+  def fig2data ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a 4D numpy array with RGBA channels and return it
+    @param fig a matplotlib figure
+    @return a numpy 3D array of RGBA values
+    """
+    # draw the renderer
+    fig.canvas.draw ( )
+ 
+    # Get the RGBA buffer from the figure
+    w,h = fig.canvas.get_width_height()
+    buf = numpy.fromstring ( fig.canvas.tostring_argb(), dtype=numpy.uint8 )
+    buf.shape = ( w, h,4 )
+ 
+    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
+    buf = numpy.roll ( buf, 3, axis = 2 )
+    return buf
+
+  def fig2img ( fig ):
+    """
+    @brief Convert a Matplotlib figure to a PIL Image in RGBA format and return it
+    @param fig a matplotlib figure
+    @return a Python Imaging Library ( PIL ) image
+    """
+    # put the figure pixmap into a numpy array
+    buf = fig2data ( fig )
+    w, h, d = buf.shape
+    return Image.frombytes( "RGBA", ( w ,h ), buf.tostring( ) )
+
+  # Generate background fill
+  # TODO: These values define changed
+  save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
+
+  x =           [0, 40, 110]
+  zeros =       [0, 0, 0]
+  darkred_y =   [30, 30, 10]
+  light_red_y = [50, 50, 30]
+  yellow_y =    [75, 75, 35]
+  lightgrey_y = [160, 160, 160]
+  #grey_y =      [130, 130, 130]
+
+  fig, ax = plt.subplots(1, 2)
+  
+
+  # Generate backgroundsage = int(request.POST['age'])second graph
+  ax[0].set_xlim(0, 110)      
+  ax[0].set_ylim(0, 160)
+  ax[0].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
+  ax[0].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
+  ax[0].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
+  ax[0].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
+  #ax[0].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
+  
+  titlesize = 8
+  labelsize = 18
+
+  #Text setup for graph 1
+  weight_str          = "Vægt: {0} kg\n\n".format(weight)
+  height_str          = "Højde: {0} m\n\n".format(height)
+  BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
+  clearence_str       = "Clearence: {0:.2f} ml / min\n\n".format(clearence)
+  clearence_norm_str  = "Clearence, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
+  kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
+
+  print_str = "{0}{1}{2}{3}{4}{5}".format(
+    weight_str,
+    height_str,
+    BSA_str,
+    clearence_str,
+    clearence_norm_str,
+    kidney_function_str
+  )
+
+  ax[1].text(0, 0.25, print_str, ha='left', fontsize = 20) 
+  ax[1].axis('off')
+  
+  
+  plt.rc('axes', titlesize=titlesize)
+  plt.rc('axes', labelsize=labelsize)
+
+  ax[0].set_xlabel('Alder (år)')
+  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)')
+  ax[0].grid(color='black')
+  ax[0].scatter(Age, clearence_norm)
+    
+  fig.set_figheight(image_Height)
+  fig.set_figwidth(image_Width)
+  plt.legend()
+  image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
+  if save_fig : 
+    im = fig2img(fig)
+    im.save(image_path)
+  if show_fig :
+    plt.show()
+
+  return image_path
+
