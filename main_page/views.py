@@ -259,7 +259,7 @@ def fill_study(request, rigs_nr):
         '-aec',                       # Set destination arguments
         ris.PACS_AET,                 # Valid AET on PACS server
         ris.PACS_IP,                  # IP of PACS server
-        '11112',                        # Port of PACS server
+        ris.PACS_PORT,                # Port of PACS server
         dcm_obj_path,                 # Store both obj and img
         dcm_img_path
       ]

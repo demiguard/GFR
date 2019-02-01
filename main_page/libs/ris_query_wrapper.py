@@ -8,6 +8,11 @@ import calendar
 import numpy
 import pandas
 
+"""
+findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0008,0050="REGH13630168" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D -X
+getscu -P 127.0.0.1 11112 -k 0008,0052="STUDY" -k 0010,0020="1909640853" -k 0020,000D="1.3.51.0.1.1.10.143.20.159.13630168.6612553" -aec TEST_DCM4CHEE -aet RH_EDTA -od .
+"""
+
 class ExaminationInfo():
   def __init__(self):
     self.info = {
@@ -40,7 +45,7 @@ RIGS_PORT = "3320"
 # NOTE: This is currently setup for storage on the local test server 
 # (ONLY change this to the actual PACS server when in production)
 PACS_AET = 'TEST_DCM4CHEE'
-PACS_IP = 'localhost'
+PACS_IP = '193.3.238.103'
 PACS_PORT = '11112' # Or 11112 if no port-forwarding
 
 CALLING_AET = "RH_EDTA"
