@@ -122,17 +122,125 @@ def dosis(inj, fac, stc):
   """
   return int(inj*fac*stc)
 
-def cpr_birth(cpr):
-  pass
+def calculate_age(cprnr):
+  """
+  Determine the age of a patient based on CPR
+  
+  Params:
+    cprnr: CPR number on the form DDMMYY-CCCC, where D - Day, M - Month, Y - year, C - control
+  
+  Returns: 
+    The age in int format
 
-def cpr_runnr(cpr):
-  pass
+  """
+  year_of_birth = int(cprnr[4:6])
+  month_of_birth = int(cprnr[2:4])
+  day_of_birth = int(cprnr[0:2])
+  Control = int(cprnr[7]) #SINGLE diget
 
-def cpr_age(cpr):
-  pass
+  current_time = datetime.datetime.now()
+  
+  century = []
+  
+  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+  if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
+    century.append(1900)
+  elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
+    century.append(2000)
+  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
-def check_cpr(cpr):
-  pass
+# Age with no birthday
+  if 2000 in century :
+    age = current_time.year - 2000 - year_of_birth - 1
+  elif 1900 in century : 
+    age = current_time.year - 1900 - year_of_birth - 1  
+  else:  #This is only used if resurrect dead people, Necromancy I guess
+    print("ERROR - DEAD PERSON DETECTED") 
+    age = current_time.year - 1800 - year_of_birth - 1
+
+# Have you had your birthday this year
+
+  if month_of_birth < current_time.month:
+    age += 1
+  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
+    age += 1
+
+  return age
+
+def calculate_age_in_days(cpr):
+  """
+  DO NOT USE THIS FUNCTION ON PEOPLE BORN IN THE TWENTIES CENTURY
+  IT'S INTENTED FOR PEOPLE BORN IN 20XX
+
+  Arg:
+    cprnr: string, Cpr number of a person born in 20XX
+
+  REMARKS: DONT BE DUMB, READ FUNCTION DECRIPTION
+  YES, ALL CAPS IS NECESSARY, DONT YOU DARE QUESTION MY EGO
+  """
+  day_of_birth = int(cpr[0:2])
+  month_of_birth = int(cpr[2:4])
+  year_of_birth = int(cpr[4:6]) + 2000
+  birthdate = datetime.date(year_of_birth, month_of_birth, day_of_birth)
+  today = datetime.date.today()
+
+  return (today - birthdate).days
+
+def calculate_sex(cprnr):
+  """
+  Determine wheter the patient is male or female
+  """
+  if int(cprnr[-1]) % 2 == 0:
+    return 'Dame'
+  else:
+    return 'Mand'
+
+def kidney_function(clearence_norm, cpr):
+  """
+    Calculate the Kidney function compared to their age and gender
+  Args:
+    Clearence_norm: Float, Clearence of the patient
+    cpr:            string, cpr matching the patient
+  Returns
+    Kidney_function: string, Describing the kidney function of the patient
+  """
+  #Calculate Age and gender from Cpr number
+  age = calculate_age(cpr)
+  age_in_days = calculate_age_in_days(cpr)
+  gender = calculate_sex(cpr)
+  
+  #Calculate Mean GFR
+  if age < 2 : # Babies
+    magic_number_1 = 0.209
+    magic_number_2 = 1.44
+    Mean_GFR = 10**(magic_number_1 * numpy.log10(age_in_days) + magic_number_2)
+  elif age < 15 : # Childern
+    Mean_GFR = 109
+  elif age < 40: # Grown ups
+    if gender == 'Mand':
+      Mean_GFR = 111
+    else:
+      Mean_GFR = 103
+  else : #Elders
+    magic_number_1 = -1.16
+    magic_number_2 = 157.8
+    if gender == 'Mand':
+      Mean_GFR = magic_number_1 * age + magic_number_2
+    else:  
+      Female_reference_pct = 0.929 #
+      Mean_GFR = (magic_number_1 * age + magic_number_2) * Female_reference_pct
+
+  #Use the mean GFR to calculate the index GFR, Whatever that might be
+  index_GFR = 100 * (Mean_GFR - clearence_norm) / Mean_GFR
+  #From the index GFR, Conclude on the kidney function
+  if index_GFR < 25 : 
+    return "Normal"
+  elif index_GFR < 50 :
+    return "Moderat nedsat"
+  elif index_GFR < 75:
+    return "Middelsvært nedsat"
+  else:
+    return "Svært nedsat"
 
 def import_csv(csv_path, machine ='', method='Cr-51 Counts'):
   """

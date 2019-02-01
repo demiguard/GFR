@@ -162,7 +162,7 @@ clearance_math.generate_plot_text(
     BSA,
     Calc_GFR,
     Calc_GFR_N,
-    "TODO",
+    clearance_math.kidney_function(GFR_N, "0101973001"),
     age,
     "Test_case_3_text",
     show_fig=True,
