@@ -406,7 +406,7 @@ def generate_plot_text(
   clearence,
   clearence_norm,
   kidney_function,
-  Age,
+  cpr,
   rigs_nr,
   hosp_dir='RH',
   image_Height = 10.8,
@@ -424,7 +424,7 @@ def generate_plot_text(
     clearnece       : float, clearence value of examination 
     clearnece_norm  : float, Normalized Clearence of examination
     kidney_function : string, describing the kidney function of the patient 
-    Age             : int, Age of Patient 
+    cpr             : string, CPR number of Patient 
     rigs_nr         : String
 
   Remark:
@@ -487,7 +487,12 @@ def generate_plot_text(
   titlesize = 8
   labelsize = 18
 
+  gender = calculate_sex(cpr)
+  age = calculate_age(cpr)
+
   #Text setup for graph 1
+  gender_str          = "Køn: {0}\n\n".format(gender)
+  age_str             = "Alder: {0} år\n\n".format(age)
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
   height_str          = "Højde: {0} m\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
@@ -495,7 +500,9 @@ def generate_plot_text(
   clearence_norm_str  = "Clearence, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
-  print_str = "{0}{1}{2}{3}{4}{5}".format(
+  print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(
+    gender_str,
+    age_str,
     weight_str,
     height_str,
     BSA_str,
@@ -514,11 +521,11 @@ def generate_plot_text(
   ax[0].set_xlabel('Alder (år)')
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)')
   ax[0].grid(color='black')
-  ax[0].scatter(Age, clearence_norm)
+  ax[0].scatter(age, clearence_norm)
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
-  plt.legend()
+  ax[0].legend()
   image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
   if save_fig : 
     im = fig2img(fig)

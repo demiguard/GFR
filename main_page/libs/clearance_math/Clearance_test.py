@@ -163,7 +163,7 @@ clearance_math.generate_plot_text(
     Calc_GFR,
     Calc_GFR_N,
     clearance_math.kidney_function(GFR_N, "0101973001"),
-    age,
+    "0101973001",
     "Test_case_3_text",
     show_fig=True,
     save_fig=False
