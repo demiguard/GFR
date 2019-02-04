@@ -11,7 +11,18 @@
     {% csrf_token %}
     
     <!-- Add patient info -->
-    {% bootstrap_form study_info_form %}
+    <div class="form-row">
+      <div class = "form-group col-md-3">
+        {% bootstrap_form study_patient_form %}
+      </div>
+      <div class = "form-group col-md-3">
+        {% bootstrap_form study_examination_form %}
+      </div>  
+      <div class = "form-group col-md-3">
+        {% bootstrap_form study_dosis_form %}
+      </div>
+    </div>
+    
     {% bootstrap_form study_type_form %}
     
     <!-- Display test info -->

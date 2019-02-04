@@ -114,15 +114,18 @@ def fill_study(request, rigs_nr):
 
   context = {
     'rigsnr': rigs_nr,
-    'study_info_form': forms.FillStudyInfo(initial={
+    'study_patient_form': forms.Fillpatient(initial={
       'cpr': exam.info['cpr'],
       'name': exam.info['name'],
       'sex': exam.info['sex'],
+      'age': exam.info['age']
+    }),
+    'study_dosis_form' : forms.Filldosis(initial={
       'height': exam.info['height'],
       'weight': exam.info['weight'],
-      'age': exam.info['age'],
-      'injection_date' : datetime.date.today()
+     
     }),
+    'study_examination_form' : forms.Fillexamination(),
     'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
     'test_context': {
       'test_range': test_range,
