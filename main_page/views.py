@@ -4,7 +4,7 @@ from django.template import loader
 from django.shortcuts import redirect
 
 from . import forms
-from .libs import ris_query_wrapper as ris
+from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
 

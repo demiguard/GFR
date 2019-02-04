@@ -1,0 +1,5 @@
+# Base find query for looking up patient data in PACS
+(0008,0050) SH []	# AccessionNumber
+(0008,0052) CS [STUDY]	# Root SOP class level
+(0010,0020) LO []	# Patient ID
+(0020,000D) UI []	# Study Instance UID

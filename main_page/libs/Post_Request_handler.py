@@ -4,7 +4,7 @@ from django.template import loader
 from django.shortcuts import redirect
 
 from .. import forms
-from . import ris_query_wrapper as ris
+from .query_wrappers import ris_query_wrapper as ris
 from .clearance_math import clearance_math
 
 from dateutil import parser as date_parser
