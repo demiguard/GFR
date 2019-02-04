@@ -67,7 +67,7 @@
                 </thead>
                 <tbody>
                   {% for data_row in data %}
-                    <tr class="csv_row">
+                    <tr class="csv_row" id="{{ forloop.counter }}">
                       <td>{{ data_row.0 }}</td>
                       <td>{{ data_row.1 }}</td>
                       <td>{{ data_row.2 }}</td>

@@ -82,12 +82,22 @@ $('#add-test').click(function() {
     $('#id_test_date').css('border', '2px solid lightcoral');
   }
 });
-
-// row on click handler
+var csv_row_ids_array = [];
+// row on click handlers
 $('.csv_row').on('click', function() {
   // Extract count value from table
-  var count_value = $(this).children().eq(2).html();
+  //$(this).attr("id")
 
+  if (csv_row_ids_array.includes($(this).attr("id"))){
+    $(this).css('background-color', '#ffffff');
+    var id = $(this).attr("id")
+    csv_row_ids_array = csv_row_ids_array.filter(function(item){
+      return id != item;
+    });
+  }
+  else if(csv_row_ids_array.length < 2 ){
+    csv_row_ids_array.push($(this).attr("id"))
+    $(this).css('background-color', '#39ff14');
+  } 
   // Insert count value into 'Prøvetælletal' field
-  $('#id_test_value').val(count_value);
 });
