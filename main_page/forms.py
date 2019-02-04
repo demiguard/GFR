@@ -42,6 +42,26 @@ class FillStudyInfo(forms.Form):
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
   injection_date = forms.DateField(label='Injektionsdato (YYYY-MM-DD)', required=False)
 
+class Fillpatient_1(forms.Form):
+  cpr = forms.CharField(label='Cpr nr.', required=False, widget=forms.TextInput(attrs={'readonly':'readonly'}))
+  name = forms.CharField(label='Navn', required=False)
+  sex = forms.CharField(label='Køn', required=False)
+  age = forms.IntegerField(label='Alder', required=False, min_value=0)
+  
+class Fillpatient_2(forms.Form):
+  height = forms.FloatField(label='Højde (cm)', required=False, min_value=0, max_value=300)
+  weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0, max_value=1000)
+
+class Fillexamination(forms.Form):
+  vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False, min_value=0)
+  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
+  injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
+  injection_date = forms.DateField(label='Injektionsdato (YYYY-MM-DD)', required=False)  
+
+class Filldosis(forms.Form):
+  std_cnt = forms.IntegerField(label='Standart tælletal', min_value=0)
+  thin_fac = forms.IntegerField(label='Fortyndings factor', min_value = 0)
+
 class FillStudyType(forms.Form):
   types = [
     (0, 'Et punkt voksen'),
@@ -54,4 +74,4 @@ class FillStudyType(forms.Form):
 class FillStudyTest(forms.Form):
   test_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
   test_date = forms.DateField(label='Dato (YYYY-MM-DD)', required=False)
-  test_value = forms.FloatField(label='Prøvetælletal (cpm)', required=False, min_value=0)
+  

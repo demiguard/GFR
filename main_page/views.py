@@ -98,10 +98,14 @@ def fill_study(request, rigs_nr):
 
   # Read required data from each csv file  
   csv_data = []
+  csv_present_names = []
   for file in csv_files:
+    prestring = "Undersøgelse lavet: "
+    
     temp_p = pandas.read_csv(file)
     curr_data = [[] for _ in range(temp_p.shape[0])]
 
+    csv_present_names.append(prestring + temp_p['Measurement date & time'][0])
     for i, row in temp_p.iterrows():
       curr_data[i].append(row['Rack'])
       curr_data[i].append(row['Pos'])
@@ -110,19 +114,22 @@ def fill_study(request, rigs_nr):
 
     csv_data.append(curr_data)
 
-  csv_data = zip(csv_names, csv_data)
+  csv_data = zip(csv_present_names, csv_data, csv_names)
 
   context = {
     'rigsnr': rigs_nr,
-    'study_info_form': forms.FillStudyInfo(initial={
+    'study_patient_form': forms.Fillpatient_1(initial={
       'cpr': exam.info['cpr'],
       'name': exam.info['name'],
       'sex': exam.info['sex'],
+      'age': exam.info['age']
+    }),
+    'study_patient_form_2': forms.Fillpatient_2(initial={
       'height': exam.info['height'],
       'weight': exam.info['weight'],
-      'age': exam.info['age'],
-      'injection_date' : datetime.date.today()
     }),
+    'study_dosis_form' : forms.Filldosis(),
+    'study_examination_form' : forms.Fillexamination(),
     'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
     'test_context': {
       'test_range': test_range,

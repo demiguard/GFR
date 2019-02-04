@@ -25,9 +25,10 @@ $('#cancel').click(function() {
     window.location.replace(redirect_page);
   }
 });
-
+var csv_row_ids_array = [];
 // 'Tilføj' clicked for manual study entry
 $('#add-test').click(function() {
+  $('#error-message-container').empty()
   // Reset borders
   $('#id_test_time').css('border', '1px solid #CED4DA');
   $('#id_test_date').css('border', '1px solid #CED4DA');
@@ -44,10 +45,16 @@ $('#add-test').click(function() {
 
   // Validate contents
   if (DATE_FORMAT.test(test_date)) {
-    if (TIME_FORMAT.test(test_time)) {
+    if (TIME_FORMAT.test(test_time)) { 
+      if(csv_row_ids_array.length == 2){
       // Insert test filled out (readonly) test form
       var tvalue_serialized = $('#id_test_value').serialize();
       var test_value = tvalue_serialized.split('=')[1];
+
+      var sum = 0
+      csv_row_ids_array.forEach(element => {
+        sum += parseFloat($('#' + element).children().eq(3).text()) / 2
+      });
 
       var html_row_base_begin = "<div class=\"form-row\">";
       var html_row_base_end = "</div>";
@@ -61,7 +68,7 @@ $('#add-test').click(function() {
       $('#test-data-container').append(html_row_base_begin);
       $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_date" + html_field_input_end + test_date + html_field_end);
       $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_time" + html_field_input_end + test_time + html_field_end);
-      $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + test_value + html_field_end);
+      $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum + html_field_end);
       $('#test-data-container .form-row').last().append(html_remove_btn);
       $('#test-data-container').append(html_row_base_end);
 
@@ -71,10 +78,13 @@ $('#add-test').click(function() {
       });
 
       // Clear input fields
-      $('#id_test_date').val("");
       $('#id_test_time').val("");
       $('#id_test_value').val("");
-
+      } else { //Not enought Data selected
+        $('#error-message-container').append("<p id=\"error-message\">Der skal bruges 2 datapunkter</p>");
+        $('#error-message').css('color', '#FF0000')
+        $('#error-message').css('font-size', 22)
+      }
     } else { // Incorrect time format
       $('#id_test_time').css('border', '2px solid lightcoral');
     }
@@ -83,11 +93,21 @@ $('#add-test').click(function() {
   }
 });
 
-// row on click handler
+// row on click handlers
 $('.csv_row').on('click', function() {
   // Extract count value from table
-  var count_value = $(this).children().eq(2).html();
+  //$(this).attr("id")
 
+  if (csv_row_ids_array.includes($(this).attr("id"))){
+    $(this).css('background-color', '#ffffff');
+    var id = $(this).attr("id");
+    csv_row_ids_array = csv_row_ids_array.filter(function(item){
+      return id != item;
+    });
+  }
+  else if(csv_row_ids_array.length < 2 ){
+    csv_row_ids_array.push($(this).attr("id"));
+    $(this).css('background-color', '#bada55');
+  } 
   // Insert count value into 'Prøvetælletal' field
-  $('#id_test_value').val(count_value);
 });
