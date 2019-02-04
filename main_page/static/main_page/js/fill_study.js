@@ -90,13 +90,13 @@ $('.csv_row').on('click', function() {
 
   if (csv_row_ids_array.includes($(this).attr("id"))){
     $(this).css('background-color', '#ffffff');
-    var id = $(this).attr("id")
+    var id = $(this).attr("id");
     csv_row_ids_array = csv_row_ids_array.filter(function(item){
       return id != item;
     });
   }
   else if(csv_row_ids_array.length < 2 ){
-    csv_row_ids_array.push($(this).attr("id"))
+    csv_row_ids_array.push($(this).attr("id"));
     $(this).css('background-color', '#39ff14');
   } 
   // Insert count value into 'Prøvetælletal' field
