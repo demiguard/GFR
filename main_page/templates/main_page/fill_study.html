@@ -16,6 +16,9 @@
         {% bootstrap_form study_patient_form %}
       </div>
       <div class = "form-group col-md-3">
+        {% bootstrap_form study_patient_form_2 %}
+      </div>
+      <div class="form-group col-md-3">
         {% bootstrap_form study_examination_form %}
       </div>  
       <div class = "form-group col-md-3">
@@ -43,11 +46,8 @@
         {{ test_context.test_form.test_time.label }}
         {{ test_context.test_form.test_time }}
       </div>
-      <div class="form-group col-md-3">
-        {{ test_context.test_form.test_value.label }}
-        {{ test_context.test_form.test_value }}
-      </div>
     </div>
+    <div id="error-message-container"></div>
     {% buttons %}
       <input type="button" value="Tilføj" id="add-test">
     {% endbuttons %}
@@ -55,17 +55,17 @@
     <!-- Select test values from csv file -->
     <p>Vælg prøve fra fil:</p>
     <div class="csvAccordion" id="accordionContainer">
-      {% for name, data in csv_data %}
+      {% for name, data, id in csv_data %}
         <div class="card">
-          <div class="card-header" id="heading-{{ name }}">
+          <div class="card-header" id="heading-{{ id }}">
             <h2 class="mb-0">
-              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ name }}" aria-expanded="true" aria-controls="collapse-{{ name }}">
+              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ id }}" aria-expanded="true" aria-controls="collapse-{{ id }}">
                 {{ name }}
               </button>
             </h2>
           </div>
 
-          <div id="collapse-{{ name }}" class="collapse" aria-labelledby="heading-{{ name }}" data-parent="#accordionContainer">
+          <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
             <div class="card-body">
               <table class="table table-bordered table-hover">
                 <thead>
@@ -78,7 +78,7 @@
                 </thead>
                 <tbody>
                   {% for data_row in data %}
-                    <tr class="csv_row" id="{{ forloop.counter }}">
+                    <tr class="csv_row" id="{{ id }}-{{ forloop.counter }}">
                       <td>{{ data_row.0 }}</td>
                       <td>{{ data_row.1 }}</td>
                       <td>{{ data_row.2 }}</td>
@@ -97,7 +97,6 @@
     <!-- Submission buttons -->
     {% buttons %}
       <input type="submit" name="calculate" value="Beregn">
-      <input type="submit" name="calculate-nodb" value="Beregn udenom databasen">
       <input type="submit" name="save" value="Gem">
       <input type="button" value="Afbryd" id="cancel">
     {% endbuttons %}
