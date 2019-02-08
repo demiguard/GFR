@@ -80,7 +80,8 @@ def fill_study(request, rigs_nr):
     print(request.POST)
     PRH.fill_study_post(request, rigs_nr)
     
-    return redirect('main_page:present_study', rigs_nr=rigs_nr) 
+    if request.POST['save'] == 'calculate':
+      return redirect('main_page:present_study', rigs_nr=rigs_nr) 
   else: # GET
     # Specify page template
     template = loader.get_template('main_page/fill_study.html')

@@ -184,9 +184,9 @@ def store_dicom(dicom_obj_path,
     #Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
-      seq_elem.SampleTime     = sample[0]
-      seq_elem.cpm            = sample[1]
-      seq_elem.stdcnt         = sample[2]
+      seq_elem.SampleTime    = sample[0]
+      seq_elem.cpm           = sample[1]
+      seq_elem.stdcnt        = sample[2]
       seq_elem.thiningfactor = sample[3]
 
       seq.append(seq_elem)
