@@ -16,6 +16,7 @@ import pandas
 import numpy
 import pydicom
 import PIL
+import glob
 
 # Create your views here.
 def index(request):
@@ -69,8 +70,40 @@ def list_studies(request):
 
   bookings = ris.get_all('RH_EDTA')
 
+  # TODO: Move this into ris query wrapper
+  # Fetch all old bookings
+  old_bookings = []
+  for dcm_file in glob.glob('./tmp/*.dcm'):
+    # Delete file if more than one week since last modified
+    last_modified = os.path.getmtime(dcm_file)
+    lm_datetime = datetime.datetime.fromtimestamp(last_modified)
+    
+    now = datetime.datetime.now()
+    time_diff = lm_datetime - now
+    days_diff = time_diff.days
+
+    # TODO: LOAD THIS IN FORM A CONFIG FILE?!
+    # TODO: THE LAST MODIFIED DATA SHOULD BE STORED IN THE DICOM FILE!
+    DAYS_THRESHOLD = 7
+
+    if days_diff >= DAYS_THRESHOLD:
+      os.remove(dcm_file)
+      continue
+
+    # Open and read contents
+    dcm_obj = pydicom.dcmread(dcm_file)
+    exam_info = ris.ExaminationInfo()
+    
+    exam_info.risnr = dcm_obj.AccessionNumber
+    exam_info.cpr = ris.format_cpr(dcm_obj.PatientID)
+    exam_info.date = ris.format_date(dcm_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
+    exam_info.name = ris.format_name(dcm_obj.PatientName)
+
+    old_bookings.append(exam_info)
+
   context = {
-    'bookings': bookings
+    'bookings': bookings,
+    'old_bookings': old_bookings
   }
 
   return HttpResponse(template.render(context, request))
