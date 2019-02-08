@@ -64,7 +64,9 @@ $(function() {
   // 'Tilføj' clicked for manual study entry
   var csv_row_ids_array = [];
   $('#add-test').click(function() {
+    // Reset error messages container
     $('#error-message-container').empty()
+
     // Reset borders
     $('#id_study_time').css('border', '1px solid #CED4DA');
     $('#id_study_date').css('border', '1px solid #CED4DA');
@@ -85,32 +87,54 @@ $(function() {
 
         var html_row_base_begin = "<div class=\"form-row\">";
         var html_row_base_end = "</div>";
-        var html_field_begin = "<div class=\"form-group col-md-3\">";
+        var html_field_begin = "<div class=\"form-group col-md-3 readonly-field\">";
         var html_field_input_begin = "<input type=\"text\" class=\"form-control\" name=\"";
         var html_field_input_end = "\" value=\""
         var html_field_end = "\" readonly></div>";
-        //var html_remove_btn = "<button type=\"button\" class=\"btn btn-default btn-lg\"><span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\"></span></button>"
-        var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger form-group col-md-1\">";
+        
+        var html_button_div = "<div class=\"form-group col-md-3\">"
+        var html_button_div_end = "</div>";
+        var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger\">";
+        var html_lock_btn = "<input type=\"button\" value=\"&#x1f512;\" class=\"row-lock-btn btn btn-light\">";
 
         $('#test-data-container').append(html_row_base_begin);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_time" + html_field_input_end + study_time + html_field_end);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum + html_field_end);
-        $('#test-data-container .form-row').last().append(html_remove_btn);
+        $('#test-data-container .form-row').last().append(html_button_div + html_remove_btn + html_lock_btn + html_button_div_end);
         $('#test-data-container').append(html_row_base_end);
 
         // Register on click event-handler for remove row button
         $('.row-remove-btn').on('click', function() {
-          $(this).parent().remove();
+          $(this).parent().parent().remove();
+        });
+
+        // 'Lock' button on click
+        $('.row-lock-btn').on('click', function() {
+          var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
+          
+          if (resp) {
+            var form_parent = $(this).parent().parent();
+            form_parent.children('.readonly-field').each(function() {
+              $(this).children('input').attr('readonly', false);
+            });
+          }
         });
 
         // Clear input fields
         $('#id_study_time').val("");
         $('#id_study_value').val("");
+
+        // Deselect the two tests
+        csv_row_ids_array.forEach(function(item) {
+          $("#" + item).css('background-color', 'white');
+        });
+        csv_row_ids_array = [];
+
         } else { //Not enought Data selected
           $('#error-message-container').append("<p id=\"error-message\">Der skal bruges 2 datapunkter</p>");
-          $('#error-message').css('color', '#FF0000')
-          $('#error-message').css('font-size', 22)
+          $('#error-message').css('color', '#FF0000');
+          $('#error-message').css('font-size', 22);
         }
       } else { // Incorrect time format
         $('#id_study_time').css('border', '2px solid lightcoral');
@@ -124,8 +148,8 @@ $(function() {
   // Table row on click handlers
   $('.csv_row').on('click', function() {
     // Extract count value from table
-    if (csv_row_ids_array.includes($(this).attr("id"))){
-      $(this).css('background-color', '#ffffff');
+    if (csv_row_ids_array.includes($(this).attr("id"))) {
+      $(this).css('background-color', ''); // This shouldn't be directly set to a color since it's hover is done by bootstrap
       var id = $(this).attr("id");
       csv_row_ids_array = csv_row_ids_array.filter(function(item){
         return id != item;
@@ -136,8 +160,8 @@ $(function() {
       $(this).css('background-color', '#bada55');
     } 
   });
-
   
+
   // Click function to reset color
   var ids_to_check = [
     "#id_cpr",
