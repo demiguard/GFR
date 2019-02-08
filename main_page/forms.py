@@ -74,4 +74,11 @@ class FillStudyType(forms.Form):
 class FillStudyTest(forms.Form):
   test_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
   test_date = forms.DateField(label='Dato (YYYY-MM-DD)', required=False)
+
+class GetStudy(forms.Form):
+  name = forms.CharField(label='Navn',required = False)
+  cpr  = forms.CharField(label='CPR', required = False)
+  Rigs = forms.CharField(label='Rigs Nummer')
+  Dato = forms.DateField(label='Dato')
   
+

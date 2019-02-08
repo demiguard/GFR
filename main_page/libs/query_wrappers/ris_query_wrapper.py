@@ -1,5 +1,8 @@
 from subprocess import check_output, CalledProcessError
 import pydicom
+from pydicom.dataset import Dataset
+from pydicom.sequence import Sequence
+from pydicom.datadict import DicomDictionary, keyword_dict
 import os
 import sys
 import shutil
@@ -75,59 +78,121 @@ def execute_query(cmd):
   except (CalledProcessError, FileNotFoundError):
     return None
 
-def store_dicom(dicom_obj_path, tags, values, value_reps):
+def store_dicom(dicom_obj_path,
+    height            = None,
+    weight            = None,
+    gfr               = None,
+    gfr_type          = None,
+    injection_time    = None,
+    injection_weight  = None,
+    injection_before  = None,
+    injection_after   = None,
+    bsa_method        = None,
+    clearence         = None,
+    clearence_norm    = None,
+    sample_seq        = []
+  ):
   """
-  Stores value in the tags of the dicom
-  Value Rep is 
+  Saves information in dicom object, overwriting previous data, with no checks
 
   Args:
-    dicom_obj: The object to store
+    dicom_obj_path  : string, path to the object where you wish information to stored
+
+  Optional Args:
+    height          : float, Height of patient wished to be stored
+    weight          : float, Weight of patient wished to be stored
+    gfr             : string, either 'Normal', 'Moderat Nedsat', 'Nedsat', 'Stærkt nedsat' 
+    gfr_type        : string, Method used to calculate GFR
+    injection_time  : string on format 'YYYYMMDDHHMM', Describing when a sample was injected
+    injection_weight: float, Weight of injection
+    injection_before: float, Weight of Vial Before injection
+    injection_after : float, Weight of Vial After Injection
+    bsa_method      : string, Method used to calculate Body Surface area
+    clearence       : float, Clearence Value
+    clearence_norm  : float, Clearence Value Normalized to 1.73m²
+    sample_seq      : list of lists where every list is on the format: 
+      *List_elem_1  : string on format 'YYYYMMDDHHMM', describing sample taken time
+      *List_elem_2  : float, cpm of sample
+      *List_elem_3  : float, stdcnt of the sample
+      *List_elem_4  : float, Thining Factor of Sample. In most sane cases these are the same throught the list
 
   Remarks
-    Using this function it's only posible to store sequences of a single type.
-    So for instance it can store a sequence of sequences of dates, but not a
-    a sequence containing a sequence of dates and floats
+    It's only possible to store the predefined args with this function
   """
   ds = pydicom.dcmread(dicom_obj_path)
+  new_dict_items = {
+    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
+    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
+    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
+    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
+    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
+    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
+    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
+    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
+    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter') 
+    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
+    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
+    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
+    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
+    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+  }
 
-  for tag, val, val_rep in zip(tags, values, value_reps):
-    ds.add_new(tag, val_rep, val)
+  DicomDictionary.update(new_dict_items)
+
+  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
+  keyword_dict.update(new_names_dirc)
+
+  ds.add_new((0x00230010), 'LO', 'Clearence - Denmark - Region Hovedstaden')
+
+  if height:
+    ds.PatientSize = height
+
+  if weight:
+    ds.PatientWeight = weight
+
+  if gfr:
+    ds.GFR = gfr
+    ds.GFRVersion = 'Version 1.0'
+
+  if gfr_type:
+    ds.GFRMethod = gfr_type
+
+  if injection_time:
+    ds.injTime = injection_time
+
+  if injection_weight:
+    ds.injWeight = injection_weight
   
+  if injection_before:
+    ds.injbefore = injection_before
+  
+  if injection_after:
+    ds.injafter = injection_after
+
+  if bsa_method:
+    ds.BSAmethod = bsa_method
+
+  if clearence:
+    ds.clearance = clearence 
+
+  if clearence_norm:
+    ds.normClear = clearence_norm
+
+  if sample_seq:
+    seq = Sequence([])
+    #Add Information About the Sample
+    for sample in sample_seq:
+      seq_elem = Dataset()
+      seq_elem.SampleTime     = sample[0]
+      seq_elem.cpm            = sample[1]
+      seq_elem.stdcnt         = sample[2]
+      seq_elem.thiningfactor = sample[3]
+
+      seq.append(seq_elem)
+    ds.ClearTest = seq
+
   ds.save_as(dicom_obj_path)
-
-def store_private_tag(dicom_obj_path, tag, tag_block, tag_group, value, value_rep):
-  """
-  For a tag tttt, tag_block bb and tag_group gg, value_rep VR. 
-  Store the value at the tag [0xtttt,0xbbgg] with VR and create
-  the value: VR [0xtttt,0x00bb] with 'LO' 
-
-  Args:
-    dicom_obj_path: Path to dicom object 
-    tag           : An uneven hex on the form 0xgggg 
-    tag_block     : A hex larger than 0x10 but less than 0xFF
-    tag_group     : A hex less than 0xFF
-
-  returns: 0 on success
-
-
-  """
-  if tag % 2 == 1     : return 1
-  if tag >  0xFFFF    : return 1
-  if tag <  0x0010    : return 1
-  if tag_block > 0xFF : return 1
-  if tag_block < 0x10 : return 1
-  if tag_group > 0xFF : return 1
-
-  ds = pydicom.dcmread(dicom_obj_path)
-  
-  for t, t_block, t_group, v, vr in zip(tag, tag_block, value, value_rep):
-    ds.add_new((t, t_block), 'LO', vr)
-    
-    save_tag = hex((tag_block << 8) + tag_group)
-
-    ds.add_new((t, save_tag), vr, v)
-
-  return 0
 
 def parse_bookings(resp_dir):
   """
