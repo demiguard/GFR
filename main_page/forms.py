@@ -58,8 +58,8 @@ class FillStudyType(forms.Form):
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
 
 class FillStudyTest(forms.Form):
-  test_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
-  test_date = forms.DateField(label='Dato (YYYY-MM-DD)', required=False)
+  study_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
+  study_date = forms.DateField(label='Dato (YYYY-MM-DD)', required=False)
 
 class GetStudy(forms.Form):
   name = forms.CharField(label='Navn',required = False)

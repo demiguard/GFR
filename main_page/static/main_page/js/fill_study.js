@@ -70,12 +70,12 @@ $(function() {
     $('#id_study_date').css('border', '1px solid #CED4DA');
     
     // Extract form contents
-    var test_time = $('#id_study_time').val();
-    var test_date = $('#id_study_date').val();
+    var study_time = $('#id_study_time').val();
+    var study_date = $('#id_study_date').val();
 
     // Validate contents
-    if (valid_date_format(test_date)) {
-      if (valid_time_format(test_time)) { 
+    if (valid_date_format(study_date)) {
+      if (valid_time_format(study_time)) { 
         if (csv_row_ids_array.length == 2){
         // Avg. of two selected rows
         var sum = 0
@@ -93,8 +93,8 @@ $(function() {
         var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger form-group col-md-1\">";
 
         $('#test-data-container').append(html_row_base_begin);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_date" + html_field_input_end + test_date + html_field_end);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_time" + html_field_input_end + test_time + html_field_end);
+        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
+        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_time" + html_field_input_end + study_time + html_field_end);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum + html_field_end);
         $('#test-data-container .form-row').last().append(html_remove_btn);
         $('#test-data-container').append(html_row_base_end);

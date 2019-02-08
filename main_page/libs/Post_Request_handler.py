@@ -41,8 +41,8 @@ def fill_study_post(request, rigs_nr):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
-    sample_dates = request.POST.getlist('test_date')
-    sample_times = request.POST.getlist('test_time')
+    sample_dates = request.POST.getlist('study_date')
+    sample_times = request.POST.getlist('study_time')
 
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])
@@ -158,7 +158,7 @@ def fill_study_post(request, rigs_nr):
 
 def store_form(request, rigs_nr):
 #Input indicating if something have been typed
-  dicom_path = 'tmp/{0}.dcm'.format('rigs_nr')  
+  dicom_path = 'tmp/{0}.dcm'.format(rigs_nr)  
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
@@ -172,19 +172,19 @@ def store_form(request, rigs_nr):
     )
 
   #Study Always exists
-  study_type = int(request.POST['study type'])
+  study_type = int(request.POST['study_type'])
   study_str = ''
-  if study_type == 1:
+  if study_type == 0:
     study_str = 'Et punkt Voksen'
-  elif study_type == 2:
+  elif study_type == 1:
     study_str = 'Et punkt Barn'
-  elif study_type == 3:
+  elif study_type == 2:
     study_str = 'Flere prøve Voksen'
-  elif study_type == 4:
+  elif study_type == 3:
     study_str = 'Flere prøve Barn'
-  elif study_type == 5:
+  elif study_type == 4:
     study_str = '24 Timer Voksen'
-  elif study_type == 6:
+  elif study_type == 5:
     study_str = '24 Timer Barn'
 
   #Store Study
@@ -225,8 +225,8 @@ def store_form(request, rigs_nr):
       bsa_method = bsa_method 
     ) 
 
-  sample_dates = request.POST.getlist('test_date')
-  sample_times = request.POST.getlist('test_time')
+  sample_dates = request.POST.getlist('study_date')
+  sample_times = request.POST.getlist('study_time')
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('')])
 
   #There's Data to put in
