@@ -48,7 +48,7 @@ def fill_study_post(request, rigs_nr):
                           for time, date in zip(sample_times, sample_dates)])
 
     # Measured tec99 counts
-    tec_counts = numpy.array([int(x) for x in request.POST.getlist('test_value')])
+    tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
     # Compute surface area
     weight = float(request.POST['weight'])
@@ -103,20 +103,6 @@ def fill_study_post(request, rigs_nr):
     )
 
     dcm_obj_path = './tmp/{0}.dcm'.format(rigs_nr)
-    ImageData = PIL.Image.open(plot_path)
-    PixelData = ImageData.tobytes() 
-    ris.store_dicom(
-      dcm_obj_path,
-      gfr            = gfr,
-      clearence      = clearence,
-      clearence_norm = clearence_norm,
-      pixeldata = PixelData 
-      )
-
-    
-    # Store dicom object in PACS
-    # TODO: SET ADDRESS FOR PACS INSTEAD OF TESTING SERVER
-    """
     dcm_img_path = 'main_page/static/main_page/images/RH/{0}.dcm'.format(rigs_nr)
 
     img2dcm_query = [
@@ -130,13 +116,14 @@ def fill_study_post(request, rigs_nr):
 
     # TODO: Check exit-code of query and handle errors
     ris.execute_query(img2dcm_query)
+    img_obj = pydicom.dcmread(dcm_img_path)
   
     # Read StudyInstanceUID from main dicom object, to allow storage of image together with it
-    dcm_obj = pydicom.dcmread(dcm_obj_path)
+    """
+    These are handels by store dicom
     study_UID = dcm_obj.StudyInstanceUID
 
     # Store both dicom objects; main dicom object and image object
-    img_obj = pydicom.dcmread(dcm_img_path)
     img_obj.StudyInstanceUID = study_UID
 
     dcm_obj.SeriesInstanceUID = img_obj.SeriesInstanceUID
@@ -145,7 +132,19 @@ def fill_study_post(request, rigs_nr):
 
     img_obj.save_as(dcm_img_path)
     dcm_obj.save_as(dcm_obj_path)
-    """ 
+    """
+
+    ris.store_dicom(
+      dcm_obj_path,
+      gfr            = gfr,
+      clearence      = clearence,
+      clearence_norm = clearence_norm,
+      series_instance_uid= img_obj.SeriesInstanceUID,
+      sop_class_uid= img_obj.SOPClassUID,
+      sop_instance_uid= img_obj.SOPInstanceUID,
+      pixeldata = img_obj.PixelData 
+      )
+    
 
 
 def store_form(request, rigs_nr):

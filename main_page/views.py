@@ -244,27 +244,19 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   exam = ris.get_examination(rigs_nr, DICOM_directory)
   
   #Display
-  # pixel_arr = exam.info['image']
-  # if pixel_arr.shape[0] != 0:
-  #   Im = PIL.Image.fromarray(pixel_arr)
-  #   Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
+  pixel_arr = exam.info['image']
+  if pixel_arr.shape[0] != 0:
+    Im = PIL.Image.fromarray(pixel_arr)
+    Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
   
-  # plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
+  plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
 
   template = loader.get_template('main_page/present_study.html')
   
   context = {
-    'name'  : exam.info['name'],
-    'age'   : exam.info['age'],
-    'date'  : exam.info['date'],
-    'BSA'   : exam.info['BSA'],
-    'sex'   : exam.info['sex'],
-    'height': exam.info['height'],
-    'weight': exam.info['weight'],
-    'GFR'   : exam.info['GFR'],
-    'GFR_N' : exam.info['GFR_N'],
-    'image_path' : exam.info['image'],
-    'Nyrefunction' : clearance_math.kidney_function(float(exam.info['GFR_N']), exam.info['CPR'])
+    'name'          : exam.info['name'],
+    'date'          : exam.info['date'],
+    'image_path'    : plot_path,
   }
 
 

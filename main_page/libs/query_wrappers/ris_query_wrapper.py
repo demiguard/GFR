@@ -22,23 +22,27 @@ except ImportError:
 class ExaminationInfo():
   def __init__(self):
     self.info = {
-      'ris_nr' :'',
-      'name'   :'',
-      'cpr'    :'',
-      'age'    :'',
-      'date'   :'',
-      'sex'    :'',
-      'height' :0.0,
-      'weight' :0.0,
-      'BSA'    :'',
-      'GFR'    :'',
-      'GFR_N'  :'',
-      'Method' :'',
-      'inj_t'  : datetime.datetime(2000,1,1,0,0),
-      'sam_t'  : numpy.array([]), #Datetime list
-      'tch_cnt': numpy.array([]), #list of technisium count
-      'dosis'  : 0,
-      'image'  : numpy.array([]) #pixeldata
+      'ris_nr'      :'',
+      'name'        :'',
+      'cpr'         :'',
+      'age'         :'',
+      'date'        :'',
+      'sex'         :'',
+      'gfr'         :'',
+      'height'      :0.0,
+      'weight'      :0.0,
+      'BSA'         :0.0,
+      'clearence'   :'',
+      'clearence_N' :'',
+      'Method'      :'',
+      'inj_t'       : datetime.datetime(2000,1,1,0,0),
+      'inj_weight'  : 0.0,
+      'inj_before'  : 0.0,
+      'inj_after'   : 0.0,
+      'sam_t'       : numpy.array([]), #Datetime list
+      'tch_cnt'     : numpy.array([]), #list of technisium count
+      'dosis'       : 0,
+      'image'       : numpy.array([]) #pixeldata
     }
 
 # Class done
@@ -79,19 +83,22 @@ def execute_query(cmd):
     return None
 
 def store_dicom(dicom_obj_path,
-    height            = None,
-    weight            = None,
-    gfr               = None,
-    gfr_type          = None,
-    injection_time    = None,
-    injection_weight  = None,
-    injection_before  = None,
-    injection_after   = None,
-    bsa_method        = None,
-    clearence         = None,
-    clearence_norm    = None,
-    sample_seq        = [],
-    pixeldata         = []
+    height              = None,
+    weight              = None,
+    gfr                 = None,
+    gfr_type            = None,
+    injection_time      = None,
+    injection_weight    = None,
+    injection_before    = None,
+    injection_after     = None,
+    bsa_method          = None,
+    clearence           = None,
+    clearence_norm      = None,
+    series_instance_uid = None,
+    sop_class_uid       = None,
+    sop_instance_uid    = None,
+    sample_seq          = [],
+    pixeldata           = []
   ):
   """
   Saves information in dicom object, overwriting previous data, with no checks
@@ -144,7 +151,16 @@ def store_dicom(dicom_obj_path,
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
-  ds.add_new((0x00230010), 'LO', 'Clearence - Denmark - Region Hovedstaden')
+  ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
+
+  if series_instance_uid:
+    ds.SeriesInstanceUID = series_instance_uid
+
+  if sop_class_uid:
+    ds.SOPClassUID = sop_class_uid
+
+  if sop_instance_uid:
+    ds.SOPInstanceUID
 
   if height:
     ds.PatientSize = height
@@ -198,7 +214,7 @@ def store_dicom(dicom_obj_path,
     ds.PhotometricInterpretation = 'RGB'
     ds.PlanarConfiguration = 0
     ds.Rows = 1080
-    ds.Column = 1920
+    ds.Columns = 1920
     ds.BitsAllocated = 8
     ds.BitsStored = 8
     ds.HighBit = 7
@@ -379,6 +395,29 @@ def get_examination(rigs_nr, resp_dir):
 
   examination_info = ExaminationInfo()
 
+  #Update Pydicom with our tags
+  new_dict_items = {
+    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
+    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
+    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
+    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
+    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
+    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
+    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
+    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
+    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
+    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
+    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
+    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
+    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
+    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+  }
+
+  DicomDictionary.update(new_dict_items)
+  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
+  keyword_dict.update(new_names_dirc)
+
   # Remark: no need to format, since cached dcm objects are alread formatted.
   examination_info.info['ris_ nr'] = obj.AccessionNumber
   examination_info.info['cpr'] = format_cpr(obj.PatientID)
@@ -400,9 +439,12 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('weight', (0x0010, 0x1030), no_callback)
   try_get_exam_info('height', (0x0010, 0x1020), no_callback)
   try_get_exam_info('age', (0x0010, 0x1010), clearance_math.calculate_age, examination_info.info['cpr'])
-  try_get_exam_info('BSA', (0x0000,0x0000) , no_callback)
-  try_get_exam_info('GFR', (0x0000,0x0000), no_callback)
-  try_get_exam_info('GFR_N', (0x0000,0x0000), no_callback)
+  try_get_exam_info('clearence', (0x0023,0x1012), no_callback)
+  try_get_exam_info('clearence_N', (0x0023,0x1014), no_callback)
+  try_get_exam_info('GFR', (0x0023,0x1001),no_callback)
+
+  if 'PatientSize' in obj and 'PatientWeight' in obj:
+    examination_info.info['BSA'] = clearance_math.surface_area(obj.PatientSize, obj.PatientWeight)
 
   if 'PixelData' in obj:
     examination_info.info['image'] = numpy.array(obj.pixel_array)
