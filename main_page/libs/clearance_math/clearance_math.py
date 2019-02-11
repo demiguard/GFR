@@ -361,10 +361,10 @@ def generate_plot(
   # Generate backgroundsage = int(request.POST['age'])second graph
   ax[1].set_xlim(0, 110)      
   ax[1].set_ylim(0, 160)
-  ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
-  ax[1].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
-  ax[1].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
   ax[1].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
+  ax[1].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
+  ax[1].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
+  ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
   #ax[1].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
   
   titlesize = 8
@@ -466,29 +466,38 @@ def generate_plot_text(
 
   x =           [0, 40, 110]
   zeros =       [0, 0, 0]
-  darkred_y =   [30, 30, 10]
+  darkred_y =   [25, 25, 10]
   light_red_y = [50, 50, 30]
   yellow_y =    [75, 75, 35]
   lightgrey_y = [160, 160, 160]
   #grey_y =      [130, 130, 130]
 
-  fig, ax = plt.subplots(1, 2)
+  gender = calculate_sex(cpr)
+  age = calculate_age(cpr)
   
+  ymax = 120
+  while clearence_norm > ymax:
+    ymax += 20
+
+  xmax = 90
+  while age > xmax :
+    xmax += 20 
+    
+
+  fig, ax = plt.subplots(1, 2)
 
   # Generate backgroundsage = int(request.POST['age'])second graph
-  ax[0].set_xlim(0, 110)      
-  ax[0].set_ylim(0, 160)
-  ax[0].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
-  ax[0].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
-  ax[0].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
+  ax[0].set_xlim(0, xmax)      
+  ax[0].set_ylim(0, ymax)
   ax[0].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
+  ax[0].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
+  ax[0].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
+  ax[0].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
   #ax[0].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
   
   titlesize = 8
   labelsize = 18
 
-  gender = calculate_sex(cpr)
-  age = calculate_age(cpr)
 
   #Text setup for graph 1
   gender_str          = "Køn: {0}\n\n".format(gender)
@@ -521,11 +530,11 @@ def generate_plot_text(
   ax[0].set_xlabel('Alder (år)')
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)')
   ax[0].grid(color='black')
-  ax[0].scatter(age, clearence_norm)
+  ax[0].plot(age, clearence_norm, marker = 'o', markersize = 12)
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
-  ax[0].legend()
+  ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
   image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
   if save_fig : 
     im = fig2img(fig)
