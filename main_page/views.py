@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
-
-from .forms import LoginForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 from . import forms
 from .libs.query_wrappers import ris_query_wrapper as ris
@@ -20,17 +20,31 @@ import pydicom
 import PIL
 import glob
 
-# Create your views here.
+
 def index(request):
   if request.method == 'POST':
-    print(request.POST)
-
-    login_form = LoginForm(data=request.POST)
+    login_form = forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
       print('valid form')
-    else:
-      print('invalid form')
+      
+      user = authenticate(
+        request, 
+        username=request.POST['username'], 
+        password=request.POST['password'],
+        hosp=request.POST['hospital']
+      )
+
+      if user:
+        print("Auth success")
+        login(request, user)
+        print("user logged in")
+
+        if user.is_authenticated:
+          print("User is totally authenticated")
+          return redirect('main_page:list_studies')
+    
+    return redirect('main_page:index')
   else:
     # Specify page template
     template = loader.get_template('main_page/index.html')
@@ -42,6 +56,13 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/')
+def logout_page(request):
+  logout(request)
+  return redirect('main_page:index')
+
+
+@login_required(login_url='/')
 def new_study(request):
   # Specify page template
   template = loader.get_template('main_page/new_study.html')
@@ -72,6 +93,7 @@ def new_study(request):
   return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/')
 def list_studies(request):
   """
     1. get studies from RIGS (Using wrapper functions)
@@ -118,6 +140,8 @@ def list_studies(request):
 
   return HttpResponse(template.render(context, request))
 
+
+@login_required(login_url='/')
 def fill_study(request, rigs_nr):
   if request.method == 'POST':
     print(request.POST)
@@ -192,6 +216,7 @@ def fill_study(request, rigs_nr):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/')
 def fetch_study(request):
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')
@@ -202,6 +227,8 @@ def fetch_study(request):
 
   return HttpResponse(template.render(context, request))
 
+
+@login_required(login_url='/')
 def present_study(request, rigs_nr, hospital='RH'): #change default value
   """
   Function for presenting the result
