@@ -3,6 +3,8 @@ from django.http import HttpResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
 
+from .forms import LoginForm
+
 from . import forms
 from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
@@ -20,14 +22,24 @@ import glob
 
 # Create your views here.
 def index(request):
-  # Specify page template
-  template = loader.get_template('main_page/index.html')
+  if request.method == 'POST':
+    print(request.POST)
 
-  context = {
-    'login_form': forms.LoginForm()
-  }
+    login_form = LoginForm(data=request.POST)
 
-  return HttpResponse(template.render(context, request))
+    if login_form.is_valid():
+      print('valid form')
+    else:
+      print('invalid form')
+  else:
+    # Specify page template
+    template = loader.get_template('main_page/index.html')
+
+    context = {
+      'login_form': forms.LoginForm()
+    }
+
+    return HttpResponse(template.render(context, request))
 
 
 def new_study(request):

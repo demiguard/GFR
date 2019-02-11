@@ -1,4 +1,6 @@
 from django import forms
+from main_page.models import User
+
 
 # Login form
 class LoginForm(forms.Form):
@@ -6,10 +8,11 @@ class LoginForm(forms.Form):
   password = forms.CharField(widget=forms.PasswordInput())
 
   hosp_choices = [
-    (0, 'Rigshospitalet'),
-    (1, 'Herlev hospital'),
-    (2, 'Frederiksberg hospital'),
-    (3, 'Bispebjerg hospital')
+    ('RH', 'Rigshospitalet'),
+    ('HH', 'Herlev hospital'),
+    ('FH', 'Frederiksberg hospital'),
+    ('BH', 'Bispebjerg hospital'),
+    ('GL', 'Glostrup hospital')
   ]
 
   hospital = forms.CharField(widget=forms.Select(choices=hosp_choices))
