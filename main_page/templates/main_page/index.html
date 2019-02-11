@@ -8,10 +8,16 @@
     {% csrf_token %}
 
     <div class="form-group col-md-3">
-      {% bootstrap_form login_form %}
-      {% buttons %}
-        <input type="submit" value="Login">
-      {% endbuttons %}
+      {% if not user.is_authenticated %}
+        {% bootstrap_form login_form %}
+        {% buttons %}
+            <input type="submit" value="Login">
+        {% endbuttons %}
+      {% else %}
+        {% buttons %}
+          <input type="button" value="Logout" onclick="window.location='/logout';">
+        {% endbuttons %}
+      {% endif %}
     </div>
   </form>
 {% endblock %}
