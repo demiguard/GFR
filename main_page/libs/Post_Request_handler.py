@@ -29,11 +29,11 @@ def fill_study_post(request, rigs_nr):
   """
   #Save Without Redirect
 
-  if request.POST['save'] == 'Gem':
+  if 'save' in request.POST:
     store_form(request,rigs_nr)
 
   #Beregn
-  if request.POST['save'] == 'calculate':
+  if 'calculate' in request.POST:
     store_form(request, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
@@ -78,7 +78,7 @@ def fill_study_post(request, rigs_nr):
       method="INVALID METHOD"
 
     # Calculate GFR
-    gfr, gfr_norm = clearance_math.calc_clearance(
+    clearence, clearence_norm = clearance_math.calc_clearance(
       inj_datetime, 
       sample_datetimes,
       tec_counts,
@@ -87,41 +87,33 @@ def fill_study_post(request, rigs_nr):
       method=method
     )
 
-    # Generate plot
-    if study_type >= 1: # Not EPV or EPB
-      sample_times = clearance_math.compute_times(inj_datetime, sample_datetimes)
-      data_points1 = numpy.array([sample_times, tec_counts])
-    else:
-      data_points1 = numpy.array([[], []])
-
-    age = int(request.POST['age'])
-    data_points2 = numpy.array([[age], [gfr_norm]])
-
-    # plot_path = clearance_math.generate_plot(
-    #   data_points1,
-    #   data_points2,
-    #   rigs_nr
-    # )
-
     cpr = request.POST['cpr']
+    gfr = clearance_math.kidney_function(clearence_norm, cpr)
+
 
     plot_path = clearance_math.generate_plot_text(
       weight,
       height,
       BSA,
+      clearence,
+      clearence_norm,
       gfr,
-      gfr_norm,
-      clearance_math.kidney_function(gfr_norm, cpr),
       cpr,
       rigs_nr
     )
 
     dcm_obj_path = './tmp/{0}.dcm'.format(rigs_nr)
+    ImageData = PIL.Image.open(plot_path)
+    PixelData = ImageData.tobytes() 
     ris.store_dicom(
-      dcm_obj_path)
+      dcm_obj_path,
+      gfr            = gfr,
+      clearence      = clearence,
+      clearence_norm = clearence_norm,
+      pixeldata = PixelData 
+      )
 
-    print(rigs_nr)
-
+    
     # Store dicom object in PACS
     # TODO: SET ADDRESS FOR PACS INSTEAD OF TESTING SERVER
     """
@@ -162,7 +154,6 @@ def store_form(request, rigs_nr):
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
-    injection_time_input = True
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
@@ -225,10 +216,10 @@ def store_form(request, rigs_nr):
       bsa_method = bsa_method 
     ) 
 
-  sample_dates = request.POST.getlist('study_date')
-  sample_times = request.POST.getlist('study_time')
-  sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('')])
-
+  sample_dates = request.POST.getlist('study_date')[:-1]
+  sample_times = request.POST.getlist('study_time')[:-1]
+  sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
+  print(sample_dates)
   #There's Data to put in
   if len(sample_dates) > 0:
     #If thining factor have been inputed    
@@ -240,16 +231,19 @@ def store_form(request, rigs_nr):
       std_cnt = float(request.POST['std_cnt'])
 
     formated_sample_date = [date.replace('-','') for date in sample_dates]
-    formated_sample_time = [time.replace(':','') for time in sample_dates]
-
+    formated_sample_time = [time.replace(':','') for time in sample_times]
+    print('dates:', formated_sample_date)
+    print('times:', formated_sample_time)
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
 
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
     
+    print('datetimes:', sample_datetimes)
+
     zip_obj_seq = zip(sample_datetimes, sample_tec99) 
 
-    seq = [[datetime, cnt, std_cnt, thin_factor] for datetime, cnt in zip_obj_seq]
-
+    seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
+    print("Sequence:",seq)
     ris.store_dicom(
       dicom_path,
       sample_seq = seq
