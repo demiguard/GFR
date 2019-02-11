@@ -74,24 +74,22 @@ def list_studies(request):
   # Fetch all old bookings
   old_bookings = []
   for dcm_file in glob.glob('./tmp/*.dcm'):
-    # Delete file if more than one week since last modified
-    last_modified = os.path.getmtime(dcm_file)
-    lm_datetime = datetime.datetime.fromtimestamp(last_modified)
+    # Delete file if more than one week since procedure start
+    dcm_obj = pydicom.dcmread(dcm_file)
+    procedure_date_str = dcm_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+    procedure_date = datetime.datetime.strptime(procedure_date_str, '%Y%m%d')
     
     now = datetime.datetime.now()
-    time_diff = lm_datetime - now
+    time_diff = now - procedure_date
     days_diff = time_diff.days
-
-    # TODO: LOAD THIS IN FORM A CONFIG FILE?!
-    # TODO: THE LAST MODIFIED DATA SHOULD BE STORED IN THE DICOM FILE!
+    
     DAYS_THRESHOLD = 7
 
     if days_diff >= DAYS_THRESHOLD:
       os.remove(dcm_file)
       continue
 
-    # Open and read contents
-    dcm_obj = pydicom.dcmread(dcm_file)
+    # read additional contents
     exam_info = ris.ExaminationInfo()
     
     exam_info.risnr = dcm_obj.AccessionNumber
