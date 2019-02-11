@@ -90,7 +90,8 @@ def store_dicom(dicom_obj_path,
     bsa_method        = None,
     clearence         = None,
     clearence_norm    = None,
-    sample_seq        = []
+    sample_seq        = [],
+    pixeldata         = []
   ):
   """
   Saves information in dicom object, overwriting previous data, with no checks
@@ -191,6 +192,18 @@ def store_dicom(dicom_obj_path,
 
       seq.append(seq_elem)
     ds.ClearTest = seq
+
+  if pixeldata:
+    ds.SamplesPerPixel = 3
+    ds.PhotometricInterpretation = 'RGB'
+    ds.PlanarConfiguration = 0
+    ds.Rows = 1080
+    ds.Column = 1920
+    ds.BitsAllocated = 8
+    ds.BitsStored = 8
+    ds.HighBit = 7
+    ds.PixelRepresentation = 0
+    ds.PixelData = pixeldata
 
   ds.save_as(dicom_obj_path)
 

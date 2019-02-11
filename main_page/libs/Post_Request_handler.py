@@ -29,11 +29,11 @@ def fill_study_post(request, rigs_nr):
   """
   #Save Without Redirect
 
-  if request.POST['save'] == 'Gem':
+  if 'save' in request.POST:
     store_form(request,rigs_nr)
 
   #Beregn
-  if request.POST['save'] == 'calculate':
+  if 'calculate' in request.POST:
     store_form(request, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
@@ -103,14 +103,17 @@ def fill_study_post(request, rigs_nr):
     )
 
     dcm_obj_path = './tmp/{0}.dcm'.format(rigs_nr)
+    ImageData = PIL.Image.open(plot_path)
+    PixelData = ImageData.tobytes() 
     ris.store_dicom(
       dcm_obj_path,
-      gfr = gfr,
-
+      gfr            = gfr,
+      clearence      = clearence,
+      clearence_norm = clearence_norm,
+      pixeldata = PixelData 
       )
 
-    print(rigs_nr)
-
+    
     # Store dicom object in PACS
     # TODO: SET ADDRESS FOR PACS INSTEAD OF TESTING SERVER
     """
@@ -151,7 +154,6 @@ def store_form(request, rigs_nr):
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
-    injection_time_input = True
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))

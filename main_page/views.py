@@ -80,9 +80,14 @@ def fill_study(request, rigs_nr):
     print(request.POST)
     PRH.fill_study_post(request, rigs_nr)
     
-    if request.POST['save'] == 'calculate':
+    if 'calculate' in request.POST:
       return redirect('main_page:present_study', rigs_nr=rigs_nr) 
+    #TODO Simon should look at this
+    return HttpResponse("YOU HAVE SAVED SOMETHING")
+
   else: # GET
+
+
     # Specify page template
     template = loader.get_template('main_page/fill_study.html')
     
