@@ -67,5 +67,6 @@ class FillStudyTest(forms.Form):
 class GetStudy(forms.Form):
   name = forms.CharField(label='Navn',required = False)
   cpr  = forms.CharField(label='CPR', required = False)
-  Rigs = forms.CharField(label='Rigs Nummer')
-  Dato = forms.DateField(label='Dato')
+  Rigs = forms.CharField(label='Rigs Nummer', required = False)
+  Dato_start = forms.DateField(label='Dato Start', required = False)
+  Dato_finish = forms.DateField(label='Dato Slut', required=False)
