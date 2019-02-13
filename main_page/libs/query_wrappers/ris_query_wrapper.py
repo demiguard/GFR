@@ -474,7 +474,7 @@ def get_all(hosp_aet):
   #curr_date = datetime.datetime.today().strftime('%Y%m%d')
   #edta_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = curr_date
 
-  query_file = 'main_page/libs/edta_query_{0}'.format(hosp_aet)
+  query_file = 'main_page/libs/edta_query_{0}.dcm'.format(hosp_aet)
   edta_obj.save_as(query_file)
 
   resp_dir = './tmp'
@@ -651,7 +651,7 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
 def store_study(ris_nr, resp_dir):
   """
-  Stores a given study in the RIGS database
+  Stores a given study in the PACS database
 
   Args:
     ris_nr: RIGS number of the study

@@ -26,8 +26,6 @@ def index(request):
     login_form = forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
-      print('valid form')
-      
       user = authenticate(
         request, 
         username=request.POST['username'], 
@@ -36,12 +34,9 @@ def index(request):
       )
 
       if user:
-        print("Auth success")
         login(request, user)
-        print("user logged in")
 
         if user.is_authenticated:
-          print("User is totally authenticated")
           return redirect('main_page:list_studies')
     
     return redirect('main_page:index')
