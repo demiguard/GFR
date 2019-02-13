@@ -217,7 +217,7 @@ def fetch_study(request):
   template = loader.get_template('main_page/fetch_study.html')
 
   context = {
-
+    'getstudy' : forms.GetStudy()
   }
 
   return HttpResponse(template.render(context, request))
