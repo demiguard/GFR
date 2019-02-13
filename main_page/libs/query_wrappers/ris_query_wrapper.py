@@ -446,7 +446,7 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
 
   if 'injTime' in obj: 
-    examination_info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
+    examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
     examination_info.info['BSA'] = clearance_math.surface_area(obj.PatientSize, obj.PatientWeight)

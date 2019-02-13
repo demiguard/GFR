@@ -210,8 +210,8 @@ def fill_study(request, rigs_nr):
         'thin_fac' : 0
       }),
       'study_examination_form'  : forms.Fillexamination(initial={
-        'vial_weight_before'    : exam.info['before'],
-        'vial_weight_after'     : exam.info['after'],
+        'vial_weight_before'    : exam.info['inj_before'],
+        'vial_weight_after'     : exam.info['inj_after'],
         'injection_time'        : inj_time,
         'injection_date'        : inj_date
       }),
