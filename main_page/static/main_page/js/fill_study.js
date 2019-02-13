@@ -1,11 +1,5 @@
 // Wait until document ready
 $(function() {
-
-  // "Beregn" and "Gem" button on click events
-  $("#calculate, #save").click(function() {
-    
-  });
-
   // HANDLING OF LEAVING THE PAGE
   var unload_func = function() {
     return "Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!";
@@ -229,6 +223,13 @@ $(function() {
     // Remove previous error message, if any
     $("#submit-err-container").empty();
 
+    // Check if any tests have been added
+    var test_count = $('#test-data-container').children().length;
+    if (test_count == 0) {
+      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Kan ikke beregne uden prøver.</p>");
+      return false;
+    }
+
     // Check that all fields are filled out
     is_valid = true;
     failed_id = "";
@@ -246,6 +247,45 @@ $(function() {
       return false;
     }
 
+    // Check that injection date isn't in the future
+    var now = new Date();
+    var inj_date_val = $('#id_injection_date').val();
+    var inj_time_val = $('#id_injection_time').val();
+    var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
+    var dt = Date.parse(dt_str);
+
+    if (dt > now) {
+      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Injektionstidspunkt kan ikke være i fremtiden.</p>");
+      return false;
+    }
+
+    // Check that the difference between the injection before and after isn't negative
+    var weight_before = $('#id_vial_weight_before').val();
+    var weight_after = $('#id_vial_weight_after').val();
+    if (weight_before - weight_after <= 0) {
+      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Injektionsvægt efter kan ikke være større end den før.</p>");
+      return false;
+    }
+
+    // Check that all test dates are after the injection date
+    var date_fields = $("#test-data-container [name='study_date']");
+    var time_fields = $("#test-data-container [name='study_time']");
+
+    var inj_date_val = $('#id_injection_date').val();
+    var inj_time_val = $('#id_injection_time').val();
+    var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
+    var dt = Date.parse(dt_str);
+
+    for (var i = 0; i < date_fields.length; i++) {
+      var t_str = date_fields[i].value + ' ' + time_fields[i].value + ':00';
+      var t = Date.parse(t_str);
+      
+      if (dt >= t) { // injection timestamp >= test timestamp
+        $("#submit-err-container").append("<p style=\"color: lightcoral;\">Prøvetidspunkter kan ikke være før injektionstidspunkter.</p>");
+        return false;
+      }
+    }
+
     // Prompt to confim study
     $(window).off("beforeunload");
     var resp = confirm("Er undersøgelsen fuldendt?");
@@ -253,6 +293,8 @@ $(function() {
       $(window).on("beforeunload", unload_func);
       return false;
     }
+
+    return true;
   });
 
 
