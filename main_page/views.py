@@ -191,6 +191,13 @@ def fill_study(request, rigs_nr):
 
     csv_data = zip(csv_present_names, csv_data, csv_names)
 
+    inj_time = today.strftime('%H:%M')
+    inj_date = today.strftime('%Y-%m-%d')
+    if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
+      inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
+      inj_time = exam.info['inj_t'].strftime('%H:%M')
+
+
     context = {
       'rigsnr': rigs_nr,
       'study_patient_form': forms.Fillpatient_1(initial={
@@ -203,8 +210,16 @@ def fill_study(request, rigs_nr):
         'height': exam.info['height'],
         'weight': exam.info['weight'],
       }),
-      'study_dosis_form' : forms.Filldosis(),
-      'study_examination_form' : forms.Fillexamination(),
+      'study_dosis_form' : forms.Filldosis( initial={
+        'std_cnt' : 0,
+        'thin_fac' : 0
+      }),
+      'study_examination_form'  : forms.Fillexamination(initial={
+        'vial_weight_before'    : exam.info['before'],
+        'vial_weight_after'     : exam.info['after'],
+        'injection_time'        : inj_time,
+        'injection_date'        : inj_date
+      }),
       'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
       'test_context': {
         'test_range': test_range,
@@ -256,6 +271,7 @@ def present_study(request, rigs_nr, hospital='RH'): #change default value
   context = {
     'name'          : exam.info['name'],
     'date'          : exam.info['date'],
+    'rigs_nr'         : rigs_nr,
     'image_path'    : plot_path,
   }
 

@@ -503,7 +503,7 @@ def generate_plot_text(
   gender_str          = "Køn: {0}\n\n".format(gender)
   age_str             = "Alder: {0} år\n\n".format(age)
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
-  height_str          = "Højde: {0} m\n\n".format(height)
+  height_str          = "Højde: {0} cm\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
   clearence_str       = "Clearence: {0:.2f} ml / min\n\n".format(clearence)
   clearence_norm_str  = "Clearence, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 

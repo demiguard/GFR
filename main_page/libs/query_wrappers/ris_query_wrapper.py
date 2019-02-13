@@ -160,7 +160,7 @@ def store_dicom(dicom_obj_path,
     ds.SOPClassUID = sop_class_uid
 
   if sop_instance_uid:
-    ds.SOPInstanceUID
+    ds.SOPInstanceUID = sop_instance_uid
 
   if height:
     ds.PatientSize = height
@@ -441,7 +441,12 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('age', (0x0010, 0x1010), clearance_math.calculate_age, examination_info.info['cpr'])
   try_get_exam_info('clearence', (0x0023,0x1012), no_callback)
   try_get_exam_info('clearence_N', (0x0023,0x1014), no_callback)
-  try_get_exam_info('GFR', (0x0023,0x1001),no_callback)
+  try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
+  try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
+  try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
+
+  if 'injTime' in obj: 
+    examination_info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
     examination_info.info['BSA'] = clearance_math.surface_area(obj.PatientSize, obj.PatientWeight)

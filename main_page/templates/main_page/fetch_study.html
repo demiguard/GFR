@@ -1,5 +1,18 @@
 {% extends 'main_page/base.html' %}
 
+{% load static %}
+{% load bootstrap4 %}
+
 {% block content %}
 
+  <form method="POST">
+    <div class="form-row">
+      <div class="form-group">
+        {% bootstrap_form getstudy %}
+      </div>
+    </div>
+    {% buttons %}
+      <input type="submit" name="Søg" value="Søg" id="søg"> 
+    {% endbuttons %}
+  </form>
 {% endblock %}
