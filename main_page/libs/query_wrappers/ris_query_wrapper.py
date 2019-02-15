@@ -450,7 +450,16 @@ def get_examination(rigs_nr, resp_dir):
   if 'Cleartest' in obj:
     if 'thiningFactor' in obj.ClearTest[0]:
       examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
-  
+    if 'stdcnt' in obj.ClearTest[0]:
+      examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt
+
+    sample_times = numpy.array([])
+    tch99_cnt = numpy.array([])
+    for test in obj.ClearTest:
+      if 'SampleTime' in test:
+        sample_times.append(datetime.datetime.strptime(test.SampleTime ,'%Y%m%d%H%M'))
+      if 'cpm' in test:
+        tch99_cnt.append(test.cpm)
   if 'injTime' in obj: 
     examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
 
