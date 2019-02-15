@@ -39,6 +39,8 @@ class ExaminationInfo():
       'inj_weight'  : 0.0,
       'inj_before'  : 0.0,
       'inj_after'   : 0.0,
+      'thin_fact'   : 0.0,
+      'std_cnt'     : 0.0,
       'sam_t'       : numpy.array([]), #Datetime list
       'tch_cnt'     : numpy.array([]), #list of technisium count
       'dosis'       : 0,
@@ -445,6 +447,10 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
 
+  if 'Cleartest' in obj:
+    if 'thiningFactor' in obj.ClearTest[0]:
+      examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
+  
   if 'injTime' in obj: 
     examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
 
