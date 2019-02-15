@@ -19,6 +19,7 @@ import numpy
 import pydicom
 import PIL
 import glob
+import pprint
 
 
 def index(request):
@@ -99,15 +100,23 @@ def list_studies(request):
 
   bookings = ris.get_all('RH_EDTA')
 
+  for booking in bookings:
+    booking.name = booking.info['name']
+    booking.date = booking.info['date']
+    booking.cpr  = booking.info['cpr']
+    booking.ris_nr = booking.info['ris_nr']
+
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
   old_bookings = []
   for dcm_file in glob.glob('./tmp/*.dcm'):
     # Delete file if more than one week since procedure start
-    dcm_obj = pydicom.dcmread(dcm_file)
-    procedure_date_str = dcm_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-    procedure_date = datetime.datetime.strptime(procedure_date_str, '%Y%m%d')
     
+    dcm_dirc, dcm_name = dcm_file.rsplit('/',1)
+    dcm_name, _ = dcm_name.rsplit('.',1)
+    exam_info = ris.get_examination(dcm_name, dcm_dirc)
+    procedure_date = datetime.datetime.strptime(exam_info.info['date'], '%d/%m-%Y')
+
     now = datetime.datetime.now()
     time_diff = now - procedure_date
     days_diff = time_diff.days
@@ -119,18 +128,23 @@ def list_studies(request):
       continue
 
     # read additional contents
-    exam_info = ris.ExaminationInfo()
     
-    exam_info.risnr = dcm_obj.AccessionNumber
-    exam_info.cpr = ris.format_cpr(dcm_obj.PatientID)
-    exam_info.date = ris.format_date(dcm_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
-    exam_info.name = ris.format_name(dcm_obj.PatientName)
+    exam_info.name = exam_info.info['name']
+    exam_info.date = exam_info.info['date']
+    exam_info.cpr = exam_info.info['cpr']
+    exam_info.ris_nr = exam_info.info['ris_nr']
 
     old_bookings.append(exam_info)
 
+  for booking in bookings:
+    print(booking.ris_nr)
+  
+  for booking in old_bookings:
+    print(booking.ris_nr)
+
   context = {
     'bookings': bookings,
-    'old_bookings': old_bookings
+    'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.info['date']))
   }
 
   return HttpResponse(template.render(context, request))
@@ -191,8 +205,7 @@ def fill_study(request, rigs_nr):
     if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
       inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
       inj_time = exam.info['inj_t'].strftime('%H:%M')
-
-    print(exam.info)
+ 
     context = {
       'rigsnr': rigs_nr,
       'study_patient_form': forms.Fillpatient_1(initial={
