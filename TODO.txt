@@ -1,8 +1,16 @@
-main_page/views.py:      #TODO redirect to fill_study/ris_nr 
-                         #TODO redirect from new_study to fill_study with new study
-main_page/libs/ris_query_wrapper.py: # TODO: Move these to config file
-main_page/libs/ris_query_wrapper.py: # TODO: Add error handling for invalid filepath
-main_page/libs/ris_query_wrapper.py: # TODO: Figure out smart function for passing info
-main_page/libs/ris_query_wrapper.py: # TODO: Error handling for failed findscu execution
-main_page/libs/ris_query_wrapper.py: # TODO: Handle errors in the case of execution failure
-main_page/libs/clearance_math/clearance_math.py:  # TODO: These values define changed
+./main_page/views.py:  # TODO: Move this into ris query wrapper
+./main_page/views.py:    #TODO Simon should look at this
+./main_page/libs/Post_Request_handler.py:    # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
+./main_page/libs/Post_Request_handler.py:    # TODO: Possibly make an Enum in the future
+./main_page/libs/Post_Request_handler.py:      'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
+./main_page/libs/Post_Request_handler.py:    # TODO: Check exit-code of query and handle errors
+./main_page/libs/clearance_math/clearance_math.py:  # TODO: These values define changed
+./main_page/libs/clearance_math/clearance_math.py:  # TODO: These values define changed
+./main_page/libs/query_wrappers/ris_query_wrapper.py:# TODO: Move these to config file
+./main_page/libs/query_wrappers/ris_query_wrapper.py:# TODO: Change these to absolute paths when deploying, to avoid alias attacks
+./main_page/libs/query_wrappers/ris_query_wrapper.py:  # TODO: Update this to the first respons file from the findscu command is deleted immediately after use
+./main_page/libs/query_wrappers/ris_query_wrapper.py:  # TODO: Add error handling of failed queries (Update execute_query first to return exit-code)
+./main_page/libs/query_wrappers/ris_query_wrapper.py:  # TODO: Add error handling for invalid filepath
+./main_page/libs/query_wrappers/ris_query_wrapper.py:    pass # TODO: Error handling for failed findscu execution
+./main_page/libs/query_wrappers/ris_query_wrapper.py:  # TODO: Handle errors in the case of execution failure
+Binary file ./.git/index matches

@@ -1,26 +1,23 @@
 // Wait until document ready
 $(function() {
-  // HANDLING OF LEAVING THE PAGE
-  var unload_func = function() {
-    return "Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!";
-  }
-
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
     $("#fill-study-form").data('changed', true);
   });
 
-  // In browser back button clicked
+  var unload_func = function() {
+    if ($('#fill-study-form').data('changed')) {
+      return "Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!";
+    }
+  }
+
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
   $("#cancel").click(function() {
-    $(window).off("beforeunload"); // Don't prompt twice
-
     if ($("#fill-study-form").data('changed')) {
       var resp = confirm("Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!");
       if (!resp) {
-        $(window).on("beforeunload", unload_func);
         return false;
       }
     }
@@ -30,7 +27,7 @@ $(function() {
 
   // Sidemenu item clicked
   $(".menu-item").click(function() {
-    $(window).off("beforeunload"); // Don't prompt twice
+    $(window).off("beforeunload");
 
     if ($("#fill-study-form").data('changed')) {
       var resp = confirm("Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!");
@@ -220,6 +217,8 @@ $(function() {
 
   // 'Beregn' on click event
   $('#calculate').click(function() {
+    $(window).off("beforeunload");
+
     // Remove previous error message, if any
     $("#submit-err-container").empty();
 
@@ -287,7 +286,6 @@ $(function() {
     }
 
     // Prompt to confim study
-    $(window).off("beforeunload");
     var resp = confirm("Er undersøgelsen fuldendt?");
     if (!resp) {
       $(window).on("beforeunload", unload_func);
@@ -300,6 +298,8 @@ $(function() {
 
   // 'Gem' on click event
   $('#save').click(function() {
+    $(window).off("beforeunload");
+
     // Clear previous error message
     $("#submit-err-container").empty();
 
@@ -315,6 +315,7 @@ $(function() {
         $("#id_injection_date").css('border', '2px solid lightcoral');
       }
 
+      $(window).on("beforeunload", unload_func);
       return false;
     }
 
@@ -325,6 +326,7 @@ $(function() {
       $("#submit-err-container").append("<p style=\"color: lightcoral;\">Sprøjtevægt før skal indtastes.</p>");
       $("#id_vial_weight_before").css('border', '2px solid lightcoral');
 
+      $(window).on("beforeunload", unload_func);
       return false;
     }
   });

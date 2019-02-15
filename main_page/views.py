@@ -99,7 +99,7 @@ def list_studies(request):
 
   bookings = ris.get_all('RH_EDTA')
 
-  # TODO: Move this into ris query wrapper
+  # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
   old_bookings = []
   for dcm_file in glob.glob('./tmp/*.dcm'):
@@ -153,7 +153,7 @@ def fill_study(request, rigs_nr):
     # Specify page template
     template = loader.get_template('main_page/fill_study.html')
     
-    exam = ris.get_examination(rigs_nr, './tmp') # './tmp' should be put in a configurable thing...
+    exam = ris.get_examination(rigs_nr, './tmp') # TODO: './tmp' should be put in a configurable thing...
 
     test_range = range(6)
     today = datetime.datetime.today()
@@ -192,7 +192,7 @@ def fill_study(request, rigs_nr):
       inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
       inj_time = exam.info['inj_t'].strftime('%H:%M')
 
-
+    print(exam.info)
     context = {
       'rigsnr': rigs_nr,
       'study_patient_form': forms.Fillpatient_1(initial={
@@ -239,21 +239,23 @@ def fetch_study(request):
 
 
 @login_required(login_url='/')
-def present_study(request, rigs_nr, hospital='RH'): #change default value
+def present_study(request, rigs_nr):
   """
   Function for presenting the result
 
   Args:
     request: The HTTP request
     rigs_nr: The number 
-  returns:
-  
+
+  Returns:
   """
   DICOM_directory = "./tmp"
 
+  hospital = request.user.hospital
+
   exam = ris.get_examination(rigs_nr, DICOM_directory)
-  
-  #Display
+
+  # Display
   pixel_arr = exam.info['image']
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
