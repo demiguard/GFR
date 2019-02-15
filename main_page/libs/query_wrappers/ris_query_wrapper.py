@@ -421,7 +421,7 @@ def get_examination(rigs_nr, resp_dir):
   keyword_dict.update(new_names_dirc)
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
-  examination_info.info['ris_ nr'] = obj.AccessionNumber
+  examination_info.info['ris_nr'] = obj.AccessionNumber
   examination_info.info['cpr'] = format_cpr(obj.PatientID)
   examination_info.info['date'] = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
   examination_info.info['name'] = format_name(obj.PatientName)
@@ -446,6 +446,8 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
+
+  obj.StudyDate = obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
 
   if 'Cleartest' in obj:
     if 'thiningFactor' in obj.ClearTest[0]:
@@ -536,6 +538,11 @@ def get_all(hosp_aet):
     if obj.RequestedProcedureDescription in accepted_procedures:
       examination_info = ExaminationInfo()
       
+      examination_info.info['ris_nr'] = obj.AccessionNumber
+      examination_info.info['cpr'] = format_cpr(obj.PatientID)
+      examination_info.info['date'] = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
+      examination_info.info['name'] = format_name(obj.PatientName)
+
       examination_info.risnr = obj.AccessionNumber
       examination_info.cpr = format_cpr(obj.PatientID)
       examination_info.date = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
@@ -547,7 +554,7 @@ def get_all(hosp_aet):
       obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
       os.remove(key)
   
-  return sorted(ret, key=lambda x: x.name)
+  return sorted(ret, key=lambda x: x.info['name'])
 
 def check_cpr(cpr):  
   """
