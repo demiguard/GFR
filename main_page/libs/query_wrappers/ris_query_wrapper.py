@@ -61,6 +61,7 @@ PACS_IP = '193.3.238.103'
 PACS_PORT = '11112' # Or 11112 if no port-forwarding
 
 CALLING_AET = "RH_EDTA"
+# EDTA_GLO # TODO: Use the glostrup AET for their RIGS system to query for patients from them
 
 # TODO: Change these to absolute paths when deploying, to avoid alias attacks
 DUMP2DCM = "dump2dcm"

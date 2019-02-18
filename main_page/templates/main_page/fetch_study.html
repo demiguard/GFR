@@ -5,14 +5,20 @@
 
 {% block content %}
 
-  <form method="POST">
+  <form method="GET">
     <div class="form-row">
       <div class="form-group">
         {% bootstrap_form getstudy %}
       </div>
     </div>
     {% buttons %}
-      <input type="submit" name="Søg" value="Søg" id="søg"> 
+      <input type="submit" name="Søg" value="Søg" id="søg">
     {% endbuttons %}
   </form>
+
+  <div>
+    {% for cpr, name, study_date, rigs_nr in responses %}
+      <p>{{ cpr }}, {{ name }}, {{ study_date }}, {{ rigs_nr }}</p>
+    {% endfor %}
+  </div>
 {% endblock %}
