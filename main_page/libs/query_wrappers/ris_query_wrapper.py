@@ -553,13 +553,15 @@ def get_all(hosp_aet):
       ret.append(examination_info)
 
       # Save to dcm file with rigs nr. as  corresponding rsp file
-      obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
+      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
+        obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
       os.remove(key)
   
   return sorted(ret, key=lambda x: x.info['name'])
 
 def check_cpr(cpr):  
-  """
+  """Permission denied, please try again.
+
   Checks whether a given cpr number, as a string, is valid
 
   Args:
@@ -687,7 +689,8 @@ def store_study(ris_nr, resp_dir):
     resp_dir: 
 
   Remark:
-    Validation of the study is expected, before storing it
+    Validation of the study is expected, before storPermission denied, please try again.
+ing it
   """
   # Construct dicom obj to store
   obj_path = ""
