@@ -242,4 +242,22 @@ def store_form(request, rigs_nr):
       dicom_path,
       sample_seq = seq
     )
-    
+
+def send_to_pacs(request, rigs_nr):
+  """
+    Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
+
+    Args:
+      request: The Post Request
+      rigs_nr: The accession number for the examination
+
+  """
+  #Extract Information about the 
+
+
+
+  # Send information to pacs
+
+
+  # Remove study from directory
+  pass

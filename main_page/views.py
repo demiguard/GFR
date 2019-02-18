@@ -137,12 +137,7 @@ def list_studies(request):
 
     old_bookings.append(exam_info)
 
-  for booking in bookings:
-    print(booking.ris_nr)
   
-  for booking in old_bookings:
-    print(booking.ris_nr)
-
   context = {
     'bookings': bookings,
     'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.info['date']))
@@ -160,90 +155,89 @@ def fill_study(request, rigs_nr):
     if 'calculate' in request.POST:
       return redirect('main_page:present_study', rigs_nr=rigs_nr) 
     #TODO Simon should look at this
-    return HttpResponse("YOU HAVE SAVED SOMETHING")
 
-  else: # GET
+  # Specify page template
+  template = loader.get_template('main_page/fill_study.html')
+  
+  exam = ris.get_examination(rigs_nr, './tmp') # TODO: './tmp' should be put in a configurable thing...
 
+  test_range = range(6)
+  today = datetime.datetime.today()
+  date, _ = str(today).split(' ')
+  test_form = forms.FillStudyTest(initial = {'study_date' : date})
+  for f in test_form:
+    f.field.widget.attrs['class'] = 'form-control'
 
-    # Specify page template
-    template = loader.get_template('main_page/fill_study.html')
+  # Get list of csv files
+  csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
+  csv_names = [os.path.basename(path).split('.')[0] for path in csv_files]
+
+  # Read required data from each csv file  
+  csv_data = []
+  csv_present_names = []
+  for file in csv_files:
+    prestring = "Undersøgelse lavet: "
     
-    exam = ris.get_examination(rigs_nr, './tmp') # TODO: './tmp' should be put in a configurable thing...
+    temp_p = pandas.read_csv(file)
+    curr_data = [[] for _ in range(temp_p.shape[0])]
 
-    test_range = range(6)
-    today = datetime.datetime.today()
-    date, _ = str(today).split(' ')
-    test_form = forms.FillStudyTest(initial = {'study_date' : date})
-    for f in test_form:
-      f.field.widget.attrs['class'] = 'form-control'
+    csv_present_names.append(prestring + temp_p['Measurement date & time'][0])
+    for i, row in temp_p.iterrows():
+      curr_data[i].append(row['Rack'])
+      curr_data[i].append(row['Pos'])
+      curr_data[i].append(row['Cr-51 Counts'])
+      curr_data[i].append(row['Cr-51 CPM'])
 
-    # Get list of csv files
-    csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
-    csv_names = [os.path.basename(path).split('.')[0] for path in csv_files]
+    csv_data.append(curr_data)
 
-    # Read required data from each csv file  
-    csv_data = []
-    csv_present_names = []
-    for file in csv_files:
-      prestring = "Undersøgelse lavet: "
-      
-      temp_p = pandas.read_csv(file)
-      curr_data = [[] for _ in range(temp_p.shape[0])]
+  csv_data = zip(csv_present_names, csv_data, csv_names)
 
-      csv_present_names.append(prestring + temp_p['Measurement date & time'][0])
-      for i, row in temp_p.iterrows():
-        curr_data[i].append(row['Rack'])
-        curr_data[i].append(row['Pos'])
-        curr_data[i].append(row['Cr-51 Counts'])
-        curr_data[i].append(row['Cr-51 CPM'])
+  inj_time = today.strftime('%H:%M')
+  inj_date = today.strftime('%Y-%m-%d')
+  if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
+    inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
+    inj_time = exam.info['inj_t'].strftime('%H:%M')
 
-      csv_data.append(curr_data)
+  context = {
+    'rigsnr': rigs_nr,
+    'study_patient_form': forms.Fillpatient_1(initial={
+      'cpr': exam.info['cpr'],
+      'name': exam.info['name'],
+      'sex': exam.info['sex'],
+      'age': exam.info['age']
+    }),
+    'study_patient_form_2': forms.Fillpatient_2(initial={
+      'height': exam.info['height'],
+      'weight': exam.info['weight'],
+    }),
+    'study_dosis_form' : forms.Filldosis( initial={
+      'std_cnt' : 0,
+      'thin_fac' : 0
+    }),
+    'study_examination_form'  : forms.Fillexamination(initial={
+      'vial_weight_before'    : exam.info['inj_before'],
+      'vial_weight_after'     : exam.info['inj_after'],
+      'injection_time'        : inj_time,
+      'injection_date'        : inj_date
+    }),
+    'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
+    'test_context': {
+      'test_range': test_range,
+      'test_form': test_form
+    },
+    'csv_data': csv_data
+  }
 
-    csv_data = zip(csv_present_names, csv_data, csv_names)
-
-    inj_time = today.strftime('%H:%M')
-    inj_date = today.strftime('%Y-%m-%d')
-    if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
-      inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
-      inj_time = exam.info['inj_t'].strftime('%H:%M')
- 
-    context = {
-      'rigsnr': rigs_nr,
-      'study_patient_form': forms.Fillpatient_1(initial={
-        'cpr': exam.info['cpr'],
-        'name': exam.info['name'],
-        'sex': exam.info['sex'],
-        'age': exam.info['age']
-      }),
-      'study_patient_form_2': forms.Fillpatient_2(initial={
-        'height': exam.info['height'],
-        'weight': exam.info['weight'],
-      }),
-      'study_dosis_form' : forms.Filldosis( initial={
-        'std_cnt' : 0,
-        'thin_fac' : 0
-      }),
-      'study_examination_form'  : forms.Fillexamination(initial={
-        'vial_weight_before'    : exam.info['inj_before'],
-        'vial_weight_after'     : exam.info['inj_after'],
-        'injection_time'        : inj_time,
-        'injection_date'        : inj_date
-      }),
-      'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
-      'test_context': {
-        'test_range': test_range,
-        'test_form': test_form
-      },
-      'csv_data': csv_data
-    }
-
-    return HttpResponse(template.render(context, request))
+  return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/')
 def fetch_study(request):
   # Get all patient with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D
+
+  # Use the responses from these in the query:
+  # 
 
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')
