@@ -243,10 +243,7 @@ def fill_study(request, rigs_nr):
 @login_required(login_url='/')
 def fetch_study(request):
   # Get all patient with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D
-
-  # Use the responses from these in the query:
-  # 
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
 
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')

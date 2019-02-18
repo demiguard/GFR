@@ -53,6 +53,8 @@ $(function() {
   }
 
   // 'Tilføj' clicked for manual study entry
+  var test_count = 0;
+
   var csv_row_ids_array = [];
   $('#add-test').click(function() {
     // Reset error messages container
@@ -86,7 +88,7 @@ $(function() {
         var html_button_div = "<div class=\"form-group col-md-3\">"
         var html_button_div_end = "</div>";
         var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger\">";
-        var html_lock_btn = "<input type=\"button\" value=\"&#x1f512;\" class=\"row-lock-btn btn btn-light\">";
+        var html_lock_btn = "<input type=\"button\" value=\"&#x1f512;\" class=\"row-lock-btn btn btn-light\" id=\"lock" + test_count.toString() + "\">";
 
         $('#test-data-container').append(html_row_base_begin);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
@@ -97,20 +99,24 @@ $(function() {
 
         // Register on click event-handler for remove row button
         $('.row-remove-btn').on('click', function() {
+          test_count--;
           $(this).parent().parent().remove();
         });
 
         // 'Lock' button on click
-        $('.row-lock-btn').on('click', function() {
+        var lock_str = '#lock' + test_count.toString();
+        $(lock_str).on('click', function() {
           var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
           
           if (resp) {
             var form_parent = $(this).parent().parent();
             form_parent.children('.readonly-field').each(function() {
-              $(this).children('input').attr('readonly', false);
+             $(this).children('input').attr('readonly', false);
             });
           }
         });
+
+        test_count++;
 
         // Clear input fields
         $('#id_study_time').val("");
