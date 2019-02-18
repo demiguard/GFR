@@ -155,6 +155,9 @@ def store_dicom(dicom_obj_path,
 
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
 
+  # Set StudyDate
+  ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
   if series_instance_uid:
     ds.SeriesInstanceUID = series_instance_uid
 
@@ -447,8 +450,6 @@ def get_examination(rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
-
-  obj.StudyDate = obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
 
   if 'Cleartest' in obj:
     if 'thiningFactor' in obj.ClearTest[0]:
