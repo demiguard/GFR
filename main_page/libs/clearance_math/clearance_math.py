@@ -505,8 +505,8 @@ def generate_plot_text(
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
   height_str          = "Højde: {0} cm\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
-  clearence_str       = "Clearence: {0:.2f} ml / min\n\n".format(clearence)
-  clearence_norm_str  = "Clearence, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
+  clearence_str       = "Clearance: {0:.2f} ml / min\n\n".format(clearence)
+  clearence_norm_str  = "Clearance, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
   print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(

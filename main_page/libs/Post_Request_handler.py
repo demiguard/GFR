@@ -242,21 +242,4 @@ def store_form(request, rigs_nr):
       dicom_path,
       sample_seq = seq
     )
-  else:
     
-    std_cnt = 0
-    thin_factor = 0
-    if not request.POST['std_cnt']:
-      std_cnt = float(request.POST['std_cnt'])
-    if not request.POST['thin_fac']:
-      thin_factor = float(request.POST['thin_fac'])
-
-    ris.store_dicom(
-      dicom_path,
-      sample_seq=[[
-        None,
-        None,
-        std_cnt,
-        thin_factor]
-      ]
-    )
