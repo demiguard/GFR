@@ -41,8 +41,8 @@ def fill_study_post(request, rigs_nr):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
-    sample_dates = request.POST.getlist('study_date')
-    sample_times = request.POST.getlist('study_time')
+    sample_dates = request.POST.getlist('study_date')[:-1]
+    sample_times = request.POST.getlist('study_time')[:-1]
 
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])
@@ -243,12 +243,20 @@ def store_form(request, rigs_nr):
       sample_seq = seq
     )
   else:
+    
+    std_cnt = 0
+    thin_factor = 0
+    if not request.POST['std_cnt']:
+      std_cnt = float(request.POST['std_cnt'])
+    if not request.POST['thin_fac']:
+      thin_factor = float(request.POST['thin_fac'])
+
     ris.store_dicom(
       dicom_path,
-      sample_seq=[
+      sample_seq=[[
         None,
         None,
         std_cnt,
-        thin_factor
+        thin_factor]
       ]
     )

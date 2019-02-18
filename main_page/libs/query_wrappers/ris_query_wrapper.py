@@ -369,7 +369,8 @@ def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
 
   # Move found object into cache
   cache_path = cache_dir + rigs_nr + '.dcm'
-  os.rename(img_rsp_path, cache_path)
+  if os._exists(cache_path):
+    os.rename(img_rsp_path, cache_path)
 
   obj = pydicom.dcmread(cache_path)
   return obj
