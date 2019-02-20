@@ -4,21 +4,66 @@
 {% load bootstrap4 %}
 
 {% block content %}
-
   <form method="GET">
     <div class="form-row">
-      <div class="form-group">
-        {% bootstrap_form getstudy %}
+      <!-- First row of fields -->
+      <div class="form-group col-md-2">
+        {{ getstudy.name.label }}
+        {{ getstudy.name }}
+      </div>
+      <div class="form-group col-md-2">
+        {{ getstudy.cpr.label }}
+        {{ getstudy.cpr }}
+      </div>
+      <div class="form-group col-md-2">
+        {{ getstudy.Rigs.label }}
+        {{ getstudy.Rigs }}
       </div>
     </div>
+    <!-- Second row of fields -->
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        {{ getstudy.Dato_start.label }}
+        {{ getstudy.Dato_start }}
+      </div>
+      <div class="form-group col-md-2">
+        {{ getstudy.Dato_finish.label }}
+        {{ getstudy.Dato_finish }}
+      </div>
+    </div>
+
     {% buttons %}
       <input type="submit" name="Søg" value="Søg" id="søg">
     {% endbuttons %}
   </form>
 
-  <div>
+  <!-- <div>
     {% for cpr, name, study_date, rigs_nr in responses %}
       <p>{{ cpr }}, {{ name }}, {{ study_date }}, {{ rigs_nr }}</p>
     {% endfor %}
-  </div>
+  </div> -->
+
+  <br>
+  <h2>Søgeresultater:</h2>
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Cpr nr.</th>
+        <th>Dato</th>
+        <th>Ris nr.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cpr, name, study_date, rigs_nr in responses %}
+      <tr onclick="document.location='{% url "main_page:present_study" rigs_nr %}'">
+        <td>{{ name }}</td>
+        <td>{{ cpr }}</td>
+        <td>{{ study_date }}</td>
+        <td>{{ rigs_nr }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
 {% endblock %}
