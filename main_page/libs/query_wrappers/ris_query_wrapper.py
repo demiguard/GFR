@@ -50,6 +50,7 @@ class ExaminationInfo():
 # Class done
 
 # TODO: Move these to config file
+# This should be the same for all rigs queries, since they all use the same, but query with different calling AETs
 RIGS_AET = "VIMCM"
 RIGS_IP = "10.143.128.247"
 RIGS_PORT = "3320"
@@ -60,7 +61,16 @@ PACS_AET = 'TEST_DCM4CHEE'
 PACS_IP = '193.3.238.103'
 PACS_PORT = '11112' # Or 11112 if no port-forwarding
 
-CALLING_AET = "RH_EDTA"
+CALLING_AET = "RH_EDTA"          # Rigshospitalet
+# CALLING_AET = "GLO_EDTA"       # Glostrup
+# CALLING_AET = "HEHKFARGHOTR05" # Herlev
+
+# Herlev query example
+# findscu -aet HEHKFARGHOTR05 -aet VIMCM 10.143.128.247 104 edta_query_GLO.dcm -X -od test_rsp/
+
+# Glostrup query example
+# findscu -aet GLO_EDTA -aet VIMCM 10.143.128.247 104 edta_query_GLO.dcm -X -od test_rsp/
+
 # EDTA_GLO # TODO: Use the glostrup AET for their RIGS system to query for patients from them
 
 # TODO: Change these to absolute paths when deploying, to avoid alias attacks
