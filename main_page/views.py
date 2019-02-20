@@ -234,16 +234,8 @@ def fill_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def fetch_study(request):
-<<<<<<< HEAD
-  # Get all patient with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D
-
-  # Use the responses from these in the query:
-  # 
-=======
   # Get all patients with "Clearance blodprove 2. gang":
   # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
->>>>>>> 1b2fbba3791cefd15e7a49ad5f34a2c694f7a8d8
 
   # Name wildcard example:
   # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0010="*^mi*" -k 0010,0020
