@@ -476,12 +476,13 @@ def get_examination(rigs_nr, resp_dir):
 
   return examination_info
 
-def get_all(hosp_aet):
+def get_all(hosp_aet, hospital):
   """
   Get registed patients from a specific hospital (by AET)
 
   Args:
     hosp_aet: AET corresponding to the hospital
+    hospital: The hospital short, from request.user.hospital
 
   Returns:
     Ordered list, based on names, of ExaminationInfo instances containing infomation 
@@ -489,6 +490,7 @@ def get_all(hosp_aet):
 
   Example:
     hosp_aet='RH_EDTA' is Rigshospitalet
+    hospital='RH' is Rigshospitalet
   """
   edta_obj = pydicom.dcmread('main_page/libs/edta_query.dcm')
 
@@ -502,11 +504,16 @@ def get_all(hosp_aet):
   query_file = 'main_page/libs/edta_query_{0}.dcm'.format(hosp_aet)
   edta_obj.save_as(query_file)
 
-  resp_dir = './tmp'
-  try:
-    os.mkdir(resp_dir)
-  except FileExistsError:
-    pass
+  Dicom_base_dirc = 'Active_Dicom_objects'
+  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, hospital)
+
+  if not os.path.exists(Dicom_base_dirc):
+    os.mkdir(Dicom_base_dirc)
+
+  if not os.path.exists(DICOM_dirc):
+    os.mkdir(DICOM_dirc)
+
+  resp_dir = './{0}'.format(DICOM_dirc)
 
   # Construct query and execute
   query_arr = [

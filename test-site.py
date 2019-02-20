@@ -84,7 +84,7 @@ def main():
     s.post(exam_url, data=payload)
 
   # Send the output dicom objects to the dcm4chee database
-  obj_paths = ['./tmp/{0}.dcm'.format(x) for x in rigs_numbers]
+  obj_paths = ['./Active_Dicom_objects/RH/{0}.dcm'.format(x) for x in rigs_numbers]
   
   # Set the StudyDate for this specific person
   ds = pydicom.dcmread(obj_paths[1])

@@ -28,6 +28,13 @@ class UserManager(BaseUserManager):
 
   def create_superuser(self, username, password, hosp):
     return self.create_user(username, password, hosp)
+#Configuration
+class Config(models.Model):
+  config_id = models.AutoField(primary_key=True)
+  Accepted_predure = models.TextField()
+
+  def __str__(self):
+    return 'config-' + self.config_id
 
 
 # User class
@@ -35,7 +42,9 @@ class User(AbstractBaseUser):
   id = models.AutoField(primary_key=True)
   username = models.CharField(max_length=120, unique=True)
   password = models.CharField(max_length=120)
-  
+  #config   = models.ForeignKey(Config, on_delete= models.CASCADE, unique=True, default=Config())
+
+
   HOSPS = (
     ('RH', 'Rigshospitalet'),
     ('HH', 'Herlev hospital'),
@@ -50,3 +59,5 @@ class User(AbstractBaseUser):
 
   def __str__(self):
     return self.username
+
+  

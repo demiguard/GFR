@@ -24,7 +24,7 @@ def fill_study_post(request, rigs_nr):
       Handles Post request for fill study
 
       Args:
-          Request: The Post request
+        Request: The Post request
         rigs_nr: The REGH number for the corosponding examination
   """
   #Save Without Redirect
@@ -102,8 +102,22 @@ def fill_study_post(request, rigs_nr):
       rigs_nr
     )
 
-    dcm_obj_path = './tmp/{0}.dcm'.format(rigs_nr)
-    dcm_img_path = 'main_page/static/main_page/images/RH/{0}.dcm'.format(rigs_nr)
+    Dicom_base_dirc = 'Active_Dicom_objects'
+    hospital     = request.user.hospital
+    img_path     = 'main_page/static/main_page/images'
+
+    if not os.path.exists(Dicom_base_dirc):
+      os.mkdir(Dicom_base_dirc)
+
+    if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
+      os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+
+    if not os.path.exists('{0}/{1}'.format(img_path, hospital)):
+      os.mkdir('{0}/{1}'.format(img_path, hospital))
+
+    dcm_obj_path = '.{0}/{1}/{2}.dcm'.format(Dicom_base_dirc ,request.user.hospital, rigs_nr)
+
+    dcm_img_path = '{0}/{1}/{2}.dcm'.format(img_path, hospital, rigs_nr)
 
     img2dcm_query = [
       'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
@@ -149,7 +163,19 @@ def fill_study_post(request, rigs_nr):
 
 def store_form(request, rigs_nr):
 #Input indicating if something have been typed
-  dicom_path = 'tmp/{0}.dcm'.format(rigs_nr)  
+  
+  Dicom_base_dirc = 'Active_Dicom_objects'
+  hospital = request.user.hospital
+
+  if not os.path.exists(Dicom_base_dirc):
+    os.mkdir(Dicom_base_dirc)
+
+  if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
+    os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+  
+  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, hospital)
+
+  dicom_path = '{0}/{1}.dcm'.format(DICOM_dirc, rigs_nr)  
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:

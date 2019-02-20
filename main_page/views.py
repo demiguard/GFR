@@ -14,7 +14,6 @@ from dateutil import parser as date_parser
 import datetime
 import glob
 import os
-import shutil
 import pandas
 import numpy
 import pydicom
@@ -100,7 +99,7 @@ def list_studies(request):
   # Specify page template
   template = loader.get_template('main_page/list_studies.html')
 
-  bookings = ris.get_all('RH_EDTA')
+  bookings = ris.get_all('RH_EDTA', request.user.hospital)
 
   for booking in bookings:
     booking.name = booking.info['name']
@@ -110,8 +109,14 @@ def list_studies(request):
 
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
+
+  Dicom_base_dirc = 'Active_Dicom_objects'
+  DICOM_directory = '{0}/{1}'.format(Dicom_base_dirc, request.user.hospital)
+
+
+
   old_bookings = []
-  for dcm_file in glob.glob('./tmp/*.dcm'):
+  for dcm_file in glob.glob('./{0}/*.dcm'.format(DICOM_directory)):
     # Delete file if more than one week since procedure start
     
     dcm_dirc, dcm_name = dcm_file.rsplit('/',1)
@@ -160,7 +165,18 @@ def fill_study(request, rigs_nr):
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
   
-  exam = ris.get_examination(rigs_nr, './tmp') # TODO: './tmp' should be put in a configurable thing...
+  Dicom_base_dirc = 'Active_Dicom_objects'
+  hospital     = request.user.hospital
+
+  if not os.path.exists(Dicom_base_dirc):
+    os.mkdir(Dicom_base_dirc)
+
+  if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
+    os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+
+  exam = ris.get_examination(rigs_nr, './{0}/{1}'.format(Dicom_base_dirc, hospital)) 
+
+  
 
   test_range = range(6)
   today = datetime.datetime.today()
@@ -234,152 +250,17 @@ def fill_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def fetch_study(request):
-  # Get all patients with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
+  # Get all patient with "Clearance blodprove 2. gang":
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D
 
-  # Name wildcard example:
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0010="*^mi*" -k 0010,0020
-
-  # Date range example (find all patients from 20180101 to 20190101):
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20180101-20190101" -k 0010,0020 -k 0010,0010
+  # Use the responses from these in the query:
+  # 
 
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')
 
-  if 'Søg' in request.GET:
-    # Extract search parameters
-    s_name = request.GET['name']
-    s_cpr = request.GET['cpr']
-    s_rigs = request.GET['Rigs']
-    s_date_from = request.GET['Dato_start']
-    s_date_to = request.GET['Dato_finish']
-
-    # Construct query
-    history_dir = './hist_tmp/'
-    search_query = 'search_query'
-    base_search_file = "{0}base_{1}.dcm".format(history_dir, search_query)
-
-    # Find next number for query file
-    search_files = glob.glob('{0}{1}*.dcm'.format(history_dir, search_query))
-    
-    curr_num = len(search_files)
-    curr_search_file = '{0}{1}{2}.dcm'.format(history_dir, search_query, curr_num)
-    
-    curr_rsp_dir = '{0}rsp{1}/'.format(history_dir, curr_num)
-    os.mkdir(curr_rsp_dir)
-
-    # Make a new copy to construct the current query
-    shutil.copyfile(base_search_file, curr_search_file)
-
-    sf = pydicom.dcmread(curr_search_file)
-
-    if s_name:
-      s_name = s_name.strip()
-      name_arr = s_name.split(' ')
-
-      # Format as: "*LASTNAME^FIRSTNAME^MIDDLENAMES^*"
-      firstname = name_arr[0]
-      lastname = name_arr[-1]
-      middlenames = name_arr[1:len(name_arr) - 1]
-
-      # TODO: Shorten this name formatting
-      # TODO: Add a lastname field to make life easier
-      # If array is one element long
-      if firstname == lastname:
-        lastname = ''
-      
-      name_str = "*{0}^{1}^{2}^*".format(
-        lastname, 
-        firstname, 
-        '^'.join(middlenames)
-      )
-
-      print(name_str)
-
-      sf.PatientName = name_str
-
-    # if s_cpr:
-
-
-    # if s_rigs:
-
-    
-    # if s_date_from:
-
-
-    # if s_date_to:
-
-
-    sf.save_as(curr_search_file)
-
-    search_query = [
-      "findscu",
-      "-S",
-      "-aet",
-      "RH_EDTA",
-      "-aec",
-      "TEST_DCM4CHEE",
-      "127.0.0.1",
-      "11112",
-      curr_search_file,
-      '-X',
-      '-od',
-      curr_rsp_dir
-    ]
-    
-    # TODO: Add error handling
-    out = ris.execute_query(search_query)
-
-    # Extract data from responses
-    rsps = []
-
-    for rsp_path in glob.glob('{0}*.dcm'.format(curr_rsp_dir)):
-      # TODO: Change this to use get_examination from ris_query_wrapper to make christoffer happy, yet still try to keep the querie files short
-      # rsp_name = rsp_path.split('.')[0]
-      # curr_exam = ris.get_examination(curr_rsp_dir, rsp_name)
-
-      ds = pydicom.dcmread(rsp_path)
-      rsp_info = (
-        ds.PatientID,
-        ds.PatientName,
-        ds.StudyDate,
-        ds.AccessionNumber,
-      )
-
-      # rsp_info = (
-      #   curr_exam.info['name'],
-      #   curr_exam.info['cpr'],
-      #   curr_exam.info['date'],
-      #   curr_exam.info['ris_nr'],
-      # )
-
-      rsps.append(rsp_info)
-
-    # Remove the search query file
-    os.remove(curr_search_file)
-    shutil.rmtree(curr_rsp_dir)
-
-  else:
-    # Default case: display the patients from today
-    # search_file = "./hist_tmp/default_search_query.dcm"
-    
-    # default_query = [
-    #   "FINDSCU",
-    #   "-S",
-    #   "-aet",
-    #   "RH_EDTA",
-    #   "-aec",
-    #   "TEST_DCM4CHEE",
-    #   "127.0.0.1",
-    #   "11112",
-    #   search_file
-    # ]
-    rsps = []
-
-
   context = {
-    'getstudy' : forms.GetStudy(),
-    'responses': rsps
+    'getstudy' : forms.GetStudy()
   }
 
   return HttpResponse(template.render(context, request))
@@ -396,9 +277,21 @@ def present_study(request, rigs_nr):
 
   Returns:
   """
-  DICOM_directory = "./tmp"
+  if request == 'POST':
+    PRH.send_to_pacs(request, rigs_nr)
+    redirect('mainpage:liststudies') 
 
+
+  Dicom_base_dirc = 'Active_Dicom_objects'
   hospital = request.user.hospital
+  
+  DICOM_directory = '.{0}/{1}'.format(Dicom_base_dirc, hospital)
+
+  if not os.path.exists(Dicom_base_dirc):
+    os.mkdir(Dicom_base_dirc)
+
+  if not os.path.exists(DICOM_directory):
+    os.mkdir(DICOM_directory)
 
   exam = ris.get_examination(rigs_nr, DICOM_directory)
 
@@ -419,5 +312,7 @@ def present_study(request, rigs_nr):
     'image_path'    : plot_path,
   }
 
-
   return HttpResponse(template.render(context,request))
+
+
+def config(request):
