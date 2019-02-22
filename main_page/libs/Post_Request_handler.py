@@ -228,7 +228,7 @@ def store_form(request, rigs_nr):
       injection_before= vial_weight_before
     )
 
-  bsa_method = 'Du Bois'
+  bsa_method = 'Haycock'
   if (len(request.POST['weight']) > 0):
     ris.store_dicom(
       dicom_path,

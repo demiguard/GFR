@@ -14,8 +14,12 @@ class table_info():
     self.date = date
     self.run_id = run_id
 
+class UNKNOWNMETHODEXEPTION(Exception):
+  def __init__(self):
+    self.message = 'Unknown Method'
+  
 
-def surface_area(height, weight, method = "Du Bois"):
+def surface_area(height, weight, method = "Haycock"):
   """Estimate the surface area of a human being, based on height and height
 
   Args:
@@ -73,42 +77,56 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   elif method == "EPB":
     #
     #Magical Numbers
-    magic_number_1 = 5867
-    magic_number_2 = 1.1792
-    
-    ECV = magic_number_1 * (BSA ** magic_number_2)
+    magic_number_1 = 0.0008
+    two_hours_min = 120
+    ml_per_liter = 1000
 
-    magic_number_3 = 1.01
-    magic_number_4 = -0.00011
-    magic_number_5 = 0.538
-    magic_number_6 = -0.0178 
-  
-    g = magic_number_3 * numpy.exp(magic_number_4 * delta_times[0]) + magic_number_5 * numpy.exp(magic_number_6 * delta_times[0])
-    clearence = ( -numpy.log(tec99_cnt[0]* ECV / dosis) * ECV) / (delta_times[0] * g)
-    
-    magic_number_7 = 1.73
+    P120 = tec99_cnt[0] * numpy.exp(delta_times[0] - two_hours_min)
+    V120 = dosis / (P120 / ml_per_liter)
 
-    clearence_normalized =  (clearence * magic_number_7) / BSA
+    magic_number_2 = 2.602
+    magic_number_3 = 0.273
+
+    clearence_normalized = ((magic_number_2 * V120) - magic_number_3)
+
+    normalizing_constant = 1.73
+
+    clearence = clearence_normalized * normalizing_constant / BSA 
+
   elif method == "Multi-4" :
 
     log_tec99_cnt = [numpy.log(x) for x in tec99_cnt]
 
     slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
   
-    clearence_reg = (dosis * (-slope)) / numpy.exp(intercept) 
+    clearence_1 = (dosis * (-slope)) / numpy.exp(intercept) 
 
-    magic_number_1 = 0.990778
-    magic_number_2 = 0.001218
+    magic_number_1 = 0.0032
+    magic_number_2 = 1.3
 
-    clearence = magic_number_1 * clearence_reg - magic_number_2 * clearence_reg**2
+    clearence =  clearence_1 / ( magic_number_1 * BSA**(-magic_number_2) * clearence_1)
     
     magic_number_3 = 1.73
 
     clearence_normalized = clearence * magic_number_3 / BSA
 
+    if delta_times[-1] > 1440:
+      magic_number_4 = 0.5
+
+      clearence             = clearence - 0.5
+      clearence_normalized  = clearence_normalized - 0.5
+
+      return clearence, clearence_normalized
+
   else:
-    print("this shouldnt happen")
-    return -1, -1
+    raise UNKNOWNMETHODEXEPTION
+
+  magic_number_1 = 3.7
+  magic_number_2 = 1.1
+
+  clearence = (clearence - magic_number_1) * magic_number_2
+  clearence_normalized = (clearence_normalized - magic_number_1) * magic_number_2
+
   return clearence, clearence_normalized
 
 def dosis(inj, fac, stc):
@@ -235,9 +253,9 @@ def kidney_function(clearence_norm, cpr):
   #From the index GFR, Conclude on the kidney function
   if index_GFR < 25 : 
     return "Normal"
-  elif index_GFR < 50 :
+  elif index_GFR < 48 :
     return "Moderat nedsat"
-  elif index_GFR < 75:
+  elif index_GFR < 72:
     return "Middelsvært nedsat"
   else:
     return "Svært nedsat"
