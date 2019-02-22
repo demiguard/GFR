@@ -35,7 +35,7 @@ def surface_area(height, weight, method = "Haycock"):
   elif method == "Mosteller":
       return 0.016667*(weight**0.5)*(height**0.5)
   elif method == "Haycock":
-      return 0.24265*(weight**0.5378)*(height**0.3964)
+      return 0.024265*(weight**0.5378)*(height**0.3964)
   else:
     return -1
 
@@ -77,21 +77,21 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   elif method == "EPB":
     #
     #Magical Numbers
-    magic_number_1 = 0.0008
+    magic_number_1 = 0.008
     two_hours_min = 120
     ml_per_liter = 1000
 
-    P120 = tec99_cnt[0] * numpy.exp(delta_times[0] - two_hours_min)
-    V120 = dosis / (P120 / ml_per_liter)
+    P120 = tec99_cnt[0] * numpy.exp(magic_number_1 * (delta_times[0] - two_hours_min))
+    V120 = dosis / (P120 * ml_per_liter)
 
     magic_number_2 = 2.602
     magic_number_3 = 0.273
 
-    clearence_normalized = ((magic_number_2 * V120) - magic_number_3)
+    clearence = ((magic_number_2 * V120) - magic_number_3)
 
     normalizing_constant = 1.73
 
-    clearence = clearence_normalized * normalizing_constant / BSA 
+    clearence_normalized = clearence * normalizing_constant / BSA 
 
   elif method == "Multi-4" :
 
@@ -101,10 +101,12 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   
     clearence_1 = (dosis * (-slope)) / numpy.exp(intercept) 
 
+    print(clearence_1)
+
     magic_number_1 = 0.0032
     magic_number_2 = 1.3
 
-    clearence =  clearence_1 / ( magic_number_1 * BSA**(-magic_number_2) * clearence_1)
+    clearence =  clearence_1 / ( 1 + magic_number_1 * BSA**(-magic_number_2) * clearence_1)
     
     magic_number_3 = 1.73
 
