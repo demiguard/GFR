@@ -549,11 +549,12 @@ def get_all(hosp_aet, hospital):
   # Extract needed info from dcm objects (w/ formatting)
   ret = []
   accepted_procedures = [
-    'Clearance Fler-blodprøve',
+    'Clearance Fler-blodprøve',     # These three are from the old clearance Cr examinations
     'Clearance blodprøve 2. gang',
     'GFR, Cr-51-EDTA, one sampel',
+    'GFR, Tc-99m-DTPA'              # New Tc examination
   ]
-
+  print(dcm_objs)
   for key, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
       examination_info = ExaminationInfo()
@@ -573,6 +574,7 @@ def get_all(hosp_aet, hospital):
       # Save to dcm file with rigs nr. as  corresponding rsp file
       if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
         obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
+      print(key)
       os.remove(key)
   
   return sorted(ret, key=lambda x: x.info['name'])

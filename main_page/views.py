@@ -12,6 +12,7 @@ from .libs import Post_Request_handler as PRH
 
 from dateutil import parser as date_parser
 import datetime
+import shutil
 import glob
 import os
 import pandas
@@ -250,11 +251,14 @@ def fill_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def fetch_study(request):
-  # Get all patient with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D
+  # Get all patients with "Clearance blodprove 2. gang":
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
 
-  # Use the responses from these in the query:
-  # 
+  # Name wildcard example:
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0010="*^mi*" -k 0010,0020
+
+  # Date range example (find all patients from 20180101 to 20190101):
+  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20180101-20190101" -k 0010,0020 -k 0010,0010
 
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')
@@ -268,6 +272,7 @@ def fetch_study(request):
   search_files = glob.glob('{0}{1}*.dcm'.format(history_dir, search_query))
   
   curr_num = len(search_files)
+  
   curr_search_file = '{0}{1}{2}.dcm'.format(history_dir, search_query, curr_num)
   
   curr_rsp_dir = '{0}rsp{1}/'.format(history_dir, curr_num)
@@ -480,3 +485,4 @@ def present_study(request, rigs_nr):
 
 
 def config(request):
+  pass
