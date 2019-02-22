@@ -71,12 +71,50 @@ $(function() {
     // Validate contents
     if (valid_date_format(study_date)) {
       if (valid_time_format(study_time)) { 
-        if (csv_row_ids_array.length == 2){
+        if (csv_row_ids_array.length > 0){
         // Avg. of two selected rows
         var sum = 0
-        csv_row_ids_array.forEach(element => {
-          sum += parseFloat($('#' + element).children().eq(3).text()) / 2
-        });
+        if (csv_row_ids_array.length == 2) {
+          csv_row_ids_array.forEach(element => {
+            sum += parseFloat($('#' + element).children().eq(3).text()) / 2
+          });
+        } else {
+          csv_row_ids_array.forEach(element => {
+            sum += parseFloat($('#' + element).children().eq(3).text())
+          });
+          $('#error-message-container').append("<p id=\"error-message\">Det anbefaldes at der bruges 2 datapunkter for større sikkerhed</p>");
+          $('#error-message').css('color', '#FFA71A');
+          $('#error-message').css('font-size', 18);
+        }
+        //------------ Range Checker --------------- 
+        //Range checker for kids
+        if ($('input[name=study_type]:checked').val() == 1) {
+          var range_low = 110
+          var range_high = 130
+          
+          var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
+          var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
+
+          if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, Prøven kan derfor være upræcis</p>");
+            $('#error-message').css('color', '#FFA71A');
+            $('#error-message').css('font-size', 18);
+          }
+        }
+        //Range Checker for grown ups
+        if ($('input[name=study_type]:checked').val() == 0) {
+          var range_low = 180
+          var range_high = 240
+          
+          var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
+          var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
+
+          if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, Prøven kan derfor være upræcis</p>");
+            $('#error-message').css('color', '#FFA71A');
+            $('#error-message').css('font-size', 18);
+          }
+        }
 
         var html_row_base_begin = "<div class=\"form-row\">";
         var html_row_base_end = "</div>";
@@ -129,7 +167,7 @@ $(function() {
         csv_row_ids_array = [];
 
         } else { //Not enought Data selected
-          $('#error-message-container').append("<p id=\"error-message\">Der skal bruges 2 datapunkter</p>");
+          $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales</p>");
           $('#error-message').css('color', '#FF0000');
           $('#error-message').css('font-size', 22);
         }
