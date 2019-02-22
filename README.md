@@ -31,11 +31,10 @@ Remember the accepted_procedures should be '^' separated.
 ## Example of creating local testing user
 ```
 > python3 manage.py shell
->>>> from main_page.models import User, Config
+>>> from main_page.models import User, Config
 >>> c = Config(config_id=1, accepted_procedures='Clearance Fler-blodprøve^Clearance blodprøve 2. gang^GFR, Cr-51-EDTA, one sampel^GFR, Tc-99m-DTPA', rigs_aet='VIMCM', rigs_ip='10.143.128.247', rigs_port='3320', rigs_calling='RH_EDTA', pacs_aet='TEST_DCM4CHEE', pacs_ip='127.0.0.1', pacs_port='11112', pacs_calling='RH_EDTA')
->>> u = User(username='rh_test', hospital='RH', config=c)
->>> u.set_password('rh_test')
->>> c.save() # Config MUST be saved before user, otherwise the OneToOneField fails
+>>> u = User(id=1, username='rh_test', hospital='RH', config=c)
+>>> c.save()
 >>> u.save()
 >>> exit()
 ```
