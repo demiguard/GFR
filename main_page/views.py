@@ -419,9 +419,7 @@ def fetch_study(request):
 
   # Add specific bootstrap class to the form item
   get_study_form = forms.GetStudy(initial=auto_fill_params)
-  for item in get_study_form:>>>>>>> b2413a19ccb31bd9ef6eb03064033e3df933c570
-  }
-
+  for item in get_study_form:
     item.field.widget.attrs['class'] = 'form-control'
 
   context = {
