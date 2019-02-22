@@ -8,26 +8,26 @@
     <div class="form-row">
       <!-- First row of fields -->
       <div class="form-group col-md-2">
-        {{ getstudy.name.label }}
+        {{ getstudy.name.label }}:
         {{ getstudy.name }}
       </div>
       <div class="form-group col-md-2">
-        {{ getstudy.cpr.label }}
+        {{ getstudy.cpr.label }}:
         {{ getstudy.cpr }}
       </div>
       <div class="form-group col-md-2">
-        {{ getstudy.Rigs.label }}
+        {{ getstudy.Rigs.label }}:
         {{ getstudy.Rigs }}
       </div>
     </div>
     <!-- Second row of fields -->
     <div class="form-row">
       <div class="form-group col-md-2">
-        {{ getstudy.Dato_start.label }}
+        {{ getstudy.Dato_start.label }}:
         {{ getstudy.Dato_start }}
       </div>
       <div class="form-group col-md-2">
-        {{ getstudy.Dato_finish.label }}
+        {{ getstudy.Dato_finish.label }}:
         {{ getstudy.Dato_finish }}
       </div>
     </div>
@@ -37,21 +37,15 @@
     {% endbuttons %}
   </form>
 
-  <!-- <div>
-    {% for cpr, name, study_date, rigs_nr in responses %}
-      <p>{{ cpr }}, {{ name }}, {{ study_date }}, {{ rigs_nr }}</p>
-    {% endfor %}
-  </div> -->
-
   <br>
   <h2>Søgeresultater:</h2>
   <table class="table table-bordered table-hover">
     <thead>
       <tr>
-        <th>Name</th>
+        <th>Navn</th>
         <th>Cpr nr.</th>
         <th>Dato</th>
-        <th>Ris nr.</th>
+        <th>Accession nummer</th>
       </tr>
     </thead>
     <tbody>

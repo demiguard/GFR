@@ -12,6 +12,8 @@ import calendar
 import numpy
 import pandas
 
+from .. import server_config
+
 try:
   from ..clearance_math import clearance_math
 except ImportError:
@@ -48,36 +50,6 @@ class ExaminationInfo():
     }
 
 # Class done
-
-# TODO: Move these to config file
-# This should be the same for all rigs queries, since they all use the same, but query with different calling AETs
-RIGS_AET = "VIMCM"
-RIGS_IP = "10.143.128.247"
-RIGS_PORT = "3320"
-
-# NOTE: This is currently setup for storage on the local test server 
-# (ONLY change this to the actual PACS server when in production)
-PACS_AET = 'TEST_DCM4CHEE'
-PACS_IP = '193.3.238.103'
-PACS_PORT = '11112' # Or 11112 if no port-forwarding
-
-CALLING_AET = "RH_EDTA"          # Rigshospitalet
-# CALLING_AET = "GLO_EDTA"       # Glostrup
-# CALLING_AET = "HEHKFARGHOTR05" # Herlev
-
-# Herlev query example
-# findscu -aet HEHKFARGHOTR05 -aet VIMCM 10.143.128.247 104 edta_query_GLO.dcm -X -od test_rsp/
-
-# Glostrup query example
-# findscu -aet GLO_EDTA -aet VIMCM 10.143.128.247 104 edta_query_GLO.dcm -X -od test_rsp/
-
-# EDTA_GLO # TODO: Use the glostrup AET for their RIGS system to query for patients from them
-
-# TODO: Change these to absolute paths when deploying, to avoid alias attacks
-DUMP2DCM = "dump2dcm"
-FINDSCU = "findscu"
-STORESCU = 'storescu'
-GETSCU = 'getscu'
 
 
 def execute_query(cmd):
@@ -290,13 +262,14 @@ def format_date(date):
   day = date[6:8]
   return '{0}/{1}-{2}'.format(day, month, year)
 
-def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
+def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   """
   Retreives an examination from a dicom database (DCM4CHEE/PACS)
 
   Args:
+    user: currently logged in user
     rigs_nr: rigs number of patient to retreive
-    cache_dir: directory for cached dicom objects
+    cache_dir: directory for cached dicom objects (TODO: THIS MIGHT JUST BE THE hospital FROM THE user, IF SO CHANGE IT)
 
   Returns:
     Dicom object for the retreived patient, otherwise None
@@ -319,14 +292,14 @@ def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
 
   # Construct and execute command
   find_query = [
-    FINDSCU,
+    server_config.FINDSCU,
     '-S',
-    PACS_IP,
-    PACS_PORT,
+    user.config.pacs_ip,
+    user.config.pacs_port,
     '-aet',
-    CALLING_AET,
+    user.config.pacs_calling,
     '-aec',
-    PACS_AET,
+    user.config.pacs_aet,
     BASE_FIND_QUERY_PATH,
     '-X',
     '-od',
@@ -334,15 +307,17 @@ def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
   ]
 
   # TODO: Add error handling of failed queries (Update execute_query first to return exit-code)
-  if not execute_query(find_query):
-    return None
+  print(find_query)
+  out = execute_query(find_query)
 
   # Use first resp
-  rsp_paths = list(filter(lambda x: 'rsp' in x, os.listdir(resp_path)))
+  rsp_paths = glob.glob(resp_path + 'rsp*.dcm') # list(filter(lambda x: 'rsp' in x, os.listdir(resp_path)))
   if len(rsp_paths) != 0:
-    rsp_path = resp_path + rsp_paths[0]
+    rsp_path = rsp_paths[0]
   else:
     return None
+
+  print(rsp_path)
 
   # Extract Patient ID and Study Instance UID from respons
   patient_rsp = pydicom.dcmread(rsp_path)
@@ -359,18 +334,19 @@ def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
 
   # Construct and execute image query
   img_query = [
-    GETSCU,
+    server_config.GETSCU,
     '-P',
-    PACS_IP,
-    PACS_PORT,
+    user.config.pacs_ip,
+    user.config.pacs_port,
     BASE_IMG_QUERY_PATH,
     '-aet',
-    CALLING_AET,
+    user.config.pacs_calling,
     '-aec',
-    PACS_AET,
+    user.config.pacs_aet,
     '-od',
     resp_path
   ]
+  print(img_query)
 
   execute_query(img_query)
 
@@ -383,14 +359,17 @@ def get_from_pacs(rigs_nr, cache_dir, resp_path="./rsp/"):
 
   # Move found object into cache
   cache_path = cache_dir + rigs_nr + '.dcm'
-  if os._exists(cache_path):
-    os.rename(img_rsp_path, cache_path)
+  print("PATIENT ID: {0}".format(patient_id))
+  print("RIGS NR: {0}".format(rigs_nr))
+  print("CACHE PATH: {0}".format(cache_path))
+  
+  os.rename(img_rsp_path, cache_path)
 
   obj = pydicom.dcmread(cache_path)
   return obj
 
 
-def get_examination(rigs_nr, resp_dir):
+def get_examination(user, rigs_nr, resp_dir):
   """
   Retreive examination information based on a specified RIGS nr.
 
@@ -401,17 +380,6 @@ def get_examination(rigs_nr, resp_dir):
     ExaminationInfo instance containing examination information for the specified
     RIGS nr.
   """
-
-  # TODO: Add error handling for invalid filepath
-  # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
-  try:
-    obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
-  except FileNotFoundError:
-    # Get object from DCM4CHEE/PACS Database
-    obj = get_from_pacs(rigs_nr, resp_dir)
-
-  examination_info = ExaminationInfo()
-
   #Update Pydicom with our tags
   new_dict_items = {
     0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
@@ -434,6 +402,18 @@ def get_examination(rigs_nr, resp_dir):
   DicomDictionary.update(new_dict_items)
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
+
+  print("RESP_DIR: {0}".format(resp_dir))
+  # Read after dictionary update
+  # TODO: Add error handling for invalid filepath
+  # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
+  try:
+    obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
+  except FileNotFoundError:
+    # Get object from DCM4CHEE/PACS Database
+    obj = get_from_pacs(user, rigs_nr, resp_dir)
+
+  examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
   examination_info.info['ris_nr'] = obj.AccessionNumber
@@ -475,8 +455,11 @@ def get_examination(rigs_nr, resp_dir):
         sample_times.append(datetime.datetime.strptime(test.SampleTime ,'%Y%m%d%H%M'))
       if 'cpm' in test:
         tch99_cnt.append(test.cpm)
-  if 'injTime' in obj: 
-    examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
+  if 'injTime' in obj:
+    try:
+      examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
+    except TypeError:
+      examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime.decode(), '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
     examination_info.info['BSA'] = clearance_math.surface_area(obj.PatientSize, obj.PatientWeight)
@@ -486,36 +469,27 @@ def get_examination(rigs_nr, resp_dir):
 
   return examination_info
 
-def get_all(hosp_aet, hospital):
+def get_all(user):
   """
-  Get registed patients from a specific hospital (by AET)
+  Get registed patients from a specific hospital, using a user
 
   Args:
-    hosp_aet: AET corresponding to the hospital
-    hospital: The hospital short, from request.user.hospital
+    user: the currently logged in user object
 
   Returns:
     Ordered list, based on names, of ExaminationInfo instances containing infomation 
     about patients registed at the specified hospital.
-
-  Example:
-    hosp_aet='RH_EDTA' is Rigshospitalet
-    hospital='RH' is Rigshospitalet
-  """
+  """  
   edta_obj = pydicom.dcmread('main_page/libs/edta_query.dcm')
 
   # Create dcm filter
-  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = hosp_aet
+  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = user.config.rigs_calling
 
-  # Date filtering (removed)
-  #curr_date = datetime.datetime.today().strftime('%Y%m%d')
-  #edta_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = curr_date
-
-  query_file = 'main_page/libs/edta_query_{0}.dcm'.format(hosp_aet)
+  query_file = 'main_page/libs/edta_query_{0}.dcm'.format(user.config.rigs_calling)
   edta_obj.save_as(query_file)
 
   Dicom_base_dirc = 'Active_Dicom_objects'
-  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, hospital)
+  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, user.hospital)
 
   if not os.path.exists(Dicom_base_dirc):
     os.mkdir(Dicom_base_dirc)
@@ -527,33 +501,31 @@ def get_all(hosp_aet, hospital):
 
   # Construct query and execute
   query_arr = [
-    FINDSCU, 
+    server_config.FINDSCU, 
     '-aet', # Set calling AET
-    CALLING_AET,
+    user.config.rigs_calling,
     '-aec', # Set AET to call
-    RIGS_AET,
-    RIGS_IP,
-    RIGS_PORT,
+    user.config.rigs_aet,
+    user.config.rigs_ip,
+    user.config.rigs_port,
     query_file,
     '-X',  # Extract responses
     '-od', # Output dir to extract into
     resp_dir
   ]
-  
+  print(query_arr)
   exe_out = execute_query(query_arr)
+  print(exe_out)
   if exe_out != '':
     pass # TODO: Error handling for failed findscu execution
 
   dcm_objs = parse_bookings(resp_dir)
+  print(dcm_objs)
 
   # Extract needed info from dcm objects (w/ formatting)
   ret = []
-  accepted_procedures = [
-    'Clearance Fler-blodprøve',     # These three are from the old clearance Cr examinations
-    'Clearance blodprøve 2. gang',
-    'GFR, Cr-51-EDTA, one sampel',
-    'GFR, Tc-99m-DTPA'              # New Tc examination
-  ]
+  accepted_procedures = user.config.accepted_procedures.split('^')
+  print(accepted_procedures)
 
   for key, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
@@ -575,7 +547,7 @@ def get_all(hosp_aet, hospital):
       if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
         obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
 
-      os.remove(key)
+    os.remove(key)
   
   return sorted(ret, key=lambda x: x.info['name'])
 
@@ -700,24 +672,20 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
   return (len(error_strings) == 0, error_strings)
 
-def store_study(ris_nr, resp_dir):
+def store_study(user, ris_nr):
   """
   Stores a given study in the PACS database
 
   Args:
+    user: currently logged in user
     ris_nr: RIGS number of the study
-    resp_dir: 
-
-  Remark:
-    Validation of the study is expected, before storPermission denied, please try again.
-ing it
   """
   # Construct dicom obj to store
-  obj_path = ""
+  #obj_path = "{0}".format(server_config.FIND_RESPONS_DIR)
 
   # Construct query and store
   store_query = [
-    STORESCU,
+    server_config.STORESCU,
     '-aet',
     CALLING_AET,
     '-aec',

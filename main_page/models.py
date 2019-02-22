@@ -28,22 +28,35 @@ class UserManager(BaseUserManager):
 
   def create_superuser(self, username, password, hosp):
     return self.create_user(username, password, hosp)
-#Configuration
+
+# Configuration for a user
 class Config(models.Model):
   config_id = models.AutoField(primary_key=True)
-  Accepted_predure = models.TextField()
-
-  def __str__(self):
-    return 'config-' + self.config_id
-
+  accepted_procedures = models.TextField(default='') # '^' separated list of procedures
+  rigs_aet = models.TextField(default='')
+  rigs_ip = models.TextField(default='')
+  rigs_port = models.TextField(default='')
+  rigs_calling = models.TextField(default='')
+  pacs_aet = models.TextField(default='')
+  pacs_ip = models.TextField(default='')
+  pacs_port = models.TextField(default='')
+  pacs_calling = models.TextField(default='')
 
 # User class
+# REMARK / TODO: User creation MUST be done through the command line, see the README for instructions
 class User(AbstractBaseUser):
   id = models.AutoField(primary_key=True)
   username = models.CharField(max_length=120, unique=True)
   password = models.CharField(max_length=120)
-  #config   = models.ForeignKey(Config, on_delete= models.CASCADE, unique=True, default=Config())
-
+  
+  # TODO: Put some of the below text and argumentation into the README or a documentation doc.
+  # OneToOne field, since we don't want QuerySets when retreiving the objects, see: https://stackoverflow.com/questions/5870537/whats-the-difference-between-django-onetoonefield-and-foreignkey
+  # CASCADE, since we want to just delete the config if a user is deleted.
+  config = models.OneToOneField(
+    Config,
+    on_delete=models.CASCADE,
+    null=True
+  )
 
   HOSPS = (
     ('RH', 'Rigshospitalet'),

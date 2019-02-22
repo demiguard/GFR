@@ -9,6 +9,7 @@ from . import forms
 from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
+from .libs import server_config
 
 from dateutil import parser as date_parser
 import datetime
@@ -20,7 +21,7 @@ import numpy
 import pydicom
 import PIL
 import glob
-import pprint
+import pprint # Debug
 
 
 def index(request):
@@ -32,8 +33,7 @@ def index(request):
       user = authenticate(
         request, 
         username=request.POST['username'], 
-        password=request.POST['password'],
-        hosp=request.POST['hospital']
+        password=request.POST['password']
       )
 
       if user:
@@ -81,7 +81,7 @@ def new_study(request):
     success, error_msgs = ris.is_valid_study(cpr, name, study_date, ris_nr)
 
     if success:
-      #ris.store_study(cpr, name, study_date, ris_nr)
+
       
       # redirect to fill_study/ris_nr 
       return redirect('main_page:fill_study', rigs_nr=ris_nr)
@@ -99,8 +99,8 @@ def list_studies(request):
   """
   # Specify page template
   template = loader.get_template('main_page/list_studies.html')
-
-  bookings = ris.get_all('RH_EDTA', request.user.hospital)
+  
+  bookings = ris.get_all(request.user)
 
   for booking in bookings:
     booking.name = booking.info['name']
@@ -111,10 +111,10 @@ def list_studies(request):
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
 
-  Dicom_base_dirc = 'Active_Dicom_objects'
-  DICOM_directory = '{0}/{1}'.format(Dicom_base_dirc, request.user.hospital)
-
-
+  DICOM_directory = '{0}/{1}'.format(
+    server_config.FIND_RESPONS_DIR, 
+    request.user.hospital
+  )
 
   old_bookings = []
   for dcm_file in glob.glob('./{0}/*.dcm'.format(DICOM_directory)):
@@ -122,7 +122,7 @@ def list_studies(request):
     
     dcm_dirc, dcm_name = dcm_file.rsplit('/',1)
     dcm_name, _ = dcm_name.rsplit('.',1)
-    exam_info = ris.get_examination(dcm_name, dcm_dirc)
+    exam_info = ris.get_examination(request.user, dcm_name, dcm_dirc)
     procedure_date = datetime.datetime.strptime(exam_info.info['date'], '%d/%m-%Y')
 
     now = datetime.datetime.now()
@@ -155,29 +155,30 @@ def list_studies(request):
 
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
-  if request.method == 'POST':
-    print(request.POST)
-    PRH.fill_study_post(request, rigs_nr)
-    
-    if 'calculate' in request.POST:
-      return redirect('main_page:present_study', rigs_nr=rigs_nr) 
-    #TODO Simon should look at this
-
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
-  
-  Dicom_base_dirc = 'Active_Dicom_objects'
-  hospital     = request.user.hospital
 
-  if not os.path.exists(Dicom_base_dirc):
-    os.mkdir(Dicom_base_dirc)
+  if request.method == 'POST':
+    PRH.fill_study_post(request, rigs_nr)
+    
+    if 'calculate' in request.POST:  
+      return redirect('main_page:present_study', rigs_nr=rigs_nr) 
 
-  if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
-    os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+  hospital = request.user.hospital # Hospital of current user
 
-  exam = ris.get_examination(rigs_nr, './{0}/{1}'.format(Dicom_base_dirc, hospital)) 
+  # Create the directory if not existing
+  if not os.path.exists(server_config.FIND_RESPONS_DIR):
+    os.mkdir(server_config.FIND_RESPONS_DIR)
 
-  
+  if not os.path.exists('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)):
+    os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
+
+  # Get previous information for the study
+  exam = ris.get_examination(
+    request.user, 
+    rigs_nr, 
+    './{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
+  ) 
 
   test_range = range(6)
   today = datetime.datetime.today()
@@ -251,15 +252,6 @@ def fill_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def fetch_study(request):
-  # Get all patients with "Clearance blodprove 2. gang":
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
-
-  # Name wildcard example:
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0010="*^mi*" -k 0010,0020
-
-  # Date range example (find all patients from 20180101 to 20190101):
-  # findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20180101-20190101" -k 0010,0020 -k 0010,0010
-
   # Specify page template
   template = loader.get_template('main_page/fetch_study.html')
 
@@ -373,15 +365,17 @@ def fetch_study(request):
   # Save and execute the current search query file
   sf.save_as(curr_search_file)
 
+  user = request.user
+
   search_query = [
-    "findscu",
+    server_config.FINDSCU,
     "-S",
     "-aet",
-    "RH_EDTA",
+    user.config.pacs_calling,
     "-aec",
-    "TEST_DCM4CHEE",
-    "127.0.0.1",
-    "11112",
+    user.config.pacs_aet,
+    user.config.pacs_ip,
+    user.config.pacs_port,
     curr_search_file,
     '-X',
     '-od',
@@ -454,7 +448,7 @@ def present_study(request, rigs_nr):
   Dicom_base_dirc = 'Active_Dicom_objects'
   hospital = request.user.hospital
   
-  DICOM_directory = '.{0}/{1}'.format(Dicom_base_dirc, hospital)
+  DICOM_directory = './{0}/{1}/'.format(Dicom_base_dirc, hospital)
 
   if not os.path.exists(Dicom_base_dirc):
     os.mkdir(Dicom_base_dirc)
@@ -462,7 +456,7 @@ def present_study(request, rigs_nr):
   if not os.path.exists(DICOM_directory):
     os.mkdir(DICOM_directory)
 
-  exam = ris.get_examination(rigs_nr, DICOM_directory)
+  exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
 
   # Display
   pixel_arr = exam.info['image']
@@ -483,6 +477,10 @@ def present_study(request, rigs_nr):
 
   return HttpResponse(template.render(context,request))
 
-
+@login_required(login_url='/')
 def config(request):
-  pass
+  return HttpResponse('User configuration page')
+
+
+def documentation(requet):
+  return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')

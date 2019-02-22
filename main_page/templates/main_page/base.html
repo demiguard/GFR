@@ -1,5 +1,7 @@
 {% load static %}
 
+{% load bootstrap4 %}
+
 <html>
   <head>
     <title>GFRcalc</title>
@@ -22,7 +24,19 @@
             <ul id="sidebar-list">
               <li><a class="menu-item" href="{% url 'main_page:list_studies' %}">Udfyld undersøgelse</a></li>
               <li><a class="menu-item" href="{% url 'main_page:fetch_study' %}">Hent undersøgelse</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:config' %}">Indstillinger</a></li>
             </ul>
+            {% if user.is_authenticated %}
+              <p>Logget ind som: {{ user.username }}</p>
+              <form method="POST">
+                {% csrf_token %}
+
+                {% buttons %}
+                  <input class="btn-sm btn-light" type="button" value="Log ud" onclick="window.location='/logout';">
+                {% endbuttons %}
+              </form>
+            {% endif %}
           </div>
         </div>
         <div class="col-10 content-container">

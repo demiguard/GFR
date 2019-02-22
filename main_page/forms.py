@@ -7,16 +7,6 @@ class LoginForm(forms.Form):
   username = forms.CharField()
   password = forms.CharField(widget=forms.PasswordInput())
 
-  hosp_choices = [
-    ('RH', 'Rigshospitalet'),
-    ('HH', 'Herlev hospital'),
-    ('FH', 'Frederiksberg hospital'),
-    ('BH', 'Bispebjerg hospital'),
-    ('GL', 'Glostrup hospital')
-  ]
-
-  hospital = forms.CharField(widget=forms.Select(choices=hosp_choices))
-
 # Ny undersøgelse
 class NewStudy(forms.Form):
   cpr = forms.IntegerField(label='Cpr. nr.')
@@ -66,7 +56,7 @@ class FillStudyTest(forms.Form):
 
 class GetStudy(forms.Form):
   name = forms.CharField(label='Navn', required=False)
-  cpr  = forms.CharField(label='CPR', required=False)
+  cpr  = forms.CharField(label='Cpr nr.', required=False)
   Rigs = forms.CharField(label='Accession nummer', required=False)
-  Dato_start = forms.DateField(label='Dato Start (YYYY-MM-DD)', required=False)
-  Dato_finish = forms.DateField(label='Dato Slut (YYYY-MM-DD)', required=False)
+  Dato_start = forms.DateField(label='Fra dato (YYYY-MM-DD)', required=False)
+  Dato_finish = forms.DateField(label='Til dato (YYYY-MM-DD)', required=False)

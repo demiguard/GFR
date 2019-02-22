@@ -4,10 +4,10 @@ from .models import User
 
 # Simple mysql database users
 class SimpleBackend:
-  def authenticate(self, request, username=None, password=None, hosp=None):
-    if username and password and hosp:
+  def authenticate(self, request, username=None, password=None):
+    if username and password:
       try:
-        user = User.objects.get(username=username, hospital=hosp)
+        user = User.objects.get(username=username)
 
         if check_password(password, user.password):
           return user

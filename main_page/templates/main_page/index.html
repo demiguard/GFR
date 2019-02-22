@@ -11,11 +11,11 @@
       {% if not user.is_authenticated %}
         {% bootstrap_form login_form %}
         {% buttons %}
-            <input type="submit" value="Login">
+            <input type="submit" value="Log ind">
         {% endbuttons %}
       {% else %}
         {% buttons %}
-          <input type="button" value="Logout" onclick="window.location='/logout';">
+          <input type="button" value="Log ud" onclick="window.location='/logout';">
         {% endbuttons %}
       {% endif %}
     </div>
