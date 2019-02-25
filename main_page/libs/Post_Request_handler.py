@@ -7,6 +7,8 @@ from .. import forms
 from .query_wrappers import ris_query_wrapper as ris
 from .clearance_math import clearance_math
 
+from . import server_config
+
 from dateutil import parser as date_parser
 import datetime
 import glob
@@ -102,20 +104,20 @@ def fill_study_post(request, rigs_nr):
       rigs_nr
     )
 
-    Dicom_base_dirc = 'Active_Dicom_objects'
+    base_resp_dir = server_config.FIND_RESPONS_DIR
     hospital     = request.user.hospital
     img_path     = 'main_page/static/main_page/images'
 
-    if not os.path.exists(Dicom_base_dirc):
-      os.mkdir(Dicom_base_dirc)
+    if not os.path.exists(base_resp_dir):
+      os.mkdir(base_resp_dir)
 
-    if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
-      os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+    if not os.path.exists('{0}/{1}'.format(base_resp_dir, hospital)):
+      os.mkdir('{0}/{1}'.format(base_resp_dir, hospital))
 
     if not os.path.exists('{0}/{1}'.format(img_path, hospital)):
       os.mkdir('{0}/{1}'.format(img_path, hospital))
 
-    dcm_obj_path = '.{0}/{1}/{2}.dcm'.format(Dicom_base_dirc ,request.user.hospital, rigs_nr)
+    dcm_obj_path = '.{0}/{1}/{2}.dcm'.format(base_resp_dir ,request.user.hospital, rigs_nr)
 
     dcm_img_path = '{0}/{1}/{2}.dcm'.format(img_path, hospital, rigs_nr)
 
@@ -157,23 +159,22 @@ def fill_study_post(request, rigs_nr):
       sop_class_uid= img_obj.SOPClassUID,
       sop_instance_uid= img_obj.SOPInstanceUID,
       pixeldata = img_obj.PixelData 
-      )
-    
+    )   
 
 
 def store_form(request, rigs_nr):
 #Input indicating if something have been typed
   
-  Dicom_base_dirc = 'Active_Dicom_objects'
+  base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
 
-  if not os.path.exists(Dicom_base_dirc):
-    os.mkdir(Dicom_base_dirc)
+  if not os.path.exists(base_resp_dir):
+    os.mkdir(base_resp_dir)
 
-  if not os.path.exists('{0}/{1}'.format(Dicom_base_dirc, hospital)):
-    os.mkdir('{0}/{1}'.format(Dicom_base_dirc, hospital))
+  if not os.path.exists('{0}/{1}'.format(base_resp_dir, hospital)):
+    os.mkdir('{0}/{1}'.format(base_resp_dir, hospital))
   
-  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, hospital)
+  DICOM_dirc = '{0}/{1}'.format(base_resp_dir, hospital)
 
   dicom_path = '{0}/{1}.dcm'.format(DICOM_dirc, rigs_nr)  
 
