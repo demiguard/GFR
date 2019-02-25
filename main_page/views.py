@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 
 def index(request):
   if request.method == 'POST':
-    print(request.POST)
     login_form = forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
@@ -123,11 +122,11 @@ def list_studies(request):
   )
 
   old_bookings = []
-  for dcm_file in glob.glob('./{0}/*.dcm'.format(DICOM_directory)):
+  for dcm_file in glob.glob('{0}/*.dcm'.format(DICOM_directory)):
     # Delete file if more than one week since procedure start
-    
-    dcm_dirc, dcm_name = dcm_file.rsplit('/',1)
-    dcm_name, _ = dcm_name.rsplit('.',1)
+    dcm_name = os.path.basename(dcm_file).split('.')[0]
+    dcm_dirc = os.path.dirname(dcm_file)
+
     exam_info = ris.get_examination(request.user, dcm_name, dcm_dirc)
     procedure_date = datetime.datetime.strptime(exam_info.info['date'], '%d/%m-%Y')
 

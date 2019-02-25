@@ -403,7 +403,6 @@ def get_examination(user, rigs_nr, resp_dir):
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
-  print("RESP_DIR: {0}".format(resp_dir))
   # Read after dictionary update
   # TODO: Add error handling for invalid filepath
   # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
@@ -497,7 +496,7 @@ def get_all(user):
   if not os.path.exists(DICOM_dirc):
     os.mkdir(DICOM_dirc)
 
-  resp_dir = './{0}'.format(DICOM_dirc)
+  resp_dir = '{0}'.format(DICOM_dirc)
 
   # Construct query and execute
   query_arr = [
@@ -513,19 +512,18 @@ def get_all(user):
     '-od', # Output dir to extract into
     resp_dir
   ]
-  print(query_arr)
+  
   exe_out = execute_query(query_arr)
-  print(exe_out)
+  
   if exe_out != '':
     pass # TODO: Error handling for failed findscu execution
 
   dcm_objs = parse_bookings(resp_dir)
-  print(dcm_objs)
 
   # Extract needed info from dcm objects (w/ formatting)
   ret = []
   accepted_procedures = user.config.accepted_procedures.split('^')
-  print(accepted_procedures)
+  print("got accepted procedures: {0}".format(accepted_procedures)) # TODO: Place this in logging
 
   for key, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
