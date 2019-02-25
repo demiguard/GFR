@@ -101,7 +101,8 @@ def fill_study_post(request, rigs_nr):
       clearence_norm,
       gfr,
       cpr,
-      rigs_nr
+      rigs_nr,
+      hosp_dir=request.user.hospital
     )
 
     base_resp_dir = server_config.FIND_RESPONS_DIR
@@ -245,7 +246,8 @@ def store_form(request, rigs_nr):
   sample_dates = request.POST.getlist('study_date')[:-1]
   sample_times = request.POST.getlist('study_time')[:-1]
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
-  print(sample_dates)
+
+
   #There's Data to put in
   if len(sample_dates) > 0:
     #If thining factor have been inputed    

@@ -101,7 +101,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   
     clearence_1 = (dosis * (-slope)) / numpy.exp(intercept) 
 
-    print(clearence_1)
+
 
     magic_number_1 = 0.0032
     magic_number_2 = 1.3
@@ -175,7 +175,6 @@ def calculate_age(cprnr):
   elif 1900 in century : 
     age = current_time.year - 1900 - year_of_birth - 1  
   else:  #This is only used if resurrect dead people, Necromancy I guess
-    print("ERROR - DEAD PERSON DETECTED") 
     age = current_time.year - 1800 - year_of_birth - 1
 
 # Have you had your birthday this year
@@ -401,9 +400,6 @@ def generate_plot(
   ax[1].set_ylabel('GFR (ml/min pr. 1.73m²)')
   ax[1].grid(color='black')
 
-  print(data_points1)
-  print(data_points2)
-
   ax[0].scatter(data_points1[0,:], data_points1[1,:])
   ax[1].scatter(data_points2[0,:], data_points2[1,:])
     
@@ -537,7 +533,7 @@ def generate_plot_text(
   age_str             = "Alder: {0} år\n\n".format(age)
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
   height_str          = "Højde: {0} cm\n\n".format(height)
-  BSA_str             = "Overflade: {0:.2f} m^2\n\n".format(BSA)
+  BSA_str             = "Overflade: {0:.2f} m²\n\n".format(BSA)
   clearence_str       = "Clearance: {0:.2f} ml / min\n\n".format(clearence)
   clearence_norm_str  = "Clearance, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)

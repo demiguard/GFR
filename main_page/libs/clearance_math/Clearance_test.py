@@ -36,13 +36,13 @@ Calc_GFR, Calc_GFR_N = clearance_math.calc_clearance(inj_time,[sample_1_time],[s
 
 print("Calculated GFR ",Calc_GFR,"True GFR:",GFR, "\nCalculated GFR Normalized:", Calc_GFR_N, "True GFR Normalized:", GFR_N, "\n\n")
 
-clearance_math.generate_plot(
-    numpy.array([[],[]]),
-    numpy.array([[age],[Calc_GFR_N]]),
-    "Test_case_1",
-    show_fig=True,
-    save_fig=False
-)
+#clearance_math.generate_plot(
+#    numpy.array([[],[]]),
+#    numpy.array([[age],[Calc_GFR_N]]),
+#    "Test_case_1",
+#    show_fig=True,
+#    save_fig=False
+#)
 
 #Test case 2
 print("Test one sample child")
@@ -87,13 +87,13 @@ Calc_GFR, Calc_GFR_N = clearance_math.calc_clearance(
 )
 
 print("Calculated GFR ",Calc_GFR,"True GFR:",GFR, "\nCalculated GFR Normalized:", Calc_GFR_N, "True GFR Normalized:", GFR_N , "\n\n")
-clearance_math.generate_plot(
-    numpy.array([[],[]]),
-    numpy.array([[age],[Calc_GFR_N]]),
-    "Test_case_2",
-    save_fig=False,
-    show_fig=True    
-)
+#clearance_math.generate_plot(
+#    numpy.array([[],[]]),
+#    numpy.array([[age],[Calc_GFR_N]]),
+#    "Test_case_2",
+#    save_fig=False,
+#    show_fig=True    
+#)
 
 #Test case 3
 print("Test Multiple sample")
@@ -148,13 +148,13 @@ Calc_GFR , Calc_GFR_N = clearance_math.calc_clearance(
 )
 
 print("Calculated GFR ",Calc_GFR,"True GFR:",GFR, "\nCalculated GFR Normalized:", Calc_GFR_N, "True GFR Normalized:", GFR_N , "\n\n")
-clearance_math.generate_plot(
-    numpy.array([clearance_math.compute_times(inj_time, times),cpms]),
-    numpy.array([[age],[Calc_GFR_N]]),
-    "Test_case_3",
-    show_fig=True,
-    save_fig=False
-)
+#clearance_math.generate_plot(
+#    numpy.array([clearance_math.compute_times(inj_time, times),cpms]),
+#    numpy.array([[age],[Calc_GFR_N]]),
+#    "Test_case_3",
+#    show_fig=True,
+#    save_fig=False
+#)
 
 clearance_math.generate_plot_text(
     weight,
@@ -165,6 +165,7 @@ clearance_math.generate_plot_text(
     clearance_math.kidney_function(GFR_N, "0101973001"),
     "0101973001",
     "Test_case_3_text",
+    hosp_dir = 'RH'
     show_fig=True,
     save_fig=False
 )
