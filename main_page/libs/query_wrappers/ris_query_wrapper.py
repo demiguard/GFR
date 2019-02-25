@@ -488,11 +488,11 @@ def get_all(user):
   query_file = 'main_page/libs/edta_query_{0}.dcm'.format(user.config.rigs_calling)
   edta_obj.save_as(query_file)
 
-  Dicom_base_dirc = 'Active_Dicom_objects'
-  DICOM_dirc = '{0}/{1}'.format(Dicom_base_dirc, user.hospital)
+  base_resp_dir = server_config.FIND_RESPONS_DIR
+  DICOM_dirc = '{0}/{1}'.format(base_resp_dir, user.hospital)
 
-  if not os.path.exists(Dicom_base_dirc):
-    os.mkdir(Dicom_base_dirc)
+  if not os.path.exists(base_resp_dir):
+    os.mkdir(base_resp_dir)
 
   if not os.path.exists(DICOM_dirc):
     os.mkdir(DICOM_dirc)
@@ -672,7 +672,7 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
   return (len(error_strings) == 0, error_strings)
 
-def store_study(user, ris_nr):
+def store_in_pacs(user, ris_nr):
   """
   Stores a given study in the PACS database
 
@@ -681,19 +681,21 @@ def store_study(user, ris_nr):
     ris_nr: RIGS number of the study
   """
   # Construct dicom obj to store
-  #obj_path = "{0}".format(server_config.FIND_RESPONS_DIR)
+  obj_path = "{0}{1}/{2}".format(server_config.FIND_RESPONS_DIR, user.hospital, ris_nr)
+
+  print(obj_path)
 
   # Construct query and store
-  store_query = [
-    server_config.STORESCU,
-    '-aet',
-    CALLING_AET,
-    '-aec',
-    PACS_AET,
-    PACS_IP,
-    PACS_PORT,
-    obj_path
-  ]
+  # store_query = [
+  #   server_config.STORESCU,
+  #   '-aet',
+  #   user.config.pacs_calling,
+  #   '-aec',
+  #   user.config.pacs_aet,
+  #   user.config.pacs_ip,
+  #   user.config.pacs_port,
+  #   obj_path
+  # ]
   
-  # TODO: Handle errors in the case of execution failure
-  out = execute_query(store_query)
+  # # TODO: Handle errors in the case of execution failure
+  # out = execute_query(store_query)

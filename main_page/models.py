@@ -61,6 +61,7 @@ class User(AbstractBaseUser):
   HOSPS = (
     ('RH', 'Rigshospitalet'),
     ('HH', 'Herlev hospital'),
+    ('HI', 'Hillerød hospital'),
     ('FH', 'Frederiksberg hospital'),
     ('BH', 'Bispebjerg hospital'),
     ('GL', 'Glostrup hospital'),

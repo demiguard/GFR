@@ -440,18 +440,19 @@ def present_study(request, rigs_nr):
 
   Returns:
   """
+  template = loader.get_template('main_page/present_study.html')
+
   if request == 'POST':
     PRH.send_to_pacs(request, rigs_nr)
     redirect('mainpage:liststudies') 
 
-
-  Dicom_base_dirc = 'Active_Dicom_objects'
+  base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
   
-  DICOM_directory = './{0}/{1}/'.format(Dicom_base_dirc, hospital)
+  DICOM_directory = './{0}/{1}/'.format(base_resp_dir, hospital)
 
-  if not os.path.exists(Dicom_base_dirc):
-    os.mkdir(Dicom_base_dirc)
+  if not os.path.exists(base_resp_dir):
+    os.mkdir(base_resp_dir)
 
   if not os.path.exists(DICOM_directory):
     os.mkdir(DICOM_directory)
@@ -465,8 +466,6 @@ def present_study(request, rigs_nr):
     Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
   
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
-
-  template = loader.get_template('main_page/present_study.html')
   
   context = {
     'name'          : exam.info['name'],
