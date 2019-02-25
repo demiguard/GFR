@@ -4,6 +4,8 @@ from django.template import loader
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.utils.log import DEFAULT_LOGGING
+import logging
 
 from . import forms
 from .libs.query_wrappers import ris_query_wrapper as ris
@@ -22,6 +24,10 @@ import pydicom
 import PIL
 import glob
 import pprint # Debug
+
+#Setting up logging 
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -142,7 +148,17 @@ def list_studies(request):
     exam_info.cpr = exam_info.info['cpr']
     exam_info.ris_nr = exam_info.info['ris_nr']
 
-    old_bookings.append(exam_info)
+    def existing_user(name):
+      """
+        checks if a user already exists
+      """
+      for booking in bookings:
+        if booking.name == name:
+          return True
+      return False
+
+    if not existing_user(exam_info.name): 
+      old_bookings.append(exam_info)
 
   
   context = {
