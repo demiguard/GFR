@@ -428,7 +428,7 @@ def generate_plot_text(
   kidney_function,
   cpr,
   rigs_nr,
-  hosp_dir='RH',
+  hosp_dir='',
   image_Height = 10.8,
   image_Width = 19.2,
   save_fig = True,
@@ -517,6 +517,20 @@ def generate_plot_text(
   
   titlesize = 8
   labelsize = 18
+
+  if hosp_dir:
+    if hosp_dir = 'RH':
+      fig.title('Undersøgelse udført på Rigshospitalet')
+    if hosp_dir = 'GL':
+      fig.title('Undersøgelse udført på Glostrup Hospital')
+    if hosp_dir = 'HH':
+      fig.title('Undersøgelse udført på Herlev Hospital')
+    if hosp_dir = 'FH':
+      fig.title('Undersøgelse udført på Frederiksberg Hospital')
+    if hosp_dir = 'BH':
+      fig.title('Undersøgelse udført på Bispeberg Hospital')
+    if hosp_dir = 'HI':
+      fig.title('Undersøgelse udført på Hillerød Hospital')
 
 
   #Text setup for graph 1
