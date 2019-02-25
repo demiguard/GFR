@@ -672,30 +672,30 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
   return (len(error_strings) == 0, error_strings)
 
-def store_in_pacs(user, ris_nr):
+def store_in_pacs(user, obj_path):
   """
-  Stores a given study in the PACS database
+  Stores a given study in the PACS database, based on the configuration of the
+  given user
 
   Args:
     user: currently logged in user
-    ris_nr: RIGS number of the study
+    obj_path: path to dicom file to store
+
+  Returns:
+    True, if successfully stored, False otherwise
   """
-  # Construct dicom obj to store
-  obj_path = "{0}{1}/{2}".format(server_config.FIND_RESPONS_DIR, user.hospital, ris_nr)
-
-  print(obj_path)
-
-  # Construct query and store
-  # store_query = [
-  #   server_config.STORESCU,
-  #   '-aet',
-  #   user.config.pacs_calling,
-  #   '-aec',
-  #   user.config.pacs_aet,
-  #   user.config.pacs_ip,
-  #   user.config.pacs_port,
-  #   obj_path
-  # ]
+  # Construct query and execute
+  store_query = [
+    server_config.STORESCU,
+    '-aet',
+    user.config.pacs_calling,
+    '-aec',
+    user.config.pacs_aet,
+    user.config.pacs_ip,
+    user.config.pacs_port,
+    obj_path
+  ]
   
-  # # TODO: Handle errors in the case of execution failure
-  # out = execute_query(store_query)
+  out = execute_query(store_query)
+
+  return (out != None)

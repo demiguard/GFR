@@ -272,19 +272,23 @@ def store_form(request, rigs_nr):
 
 def send_to_pacs(request, rigs_nr):
   """
-    Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
+  Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
 
-    Args:
-      request: The Post Request
-      rigs_nr: The accession number for the examination
-
+  Args:
+    request: The Post Request
+    rigs_nr: The accession number for the examination to store
   """
-  #Extract Information about the 
+  # Send information to PACS
+  obj_path = "{0}{1}/{2}.dcm".format(
+    server_config.FIND_RESPONS_DIR, 
+    request.user.hospital, 
+    rigs_nr
+  )
 
-
-
-  # Send information to pacs
-
-
-  # Remove study from directory
-  pass
+  if ris.store_in_pacs(request.user, rigs_nr):
+    # Remove the file
+    os.remove(obj_path)
+  else:
+    # Try again?
+    # Redirect to informative site, telling the user that the connection to PACS is down
+    print("Failed to store in pacs")
