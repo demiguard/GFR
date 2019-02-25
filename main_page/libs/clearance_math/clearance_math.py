@@ -528,7 +528,6 @@ def generate_plot_text(
     if hosp_dir == 'HI':
       fig.title('Undersøgelse udført på Hillerød Hospital')
 
-
   #Text setup for graph 1
   gender_str          = "Køn: {0}\n\n".format(gender)
   age_str             = "Alder: {0} år\n\n".format(age)

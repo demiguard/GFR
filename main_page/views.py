@@ -444,28 +444,25 @@ def fetch_study(request):
 
   return HttpResponse(template.render(context, request))
 
-
 @login_required(login_url='/')
-def present_study(request, rigs_nr):
+def present_old_study(request, rigs_nr):
   """
-  Function for presenting the result
 
-  Args:
-    request: The HTTP request
-    rigs_nr: The number 
-
-  Returns:
+  Remark:
+    Should pull information down from PACS, but not be able to send to it.
+    Additionally no button for going back to editing the study should be
+    available!
   """
-  template = loader.get_template('main_page/present_study.html')
+  template = loader.get_template('main_page/present_old_study.html')
 
-  if request == 'POST':
+  if request.method == 'POST':
     PRH.send_to_pacs(request, rigs_nr)
-    redirect('mainpage:liststudies') 
+    redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
   
-  DICOM_directory = './{0}/{1}/'.format(base_resp_dir, hospital)
+  DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
@@ -476,10 +473,67 @@ def present_study(request, rigs_nr):
   exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
 
   # Display
+  img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
+  if not os.path.exists(img_resp_dir):
+    os.mkdir(img_resp_dir)
+  
   pixel_arr = exam.info['image']
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
-    Im.save('main_page/static/main_page/images/{0}/{1}.png'.format(hospital, rigs_nr))
+    Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
+  
+  plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
+  
+  context = {
+    'name'          : exam.info['name'],
+    'date'          : exam.info['date'],
+    'rigs_nr'         : rigs_nr,
+    'image_path'    : plot_path,
+  }
+
+  return HttpResponse(template.render(context,request))
+
+
+@login_required(login_url='/')
+def present_study(request, rigs_nr):
+  """
+  Function for presenting the result
+
+  Args:
+    request: The HTTP request
+    rigs_nr: The number 
+
+  Remark:
+    Should not pull information down from PACS
+  """
+  template = loader.get_template('main_page/present_study.html')
+
+  if request.method == 'POST':
+    PRH.send_to_pacs(request, rigs_nr)
+    redirect('main_page:list_studies')
+
+  base_resp_dir = server_config.FIND_RESPONS_DIR
+  hospital = request.user.hospital
+  
+  DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
+
+  if not os.path.exists(base_resp_dir):
+    os.mkdir(base_resp_dir)
+
+  if not os.path.exists(DICOM_directory):
+    os.mkdir(DICOM_directory)
+
+  exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
+
+  # Display
+  img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
+  if not os.path.exists(img_resp_dir):
+    os.mkdir(img_resp_dir)
+  
+  pixel_arr = exam.info['image']
+  if pixel_arr.shape[0] != 0:
+    Im = PIL.Image.fromarray(pixel_arr)
+    Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
   
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
