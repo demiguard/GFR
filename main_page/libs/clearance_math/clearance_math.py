@@ -516,17 +516,20 @@ def generate_plot_text(
 
   if hosp_dir:
     if hosp_dir == 'RH':
-      ax[0].set_title('Undersøgelse udført på Rigshospitalet')
+      fig.suptitle('Undersøgelse udført på Rigshospitalet', fontsize = 30)
     if hosp_dir == 'GL':
-      ax[0].set_title('Undersøgelse udført på Glostrup Hospital')
+      fig.suptitle('Undersøgelse udført på Glostrup Hospital', fontsize = 30)
     if hosp_dir == 'HH':
-      ax[0].set_title('Undersøgelse udført på Herlev Hospital')
+      fig.suptitle('Undersøgelse udført på Herlev Hospital', fontsize = 30)
     if hosp_dir == 'FH':
-      ax[0].set_title('Undersøgelse udført på Frederiksberg Hospital')
+      fig.suptitle('Undersøgelse udført på Frederiksberg Hospital', fontsize = 30)
     if hosp_dir == 'BH':
-      ax[0].set_title('Undersøgelse udført på Bispeberg Hospital')
+      fig.suptitle('Undersøgelse udført på Bispeberg Hospital', fontsize = 30)
     if hosp_dir == 'HI':
-      ax[0].set_title('Undersøgelse udført på Hillerød Hospital')
+      fig.suptitle('Undersøgelse udført på Hillerød Hospital', fontsize = 30)
+
+  
+  ax[0].tick_params(labelsize = 14)
 
   #Text setup for graph 1
   gender_str          = "Køn: {0}\n\n".format(gender)
@@ -556,8 +559,8 @@ def generate_plot_text(
   plt.rc('axes', titlesize=titlesize)
   plt.rc('axes', labelsize=labelsize)
 
-  ax[0].set_xlabel('Alder (år)')
-  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)')
+  ax[0].set_xlabel('Alder (år)', fontsize = 18)
+  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
   ax[0].plot(age, clearence_norm, marker = 'o', markersize = 12)
     
