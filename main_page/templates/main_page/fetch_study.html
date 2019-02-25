@@ -50,7 +50,7 @@
     </thead>
     <tbody>
       {% for cpr, name, study_date, rigs_nr in responses %}
-      <tr onclick="document.location='{% url "main_page:present_study" rigs_nr %}'">
+      <tr onclick="document.location='{% url "main_page:present_old_study" rigs_nr %}'">
         <td>{{ name }}</td>
         <td>{{ cpr }}</td>
         <td>{{ study_date }}</td>

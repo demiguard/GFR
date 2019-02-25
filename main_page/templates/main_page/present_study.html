@@ -4,9 +4,7 @@
 {% load static %}
 
 {% block content %}
-
-<h2> Resultat af {{ name }}'s undersøgelse den {{ date }} </h2>
-
+<h2>Resultat af {{ name }}'s undersøgelse den {{ date }}</h2>
 
 <img width="75%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
 <form method="POST">
@@ -14,10 +12,8 @@
   <div>
     <p><input type="button" value="Tilbage til redigering" onclick="document.location='{% url "main_page:fill_study" rigs_nr %}'"></p>
     <h5>Afslut undersøgelse</h2>
-    <p>Når undersøgelse er afsluttet kan du ikke redigerer i den mere.</p>
+    <p>Når undersøgelse er afsluttet kan den ikke redigeres igen.</p>
     <input type="submit" value="Send til PACS">
   </div>
 </form>
-
-
 {% endblock %}
