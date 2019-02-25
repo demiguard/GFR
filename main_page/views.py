@@ -121,6 +121,8 @@ def list_studies(request):
     request.user.hospital
   )
 
+  print(bookings)
+
   old_bookings = []
   for dcm_file in glob.glob('{0}/*.dcm'.format(DICOM_directory)):
     # Delete file if more than one week since procedure start
@@ -147,16 +149,18 @@ def list_studies(request):
     exam_info.cpr = exam_info.info['cpr']
     exam_info.ris_nr = exam_info.info['ris_nr']
 
-    def existing_user(name):
+
+    def existing_user(ris_nr):
       """
         checks if a user already exists
       """
       for booking in bookings:
-        if booking.name == name:
+        if booking.ris_nr == ris_nr:
+          #print(booking.ris_nr, '\n', ris_nr, '\n', len(bookings))
           return True
       return False
 
-    if not existing_user(exam_info.name): 
+    if not existing_user(exam_info.ris_nr): 
       old_bookings.append(exam_info)
 
   

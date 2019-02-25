@@ -307,7 +307,6 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   ]
 
   # TODO: Add error handling of failed queries (Update execute_query first to return exit-code)
-  print(find_query)
   out = execute_query(find_query)
 
   # Use first resp
@@ -317,7 +316,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   else:
     return None
 
-  print(rsp_path)
+  
 
   # Extract Patient ID and Study Instance UID from respons
   patient_rsp = pydicom.dcmread(rsp_path)
@@ -346,7 +345,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
     '-od',
     resp_path
   ]
-  print(img_query)
+ 
 
   execute_query(img_query)
 
@@ -359,9 +358,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
 
   # Move found object into cache
   cache_path = cache_dir + rigs_nr + '.dcm'
-  print("PATIENT ID: {0}".format(patient_id))
-  print("RIGS NR: {0}".format(rigs_nr))
-  print("CACHE PATH: {0}".format(cache_path))
+
   
   os.rename(img_rsp_path, cache_path)
 
@@ -403,12 +400,14 @@ def get_examination(user, rigs_nr, resp_dir):
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
+  
   # Read after dictionary update
   # TODO: Add error handling for invalid filepath
   # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
   try:
     obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
   except FileNotFoundError:
+    print('Error Finding from pacs')
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
 
@@ -461,6 +460,7 @@ def get_examination(user, rigs_nr, resp_dir):
     try:
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
     except TypeError:
+      print(obj)
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime.decode(), '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
@@ -499,7 +499,7 @@ def get_all(user):
   if not os.path.exists(DICOM_dirc):
     os.mkdir(DICOM_dirc)
 
-  resp_dir = '{0}'.format(DICOM_dirc)
+  resp_dir = './{0}'.format(DICOM_dirc)
 
   # Construct query and execute
   query_arr = [
@@ -515,18 +515,19 @@ def get_all(user):
     '-od', # Output dir to extract into
     resp_dir
   ]
-  
+
   exe_out = execute_query(query_arr)
-  
+
   if exe_out != '':
     pass # TODO: Error handling for failed findscu execution
 
   dcm_objs = parse_bookings(resp_dir)
+ 
 
   # Extract needed info from dcm objects (w/ formatting)
   ret = []
   accepted_procedures = user.config.accepted_procedures.split('^')
-  print("got accepted procedures: {0}".format(accepted_procedures)) # TODO: Place this in logging
+  
 
   for key, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
@@ -675,17 +676,13 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
 def store_in_pacs(user, obj_path):
   """
-  Stores a given study in the PACS database, based on the configuration of the
-  given user
+  Stores a given study in the PACS database
 
   Args:
     user: currently logged in user
-    obj_path: path to dicom file to store
-
-  Returns:
-    True, if successfully stored, False otherwise
+    obj_path: path to object to store
   """
-  # Construct query and execute
+  # Construct query and store
   store_query = [
     server_config.STORESCU,
     '-aet',
@@ -698,6 +695,6 @@ def store_in_pacs(user, obj_path):
   ]
   
   out = execute_query(store_query)
-  print(out)
+  # print(out) # TODO: Move this to be logged in a file instead
 
   return (out != None)

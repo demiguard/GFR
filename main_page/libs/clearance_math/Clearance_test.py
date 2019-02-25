@@ -165,7 +165,7 @@ clearance_math.generate_plot_text(
     clearance_math.kidney_function(GFR_N, "0101973001"),
     "0101973001",
     "Test_case_3_text",
-    hosp_dir = 'RH'
+    hosp_dir = 'RH',
     show_fig=True,
     save_fig=False
 )
