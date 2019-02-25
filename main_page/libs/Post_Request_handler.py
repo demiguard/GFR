@@ -118,7 +118,7 @@ def fill_study_post(request, rigs_nr):
     if not os.path.exists('{0}/{1}'.format(img_path, hospital)):
       os.mkdir('{0}/{1}'.format(img_path, hospital))
 
-    dcm_obj_path = '.{0}/{1}/{2}.dcm'.format(base_resp_dir ,request.user.hospital, rigs_nr)
+    dcm_obj_path = '{0}/{1}/{2}.dcm'.format(base_resp_dir, hospital, rigs_nr)
 
     dcm_img_path = '{0}/{1}/{2}.dcm'.format(img_path, hospital, rigs_nr)
 

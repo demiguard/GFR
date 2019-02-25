@@ -516,17 +516,17 @@ def generate_plot_text(
 
   if hosp_dir:
     if hosp_dir == 'RH':
-      fig.title('Undersøgelse udført på Rigshospitalet')
+      ax[0].set_title('Undersøgelse udført på Rigshospitalet')
     if hosp_dir == 'GL':
-      fig.title('Undersøgelse udført på Glostrup Hospital')
+      ax[0].set_title('Undersøgelse udført på Glostrup Hospital')
     if hosp_dir == 'HH':
-      fig.title('Undersøgelse udført på Herlev Hospital')
+      ax[0].set_title('Undersøgelse udført på Herlev Hospital')
     if hosp_dir == 'FH':
-      fig.title('Undersøgelse udført på Frederiksberg Hospital')
+      ax[0].set_title('Undersøgelse udført på Frederiksberg Hospital')
     if hosp_dir == 'BH':
-      fig.title('Undersøgelse udført på Bispeberg Hospital')
+      ax[0].set_title('Undersøgelse udført på Bispeberg Hospital')
     if hosp_dir == 'HI':
-      fig.title('Undersøgelse udført på Hillerød Hospital')
+      ax[0].set_title('Undersøgelse udført på Hillerød Hospital')
 
   #Text setup for graph 1
   gender_str          = "Køn: {0}\n\n".format(gender)
