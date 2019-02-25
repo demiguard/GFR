@@ -2,6 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 import pandas
 import datetime
+import os
 from PIL import Image
 from scipy.stats import linregress
 
@@ -564,11 +565,16 @@ def generate_plot_text(
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
   ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
-  image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
-  if save_fig : 
+
+  if not os.path.exists(save_dir):
+    os.mkdir(save_dir)
+
+  image_path = "{0}/{1}.bmp".format(save_dir, rigs_nr)
+
+  if save_fig:
     im = fig2img(fig)
     im.save(image_path)
-  if show_fig :
+  if show_fig:
     plt.show()
 
   return image_path

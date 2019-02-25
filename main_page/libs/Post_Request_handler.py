@@ -23,11 +23,11 @@ import PIL
 # Fill Study Post Request
 def fill_study_post(request, rigs_nr):
   """
-      Handles Post request for fill study
+  Handles Post request for fill study
 
-      Args:
-        Request: The Post request
-        rigs_nr: The REGH number for the corosponding examination
+  Args:
+    Request: The Post request
+    rigs_nr: The REGH number for the corosponding examination
   """
   #Save Without Redirect
 
@@ -241,12 +241,11 @@ def store_form(request, rigs_nr):
       dicom_path,
       height     = float(request.POST['height']),
       bsa_method = bsa_method 
-    ) 
+    )
 
   sample_dates = request.POST.getlist('study_date')[:-1]
   sample_times = request.POST.getlist('study_time')[:-1]
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
-
 
   #There's Data to put in
   if len(sample_dates) > 0:
@@ -287,7 +286,9 @@ def send_to_pacs(request, rigs_nr):
     rigs_nr
   )
 
-  if ris.store_in_pacs(request.user, rigs_nr):
+  print(obj_path)
+
+  if ris.store_in_pacs(request.user, obj_path):
     # Remove the file
     os.remove(obj_path)
   else:

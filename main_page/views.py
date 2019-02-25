@@ -232,6 +232,22 @@ def fill_study(request, rigs_nr):
     inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
     inj_time = exam.info['inj_t'].strftime('%H:%M')
 
+  # Read in previous samples from examination info
+  print(exam.info['sam_t'])
+  previous_sample_times = []
+  previous_sample_dates = []
+  previous_sample_counts = exam.info['tch_cnt']
+
+  for st in exam.info['sam_t']:
+    previous_sample_dates.append(st.strftime('%Y-%m-%d'))
+    previous_sample_times.append(st.strftime('%H:%M'))
+  
+  previous_samples = zip(
+    previous_sample_dates,
+    previous_sample_times,
+    previous_sample_counts
+  )
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
@@ -245,8 +261,8 @@ def fill_study(request, rigs_nr):
       'weight': exam.info['weight'],
     }),
     'study_dosis_form' : forms.Filldosis( initial={
-      'std_cnt' : 0,
-      'thin_fac' : 0
+      'std_cnt' : exam.info['std_cnt'],
+      'thin_fac' : exam.info['thin_fact']
     }),
     'study_examination_form'  : forms.Fillexamination(initial={
       'vial_weight_before'    : exam.info['inj_before'],
@@ -259,7 +275,8 @@ def fill_study(request, rigs_nr):
       'test_range': test_range,
       'test_form': test_form
     },
-    'csv_data': csv_data
+    'previous_samples': previous_samples,
+    'csv_data': csv_data,
   }
 
   return HttpResponse(template.render(context, request))
@@ -509,7 +526,7 @@ def present_study(request, rigs_nr):
 
   if request.method == 'POST':
     PRH.send_to_pacs(request, rigs_nr)
-    redirect('main_page:list_studies')
+    return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
