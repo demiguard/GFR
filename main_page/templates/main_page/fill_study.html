@@ -33,6 +33,24 @@
     <div id="test-data-container">
       <!-- Place where JS inserts new test data -->
 
+      <!-- Insert previous tests -->
+      {% for psd, pst, psc in previous_samples %}
+        <div class="form-row">
+          <div class="form-group col-md-3 readonly-field">
+            <input type="text" class="form-control" name="study_date" value="{{ psd }}" readonly>
+          </div>
+          <div class="form-group col-md-3 readonly-field">
+            <input type="text" class="form-control" name="study_time" value="{{ pst }}" readonly>
+          </div>
+          <div class="form-group col-md-3 readonly-field">
+            <input type="text" class="form-control" name="test_value" value="{{ psc }}" readonly>
+          </div>
+          <div class="form-group col-md-3 readonly-field">
+            <input type="button" value="X" class="row-remove-btn btn btn-danger">
+            <input type="button" value="&#x1f512;" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+          </div>
+        </div>
+      {% endfor %}
     </div>
 
     <!-- Add test info -->

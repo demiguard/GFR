@@ -53,7 +53,21 @@ $(function() {
   }
 
   // 'Tilføj' clicked for manual study entry
-  var test_count = 0;
+  var test_count = $('.row-lock-btn').length; // Get the count of previous samples
+
+  // Add the on click event handlers to the previous sample locks
+  $('.row-lock-btn').each(function() {
+    $('#' + this.id).on('click', function() {
+      var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
+          
+      if (resp) {
+        var form_parent = $(this).parent().parent();
+        form_parent.children('.readonly-field').each(function() {
+         $(this).children('input').attr('readonly', false);
+        });
+      }
+    });
+  });
 
   var csv_row_ids_array = [];
   $('#add-test').click(function() {

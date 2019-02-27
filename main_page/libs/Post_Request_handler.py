@@ -23,11 +23,11 @@ import PIL
 # Fill Study Post Request
 def fill_study_post(request, rigs_nr):
   """
-      Handles Post request for fill study
+  Handles Post request for fill study
 
-      Args:
-        Request: The Post request
-        rigs_nr: The REGH number for the corosponding examination
+  Args:
+    Request: The Post request
+    rigs_nr: The REGH number for the corosponding examination
   """
   #Save Without Redirect
 
@@ -53,8 +53,8 @@ def fill_study_post(request, rigs_nr):
     tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
     # Compute surface area
-    weight = float(request.POST['weight'])
-    height = float(request.POST['height'])
+    weight = float(request.POST['weight'].split('.')[0])
+    height = float(request.POST['height'].split('.')[0])
     BSA = clearance_math.surface_area(height, weight)
 
     # Compute dosis
@@ -63,8 +63,8 @@ def fill_study_post(request, rigs_nr):
     inj_weight = inj_weight_before - inj_weight_after
 
     # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-    STD_CNT = int(request.POST['std_cnt'])
-    FACTOR = int(request.POST['thin_fac'])
+    STD_CNT = int(request.POST['std_cnt'].split('.')[0])
+    FACTOR = int(request.POST['thin_fac'].split('.')[0])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
     # Determine study method
@@ -198,12 +198,6 @@ def store_form(request, rigs_nr):
     study_str = 'Et punkt Barn'
   elif study_type == 2:
     study_str = 'Flere prøve Voksen'
-  elif study_type == 3:
-    study_str = 'Flere prøve Barn'
-  elif study_type == 4:
-    study_str = '24 Timer Voksen'
-  elif study_type == 5:
-    study_str = '24 Timer Barn'
 
   #Store Study
   ris.store_dicom(
@@ -241,21 +235,18 @@ def store_form(request, rigs_nr):
       dicom_path,
       height     = float(request.POST['height']),
       bsa_method = bsa_method 
-    ) 
+    )
 
   sample_dates = request.POST.getlist('study_date')[:-1]
   sample_times = request.POST.getlist('study_time')[:-1]
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
-
   #There's Data to put in
-  if len(sample_dates) > 0:
-    #If thining factor have been inputed    
-    thin_factor = 0
-    if len(request.POST['thin_fac']) > 0 :
+  if sample_dates:
+    #If thining factor have been inputed
+    if request.POST['thin_fac']:
       thin_factor = float(request.POST['thin_fac'])
-    std_cnt = 0
-    if len(request.POST['std_cnt']) > 0 :
+    if request.POST['std_cnt']:
       std_cnt = float(request.POST['std_cnt'])
 
     formated_sample_date = [date.replace('-','') for date in sample_dates]
@@ -264,7 +255,7 @@ def store_form(request, rigs_nr):
 
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
     
-    zip_obj_seq = zip(sample_datetimes, sample_tec99) 
+    zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
     
     ris.store_dicom(
@@ -287,7 +278,7 @@ def send_to_pacs(request, rigs_nr):
     rigs_nr
   )
 
-  if ris.store_in_pacs(request.user, rigs_nr):
+  if ris.store_in_pacs(request.user, obj_path):
     # Remove the file
     os.remove(obj_path)
   else:

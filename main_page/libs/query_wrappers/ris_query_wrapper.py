@@ -399,7 +399,7 @@ def get_examination(user, rigs_nr, resp_dir):
   DicomDictionary.update(new_dict_items)
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
-
+  
   
   # Read after dictionary update
   # TODO: Add error handling for invalid filepath
@@ -439,25 +439,28 @@ def get_examination(user, rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
+  print(obj)
 
-  if 'Cleartest' in obj:
-    if 'thiningFactor' in obj.ClearTest[0]:
+  if 'ClearTest' in obj:
+    if 'thiningfactor' in obj.ClearTest[0]:
       examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
     if 'stdcnt' in obj.ClearTest[0]:
       examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt
 
-    sample_times = numpy.array([])
-    tch99_cnt = numpy.array([])
+    sample_times = []
+    tch99_cnt = []
     for test in obj.ClearTest:
       if 'SampleTime' in test:
         sample_times.append(datetime.datetime.strptime(test.SampleTime ,'%Y%m%d%H%M'))
       if 'cpm' in test:
         tch99_cnt.append(test.cpm)
+
+    examination_info.info['sam_t'] = numpy.array(sample_times)
+    examination_info.info['tch_cnt'] = numpy.array(tch99_cnt)
   if 'injTime' in obj:
     try:
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
     except TypeError:
-      print(obj)
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime.decode(), '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
@@ -465,6 +468,9 @@ def get_examination(user, rigs_nr, resp_dir):
 
   if 'PixelData' in obj:
     examination_info.info['image'] = numpy.array(obj.pixel_array)
+
+  if 'GFRMethod' in obj:
+    examination_info.info['Method'] = obj.GFRMethod
 
   return examination_info
 
@@ -671,29 +677,27 @@ def is_valid_study(cpr, name, study_date, ris_nr):
 
   return (len(error_strings) == 0, error_strings)
 
-def store_in_pacs(user, ris_nr):
+def store_in_pacs(user, obj_path):
   """
   Stores a given study in the PACS database
 
   Args:
     user: currently logged in user
-    ris_nr: RIGS number of the study
+    obj_path: path to object to store
   """
-  # Construct dicom obj to store
-  obj_path = "{0}{1}/{2}".format(server_config.FIND_RESPONS_DIR, user.hospital, ris_nr)
-
-
   # Construct query and store
-  # store_query = [
-  #   server_config.STORESCU,
-  #   '-aet',
-  #   user.config.pacs_calling,
-  #   '-aec',
-  #   user.config.pacs_aet,
-  #   user.config.pacs_ip,
-  #   user.config.pacs_port,
-  #   obj_path
-  # ]
+  store_query = [
+    server_config.STORESCU,
+    '-aet',
+    user.config.pacs_calling,
+    '-aec',
+    user.config.pacs_aet,
+    user.config.pacs_ip,
+    user.config.pacs_port,
+    obj_path
+  ]
   
-  # # TODO: Handle errors in the case of execution failure
-  # out = execute_query(store_query)
+  out = execute_query(store_query)
+  # print(out) # TODO: Move this to be logged in a file instead
+
+  return (out != None)

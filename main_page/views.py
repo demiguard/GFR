@@ -197,7 +197,7 @@ def fill_study(request, rigs_nr):
     request.user, 
     rigs_nr, 
     './{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
-  ) 
+  )
 
   test_range = range(6)
   today = datetime.datetime.today()
@@ -236,6 +236,32 @@ def fill_study(request, rigs_nr):
     inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
     inj_time = exam.info['inj_t'].strftime('%H:%M')
 
+  # Read in previous samples from examination info
+  previous_sample_times = []
+  previous_sample_dates = []
+  previous_sample_counts = exam.info['tch_cnt']
+
+  for st in exam.info['sam_t']:
+    previous_sample_dates.append(st.strftime('%Y-%m-%d'))
+    previous_sample_times.append(st.strftime('%H:%M'))
+  
+  previous_samples = zip(
+    previous_sample_dates,
+    previous_sample_times,
+    previous_sample_counts
+  )
+
+  study_type = 0
+  if exam.info['Method']:
+    # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
+    # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
+    if exam.info['Method'] == 'Et punkt voksen':
+      study_type = 0
+    elif exam.info['Method'] == 'Et punkt Barn':
+      study_type = 1
+    elif exam.info['Method'] == 'Flere prøve Voksen':
+      study_type = 2
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
@@ -249,8 +275,8 @@ def fill_study(request, rigs_nr):
       'weight': exam.info['weight'],
     }),
     'study_dosis_form' : forms.Filldosis( initial={
-      'std_cnt' : 0,
-      'thin_fac' : 0
+      'std_cnt' : exam.info['std_cnt'],
+      'thin_fac' : exam.info['thin_fact']
     }),
     'study_examination_form'  : forms.Fillexamination(initial={
       'vial_weight_before'    : exam.info['inj_before'],
@@ -258,12 +284,15 @@ def fill_study(request, rigs_nr):
       'injection_time'        : inj_time,
       'injection_date'        : inj_date
     }),
-    'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
+    'study_type_form': forms.FillStudyType(initial={
+      'study_type': study_type # Default: 'Et punkt voksen'
+    }),
     'test_context': {
       'test_range': test_range,
       'test_form': test_form
     },
-    'csv_data': csv_data
+    'previous_samples': previous_samples,
+    'csv_data': csv_data,
   }
 
   return HttpResponse(template.render(context, request))
@@ -414,9 +443,9 @@ def fetch_study(request):
 
     ds = pydicom.dcmread(rsp_path)
     rsp_info = (
-      ds.PatientID,
-      ds.PatientName,
-      ds.StudyDate,
+      ris.format_cpr(ds.PatientID),
+      ris.format_name(ds.PatientName),
+      ris.format_date(ds.StudyDate),
       ds.AccessionNumber,
     )
 
@@ -513,7 +542,7 @@ def present_study(request, rigs_nr):
 
   if request.method == 'POST':
     PRH.send_to_pacs(request, rigs_nr)
-    redirect('main_page:list_studies')
+    return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
