@@ -399,7 +399,7 @@ def get_examination(user, rigs_nr, resp_dir):
   DicomDictionary.update(new_dict_items)
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
-
+  
   
   # Read after dictionary update
   # TODO: Add error handling for invalid filepath
@@ -439,7 +439,8 @@ def get_examination(user, rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
-  
+  print(obj)
+
   if 'ClearTest' in obj:
     if 'thiningfactor' in obj.ClearTest[0]:
       examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor

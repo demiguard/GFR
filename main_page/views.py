@@ -443,9 +443,9 @@ def fetch_study(request):
 
     ds = pydicom.dcmread(rsp_path)
     rsp_info = (
-      ds.PatientID,
-      ds.PatientName,
-      ds.StudyDate,
+      ris.format_cpr(ds.PatientID),
+      ris.format_name(ds.PatientName),
+      ris.format_date(ds.StudyDate),
       ds.AccessionNumber,
     )
 

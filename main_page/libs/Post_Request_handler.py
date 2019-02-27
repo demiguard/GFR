@@ -53,8 +53,8 @@ def fill_study_post(request, rigs_nr):
     tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
     # Compute surface area
-    weight = float(request.POST['weight'])
-    height = float(request.POST['height'])
+    weight = float(request.POST['weight'].split('.')[0])
+    height = float(request.POST['height'].split('.')[0])
     BSA = clearance_math.surface_area(height, weight)
 
     # Compute dosis
@@ -63,8 +63,8 @@ def fill_study_post(request, rigs_nr):
     inj_weight = inj_weight_before - inj_weight_after
 
     # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-    STD_CNT = int(request.POST['std_cnt'])
-    FACTOR = int(request.POST['thin_fac'])
+    STD_CNT = int(request.POST['std_cnt'].split('.')[0])
+    FACTOR = int(request.POST['thin_fac'].split('.')[0])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
     # Determine study method
