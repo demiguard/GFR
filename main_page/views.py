@@ -197,7 +197,7 @@ def fill_study(request, rigs_nr):
     request.user, 
     rigs_nr, 
     './{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
-  ) 
+  )
 
   test_range = range(6)
   today = datetime.datetime.today()
@@ -237,7 +237,6 @@ def fill_study(request, rigs_nr):
     inj_time = exam.info['inj_t'].strftime('%H:%M')
 
   # Read in previous samples from examination info
-  print(exam.info['sam_t'])
   previous_sample_times = []
   previous_sample_dates = []
   previous_sample_counts = exam.info['tch_cnt']
@@ -251,6 +250,17 @@ def fill_study(request, rigs_nr):
     previous_sample_times,
     previous_sample_counts
   )
+
+  study_type = 0
+  if exam.info['Method']:
+    # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
+    # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
+    if exam.info['Method'] == 'Et punkt voksen':
+      study_type = 0
+    elif exam.info['Method'] == 'Et punkt Barn':
+      study_type = 1
+    elif exam.info['Method'] == 'Flere prøve Voksen':
+      study_type = 2
 
   context = {
     'rigsnr': rigs_nr,
@@ -274,7 +284,9 @@ def fill_study(request, rigs_nr):
       'injection_time'        : inj_time,
       'injection_date'        : inj_date
     }),
-    'study_type_form': forms.FillStudyType({'study_type': 0}), # Default: 'Et punkt voksen'
+    'study_type_form': forms.FillStudyType(initial={
+      'study_type': study_type # Default: 'Et punkt voksen'
+    }),
     'test_context': {
       'test_range': test_range,
       'test_form': test_form

@@ -439,15 +439,15 @@ def get_examination(user, rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
-
+  
   if 'ClearTest' in obj:
     if 'thiningfactor' in obj.ClearTest[0]:
       examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
     if 'stdcnt' in obj.ClearTest[0]:
       examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt
 
-    sample_times = [] #numpy.array([])
-    tch99_cnt = [] #numpy.array([])
+    sample_times = []
+    tch99_cnt = []
     for test in obj.ClearTest:
       if 'SampleTime' in test:
         sample_times.append(datetime.datetime.strptime(test.SampleTime ,'%Y%m%d%H%M'))
@@ -460,7 +460,6 @@ def get_examination(user, rigs_nr, resp_dir):
     try:
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
     except TypeError:
-      print(obj)
       examination_info.info['inj_t'] = datetime.datetime.strptime(obj.injTime.decode(), '%Y%m%d%H%M')
 
   if 'PatientSize' in obj and 'PatientWeight' in obj:
@@ -468,6 +467,9 @@ def get_examination(user, rigs_nr, resp_dir):
 
   if 'PixelData' in obj:
     examination_info.info['image'] = numpy.array(obj.pixel_array)
+
+  if 'GFRMethod' in obj:
+    examination_info.info['Method'] = obj.GFRMethod
 
   return examination_info
 

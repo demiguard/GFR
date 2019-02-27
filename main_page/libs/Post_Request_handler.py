@@ -198,12 +198,6 @@ def store_form(request, rigs_nr):
     study_str = 'Et punkt Barn'
   elif study_type == 2:
     study_str = 'Flere prøve Voksen'
-  elif study_type == 3:
-    study_str = 'Flere prøve Barn'
-  elif study_type == 4:
-    study_str = '24 Timer Voksen'
-  elif study_type == 5:
-    study_str = '24 Timer Barn'
 
   #Store Study
   ris.store_dicom(
@@ -248,13 +242,11 @@ def store_form(request, rigs_nr):
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
   #There's Data to put in
-  if len(sample_dates) > 0:
-    #If thining factor have been inputed    
-    thin_factor = 0
-    if len(request.POST['thin_fac']) > 0 :
+  if sample_dates:
+    #If thining factor have been inputed
+    if request.POST['thin_fac']:
       thin_factor = float(request.POST['thin_fac'])
-    std_cnt = 0
-    if len(request.POST['std_cnt']) > 0 :
+    if request.POST['std_cnt']:
       std_cnt = float(request.POST['std_cnt'])
 
     formated_sample_date = [date.replace('-','') for date in sample_dates]
@@ -263,7 +255,7 @@ def store_form(request, rigs_nr):
 
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
     
-    zip_obj_seq = zip(sample_datetimes, sample_tec99) 
+    zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
     
     ris.store_dicom(
@@ -285,8 +277,6 @@ def send_to_pacs(request, rigs_nr):
     request.user.hospital, 
     rigs_nr
   )
-
-  print(obj_path)
 
   if ris.store_in_pacs(request.user, obj_path):
     # Remove the file
