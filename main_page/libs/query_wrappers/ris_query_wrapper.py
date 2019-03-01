@@ -112,7 +112,6 @@ def store_dicom(dicom_obj_path,
   Remarks
     It's only possible to store the predefined args with this function
   """
-  ds = pydicom.dcmread(dicom_obj_path)
   new_dict_items = {
     0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
     0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
@@ -136,6 +135,7 @@ def store_dicom(dicom_obj_path,
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
+  ds = pydicom.dcmread(dicom_obj_path)
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
 
   # Set StudyDate

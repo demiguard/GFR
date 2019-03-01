@@ -503,7 +503,7 @@ def present_old_study(request, rigs_nr):
     os.mkdir(DICOM_directory)
 
   exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
-  print(exam.info)
+  print(exam.info['std_cnt'])
   # Display
   img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
   if not os.path.exists(img_resp_dir):
