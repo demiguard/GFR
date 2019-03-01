@@ -49,6 +49,7 @@ DICOMDICT = "/usr/share/libdcmtk12/dicom.dic"     # DCMTK dicom specification pa
 FINDSCU = "findscu"                               # Path to findscu application
 STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
+DCMCONV = "dcmconv"
 
 BASE_QUERY_DIR = "./base_queries/"                # Directory contaning all base query files
 SEARCH_RESPONS_DIR = "./search_responses/"        # Directory for temporarily storing search responses

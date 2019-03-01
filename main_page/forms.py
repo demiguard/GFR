@@ -1,6 +1,22 @@
 from django import forms
-from main_page.models import User
+from django.forms import ModelForm
+from main_page.models import Config
 
+# User settings form
+class SettingsForm(ModelForm):
+  class Meta:
+    model = Config
+    fields = [
+      'accepted_procedures',
+      'rigs_aet',
+      'rigs_ip',
+      'rigs_port',
+      'rigs_calling',
+      'pacs_aet',
+      'pacs_ip',
+      'pacs_port',
+      'pacs_calling'
+    ]
 
 # Login form
 class LoginForm(forms.Form):

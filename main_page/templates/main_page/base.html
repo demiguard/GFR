@@ -25,10 +25,10 @@
               <li><a class="menu-item" href="{% url 'main_page:list_studies' %}">Udfyld undersøgelse</a></li>
               <li><a class="menu-item" href="{% url 'main_page:fetch_study' %}">Hent undersøgelse</a></li>
               <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
-              <li><a class="menu-item" href="{% url 'main_page:config' %}">Indstillinger</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:settings' %}">Indstillinger</a></li>
             </ul>
             {% if user.is_authenticated %}
-              <p>Logget ind som: {{ user.username }}</p>
+              <p style="color: white;">Logget ind som: {{ user.username }}</p>
               <form method="POST">
                 {% csrf_token %}
 
