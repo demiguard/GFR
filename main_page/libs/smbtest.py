@@ -19,7 +19,7 @@ sharename = ''
 for share in shares:
     if not share.isSpecial:
         sharename = share.name
-        print('Name:', share.name, 'Comment:' share.comment )
+        print('Name:', share.name, 'Comment:', share.comment )
 
 paths = conn.listPath('data', '/')
 
