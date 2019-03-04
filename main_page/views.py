@@ -12,6 +12,7 @@ from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
 from .libs import server_config
+from .libs import samba_handler
 
 from dateutil import parser as date_parser
 import datetime
@@ -207,28 +208,33 @@ def fill_study(request, rigs_nr):
     f.field.widget.attrs['class'] = 'form-control'
 
   # Get list of csv files
-  csv_files = glob.glob("main_page/static/main_page/csv/*.csv")
-  csv_names = [os.path.basename(path).split('.')[0] for path in csv_files]
+
+  #Return a list of Panda objects
+  data_files = samba_handler.smb_get_csv(request.user.hospital)
 
   # Read required data from each csv file  
   csv_data = []
   csv_present_names = []
-  for file in csv_files:
+  for data_file in list(reversed(data_files)):
     prestring = "Undersøgelse lavet: "
     
-    temp_p = pandas.read_csv(file)
-    curr_data = [[] for _ in range(temp_p.shape[0])]
+    curr_data = [[] for _ in range(data_file.shape[0])]
+    data_names = []
 
-    csv_present_names.append(prestring + temp_p['Measurement date & time'][0])
-    for i, row in temp_p.iterrows():
+    datestring =  data_file['Measurement date & time'][0].replace(':','').replace('-','').replace(' ',' ')
+
+    csv_present_names.append(prestring + data_file['Measurement date & time'][0])
+    for i, row in data_file.iterrows():
       curr_data[i].append(row['Rack'])
       curr_data[i].append(row['Pos'])
-      curr_data[i].append(row['Cr-51 Counts'])
-      curr_data[i].append(row['Cr-51 CPM'])
+      curr_data[i].append(row['Tc-99m Counts'])
+      curr_data[i].append(row['Tc-99m CPM'])
+      data_names.append('{0}-{1}'.format(datestring,i) )
+
 
     csv_data.append(curr_data)
 
-  csv_data = zip(csv_present_names, csv_data, csv_names)
+  csv_data = zip(csv_present_names, csv_data, data_names)
 
   inj_time = today.strftime('%H:%M')
   inj_date = today.strftime('%Y-%m-%d')

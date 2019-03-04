@@ -60,11 +60,11 @@ class User(AbstractBaseUser):
 
   HOSPS = (
     ('RH', 'Rigshospitalet'),
-    ('HH', 'Herlev hospital'),
+    ('HEH', 'Herlev hospital'),
     ('HI', 'Hillerød hospital'),
     ('FH', 'Frederiksberg hospital'),
     ('BH', 'Bispebjerg hospital'),
-    ('GL', 'Glostrup hospital'),
+    ('GLO', 'Glostrup hospital'),
   )
   hospital = models.CharField(max_length=3, choices=HOSPS)
 

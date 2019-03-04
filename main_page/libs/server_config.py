@@ -61,7 +61,27 @@ BASE_FIND_QUERY = "{0}base_find_query.dcm".format(BASE_QUERY_DIR)               
 BASE_IMG_QUERY_PATH = "{0}base_img_query.dcm".format(BASE_QUERY_DIR)                          # Used for retreiving images
 BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
 
-# --- Logging ---
+# --- Logging --- #
 LOG_DIR = "./logs/"
 LOG_FILE = ""
 LOG_LEVEL = "DEBUG"
+
+# --- Samba Share --- #
+samba_share_path = 'main_page/static/main_page/csv/Samples'
+samba_share_base_path = '/data/Samples'
+
+#PYSMB Connection
+samba_ip = '172.16.78.176'  #Change to the correct ip
+samba_name = 'ubuntu'
+
+samba_user = 'gfr'
+samba_pass = 'clearance'
+samba_pc   = 'kylle'
+samba_share = 'data'
+
+samba_Sample = 'Samples'
+samba_backup = 'backup'
+
+
+
+
