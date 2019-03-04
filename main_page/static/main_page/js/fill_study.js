@@ -1,5 +1,9 @@
 // Wait until document ready
 $(function() {
+  // Add date pickers to date fields
+  $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
+  $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
+  
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
     $("#fill-study-form").data('changed', true);

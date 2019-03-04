@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, FileResponse, Http404
+from django.http import HttpResponse, FileResponse, JsonResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
@@ -32,6 +32,18 @@ logger = logging.getLogger(__name__)
 
 
 def index(request):
+  template = loader.get_template('main_page/index.html')
+
+  context = {
+    'login_form': forms.LoginForm()
+  }
+
+  return HttpResponse(template.render(context, request))
+
+
+def ajax_login(request):
+  signed_in = False
+  
   if request.method == 'POST':
     login_form = forms.LoginForm(data=request.POST)
 
@@ -46,18 +58,17 @@ def index(request):
         login(request, user)
 
         if user.is_authenticated:
-          return redirect('main_page:list_studies')
-    
-    return redirect('main_page:index')
-  else:
-    # Specify page template
-    template = loader.get_template('main_page/index.html')
+          signed_in = True
 
-    context = {
-      'login_form': forms.LoginForm()
-    }
+  data = {
+    'signed_in': signed_in,
+  }
+  resp = JsonResponse(data)
 
-    return HttpResponse(template.render(context, request))
+  if not signed_in:
+    resp.status_code = 403
+
+  return resp
 
 
 @login_required(login_url='/')
