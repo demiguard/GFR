@@ -1,8 +1,12 @@
 from django.urls import path
+
 from . import views
+from . import Startup
+
+Startup.start_up()
+
 
 # TODO: Clear the search history directory contaning query filter files: currently it's 'hist_tmp'
-
 app_name = 'main_page'
 urlpatterns = [
   path('', views.index, name='index'),

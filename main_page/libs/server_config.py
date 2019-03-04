@@ -62,6 +62,8 @@ BASE_FIND_QUERY = "{0}base_find_query.dcm".format(BASE_QUERY_DIR)               
 BASE_IMG_QUERY_PATH = "{0}base_img_query.dcm".format(BASE_QUERY_DIR)                          # Used for retreiving images
 BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
 
+DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
+
 # --- Logging ---
 LOG_DIR = "./logs/"
 LOG_FILE = ""

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, FileResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
@@ -645,4 +645,11 @@ def settings(request):
 
 
 def documentation(requet):
-  return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')
+  print("Test")
+
+  return FileResponse(
+    open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
+    content_type='application/pdf'
+  )
+
+  #return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')
