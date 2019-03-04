@@ -13,6 +13,7 @@ from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
 from .libs import server_config
 from .libs import samba_handler
+
 from . import models
 
 
@@ -234,7 +235,7 @@ def fill_study(request, rigs_nr):
     curr_data = [[] for _ in range(data_file.shape[0])]
     data_names = []
 
-    datestring =  data_file['Measurement date & time'][0].replace(':','').replace('-','').replace(' ',' ')
+    datestring =  data_file['Measurement date & time'][0].replace(':','').replace('-','').replace(' ','')
 
     csv_present_names.append(prestring + data_file['Measurement date & time'][0])
     for i, row in data_file.iterrows():
@@ -497,7 +498,7 @@ def fetch_study(request):
 
 @login_required(login_url='/')
 def present_old_study(request, rigs_nr):
-  """
+  """list(reversed(
 
   Remark:
     Should pull information down from PACS, but not be able to send to it.
