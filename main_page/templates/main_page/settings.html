@@ -1,0 +1,26 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block content %}
+<h2>Indstillinger</h2>
+<br>
+
+<div class="col-md-4">
+  <form method="POST">
+    {% csrf_token %}
+    {% bootstrap_form settings_form %}
+
+    {% if saved %}
+      <p id="success-msg" style="color: #528822;">Ændringerne blev gemt</p>
+    {% endif %}
+
+    {% buttons %}
+      <input type="submit" value="Gem">
+    {% endbuttons %}
+  </form>
+</div>
+
+<script src="{% static 'main_page/js/settings.js' %}"></script>
+{% endblock %}

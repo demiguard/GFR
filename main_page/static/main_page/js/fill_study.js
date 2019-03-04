@@ -1,5 +1,9 @@
 // Wait until document ready
 $(function() {
+  // Add date pickers to date fields
+  $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
+  $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
+  
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
     $("#fill-study-form").data('changed', true);
@@ -266,12 +270,19 @@ $(function() {
     }
   });
 
+  $("#id_injection_time").click(function() {
+    $(this).css('border', '1px solid #CED4DA');
+  });
+
   $("#id_injection_date").focusout(function() {
     if (!valid_date_format($(this).val())) {
       $(this).css('border', '2px solid lightcoral');
     }
   });
 
+  $("#id_injection_date").click(function() {
+    $(this).css('border', '1px solid #CED4DA');
+  });
 
   // 'Beregn' on click event
   $('#calculate').click(function() {

@@ -32,15 +32,15 @@ class UserManager(BaseUserManager):
 # Configuration for a user
 class Config(models.Model):
   config_id = models.AutoField(primary_key=True)
-  accepted_procedures = models.TextField(default='') # '^' separated list of procedures
-  rigs_aet = models.TextField(default='')
-  rigs_ip = models.TextField(default='')
-  rigs_port = models.TextField(default='')
-  rigs_calling = models.TextField(default='')
-  pacs_aet = models.TextField(default='')
-  pacs_ip = models.TextField(default='')
-  pacs_port = models.TextField(default='')
-  pacs_calling = models.TextField(default='')
+  accepted_procedures = models.CharField(max_length=1000, default='') # '^' separated list of procedures
+  rigs_aet = models.CharField(max_length=200, default='')
+  rigs_ip = models.CharField(max_length=200, default='')
+  rigs_port = models.CharField(max_length=200, default='')
+  rigs_calling = models.CharField(max_length=200, default='')
+  pacs_aet = models.CharField(max_length=200, default='')
+  pacs_ip = models.CharField(max_length=200, default='')
+  pacs_port = models.CharField(max_length=200, default='')
+  pacs_calling = models.CharField(max_length=200, default='')
 
 # User class
 # REMARK / TODO: User creation MUST be done through the command line, see the README for instructions

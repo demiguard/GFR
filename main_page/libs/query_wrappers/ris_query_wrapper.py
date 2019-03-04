@@ -112,7 +112,6 @@ def store_dicom(dicom_obj_path,
   Remarks
     It's only possible to store the predefined args with this function
   """
-  ds = pydicom.dcmread(dicom_obj_path)
   new_dict_items = {
     0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
     0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
@@ -136,6 +135,7 @@ def store_dicom(dicom_obj_path,
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
+  ds = pydicom.dcmread(dicom_obj_path)
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
 
   # Set StudyDate
@@ -209,6 +209,7 @@ def store_dicom(dicom_obj_path,
     ds.PixelRepresentation = 0
     ds.PixelData = pixeldata
 
+  print(ds)
   ds.save_as(dicom_obj_path)
 
 def parse_bookings(resp_dir):
@@ -410,7 +411,7 @@ def get_examination(user, rigs_nr, resp_dir):
     print('Error Finding from pacs')
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
-
+  print(obj)
   examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
@@ -439,21 +440,32 @@ def get_examination(user, rigs_nr, resp_dir):
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
-  print(obj)
 
   if 'ClearTest' in obj:
     if 'thiningfactor' in obj.ClearTest[0]:
-      examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
+      if isinstance(obj.ClearTest[0].thiningfactor, bytes):
+        examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor.decode()
+      else:
+        examination_info.info['thin_fact'] = obj.ClearTest[0].thiningfactor
     if 'stdcnt' in obj.ClearTest[0]:
-      examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt
+      if isinstance(obj.ClearTest[0].stdcnt, bytes):
+        examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt.decode()
+      else:
+        examination_info.info['std_cnt'] = obj.ClearTest[0].stdcnt
 
     sample_times = []
     tch99_cnt = []
     for test in obj.ClearTest:
       if 'SampleTime' in test:
-        sample_times.append(datetime.datetime.strptime(test.SampleTime ,'%Y%m%d%H%M'))
+        try:
+          sample_times.append(datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M'))
+        except TypeError:
+          sample_times.append(datetime.datetime.strptime(test.SampleTime.decode(),'%Y%m%d%H%M'))
       if 'cpm' in test:
-        tch99_cnt.append(test.cpm)
+        if isinstance(test.cpm, bytes):
+          tch99_cnt.append(test.cpm.decode())
+        else:
+          tch99_cnt.append(test.cpm)
 
     examination_info.info['sam_t'] = numpy.array(sample_times)
     examination_info.info['tch_cnt'] = numpy.array(tch99_cnt)
@@ -523,6 +535,9 @@ def get_all(user):
 
   if exe_out != '':
     pass # TODO: Error handling for failed findscu execution
+
+  # Remove the query file after execution
+  os.remove(query_file)
 
   dcm_objs = parse_bookings(resp_dir)
  
@@ -685,6 +700,54 @@ def store_in_pacs(user, obj_path):
     user: currently logged in user
     obj_path: path to object to store
   """
+  #Update Pydicom with our tags
+  new_dict_items = {
+    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
+    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
+    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
+    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
+    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
+    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
+    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
+    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
+    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
+    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
+    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
+    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
+    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
+    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+  }
+
+  DicomDictionary.update(new_dict_items)
+  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
+  keyword_dict.update(new_names_dirc)
+  
+  # Convert to little endian explict (NOTE: This is important since we get 
+  # data with explict)
+  # Example: dcmconv +te test_store.dcm test_conv.dcm
+  conv_query = [
+    server_config.DCMCONV,
+    '+te',        # Convert to from implicit to explicit
+    obj_path,
+    obj_path
+  ]
+
+  out = execute_query(conv_query)
+  print(out)
+
+  ds = pydicom.dcmread(obj_path)
+  seq = Sequence([])
+  for sample in ds[0x0023,0x1020]: # ClearTest
+    d = Dataset()
+    d.SampleTime = sample[0x0023,0x1021].value
+    d.cpm = sample[0x0023,0x1022].value
+    d.stdcnt = sample[0x0023,0x1024].value
+    d.thiningfactor = sample[0x0023,0x1028].value
+    seq.append(d)
+  print(ds)
+  ds.save_as(obj_path)
+
   # Construct query and store
   store_query = [
     server_config.STORESCU,

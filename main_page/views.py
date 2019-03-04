@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, FileResponse, JsonResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
@@ -13,6 +13,8 @@ from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
 from .libs import server_config
 from .libs import samba_handler
+from . import models
+
 
 from dateutil import parser as date_parser
 import datetime
@@ -32,6 +34,18 @@ logger = logging.getLogger(__name__)
 
 
 def index(request):
+  template = loader.get_template('main_page/index.html')
+
+  context = {
+    'login_form': forms.LoginForm()
+  }
+
+  return HttpResponse(template.render(context, request))
+
+
+def ajax_login(request):
+  signed_in = False
+  
   if request.method == 'POST':
     login_form = forms.LoginForm(data=request.POST)
 
@@ -46,18 +60,17 @@ def index(request):
         login(request, user)
 
         if user.is_authenticated:
-          return redirect('main_page:list_studies')
-    
-    return redirect('main_page:index')
-  else:
-    # Specify page template
-    template = loader.get_template('main_page/index.html')
+          signed_in = True
 
-    context = {
-      'login_form': forms.LoginForm()
-    }
+  data = {
+    'signed_in': signed_in,
+  }
+  resp = JsonResponse(data)
 
-    return HttpResponse(template.render(context, request))
+  if not signed_in:
+    resp.status_code = 403
+
+  return resp
 
 
 @login_required(login_url='/')
@@ -510,7 +523,41 @@ def present_old_study(request, rigs_nr):
 
   exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
   print(exam.info)
-  # Display
+
+  # Read in previous samples from examination info
+  previous_sample_times = []
+  previous_sample_dates = []
+  previous_sample_counts = exam.info['tch_cnt']
+
+  for st in exam.info['sam_t']:
+    previous_sample_dates.append(st.strftime('%Y-%m-%d'))
+    previous_sample_times.append(st.strftime('%H:%M'))
+  
+  previous_samples = zip(
+    previous_sample_dates,
+    previous_sample_times,
+    previous_sample_counts
+  )
+
+  today = datetime.datetime.today()
+  inj_time = today.strftime('%H:%M')
+  inj_date = today.strftime('%Y-%m-%d')
+  if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
+    inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
+    inj_time = exam.info['inj_t'].strftime('%H:%M')
+
+  study_type = 0
+  if exam.info['Method']:
+    # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
+    # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
+    if exam.info['Method'] == 'Et punkt voksen':
+      study_type = 0
+    elif exam.info['Method'] == 'Et punkt Barn':
+      study_type = 1
+    elif exam.info['Method'] == 'Flere prøve Voksen':
+      study_type = 2
+
+  # Extract the image
   img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
   if not os.path.exists(img_resp_dir):
     os.mkdir(img_resp_dir)
@@ -523,10 +570,18 @@ def present_old_study(request, rigs_nr):
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
   context = {
-    'name'          : exam.info['name'],
-    'date'          : exam.info['date'],
-    'rigs_nr'         : rigs_nr,
-    'image_path'    : plot_path,
+    'name': exam.info['name'],
+    'date': exam.info['date'],
+    'rigs_nr': rigs_nr,
+    'image_path': plot_path,
+    'std_cnt': exam.info['std_cnt'],
+    'thin_fac': exam.info['thin_fact'],
+    'vial_weight_before': exam.info['inj_before'],
+    'vial_weight_after': exam.info['inj_after'],
+    'injection_time': inj_time,
+    'injection_date': inj_date,
+    'study_type': study_type,
+    'previous_samples': [previous_samples],
   }
 
   return HttpResponse(template.render(context,request))
@@ -585,9 +640,34 @@ def present_study(request, rigs_nr):
   return HttpResponse(template.render(context,request))
 
 @login_required(login_url='/')
-def config(request):
-  return HttpResponse('User configuration page')
+def settings(request):
+  template = loader.get_template('main_page/settings.html')
+
+  saved = False
+
+  if request.method == 'POST':
+    instance = models.Config.objects.get(pk=request.user.config.config_id)
+    form = forms.SettingsForm(request.POST, instance=instance)
+    if form.is_valid():
+      form.save()
+      request.user.config = instance
+
+      saved = True
+
+  context = {
+    'settings_form': forms.SettingsForm(instance=request.user.config),
+    'saved': saved,
+  }
+
+  return HttpResponse(template.render(context, request))
 
 
 def documentation(requet):
-  return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')
+  print("Test")
+
+  return FileResponse(
+    open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
+    content_type='application/pdf'
+  )
+
+  #return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')

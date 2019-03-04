@@ -49,6 +49,7 @@ DICOMDICT = "/usr/share/libdcmtk12/dicom.dic"     # DCMTK dicom specification pa
 FINDSCU = "findscu"                               # Path to findscu application
 STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
+DCMCONV = "dcmconv"
 
 BASE_QUERY_DIR = "./base_queries/"                # Directory contaning all base query files
 SEARCH_RESPONS_DIR = "./search_responses/"        # Directory for temporarily storing search responses
@@ -61,7 +62,10 @@ BASE_FIND_QUERY = "{0}base_find_query.dcm".format(BASE_QUERY_DIR)               
 BASE_IMG_QUERY_PATH = "{0}base_img_query.dcm".format(BASE_QUERY_DIR)                          # Used for retreiving images
 BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
 
-# --- Logging --- #
+DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
+
+# --- Logging ---
+
 LOG_DIR = "./logs/"
 LOG_FILE = ""
 LOG_LEVEL = "DEBUG"

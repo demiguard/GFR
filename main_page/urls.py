@@ -1,8 +1,12 @@
 from django.urls import path
+
 from . import views
+from . import Startup
+
+Startup.start_up()
+
 
 # TODO: Clear the search history directory contaning query filter files: currently it's 'hist_tmp'
-
 app_name = 'main_page'
 urlpatterns = [
   path('', views.index, name='index'),
@@ -13,6 +17,8 @@ urlpatterns = [
   path('present_study/<str:rigs_nr>', views.present_study, name='present_study'),
    path('present_old_study/<str:rigs_nr>', views.present_old_study, name='present_old_study'),
   path('logout', views.logout_page, name='logout'),
-  path('config', views.config, name='config'),
-  path('documentation', views.documentation, name='documentation')
+  path('settings', views.settings, name='settings'),
+  path('documentation', views.documentation, name='documentation'),
+  # Async ajax urls
+  path('ajax/login', views.ajax_login, name='ajax_login'),
 ]
