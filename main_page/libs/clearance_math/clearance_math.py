@@ -154,10 +154,13 @@ def calculate_age(cprnr):
     The age in int format
 
   """
-  year_of_birth = int(cprnr[4:6])
-  month_of_birth = int(cprnr[2:4])
-  day_of_birth = int(cprnr[0:2])
-  Control = int(cprnr[7]) #SINGLE diget
+  try:
+    year_of_birth = int(cprnr[4:6])
+    month_of_birth = int(cprnr[2:4])
+    day_of_birth = int(cprnr[0:2])
+    Control = int(cprnr[7]) #SINGLE diget
+  except ValueError:
+    return 0
 
   current_time = datetime.datetime.now()
   
