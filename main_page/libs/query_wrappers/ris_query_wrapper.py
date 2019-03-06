@@ -408,10 +408,10 @@ def get_examination(user, rigs_nr, resp_dir):
   try:
     obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
   except FileNotFoundError:
-    print('Error Finding from pacs')
+    print('File not found, searching in pacs')
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
-  print(obj)
+  
   examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
@@ -506,7 +506,7 @@ def get_all(user):
   edta_obj.save_as(query_file)
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  DICOM_dirc = '{0}/{1}'.format(base_resp_dir, user.hospital)
+  DICOM_dirc = '{0}{1}'.format(base_resp_dir, user.hospital)
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
@@ -514,7 +514,7 @@ def get_all(user):
   if not os.path.exists(DICOM_dirc):
     os.mkdir(DICOM_dirc)
 
-  resp_dir = './{0}'.format(DICOM_dirc)
+  resp_dir = '{0}'.format(DICOM_dirc)
 
   # Construct query and execute
   query_arr = [
@@ -564,8 +564,9 @@ def get_all(user):
       ret.append(examination_info)
 
       # Save to dcm file with rigs nr. as  corresponding rsp file
-      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
+      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)) and not examination_info.risnr in server_config.PATIENT_HANDLED:
         obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
+        server_config.PATIENT_HANDLED.append(examination_info.risnr)
 
     os.remove(key)
   
@@ -734,7 +735,7 @@ def store_in_pacs(user, obj_path):
   ]
 
   out = execute_query(conv_query)
-  print(out)
+  print('Query output ris-L738:',out)
 
   ds = pydicom.dcmread(obj_path)
   seq = Sequence([])
