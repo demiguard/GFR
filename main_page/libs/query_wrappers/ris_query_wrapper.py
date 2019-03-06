@@ -185,7 +185,7 @@ def store_dicom(dicom_obj_path,
     ds.normClear = clearence_norm
 
   if sample_seq:
-    seq = Sequence([])
+    seq_list = []
     #Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
@@ -194,8 +194,8 @@ def store_dicom(dicom_obj_path,
       seq_elem.stdcnt        = sample[2]
       seq_elem.thiningfactor = sample[3]
 
-      seq.append(seq_elem)
-    ds.ClearTest = seq
+      seq_list.append(seq_elem)
+    ds.ClearTest = Sequence(seq_list)
 
   if pixeldata:
     ds.SamplesPerPixel = 3
