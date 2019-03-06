@@ -64,18 +64,20 @@ BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)           
 
 DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
 
-# --- Logging ---
+# --- Patients handled --- #
+
+PATIENT_HANDLED = []
+
+# --- Logging --- #
 
 LOG_DIR = "./logs/"
 LOG_FILE = ""
 LOG_LEVEL = "DEBUG"
 
 # --- Samba Share --- #
-samba_share_path = 'main_page/static/main_page/csv/Samples'
-samba_share_base_path = '/data/Samples'
 
 #PYSMB Connection
-samba_ip = '172.16.78.176'  #Change to the correct ip
+samba_ip = '172.16.78.176'
 samba_name = 'ubuntu'
 
 samba_user = 'gfr'

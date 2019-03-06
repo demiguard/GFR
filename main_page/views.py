@@ -211,7 +211,7 @@ def fill_study(request, rigs_nr):
   exam = ris.get_examination(
     request.user, 
     rigs_nr, 
-    './{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
+    '{0}{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
   )
 
   test_range = range(6)

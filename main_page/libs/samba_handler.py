@@ -6,7 +6,12 @@ from smb.SMBConnection import SMBConnection
 
 
 def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
+  """
+    smbconn : An Active SMBConnection
+    temp_file : A File object with a write method
 
+
+  """
   hospital_backup_folder = '{0}/{1}/'.format(server_config.samba_backup, hospital)
   store_path = hospital_backup_folder + filename 
 

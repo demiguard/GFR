@@ -172,18 +172,19 @@ def store_form(request, rigs_nr):
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
 
-  if not os.path.exists('{0}/{1}'.format(base_resp_dir, hospital)):
-    os.mkdir('{0}/{1}'.format(base_resp_dir, hospital))
+  if not os.path.exists('{0}{1}'.format(base_resp_dir, hospital)):
+    os.mkdir('{0}{1}'.format(base_resp_dir, hospital))
   
-  DICOM_dirc = '{0}/{1}'.format(base_resp_dir, hospital)
+  DICOM_dirc = '{0}{1}/'.format(base_resp_dir, hospital)
 
-  dicom_path = '{0}/{1}.dcm'.format(DICOM_dirc, rigs_nr)  
+  dicom_path = '{0}{1}.dcm'.format(DICOM_dirc, rigs_nr)  
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
+
     ris.store_dicom(
       dicom_path,
       injection_time = inj_datetime.strftime('%Y%m%d%H%M')

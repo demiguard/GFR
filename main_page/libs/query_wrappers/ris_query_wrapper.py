@@ -12,6 +12,7 @@ import calendar
 import numpy
 import pandas
 
+from .. import dicomlib
 from .. import server_config
 
 try:
@@ -135,7 +136,7 @@ def store_dicom(dicom_obj_path,
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
-  ds = pydicom.dcmread(dicom_obj_path)
+  ds = dicomlib.dcmread_wrapper(dicom_obj_path)
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
 
   # Set StudyDate
@@ -246,7 +247,7 @@ def parse_bookings(resp_dir):
 
   # Loop all responses
   for dcm_path in glob.glob('{0}/rsp*.dcm'.format(resp_dir)):
-    ret[dcm_path] = pydicom.dcmread(dcm_path)
+    ret[dcm_path] = dicomlib.dcmread_wrapper(dcm_path)
 
   return ret
 
@@ -307,7 +308,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   BASE_IMG_QUERY_PATH = resp_path + "base_get_image.dcm"
   
   # Insert AccessionNumber into query file
-  find_query = pydicom.dcmread(BASE_FIND_QUERY_PATH)
+  find_query = dicomlib.dcmread_wrapper(BASE_FIND_QUERY_PATH)
   find_query.AccessionNumber = rigs_nr
   find_query.save_as(BASE_FIND_QUERY_PATH)
 
@@ -340,14 +341,14 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   
 
   # Extract Patient ID and Study Instance UID from respons
-  patient_rsp = pydicom.dcmread(rsp_path)
+  patient_rsp = dicomlib.dcmread_wrapper(rsp_path)
   patient_id = patient_rsp.PatientID
   si_uid = patient_rsp.StudyInstanceUID
 
   os.remove(rsp_path)
 
   # Insert patient id and study instance uid into image query file
-  img_query = pydicom.dcmread(BASE_IMG_QUERY_PATH)
+  img_query = dicomlib.dcmread_wrapper(BASE_IMG_QUERY_PATH)
   img_query.PatientID = patient_id
   img_query.StudyInstanceUID = si_uid
   img_query.save_as(BASE_IMG_QUERY_PATH)
@@ -383,7 +384,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   
   os.rename(img_rsp_path, cache_path)
 
-  obj = pydicom.dcmread(cache_path)
+  obj = dicomlib.dcmread_wrapper(cache_path)
   return obj
 
 
@@ -426,7 +427,7 @@ def get_examination(user, rigs_nr, resp_dir):
   # TODO: Add error handling for invalid filepath
   # Throw the specific RIGS nr input a dicom obj and use it to query for the examination
   try:
-    obj = pydicom.dcmread('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
+    obj = dicomlib.dcmread_wrapper('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
   except FileNotFoundError:
     print('File not found, searching in pacs')
     # Get object from DCM4CHEE/PACS Database
@@ -517,7 +518,7 @@ def get_all(user):
     Ordered list, based on names, of ExaminationInfo instances containing infomation 
     about patients registed at the specified hospital.
   """  
-  edta_obj = pydicom.dcmread('main_page/libs/edta_query.dcm')
+  edta_obj = dicomlib.dcmread_wrapper('main_page/libs/edta_query.dcm')
 
   # Create dcm filter
   edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = user.config.rigs_calling
@@ -720,30 +721,7 @@ def store_in_pacs(user, obj_path):
   Args:
     user: currently logged in user
     obj_path: path to object to store
-  """
-  #Update Pydicom with our tags
-  new_dict_items = {
-    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
-    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
-    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
-    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
-    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
-    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
-    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
-    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
-    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
-    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
-    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
-    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
-  }
-
-  DicomDictionary.update(new_dict_items)
-  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
-  keyword_dict.update(new_names_dirc)
-  
+  """ 
   # Convert to little endian explict (NOTE: This is important since we get 
   # data with explict)
   # Example: dcmconv +te test_store.dcm test_conv.dcm
@@ -755,20 +733,7 @@ def store_in_pacs(user, obj_path):
   ]
 
   out = execute_query(conv_query)
-  print('Query output ris-L738:',out)
-
-  ds = pydicom.dcmread(obj_path)
-  seq = Sequence([])
-  for sample in ds[0x0023,0x1020]: # ClearTest
-    d = Dataset()
-    d.SampleTime = sample[0x0023,0x1021].value
-    d.cpm = sample[0x0023,0x1022].value
-    d.stdcnt = sample[0x0023,0x1024].value
-    d.thiningfactor = sample[0x0023,0x1028].value
-    seq.append(d)
-  print(ds)
-  ds.save_as(obj_path)
-
+ 
   # Construct query and store
   store_query = [
     server_config.STORESCU,
