@@ -41,13 +41,16 @@ def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
   return obj
   
 def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
-  for ds in obj.iterall():
+  for ds in obj:
+    if ds.tag not in new_dict_items:
+      continue
     if ds.VR == 'UN':
       if new_dict_items[ds.tag][0] == 'SQ':
         ds_sq = convert_SQ(ds.value, is_implicit_VR , is_little_endian)
         seq_list = []
         for sq in ds_sq:
           sq = update_tags(sq,is_little_endian=is_little_endian, is_implicit_VR=is_implicit_VR)
+          print(type(sq))
           seq_list.append(sq)
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], Sequence(seq_list)) 
       elif new_dict_items[ds.tag][0] == 'LO':
@@ -55,6 +58,11 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], new_val)
       else:
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], ds.value)
+    elif ds.VR == 'SQ':
+      for ds_sq in ds:
+        update_tags(ds_sq)
+
+
   return obj
 
 
