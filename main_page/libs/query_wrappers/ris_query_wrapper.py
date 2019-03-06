@@ -156,46 +156,65 @@ def store_dicom(dicom_obj_path,
   if weight:
     ds.PatientWeight = weight
 
+  # PRIVATE TAGS START
   if gfr:
-    ds.GFR = gfr
-    ds.GFRVersion = 'Version 1.0'
+    # ds.GFR = gfr
+    # ds.GFRVersion = 'Version 1.0'
+    ds.add_new(0x00231001, 'LO', gfr)
+    ds.add_new(0x00231002, 'LO', 'Version 1.0')
 
   if gfr_type:
-    ds.GFRMethod = gfr_type
+    # ds.GFRMethod = gfr_type
+    ds.add_new(0x00231010, 'LO', gfr_type)
 
   if injection_time:
-    ds.injTime = injection_time
+    # ds.injTime = injection_time
+    ds.add_new(0x00231018, 'DT', injection_time)
 
   if injection_weight:
-    ds.injWeight = injection_weight
+    # ds.injWeight = injection_weight
+    ds.add_new(0x0023101A, 'DS', injection_weight)
   
   if injection_before:
-    ds.injbefore = injection_before
+    # ds.injbefore = injection_before
+    ds.add_new(0x0023101B, 'DS', injection_before)
   
   if injection_after:
-    ds.injafter = injection_after
+    # ds.injafter = injection_after
+    ds.add_new(0x0023101C, 'DS', injection_after)
 
   if bsa_method:
-    ds.BSAmethod = bsa_method
+    # ds.BSAmethod = bsa_method
+    ds.add_new(0x00231011, 'LO', bsa_method)
 
   if clearence:
-    ds.clearance = clearence 
+    # ds.clearance = clearence
+    ds.add_new(0x00231012, 'DS', clearence)
 
   if clearence_norm:
-    ds.normClear = clearence_norm
+    # ds.normClear = clearence_norm
+    ds.add_new(0x00231014, 'DS', clearence_norm)
 
   if sample_seq:
     seq_list = []
     #Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
-      seq_elem.SampleTime    = sample[0]
-      seq_elem.cpm           = sample[1]
-      seq_elem.stdcnt        = sample[2]
-      seq_elem.thiningfactor = sample[3]
+      seq_elem.add_new(0x00231021, 'DT', sample[0])
+      seq_elem.add_new(0x00231022, 'DS', sample[1])
+      seq_elem.add_new(0x00231024, 'DS', sample[2])
+      seq_elem.add_new(0x00231028, 'DS', sample[3])
+      
+      # seq_elem.SampleTime    = sample[0]
+      # seq_elem.cpm           = sample[1]
+      # seq_elem.stdcnt        = sample[2]
+      # seq_elem.thiningfactor = sample[3]
 
       seq_list.append(seq_elem)
-    ds.ClearTest = Sequence(seq_list)
+    # ds.ClearTest = Sequence(seq_list)
+    ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
+
+  # PRIVATE TAGS END
 
   if pixeldata:
     ds.SamplesPerPixel = 3
@@ -210,6 +229,7 @@ def store_dicom(dicom_obj_path,
     ds.PixelData = pixeldata
 
   print(ds)
+  ds.fix_meta_info()
   ds.save_as(dicom_obj_path)
 
 def parse_bookings(resp_dir):
