@@ -74,4 +74,7 @@ class User(AbstractBaseUser):
   def __str__(self):
     return self.username
 
-  
+
+# Maintains a list of all patients which have been sent to PACS
+class HandledExaminations(models.Model):
+  rigs_nr = models.CharField(primary_key=True, max_length=20)

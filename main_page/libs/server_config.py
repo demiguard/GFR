@@ -64,10 +64,6 @@ BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)           
 
 DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
 
-# --- Patients handled --- #
-
-PATIENT_HANDLED = []
-
 # --- Logging --- #
 
 LOG_DIR = "./logs/"

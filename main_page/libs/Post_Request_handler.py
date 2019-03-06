@@ -4,6 +4,7 @@ from django.template import loader
 from django.shortcuts import redirect
 
 from .. import forms
+from .. import models
 from .query_wrappers import ris_query_wrapper as ris
 from .clearance_math import clearance_math
 
@@ -274,14 +275,18 @@ def send_to_pacs(request, rigs_nr):
   """
   # Send information to PACS
   obj_path = "{0}{1}/{2}.dcm".format(
-    server_config.FIND_RESPONS_DIR, 
-    request.user.hospital, 
+    server_config.FIND_RESPONS_DIR,
+    request.user.hospital,
     rigs_nr
   )
 
   if ris.store_in_pacs(request.user, obj_path):
     # Remove the file
     os.remove(obj_path)
+
+    # Store the RIGS number in the HandleExaminations table
+    HE = models.HandledExaminations(rigs_nr=rigs_nr)
+    HE.save()
   else:
     # Try again?
     # Redirect to informative site, telling the user that the connection to PACS is down

@@ -123,20 +123,20 @@ def list_studies(request):
   bookings = ris.get_all(request.user)
 
   for booking in bookings:
-    booking.name = booking.info['name']
-    booking.date = booking.info['date']
-    booking.cpr  = booking.info['cpr']
-    booking.ris_nr = booking.info['ris_nr']
+    # Remove all booking previously sent to PACS
+    sent_to_pacs = models.HandledExaminations.object.filter(rigs_nr=booking.info['ris_nr']).exists()
+    if not sent_to_pacs:
+      booking.name = booking.info['name']
+      booking.date = booking.info['date']
+      booking.cpr  = booking.info['cpr']
+      booking.ris_nr = booking.info['ris_nr']
 
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
-
   DICOM_directory = '{0}/{1}'.format(
     server_config.FIND_RESPONS_DIR, 
     request.user.hospital
   )
-
-  print(bookings)
 
   old_bookings = []
   for dcm_file in glob.glob('{0}/*.dcm'.format(DICOM_directory)):

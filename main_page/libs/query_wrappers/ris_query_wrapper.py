@@ -561,12 +561,10 @@ def get_all(user):
   os.remove(query_file)
 
   dcm_objs = parse_bookings(resp_dir)
- 
 
   # Extract needed info from dcm objects (w/ formatting)
   ret = []
   accepted_procedures = user.config.accepted_procedures.split('^')
-  
 
   for key, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
@@ -585,9 +583,8 @@ def get_all(user):
       ret.append(examination_info)
 
       # Save to dcm file with rigs nr. as  corresponding rsp file
-      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)) and not examination_info.risnr in server_config.PATIENT_HANDLED:
+      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
         obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
-        server_config.PATIENT_HANDLED.append(examination_info.risnr)
 
     os.remove(key)
   
