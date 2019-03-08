@@ -226,9 +226,7 @@ def fill_study(request, rigs_nr):
   for f in test_form:
     f.field.widget.attrs['class'] = 'form-control'
 
-  # Get list of csv files
-
-  #Return a list of Panda objects
+  # Return a list of Panda objects
   data_files = samba_handler.smb_get_csv(request.user.hospital)
 
   # Read required data from each csv file  
@@ -248,8 +246,8 @@ def fill_study(request, rigs_nr):
       curr_data[i].append(row['Pos'])
       curr_data[i].append(row['Tc-99m Counts'])
       curr_data[i].append(row['Tc-99m CPM'])
-      data_names.append('{0}-{1}'.format(datestring,i) )
-
+      #data_names.append('{0}-{1}'.format(datestring,i) )
+      data_names.append(i)
 
     csv_data.append(curr_data)
 
