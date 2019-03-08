@@ -439,7 +439,9 @@ def get_examination(user, rigs_nr, resp_dir):
     print('File not found, searching in pacs')
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
-  print(obj)
+  
+  # print(obj)
+  
   examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
