@@ -25,7 +25,7 @@ except ImportError:
 class ExaminationInfo():
   def __init__(self):
     self.info = {
-      'ris_nr'      :'',
+      'rigs_nr'      :'',
       'name'        :'',
       'cpr'         :'',
       'age'         :'',
@@ -441,7 +441,7 @@ def get_examination(user, rigs_nr, resp_dir):
   examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
-  examination_info.info['ris_nr'] = obj.AccessionNumber
+  examination_info.info['rigs_nr'] = obj.AccessionNumber
   examination_info.info['cpr'] = format_cpr(obj.PatientID)
   examination_info.info['date'] = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
   examination_info.info['name'] = format_name(obj.PatientName)
@@ -575,12 +575,12 @@ def get_all(user):
     if obj.RequestedProcedureDescription in accepted_procedures:
       examination_info = ExaminationInfo()
       
-      examination_info.info['ris_nr'] = obj.AccessionNumber
+      examination_info.info['rigs_nr'] = obj.AccessionNumber
       examination_info.info['cpr'] = format_cpr(obj.PatientID)
       examination_info.info['date'] = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
       examination_info.info['name'] = format_name(obj.PatientName)
 
-      examination_info.risnr = obj.AccessionNumber
+      examination_info.rigs_nr = obj.AccessionNumber
       examination_info.cpr = format_cpr(obj.PatientID)
       examination_info.date = format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
       examination_info.name = format_name(obj.PatientName)
@@ -672,22 +672,22 @@ def check_date(date):
 
   return "Invalid study date, check format"
 
-def check_ris_nr(ris_nr):
+def check_rigs_nr(rigs_nr):
   """
   Checs if a given RIGS nr is valid
 
   Args:
-    ris_nr: RIGS nr to check
+    rigs_nr: RIGS nr to check
 
   Returns:
     None if valid RIGS nr, otherwise returns a string containing an error message
   """
-  if 'REGH' in ris_nr:
+  if 'REGH' in rigs_nr:
     return None
 
   return "Invalid RIGS nr, check format"
 
-def is_valid_study(cpr, name, study_date, ris_nr):
+def is_valid_study(cpr, name, study_date, rigs_nr):
   """
   Checks whether given study information is vaild.
 
@@ -695,7 +695,7 @@ def is_valid_study(cpr, name, study_date, ris_nr):
     cpr: cpr nr of patient
     name: name of patient
     study_date: date of the study
-    ris_nr: RIGS number of the study
+    rigs_nr: RIGS number of the study
 
   Returns:
     tuple of the type (bool, string), if the study is valid then bool is True and
@@ -709,7 +709,7 @@ def is_valid_study(cpr, name, study_date, ris_nr):
   error_strings.append(check_cpr(cpr))
   error_strings.append(check_name(name))
   error_strings.append(check_date(study_date))
-  error_strings.append(check_ris_nr(ris_nr))
+  error_strings.append(check_rigs_nr(rigs_nr))
 
   # Filter out None values
   error_strings = list(filter(lambda x: x, error_strings))
