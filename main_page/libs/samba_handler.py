@@ -79,7 +79,6 @@ def smb_get_csv(hospital):
       conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
 
     dt_examination = datetime.datetime.strptime(datestring, '%Y-%m-%d %H:%M:%S')
-    print((now -  dt_examination).days)
     if not ((now -  dt_examination).days == 0):
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
 

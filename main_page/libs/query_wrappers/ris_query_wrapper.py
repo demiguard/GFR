@@ -234,7 +234,6 @@ def store_dicom(dicom_obj_path,
     ds.PixelRepresentation = 0
     ds.PixelData = pixeldata
 
-  print(ds)
   ds.fix_meta_info()
   ds.save_as(dicom_obj_path)
 
@@ -437,7 +436,7 @@ def get_examination(user, rigs_nr, resp_dir):
     print('File not found, searching in pacs')
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
-  
+  print(obj)
   examination_info = ExaminationInfo()
 
   # Remark: no need to format, since cached dcm objects are alread formatted.
@@ -586,7 +585,7 @@ def get_all(user):
       examination_info.name = format_name(obj.PatientName)
 
       ret.append(examination_info)
-
+      
       # Save to dcm file with rigs nr. as  corresponding rsp file
       if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
         obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
@@ -727,14 +726,14 @@ def store_in_pacs(user, obj_path):
   # Convert to little endian explict (NOTE: This is important since we get 
   # data with explict)
   # Example: dcmconv +te test_store.dcm test_conv.dcm
-  conv_query = [
-    server_config.DCMCONV,
-    '+te',        # Convert to from implicit to explicit
-    obj_path,
-    obj_path
-  ]
+  # conv_query = [
+  #   server_config.DCMCONV,
+  #   '+te',        # Convert to from implicit to explicit
+  #   obj_path,
+  #   obj_path
+  # ]
 
-  out = execute_query(conv_query)
+  # out = execute_query(conv_query)
  
   # Construct query and store
   store_query = [

@@ -122,14 +122,16 @@ def list_studies(request):
   
   bookings = ris.get_all(request.user)
 
-  for booking in bookings:
+  for i in range(len(bookings)):
     # Remove all booking previously sent to PACS
-    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.info['rigs_nr']).exists()
+    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=bookings[i].info['rigs_nr']).exists()
     if not sent_to_pacs:
-      booking.name = booking.info['name']
-      booking.date = booking.info['date']
-      booking.cpr  = booking.info['cpr']
-      booking.rigs_nr = booking.info['rigs_nr']
+      bookings[i].name = bookings[i].info['name']
+      bookings[i].date = bookings[i].info['date']
+      bookings[i].cpr  = bookings[i].info['cpr']
+      bookings[i].rigs_nr = bookings[i].info['rigs_nr']
+    else:
+      del bookings[i]
 
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
@@ -162,13 +164,11 @@ def list_studies(request):
       os.remove(dcm_file)
       continue
 
-    # read additional contents
-    
+    # read additional contents    
     exam_info.name = exam_info.info['name']
     exam_info.date = exam_info.info['date']
     exam_info.cpr = exam_info.info['cpr']
     exam_info.rigs_nr = exam_info.info['rigs_nr']
-
 
     def existing_user(rigs_nr):
       """
@@ -176,7 +176,6 @@ def list_studies(request):
       """
       for booking in bookings:
         if booking.rigs_nr == rigs_nr:
-          #print(booking.rigs_nr, '\n', rigs_nr, '\n', len(bookings))
           return True
       return False
 
@@ -439,7 +438,8 @@ def fetch_study(request):
 
   search_query = [
     server_config.FINDSCU,
-    "-S",
+    #"-S",
+    "-v", # TODO: Remove this line since it's debugging
     "-aet",
     user.config.pacs_calling,
     "-aec",
@@ -454,6 +454,8 @@ def fetch_study(request):
 
   # TODO: Add error handling
   out = ris.execute_query(search_query)
+  print("Executed query: {0}".format(search_query))
+  print("Output: {0}".format(out))
 
   # Extract data from responses
   rsps = []
@@ -483,7 +485,7 @@ def fetch_study(request):
     rsps.append(rsp_info)
 
   # Remove the search query file
-  os.remove(curr_search_file)
+  # os.remove(curr_search_file)
   shutil.rmtree(curr_rsp_dir)
 
   # Add specific bootstrap class to the form item

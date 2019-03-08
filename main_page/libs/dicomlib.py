@@ -50,7 +50,6 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
         seq_list = []
         for sq in ds_sq:
           sq = update_tags(sq,is_little_endian=is_little_endian, is_implicit_VR=is_implicit_VR)
-          print(type(sq))
           seq_list.append(sq)
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], Sequence(seq_list)) 
       elif new_dict_items[ds.tag][0] == 'LO':
