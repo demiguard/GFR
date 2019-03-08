@@ -101,7 +101,7 @@ def new_study(request):
     success, error_msgs = ris.is_valid_study(cpr, name, study_date, ris_nr)
 
     if success:
-
+        
       
       # redirect to fill_study/ris_nr 
       return redirect('main_page:fill_study', rigs_nr=ris_nr)
@@ -238,15 +238,12 @@ def fill_study(request, rigs_nr):
     curr_data = [[] for _ in range(data_file.shape[0])]
     data_names = []
 
-    datestring =  data_file['Measurement date & time'][0].replace(':','').replace('-','').replace(' ','')
-
     csv_present_names.append(prestring + data_file['Measurement date & time'][0])
     for i, row in data_file.iterrows():
       curr_data[i].append(row['Rack'])
       curr_data[i].append(row['Pos'])
       curr_data[i].append(row['Tc-99m Counts'])
       curr_data[i].append(row['Tc-99m CPM'])
-      #data_names.append('{0}-{1}'.format(datestring,i) )
       data_names.append(i)
 
     csv_data.append(curr_data)

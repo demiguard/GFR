@@ -91,11 +91,10 @@ def fill_study_post(request, rigs_nr):
     )
 
     cpr = request.POST['cpr']
-    age = int(request.POST['age'])
+    age = float(request.POST['age'])
     gender = request.POST['sex']
 
-    gfr = clearance_math.kidney_function(clearence_norm, cpr)
-
+    gfr = clearance_math.kidney_function(clearence_norm, cpr, age=age, gender=gender)
 
     plot_path = clearance_math.generate_plot_text(
       weight,
