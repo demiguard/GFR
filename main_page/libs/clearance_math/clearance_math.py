@@ -160,7 +160,7 @@ def calculate_age(cprnr):
     day_of_birth = int(cprnr[0:2])
     Control = int(cprnr[7]) #SINGLE diget
   except ValueError:
-    return 0
+    return 1
 
   current_time = datetime.datetime.now()
   
