@@ -144,6 +144,11 @@ def list_studies(request):
     dcm_name = os.path.basename(dcm_file).split('.')[0]
     dcm_dirc = os.path.dirname(dcm_file)
 
+    # Don't display old booking which have already been sent to PACS
+    sent_to_pacs = models.HandledExaminations.object.filter(rigs_nr=dcm_name).exists()
+    if sent_to_pacs:
+      continue
+
     exam_info = ris.get_examination(request.user, dcm_name, dcm_dirc)
     procedure_date = datetime.datetime.strptime(exam_info.info['date'], '%d/%m-%Y')
 
