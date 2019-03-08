@@ -91,6 +91,9 @@ def fill_study_post(request, rigs_nr):
     )
 
     cpr = request.POST['cpr']
+    age = int(request.POST['age'])
+    gender = request.POST['sex']
+
     gfr = clearance_math.kidney_function(clearence_norm, cpr)
 
 
@@ -101,7 +104,8 @@ def fill_study_post(request, rigs_nr):
       clearence,
       clearence_norm,
       gfr,
-      cpr,
+      age,
+      gender,
       rigs_nr,
       hosp_dir=request.user.hospital
     )

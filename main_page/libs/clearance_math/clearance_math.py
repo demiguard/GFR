@@ -426,7 +426,8 @@ def generate_plot_text(
   clearence,
   clearence_norm,
   kidney_function,
-  cpr,
+  age,
+  sex,
   rigs_nr,
   hosp_dir='',
   image_Height = 10.8,
@@ -492,7 +493,7 @@ def generate_plot_text(
   lightgrey_y = [160, 160, 160]
   #grey_y =      [130, 130, 130]
 
-  gender = calculate_sex(cpr)
+  gender = sex
   age = calculate_age(cpr)
   
   ymax = 120
