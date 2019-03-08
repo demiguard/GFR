@@ -184,6 +184,13 @@ def store_form(request, rigs_nr):
 
   dicom_path = '{0}{1}.dcm'.format(DICOM_dirc, rigs_nr)  
 
+  # Store age
+  if request.POST['age']:    
+    ris.store_dicom(
+      dicom_path,
+      age=request.POST['age']
+    )
+
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']

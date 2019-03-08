@@ -287,6 +287,8 @@ def fill_study(request, rigs_nr):
     elif exam.info['Method'] == 'Flere prøve Voksen':
       study_type = 2
 
+  print("Exam info from fill_study: {0}".format(exam.info))
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={

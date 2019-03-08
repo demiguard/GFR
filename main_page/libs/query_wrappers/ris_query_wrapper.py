@@ -69,6 +69,7 @@ def execute_query(cmd):
     return None
 
 def store_dicom(dicom_obj_path,
+    age                 = None,
     height              = None,
     weight              = None,
     gfr                 = None,
@@ -93,6 +94,7 @@ def store_dicom(dicom_obj_path,
     dicom_obj_path  : string, path to the object where you wish information to stored
 
   Optional Args:
+    age             : int, Age of the patient
     height          : float, Height of patient wished to be stored
     weight          : float, Weight of patient wished to be stored
     gfr             : string, either 'Normal', 'Moderat Nedsat', 'Nedsat', 'Stærkt nedsat' 
@@ -150,6 +152,9 @@ def store_dicom(dicom_obj_path,
 
   if sop_instance_uid:
     ds.SOPInstanceUID = sop_instance_uid
+
+  if age:
+    ds.PatientAge = age
 
   if height:
     ds.PatientSize = height

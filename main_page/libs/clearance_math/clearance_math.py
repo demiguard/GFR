@@ -494,7 +494,6 @@ def generate_plot_text(
   #grey_y =      [130, 130, 130]
 
   gender = sex
-  age = calculate_age(cpr)
   
   ymax = 120
   while clearence_norm > ymax:
