@@ -214,7 +214,7 @@ def calculate_sex(cprnr):
   Determine wheter the patient is male or female
   """
   if int(cprnr[-1]) % 2 == 0:
-    return 'Dame'
+    return 'Kvinde'
   else:
     return 'Mand'
 
