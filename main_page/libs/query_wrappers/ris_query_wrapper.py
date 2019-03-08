@@ -126,7 +126,7 @@ def store_dicom(dicom_obj_path,
     0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
     0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
     0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
-    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
+    0x00231020 : ('SQ', '1', 'Clearence Tests', '', 'ClearTest'),
     0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
     0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
     0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
@@ -140,6 +140,9 @@ def store_dicom(dicom_obj_path,
 
   ds = dicomlib.dcmread_wrapper(dicom_obj_path)
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
+  ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
+  ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
+  ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
 
   # Set StudyDate
   ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
