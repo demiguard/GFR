@@ -499,7 +499,10 @@ def generate_plot_text(
   #grey_y =      [130, 130, 130]
 
   gender = sex
-  
+  if age >= 3.0:
+    age = int(age)
+
+
   ymax = 120
   while clearence_norm > ymax:
     ymax += 20
