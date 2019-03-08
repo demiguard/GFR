@@ -22,11 +22,11 @@
     <tbody>
       <!-- Make each row redirect to fill_study/rigsnr with rigsnr being the rigs nr. of the patient clicked -->
       {% for booking in bookings %}
-        <tr onclick="document.location='{% url "main_page:fill_study" booking.ris_nr %}'">
+        <tr onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">
           <td>{{ booking.name }}</td>
           <td>{{ booking.cpr }}</td>
           <td>{{ booking.date }}</td>
-          <td>{{ booking.ris_nr }}</td>
+          <td>{{ booking.rigs_nr }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -46,11 +46,11 @@
     </thead>
     <tbody>
       {% for booking in old_bookings %}
-      <tr onclick="document.location='{% url "main_page:fill_study" booking.ris_nr %}'">
+      <tr onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">
         <td>{{ booking.info.name }}</td>
         <td>{{ booking.info.cpr }}</td>
         <td>{{ booking.info.date }}</td>
-        <td>{{ booking.info.ris_nr }}</td>
+        <td>{{ booking.info.rigs_nr }}</td>
       </tr>
       {% endfor %}
     </tbody>

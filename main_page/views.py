@@ -96,15 +96,15 @@ def new_study(request):
     cpr = request.POST['cpr']
     name = request.POST['name']
     study_date = request.POST['study_date']
-    ris_nr = request.POST['ris_nr']
+    rigs_nr = request.POST['rigs_nr']
 
-    success, error_msgs = ris.is_valid_study(cpr, name, study_date, ris_nr)
+    success, error_msgs = ris.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
         
       
-      # redirect to fill_study/ris_nr 
-      return redirect('main_page:fill_study', rigs_nr=ris_nr)
+      # redirect to fill_study/rigs_nr 
+      return redirect('main_page:fill_study', rigs_nr=rigs_nr)
     else:
       context['error_msgs'] = error_msgs
 
@@ -124,12 +124,12 @@ def list_studies(request):
 
   for booking in bookings:
     # Remove all booking previously sent to PACS
-    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.info['ris_nr']).exists()
+    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.info['rigs_nr']).exists()
     if not sent_to_pacs:
       booking.name = booking.info['name']
       booking.date = booking.info['date']
       booking.cpr  = booking.info['cpr']
-      booking.ris_nr = booking.info['ris_nr']
+      booking.rigs_nr = booking.info['rigs_nr']
 
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
@@ -167,20 +167,20 @@ def list_studies(request):
     exam_info.name = exam_info.info['name']
     exam_info.date = exam_info.info['date']
     exam_info.cpr = exam_info.info['cpr']
-    exam_info.ris_nr = exam_info.info['ris_nr']
+    exam_info.rigs_nr = exam_info.info['rigs_nr']
 
 
-    def existing_user(ris_nr):
+    def existing_user(rigs_nr):
       """
         checks if a user already exists
       """
       for booking in bookings:
-        if booking.ris_nr == ris_nr:
-          #print(booking.ris_nr, '\n', ris_nr, '\n', len(bookings))
+        if booking.rigs_nr == rigs_nr:
+          #print(booking.rigs_nr, '\n', rigs_nr, '\n', len(bookings))
           return True
       return False
 
-    if not existing_user(exam_info.ris_nr): 
+    if not existing_user(exam_info.rigs_nr): 
       old_bookings.append(exam_info)
 
   
@@ -477,7 +477,7 @@ def fetch_study(request):
     #   curr_exam.info['name'],
     #   curr_exam.info['cpr'],
     #   curr_exam.info['date'],
-    #   curr_exam.info['ris_nr'],
+    #   curr_exam.info['rigs_nr'],
     # )
 
     rsps.append(rsp_info)

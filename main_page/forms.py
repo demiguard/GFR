@@ -28,7 +28,7 @@ class NewStudy(forms.Form):
   cpr = forms.IntegerField(label='Cpr. nr.')
   name = forms.CharField(label='Navn')
   study_date = forms.DateField(label='Dato (YYYY-MM-DD)')
-  ris_nr = forms.CharField(label='RIS nr.')
+  rigs_nr = forms.CharField(label='RIS nr.')
 
 # Udfyld undersøgelse
 class FillStudyDaily(forms.Form):
