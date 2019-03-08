@@ -124,7 +124,7 @@ def list_studies(request):
 
   for booking in bookings:
     # Remove all booking previously sent to PACS
-    sent_to_pacs = models.HandledExaminations.object.filter(rigs_nr=booking.info['ris_nr']).exists()
+    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.info['ris_nr']).exists()
     if not sent_to_pacs:
       booking.name = booking.info['name']
       booking.date = booking.info['date']
@@ -145,7 +145,7 @@ def list_studies(request):
     dcm_dirc = os.path.dirname(dcm_file)
 
     # Don't display old booking which have already been sent to PACS
-    sent_to_pacs = models.HandledExaminations.object.filter(rigs_nr=dcm_name).exists()
+    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=dcm_name).exists()
     if sent_to_pacs:
       continue
 
