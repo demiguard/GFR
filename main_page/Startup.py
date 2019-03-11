@@ -1,4 +1,5 @@
 import os
+import platform
 
 from .libs import server_config
 
@@ -7,11 +8,14 @@ def init_dicom_env():
   """
   Sets the DCMDICTPATH if not already set
   """
-  try:
-    if not os.environ['DCMDICTPATH']:
-      os.environ['DCMDICTPATH'] = server_config.DCMDICTPATH
-  except KeyError:
-    os.environ['DCMDICTPATH'] = server_config.DCMDICTPATH
+  os_name = platform.platform().lower()
+  if 'ubuntu' in os_name:
+    dcmdictpath = server_config.DICOMDICT_UBUNTU
+  elif 'centos' in os_name:
+    dcmdictpath = server_config.DICOMDICT_CENTOS
+
+  if not 'DCMDICTPATH' in os.environ:
+    os.environ['DCMDICTPATH'] = dcmdictpath
 
 
 def start_up():
