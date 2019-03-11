@@ -355,11 +355,11 @@ $(function() {
     }
 
     // Prompt to confim study
-    var resp = confirm("Er undersøgelsen fuldendt?");
-    if (!resp) {
-      $(window).on("beforeunload", unload_func);
-      return false;
-    }
+    //var resp = confirm("Er undersøgelsen fuldendt?");
+    //if (!resp) {
+    //  $(window).on("beforeunload", unload_func);
+    //  return false;
+    //}
 
     return true;
   });
