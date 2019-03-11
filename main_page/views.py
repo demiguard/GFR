@@ -232,11 +232,11 @@ def fill_study(request, rigs_nr):
   # Read required data from each csv file  
   csv_data = []
   csv_present_names = []
+  data_names = []
   for data_file in list(reversed(data_files)):
     prestring = "Undersøgelse lavet: "
     
     curr_data = [[] for _ in range(data_file.shape[0])]
-    data_names = []
 
     csv_present_names.append(prestring + data_file['Measurement date & time'][0])
     for i, row in data_file.iterrows():
