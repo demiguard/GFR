@@ -42,7 +42,7 @@ $(function() {
       success: function(data) {
         if (data.signed_in) {
           //window.location.href = "http://localhost:8000/list_studies";
-          window.location.href = "{% url main_page:list_studies %}";
+          window.location.href = "{% url 'main_page:list_studies' %}";
         }
       },
       error: function() {
