@@ -32,7 +32,7 @@ class NewStudy(forms.Form):
 
 # Udfyld undersøgelse
 class FillStudyDaily(forms.Form):
-  factor = forms.IntegerField(label='Faktor')
+  factor = forms.IntegerField(label='Fortyndingsfaktor')
   batch = forms.IntegerField(label='Batch')
   standard = forms.IntegerField(label='Standard tælletal')
 
