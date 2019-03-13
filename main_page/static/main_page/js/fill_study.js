@@ -26,7 +26,8 @@ $(function() {
       }
     }
 
-    window.location.replace('http://localhost:8000/list_studies');
+    //window.location.replace('http://localhost:8000/list_studies');
+    window.location.replace("/list_studies");
   });
 
   // Sidemenu item clicked

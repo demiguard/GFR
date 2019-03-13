@@ -41,13 +41,14 @@ $(function() {
       },
       success: function(data) {
         if (data.signed_in) {
-          window.location.href = "http://localhost:8000/list_studies";
+          //window.location.href = "http://localhost:8000/list_studies";
+          window.location.href = "/list_studies"; //{% url main_page:list_studies %};
         }
       },
       error: function() {
         $('#err-msg-container').append("<p style='color: lightcoral;'>Forkert login.</p>");
       }
-    })
+    });
   }
 
   $('#login-btn').click(try_login);

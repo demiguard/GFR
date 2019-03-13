@@ -44,7 +44,8 @@
 # NOTE: All directories MUST end in a '/'
 
 # --- Dicom related configs ---
-DICOMDICT = "/usr/share/libdcmtk12/dicom.dic"     # DCMTK dicom specification path
+DICOMDICT_UBUNTU = "/usr/share/libdcmtk12/dicom.dic"
+DICOMDICT_CENTOS = "/usr/local/share/dcmtk/dicom.dic"
 
 FINDSCU = "findscu"                               # Path to findscu application
 STORESCU = "storescu"                             # Path to storescu application
