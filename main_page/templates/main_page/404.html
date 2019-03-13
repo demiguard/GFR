@@ -1,5 +1,14 @@
-<p>Page not found</p>
+{% extends 'main_page/base.html' %}
 
-<p>If You're looking for a study, and you got this page, try and search for it using the build in tools</p>
+{% load static %}
+{% load bootstrap4 %}
 
-<p>If a link send you here, send a mail to christoffer.vilstrup.jensen@regionh.dk or simon.surland.andersen@regionh.dk</p>
+{% block content %}
+
+<H1>Siden er ikke fundet.</H1>
+
+<p> Hvis du vil kigge på en gamle undersøgelse, så brug sidebaren hent undersøgelse. </p>
+
+
+
+{% endblock %}

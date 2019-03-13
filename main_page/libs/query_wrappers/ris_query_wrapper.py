@@ -72,6 +72,7 @@ def store_dicom(dicom_obj_path,
     age                 = None,
     height              = None,
     weight              = None,
+    gender              = None,
     gfr                 = None,
     gfr_type            = None,
     injection_time      = None,
@@ -143,6 +144,11 @@ def store_dicom(dicom_obj_path,
   ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
   ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
   ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
+  ds.add_new(0x00080064, 'CS', 'SYN')
+  #ds.add_new(0x00080070, 'LO', 'GFR-calc')
+
+
+  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
 
   # Set StudyDate
   ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
@@ -165,6 +171,12 @@ def store_dicom(dicom_obj_path,
   if weight:
     ds.PatientWeight = weight
 
+  if gender:
+    if gender in ['Male', 'MALE', 'm', 'M', 'Mand', 'mand', 'MAND']:
+      ds.PatientSex = 'M'
+    if gender in ['Kvinde', 'KVINDE', 'd', 'D', 'k', 'K', 'woman', 'Woman','WOMAN', 'Dame', 'dame', 'DAME', 'female', 'Female', 'FEMALE']:
+      ds.PatientSex = 'F'
+
   # PRIVATE TAGS START
   if gfr:
     # ds.GFR = gfr
@@ -175,6 +187,7 @@ def store_dicom(dicom_obj_path,
   if gfr_type:
     # ds.GFRMethod = gfr_type
     ds.add_new(0x00231010, 'LO', gfr_type)
+    ds.add_new(0x0008103E, 'LO', 'Clearence ' + gfr_type)
 
   if injection_time:
     # ds.injTime = injection_time

@@ -1,4 +1,5 @@
 from django.urls import path
+from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 from . import views
 from . import Startup
@@ -22,3 +23,5 @@ urlpatterns = [
   # Async ajax urls
   path('ajax/login', views.ajax_login, name='ajax_login'),
 ]
+
+

@@ -29,6 +29,7 @@
     {% bootstrap_form study_type_form %}
     
     <!-- Display test info -->
+    {% if csv_data_len != 0 %}
     <h5>Prøve data</h5>
     <div id="test-data-container">
       <!-- Place where JS inserts new test data -->
@@ -111,6 +112,9 @@
         <br>
       {% endfor %}
     </div>
+    {% else %}
+      <p>{{ error_message }}</p>
+    {% endif %}
 
     <!-- Submission buttons -->
     <div id="submit-err-container">

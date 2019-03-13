@@ -217,6 +217,12 @@ def store_form(request, rigs_nr):
     gfr_type=study_str
   )
 
+  if len(request.POST['sex'] > 0):
+    ris.store_dicom(
+      dicom_path,
+      gender=request.POST['sex']
+    )
+
   if (len(request.POST['vial_weight_before']) > 0) and (len(request.POST['vial_weight_after']) > 0):
     vial_weight_before = float(request.POST['vial_weight_before'])
     vial_weight_after = float(request.POST['vial_weight_after'])

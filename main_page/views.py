@@ -227,28 +227,33 @@ def fill_study(request, rigs_nr):
     f.field.widget.attrs['class'] = 'form-control'
 
   # Return a list of Panda objects
-  data_files = samba_handler.smb_get_csv(request.user.hospital)
-
-  # Read required data from each csv file  
   csv_data = []
   csv_present_names = []
   data_names = []
-  for data_file in list(reversed(data_files)):
-    prestring = "Undersøgelse lavet: "
-    
-    curr_data = [[] for _ in range(data_file.shape[0])]
+  error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
+  
+  try: 
+    data_files = samba_handler.smb_get_csv(request.user.hospital, timeout=10)
 
-    csv_present_names.append(prestring + data_file['Measurement date & time'][0])
-    for i, row in data_file.iterrows():
-      curr_data[i].append(row['Rack'])
-      curr_data[i].append(row['Pos'])
-      curr_data[i].append(row['Tc-99m Counts'])
-      curr_data[i].append(row['Tc-99m CPM'])
-      data_names.append(i)
+    # Read required data from each csv file  
+    for data_file in list(reversed(data_files)):
+      prestring = "Undersøgelse lavet: "
 
-    csv_data.append(curr_data)
+      curr_data = [[] for _ in range(data_file.shape[0])]
 
-  csv_data = zip(csv_present_names, csv_data, data_names)
+      csv_present_names.append(prestring + data_file['Measurement date & time'][0])
+      for i, row in data_file.iterrows():
+        curr_data[i].append(row['Rack'])
+        curr_data[i].append(row['Pos'])
+        curr_data[i].append(row['Tc-99m Counts'])
+        curr_data[i].append(row['Tc-99m CPM'])
+        data_names.append(i)
+
+      csv_data.append(curr_data)
+
+    csv_data = zip(csv_present_names, csv_data, data_names)
+  except:
+    error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
   inj_time = today.strftime('%H:%M')
   inj_date = today.strftime('%Y-%m-%d')
@@ -315,6 +320,8 @@ def fill_study(request, rigs_nr):
     },
     'previous_samples': previous_samples,
     'csv_data': csv_data,
+    'csv_data_len': len(data_files),
+    'error_message' : error_message
   }
 
   return HttpResponse(template.render(context, request))
