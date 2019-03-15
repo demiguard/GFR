@@ -12,7 +12,9 @@ from . import models
 from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.query_wrappers import pacs_query_wrapper as pacs
 from .libs.clearance_math import clearance_math
-from .libs import Post_Request_handler as PRH
+from .libs.examination_info import ExaminationInfo
+from .libs import formatting
+from .libs import post_request_handler as PRH
 from .libs import server_config
 from .libs import samba_handler
 from .libs import dicomlib
@@ -94,7 +96,7 @@ def new_study(request):
     study_date = request.POST['study_date']
     rigs_nr = request.POST['rigs_nr']
 
-    success, error_msgs = ris.is_valid_study(cpr, name, study_date, rigs_nr)
+    success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
         
@@ -116,19 +118,13 @@ def list_studies(request):
   # Specify page template
   template = loader.get_template('main_page/list_studies.html')
   
-  bookings = ris.get_all(request.user)
-
-  tmp_arr = []
-  for booking in bookings:
+  bookings = []
+  for booking in ris.get_all(request.user):
     # Remove all booking previously sent to PACS
-    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.info['rigs_nr']).exists()
+
+    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.rigs_nr).exists()
     if not sent_to_pacs:
-      booking.name = booking.info['name']
-      booking.date = booking.info['date']
-      booking.cpr  = booking.info['cpr']
-      booking.rigs_nr = booking.info['rigs_nr']
-      tmp_arr.append(booking)
-  bookings = tmp_arr
+      bookings.append(booking)
 
   # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
@@ -148,8 +144,8 @@ def list_studies(request):
     if sent_to_pacs:
       continue
 
-    exam_info = ris.get_examination(request.user, dcm_name, dcm_dirc)
-    procedure_date = datetime.datetime.strptime(exam_info.info['date'], '%d/%m-%Y')
+    exam = pacs.get_examination(request.user, dcm_name, dcm_dirc)
+    procedure_date = datetime.datetime.strptime(exam.date, '%d/%m-%Y')
 
     now = datetime.datetime.now()
     time_diff = now - procedure_date
@@ -162,10 +158,10 @@ def list_studies(request):
       continue
 
     # read additional contents    
-    exam_info.name = exam_info.info['name']
-    exam_info.date = exam_info.info['date']
-    exam_info.cpr = exam_info.info['cpr']
-    exam_info.rigs_nr = exam_info.info['rigs_nr']
+    exam.name = exam.name
+    exam.date = exam.date
+    exam.cpr = exam.cpr
+    exam.rigs_nr = exam.rigs_nr
 
     def existing_user(rigs_nr):
       """
@@ -176,13 +172,13 @@ def list_studies(request):
           return True
       return False
 
-    if not existing_user(exam_info.rigs_nr): 
-      old_bookings.append(exam_info)
+    if not existing_user(exam.rigs_nr): 
+      old_bookings.append(exam)
 
   
   context = {
     'bookings': bookings,
-    'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.info['date']))
+    'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.date))
   }
 
   return HttpResponse(template.render(context, request))
@@ -210,7 +206,7 @@ def fill_study(request, rigs_nr):
     os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
 
   # Get previous information for the study
-  exam = ris.get_examination(
+  exam = pacs.get_examination(
     request.user, 
     rigs_nr, 
     '{0}{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
@@ -254,16 +250,16 @@ def fill_study(request, rigs_nr):
 
   inj_time = today.strftime('%H:%M')
   inj_date = today.strftime('%Y-%m-%d')
-  if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
-    inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
-    inj_time = exam.info['inj_t'].strftime('%H:%M')
+  if exam.inj_t != datetime.datetime(2000,1,1,0,0):
+    inj_date = exam.inj_t.strftime('%Y-%m-%d')
+    inj_time = exam.inj_t.strftime('%H:%M')
 
   # Read in previous samples from examination info
   previous_sample_times = []
   previous_sample_dates = []
-  previous_sample_counts = exam.info['tch_cnt']
+  previous_sample_counts = exam.tch_cnt
 
-  for st in exam.info['sam_t']:
+  for st in exam.sam_t:
     previous_sample_dates.append(st.strftime('%Y-%m-%d'))
     previous_sample_times.append(st.strftime('%H:%M'))
   
@@ -274,38 +270,36 @@ def fill_study(request, rigs_nr):
   )
 
   study_type = 0
-  if exam.info['Method']:
+  if exam.Method:
     # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
     # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
-    if exam.info['Method'] == 'Et punkt voksen':
+    if exam.Method == 'Et punkt voksen':
       study_type = 0
-    elif exam.info['Method'] == 'Et punkt Barn':
+    elif exam.Method == 'Et punkt Barn':
       study_type = 1
-    elif exam.info['Method'] == 'Flere prøve Voksen':
+    elif exam.Method == 'Flere prøve Voksen':
       study_type = 2
-
-  print("Exam info from fill_study: {0}".format(exam.info))
 
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
-      'cpr': exam.info['cpr'],
-      'name': exam.info['name'],
-      'sex': exam.info['sex'],
-      'age': exam.info['age']
+      'cpr': exam.cpr,
+      'name': exam.name,
+      'sex': exam.sex,
+      'age': exam.age
     }),
     'study_patient_form_2': forms.Fillpatient_2(initial={
-      'height': exam.info['height'],
-      'weight': exam.info['weight'],
+      'height': exam.height,
+      'weight': exam.weight,
     }),
     'study_dosis_form' : forms.Filldosis( initial={
-      'thin_fac' : exam.info['thin_fact']
+      'thin_fac' : exam.thin_fact
     }),
-    'study_examination_form'  : forms.Fillexamination(initial={
-      'vial_weight_before'    : exam.info['inj_before'],
-      'vial_weight_after'     : exam.info['inj_after'],
-      'injection_time'        : inj_time,
-      'injection_date'        : inj_date
+    'study_examination_form': forms.Fillexamination(initial={
+      'vial_weight_before': exam.inj_before,
+      'vial_weight_after': exam.inj_after,
+      'injection_time': inj_time,
+      'injection_date': inj_date
     }),
     'study_type_form': forms.FillStudyType(initial={
       'study_type': study_type # Default: 'Et punkt voksen'
@@ -318,7 +312,7 @@ def fill_study(request, rigs_nr):
     'csv_data': csv_data,
     'csv_data_len': len(data_files),
     'error_message' : error_message,
-    'standart_count' : exam.info['std_cnt'],
+    'standart_count' : exam.std_cnt,
   }
 
   return HttpResponse(template.render(context, request))
@@ -394,16 +388,12 @@ def fetch_study(request):
         '^'.join(middlenames)
       )
 
-      print(name_str)
-
       sf.PatientName = name_str
 
     # Search by cpr nr.
     if s_cpr:
       s_cpr = s_cpr.replace('-', '')
-
       sf.PatientID = s_cpr
-      print(sf.PatientID)
 
     # Search by rigs number
     if s_rigs:
@@ -472,25 +462,16 @@ def fetch_study(request):
 
     ds = pydicom.dcmread(rsp_path)
     rsp_info = (
-      ris.format_cpr(ds.PatientID),
-      ris.format_name(ds.PatientName),
-      ris.format_date(ds.StudyDate),
+      formatting.format_cpr(ds.PatientID),
+      formatting.format_name(ds.PatientName),
+      formatting.format_date(ds.StudyDate),
       ds.AccessionNumber,
     )
-
-    print("Found patient with name: {0}".format(ds.PatientName))
-
-    # rsp_info = (
-    #   curr_exam.info['name'],
-    #   curr_exam.info['cpr'],
-    #   curr_exam.info['date'],
-    #   curr_exam.info['rigs_nr'],
-    # )
 
     rsps.append(rsp_info)
 
   # Remove the search query file
-  # os.remove(curr_search_file)
+  os.remove(curr_search_file)
   shutil.rmtree(curr_rsp_dir)
 
   # Add specific bootstrap class to the form item
@@ -532,15 +513,14 @@ def present_old_study(request, rigs_nr):
   if not os.path.exists(DICOM_directory):
     os.mkdir(DICOM_directory)
 
-  exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
-  print(exam.info)
+  exam = pacs.get_examination(request.user, rigs_nr, DICOM_directory)
 
   # Read in previous samples from examination info
   previous_sample_times = []
   previous_sample_dates = []
-  previous_sample_counts = exam.info['tch_cnt']
+  previous_sample_counts = exam.tch_cnt
 
-  for st in exam.info['sam_t']:
+  for st in exam.sam_t:
     previous_sample_dates.append(st.strftime('%Y-%m-%d'))
     previous_sample_times.append(st.strftime('%H:%M'))
   
@@ -553,19 +533,19 @@ def present_old_study(request, rigs_nr):
   today = datetime.datetime.today()
   inj_time = today.strftime('%H:%M')
   inj_date = today.strftime('%Y-%m-%d')
-  if exam.info['inj_t'] != datetime.datetime(2000,1,1,0,0):
-    inj_date = exam.info['inj_t'].strftime('%Y-%m-%d')
-    inj_time = exam.info['inj_t'].strftime('%H:%M')
+  if exam.inj_t:
+    inj_date = exam.inj_t.strftime('%Y-%m-%d')
+    inj_time = exam.inj_t.strftime('%H:%M')
 
   study_type = 0
-  if exam.info['Method']:
+  if exam.Method:
     # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
     # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
-    if exam.info['Method'] == 'Et punkt voksen':
+    if exam.Method == 'Et punkt voksen':
       study_type = 0
-    elif exam.info['Method'] == 'Et punkt Barn':
+    elif exam.Method == 'Et punkt Barn':
       study_type = 1
-    elif exam.info['Method'] == 'Flere prøve Voksen':
+    elif exam.Method == 'Flere prøve Voksen':
       study_type = 2
 
   # Extract the image
@@ -573,7 +553,7 @@ def present_old_study(request, rigs_nr):
   if not os.path.exists(img_resp_dir):
     os.mkdir(img_resp_dir)
   
-  pixel_arr = exam.info['image']
+  pixel_arr = exam.image
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
     Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
@@ -581,14 +561,14 @@ def present_old_study(request, rigs_nr):
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
   context = {
-    'name': exam.info['name'],
-    'date': exam.info['date'],
+    'name': exam.name,
+    'date': exam.date,
     'rigs_nr': rigs_nr,
     'image_path': plot_path,
-    'std_cnt': exam.info['std_cnt'],
-    'thin_fac': exam.info['thin_fact'],
-    'vial_weight_before': exam.info['inj_before'],
-    'vial_weight_after': exam.info['inj_after'],
+    'std_cnt': exam.std_cnt,
+    'thin_fac': exam.thin_fact,
+    'vial_weight_before': exam.inj_before,
+    'vial_weight_after': exam.inj_after,
     'injection_time': inj_time,
     'injection_date': inj_date,
     'study_type': study_type,
@@ -613,7 +593,7 @@ def present_study(request, rigs_nr):
   template = loader.get_template('main_page/present_study.html')
 
   if request.method == 'POST':
-    PRH.send_to_pacs(request, rigs_nr)
+    PRH.present_study_post(request, rigs_nr)
     return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
@@ -627,14 +607,14 @@ def present_study(request, rigs_nr):
   if not os.path.exists(DICOM_directory):
     os.mkdir(DICOM_directory)
 
-  exam = ris.get_examination(request.user, rigs_nr, DICOM_directory)
+  exam = pacs.get_examination(request.user, rigs_nr, DICOM_directory)
   
   # Display
   img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
   if not os.path.exists(img_resp_dir):
     os.mkdir(img_resp_dir)
   
-  pixel_arr = exam.info['image']
+  pixel_arr = exam.image
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
     Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
@@ -642,10 +622,10 @@ def present_study(request, rigs_nr):
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
   context = {
-    'name'          : exam.info['name'],
-    'date'          : exam.info['date'],
-    'rigs_nr'         : rigs_nr,
-    'image_path'    : plot_path,
+    'name': exam.name,
+    'date': exam.date,
+    'rigs_nr': rigs_nr,
+    'image_path': plot_path,
   }
 
   return HttpResponse(template.render(context,request))
@@ -674,16 +654,10 @@ def settings(request):
   return HttpResponse(template.render(context, request))
 
 
-def documentation(requet):
+def documentation(request):
   """
-    Generates the response for the /documentation
-
-    returns
-      FileResponse: a renderable response, that a
-
+  Generates the file response for the documentation page
   """
-
-
   return FileResponse(
     open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
     content_type='application/pdf'

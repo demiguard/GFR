@@ -1,3 +1,7 @@
+"""
+Handles incoming post requests from views.py
+"""
+
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.template import loader
@@ -6,8 +10,8 @@ from django.shortcuts import redirect
 from .. import forms
 from .. import models
 from .query_wrappers import ris_query_wrapper as ris
+from .query_wrappers import pacs_query_wrapper as pacs
 from .clearance_math import clearance_math
-
 from . import server_config
 from . import dicomlib
 
@@ -20,9 +24,7 @@ import numpy
 import pydicom
 import PIL
 
-#Handles Post Requests for Views
 
-# Fill Study Post Request
 def fill_study_post(request, rigs_nr):
   """
   Handles Post request for fill study
@@ -82,7 +84,7 @@ def fill_study_post(request, rigs_nr):
       method="INVALID METHOD"
 
     # Calculate GFR
-    clearence, clearence_norm = clearance_math.calc_clearance(
+    clearance, clearance_norm = clearance_math.calc_clearance(
       inj_datetime, 
       sample_datetimes,
       tec_counts,
@@ -95,14 +97,14 @@ def fill_study_post(request, rigs_nr):
     age = float(request.POST['age'])
     gender = request.POST['sex']
 
-    gfr = clearance_math.kidney_function(clearence_norm, cpr, age=age, gender=gender)
+    gfr = clearance_math.kidney_function(clearance_norm, cpr, age=age, gender=gender)
 
     plot_path = clearance_math.generate_plot_text(
       weight,
       height,
       BSA,
-      clearence,
-      clearence_norm,
+      clearance,
+      clearance_norm,
       gfr,
       age,
       gender,
@@ -159,8 +161,8 @@ def fill_study_post(request, rigs_nr):
     dicomlib.store_dicom(
       dcm_obj_path,
       gfr            = gfr,
-      clearence      = clearence,
-      clearence_norm = clearence_norm,
+      clearance      = clearance,
+      clearance_norm = clearance_norm,
       series_instance_uid= img_obj.SeriesInstanceUID,
       sop_class_uid= img_obj.SOPClassUID,
       sop_instance_uid= img_obj.SOPInstanceUID,
@@ -172,7 +174,13 @@ def fill_study_post(request, rigs_nr):
 
 
 def store_form(request, rigs_nr):
-#Input indicating if something have been typed
+  """
+  Stores information from the post request in a dicom file with the name
+  <rigs_nr>.dcm
+
+  Args:
+    rigs_nr: rigs number of the examination to store in
+  """
   
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
@@ -285,13 +293,14 @@ def store_form(request, rigs_nr):
       sample_seq = seq
     )
 
-def send_to_pacs(request, rigs_nr):
+
+def present_study_post(request, rigs_nr):
   """
   Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
 
   Args:
-    request: The Post Request
-    rigs_nr: The accession number for the examination to store
+    request: the Request
+    rigs_nr: the rigs number of the examination to store
   """
   # Send information to PACS
   obj_path = "{0}{1}/{2}.dcm".format(
@@ -300,7 +309,7 @@ def send_to_pacs(request, rigs_nr):
     rigs_nr
   )
 
-  if ris.store_in_pacs(request.user, obj_path):
+  if pacs.store_in_pacs(request.user, obj_path):
     # Remove the file
     os.remove(obj_path)
 

@@ -1,27 +1,10 @@
 import pydicom
-
 from pydicom.values import convert_SQ, convert_string
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 
-new_dict_items = {
-  0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
-  0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
-  0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
-  0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-  0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-  0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
-  0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
-  0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
-  0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
-  0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
-  0x00231020 : ('SQ', '1', 'Clearence Tests', '', 'ClearTest'),
-  0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
-  0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
-  0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
-}
+from .server_config import new_dict_items
 
 
 def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
@@ -37,9 +20,10 @@ def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
 
   obj = pydicom.dcmread(filename)
   obj = update_tags(obj, is_little_endian, is_implicit_VR)
-  #Update Private tags
+
   return obj
-  
+
+
 def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
   for ds in obj:
     if ds.tag not in new_dict_items:
@@ -64,6 +48,7 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
 
   return obj
 
+
 def store_dicom(dicom_obj_path,
     age                 = None,
     height              = None,
@@ -76,8 +61,8 @@ def store_dicom(dicom_obj_path,
     injection_before    = None,
     injection_after     = None,
     bsa_method          = None,
-    clearence           = None,
-    clearence_norm      = None,
+    clearance           = None,
+    clearance_norm      = None,
     series_instance_uid = None,
     sop_class_uid       = None,
     sop_instance_uid    = None,
@@ -101,8 +86,8 @@ def store_dicom(dicom_obj_path,
     injection_before: float, Weight of Vial Before injection
     injection_after : float, Weight of Vial After Injection
     bsa_method      : string, Method used to calculate Body Surface area
-    clearence       : float, Clearence Value
-    clearence_norm  : float, Clearence Value Normalized to 1.73m²
+    clearance       : float, Clearance Value
+    clearance_norm  : float, Clearance Value Normalized to 1.73m²
     sample_seq      : list of lists where every list is on the format: 
       *List_elem_1  : string on format 'YYYYMMDDHHMM', describing sample taken time
       *List_elem_2  : float, cpm of sample
@@ -112,35 +97,18 @@ def store_dicom(dicom_obj_path,
   Remarks
     It's only possible to store the predefined args with this function
   """
-  new_dict_items = {
-    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
-    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
-    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
-    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
-    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
-    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
-    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
-    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
-    0x00231020 : ('SQ', '1', 'Clearence Tests', '', 'ClearTest'),
-    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
-    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
-    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
-  }
-
   DicomDictionary.update(new_dict_items)
 
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
   ds = dcmread_wrapper(dicom_obj_path)
-  ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
+  ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
   ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
   ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
   ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
   ds.add_new(0x00080064, 'CS', 'SYN')
+  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
   #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
   #Number twos
   ds.add_new(0x00080030, 'TM', '')
@@ -148,7 +116,6 @@ def store_dicom(dicom_obj_path,
   ds.add_new(0x00200010, 'SH', '')
   ds.add_new(0x00200013, 'IS', '1')
 
-  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
 
   # Set StudyDate
   ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
@@ -187,7 +154,7 @@ def store_dicom(dicom_obj_path,
   if gfr_type:
     # ds.GFRMethod = gfr_type
     ds.add_new(0x00231010, 'LO', gfr_type)
-    ds.add_new(0x0008103E, 'LO', 'Clearence ' + gfr_type)
+    ds.add_new(0x0008103E, 'LO', 'Clearance ' + gfr_type)
 
   if injection_time:
     # ds.injTime = injection_time
@@ -209,13 +176,13 @@ def store_dicom(dicom_obj_path,
     # ds.BSAmethod = bsa_method
     ds.add_new(0x00231011, 'LO', bsa_method)
 
-  if clearence:
-    # ds.clearance = clearence
-    ds.add_new(0x00231012, 'DS', clearence)
+  if clearance:
+    # ds.clearance = clearance
+    ds.add_new(0x00231012, 'DS', clearance)
 
-  if clearence_norm:
-    # ds.normClear = clearence_norm
-    ds.add_new(0x00231014, 'DS', clearence_norm)
+  if clearance_norm:
+    # ds.normClear = clearance_norm
+    ds.add_new(0x00231014, 'DS', clearance_norm)
 
   if sample_seq:
     seq_list = []
@@ -253,12 +220,3 @@ def store_dicom(dicom_obj_path,
 
   ds.fix_meta_info()
   ds.save_as(dicom_obj_path)
-
-
-
-
-    
-
-  
-
-  

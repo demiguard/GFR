@@ -17,7 +17,7 @@ from ..clearance_math import clearance_math
 from .. import examination_info
 from ..examination_info import ExaminationInfo
 from .. import formatting
-from query_executer import execute_query
+from .query_executer import execute_query
 
 
 def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
@@ -37,9 +37,6 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
     findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0008,0050="<rigs_nr>" -k 0008,0052="STUDY" -k 0010,0020 -k 0020,000D -X
     getscu -P 127.0.0.1 11112 -k 0008,0052="STUDY" -k 0010,0020="<patient id>" -k 0020,000D="<study instance uid>" -aec TEST_DCM4CHEE -aet RH_EDTA -od .
   """
-
-  # TODO: Update this to the first respons file from the findscu command is deleted immediately after use
-
   BASE_FIND_QUERY_PATH = resp_path + "base_find_query.dcm"
   BASE_IMG_QUERY_PATH = resp_path + "base_get_image.dcm"
   
@@ -132,26 +129,8 @@ def get_examination(user, rigs_nr, resp_dir):
     RIGS nr.
   """
   # Update Pydicom with our tags
-  new_dict_items = {
-    0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), #Normal, Moderat Nedsat, Svært nedsat
-    0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
-    0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
-    0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
-    0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
-    0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
-    0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
-    0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
-    0x00231020 : ('SQ', '1-100', 'Clearence Tests', '', 'ClearTest'),
-    0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), #Sequence Items
-    0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
-    0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-    0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
-  }
-
-  DicomDictionary.update(new_dict_items)
-  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
+  DicomDictionary.update(server_config.new_dict_items)
+  new_names_dirc = dict([(val[4], tag) for tag, val in server_config.new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
   
   # Read after dictionary update
@@ -161,71 +140,7 @@ def get_examination(user, rigs_nr, resp_dir):
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
   
-  exam = ExaminationInfo()
-
-  exam.rigs_nr = obj.AccessionNumber
-  exam.cpr = formatting.format_cpr(obj.PatientID)
-  exam.date = formatting.format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
-  exam.name = formatting.format_name(obj.PatientName)
-
-  # Depermine patient sex based on cpr nr. if not able to retreive it
-  if 'PatientSex' in obj:
-    exam.sex = obj.PatientSex
-  else:
-    exam.sex = clearance_math.calculate_age(exam.cpr)
-
-  if 'PatientWeight' in obj:
-    exam.weight = obj.PatientWeight
-  
-  if 'PatientSize' in obj:
-    exam.height = obj.PatientSize
-  
-  if 'PatientAge' in obj:
-    exam.age = obj.PatientAge
-  else:
-    exam.age = clearance_math.calculate_age(exam.cpr)
-
-
-
-  try_get_exam_info('clearence', (0x0023,0x1012), no_callback)
-  try_get_exam_info('clearence_N', (0x0023,0x1014), no_callback)
-  try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
-  try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
-  try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
-
-  if 'ClearTest' in obj:
-    if 'thiningfactor' in obj.ClearTest[0]:
-      exam.thin_fact = obj.ClearTest[0].thiningfactor
-    if 'stdcnt' in obj.ClearTest[0]:
-      exam.std_cnt = obj.ClearTest[0].stdcnt
-
-    sample_times = []
-    tch99_cnt = []
-    for test in obj.ClearTest:
-      if 'SampleTime' in test:
-        sample_times.append(datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M'))
-      if 'cpm' in test:
-        if isinstance(test.cpm, bytes):
-          tch99_cnt.append(test.cpm.decode())
-        else:
-          tch99_cnt.append(test.cpm)
-
-    exam.sam_t = numpy.array(sample_times)
-    exam.tch_cnt = numpy.array(tch99_cnt)
-
-  if 'injTime' in obj:
-    exam.inj_t = datetime.datetime.strptime(obj.injTime, '%Y%m%d%H%M')
-    
-  if 'PatientSize' in obj and 'PatientWeight' in obj:
-    exam.BSA = clearance_math.surface_area(obj.PatientSize, obj.PatientWeight)
-
-  if 'PixelData' in obj:
-    exam.image = numpy.array(obj.pixel_array)
-
-  if 'GFRMethod' in obj:
-    exam.Method = obj.GFRMethod
-
-  return exam
+  return examination_info.deserialize(obj)
 
 
 def store_in_pacs(user, obj_path):

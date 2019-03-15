@@ -1,46 +1,3 @@
-# TODO: Move everything in the BELOW-END to a seperate text file since they are basically notes (-simon)
-# BEGIN
-# This should be the same for all rigs queries, since they all use the same, but query with different calling AETs
-# RIGS_AET = "VIMCM"
-# RIGS_IP = "10.143.128.247"
-# RIGS_PORT = "3320"
-
-# NOTE: This is currently setup for storage on the local test server 
-# (ONLY change this to the actual PACS server when in production)
-# PACS_AET = 'TEST_DCM4CHEE'
-# PACS_IP = '193.3.238.103'
-# PACS_PORT = '11112' # Or 11112 if no port-forwarding
-
-# CALLING_AET = "RH_EDTA"          # Rigshospitalet
-# CALLING_AET = "GLO_EDTA"       # Glostrup
-# CALLING_AET = "HEHKFARGHOTR05" # Herlev
-
-# Herlev query example
-# findscu -aet HEHKFARGHOTR05 -aec VIMCM 10.143.128.247 3320 edta_query_GLO.dcm -X -od test_rsp/
-
-# Glostrup query example
-# findscu -aet GLO_EDTA -aec VIMCM 10.143.128.247 3320 edta_query_GLO.dcm -X -od test_rsp/
-
-# EDTA_GLO # TODO: Use the glostrup AET for their RIGS system to query for patients from them
-
-
-
-# Get all patients with "Clearance blodprove 2. gang":
-# findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20190215" -k 0010,0020
-
-# Name wildcard example:
-# findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0010,0010="*^mi*" -k 0010,0020
-
-# Date range example (find all patients from 20180101 to 20190101):
-# findscu -S 127.0.0.1 11112 -aet RH_EDTA -aec TEST_DCM4CHEE -k 0032,1060="Clearance blodprøve 2. gang" -k 0008,0052="STUDY" -k 0008,0020="20180101-20190101" -k 0010,0020 -k 0010,0010
-
-# END
-
-
-
-
-
-# TODO: Change ALL paths to absolute paths when deploying, to avoid alias attacks
 # NOTE: All directories MUST end in a '/'
 
 # --- Dicom related configs ---
@@ -65,6 +22,25 @@ BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)           
 
 DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
 
+# Private Dicom tag definitions
+new_dict_items = {
+  0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), # Normal, Moderat Nedsat, Svært nedsat
+  0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), # Version 1.
+  0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
+  0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
+  0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),
+  0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
+  0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     # Tags Added
+  0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
+  0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
+  0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
+  0x00231020 : ('SQ', '1', 'Clearance Tests', '', 'ClearTest'),
+  0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), # Sequence Items
+  0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
+  0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
+  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+}
+
 # --- Logging --- #
 
 LOG_DIR = "./logs/"
@@ -84,7 +60,3 @@ samba_share = 'data'
 
 samba_Sample = 'Samples'
 samba_backup = 'backup'
-
-
-
-

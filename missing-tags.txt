@@ -1,0 +1,27 @@
+MISSING TAGS:
+Series number, series description
+
+[x] (0008,103E) - Series description (Should be set to indicate the GFR method used, e.g. flere punkts, etc.)
+
+1.
+[x] (0008, 0060) - Modality (Should be set to 'OT')
+
+[x] (0008,0064) - Conversion type (we are using: 'SYN')
+
+[x] (0008,0070) - Manufacturer (should be 'GFRcalc')
+
+2.
+[x] (0010,0040) - Patient's sex
+
+[empty] (0008,0030) - Study Time
+
+[empty] (0008,0090) - Referring Physician's Name
+
+[empty] (0020,0010) - Study ID (User or equipment generated Study identifier. - should basically just be a range)
+
+# The below one requires that we known how many previous GFR series there are in PACS for the patient
+[ ] (0020,0011) - Series Number (A number that identifies this Series.)
+
+[default to '1'] (0020,0013) - Instance Number (A number that identifies this image.)
+
+2. conditionals:
