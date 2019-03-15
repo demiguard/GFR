@@ -48,7 +48,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     method for calculating 
 
   return
-    clearence, clearence-normalized
+    clearance, clearance-normalized
   """
   
   delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_time] #timedelta list from timedate
@@ -64,10 +64,10 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     magic_number_3 = 1.88
     magic_number_4 = 928
 
-    clearence_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * numpy.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
+    clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * numpy.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
     #
     magic_number_5 = 1.73
-    clearence = clearence_normalized * BSA / magic_number_5 
+    clearance = clearance_normalized * BSA / magic_number_5 
   elif method == "EPB":
     #
     #Magical Numbers
@@ -81,11 +81,11 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     magic_number_2 = 2.602
     magic_number_3 = 0.273
 
-    clearence = ((magic_number_2 * V120) - magic_number_3)
+    clearance = ((magic_number_2 * V120) - magic_number_3)
 
     normalizing_constant = 1.73
 
-    clearence_normalized = clearence * normalizing_constant / BSA 
+    clearance_normalized = clearance * normalizing_constant / BSA 
 
   elif method == "Multi-4" :
 
@@ -93,26 +93,26 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
     slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
   
-    clearence_1 = (dosis * (-slope)) / numpy.exp(intercept) 
+    clearance_1 = (dosis * (-slope)) / numpy.exp(intercept) 
 
 
 
     magic_number_1 = 0.0032
     magic_number_2 = 1.3
 
-    clearence =  clearence_1 / ( 1 + magic_number_1 * BSA**(-magic_number_2) * clearence_1)
+    clearance =  clearance_1 / ( 1 + magic_number_1 * BSA**(-magic_number_2) * clearance_1)
     
     magic_number_3 = 1.73
 
-    clearence_normalized = clearence * magic_number_3 / BSA
+    clearance_normalized = clearance * magic_number_3 / BSA
 
     if delta_times[-1] > 1440:
       magic_number_4 = 0.5
 
-      clearence             = clearence - 0.5
-      clearence_normalized  = clearence_normalized - 0.5
+      clearance             = clearance - 0.5
+      clearance_normalized  = clearance_normalized - 0.5
 
-      return clearence, clearence_normalized
+      return clearance, clearance_normalized
 
   else:
     raise UNKNOWNMETHODEXEPTION
@@ -120,10 +120,10 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   magic_number_1 = 3.7
   magic_number_2 = 1.1
 
-  clearence = (clearence - magic_number_1) * magic_number_2
-  clearence_normalized = (clearence_normalized - magic_number_1) * magic_number_2
+  clearance = (clearance - magic_number_1) * magic_number_2
+  clearance_normalized = (clearance_normalized - magic_number_1) * magic_number_2
 
-  return clearence, clearence_normalized
+  return clearance, clearance_normalized
 
 def dosis(inj, fac, stc):
   """Compute dosis based on args.
@@ -211,7 +211,7 @@ def calculate_sex(cprnr):
   else:
     return 'Mand'
 
-def kidney_function(clearence_norm, cpr, age=1.0, gender='Kvinde'):
+def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
   """
     Calculate the Kidney function compared to their age and gender
   Args:
@@ -252,7 +252,7 @@ def kidney_function(clearence_norm, cpr, age=1.0, gender='Kvinde'):
       Mean_GFR = (magic_number_1 * age + magic_number_2) * Female_reference_pct
 
   #Use the mean GFR to calculate the index GFR, Whatever that might be
-  index_GFR = 100 * (Mean_GFR - clearence_norm) / Mean_GFR
+  index_GFR = 100 * (Mean_GFR - clearance_norm) / Mean_GFR
   #From the index GFR, Conclude on the kidney function
   if index_GFR < 25 : 
     return "Normal"
@@ -289,6 +289,12 @@ def get_histroy(cpr_number):
   ages = []
   clearance_norm = []
 
+  exam_objs = []
+  #exam_objs = pacs.search_history(cpr_number)
+
+  for obj in exam_objs:
+    ages.append(obj.age)
+    clearance_norm.append(obj.clearance_N)
 
   return ages, clearance_norm
 
@@ -297,13 +303,15 @@ def generate_plot_text(
   weight,
   height,
   BSA,
-  clearence,
-  clearence_norm,
+  clearance,
+  clearance_norm,
   kidney_function,
   age,
   sex,
   rigs_nr,
   hosp_dir='',
+  history_age = [],
+  history_ClrN = [],
   image_Height = 10.8,
   image_Width = 19.2,
   save_fig = True,
@@ -316,8 +324,8 @@ def generate_plot_text(
     weight          : float, Weight of patient
     height          : float, Height of patient
     BSA             : float, Body Surface Area
-    clearnece       : float, clearence value of examination 
-    clearnece_norm  : float, Normalized Clearence of examination
+    clearance       : float, clearance value of examination 
+    clearance_norm  : float, Normalized Clearence of examination
     kidney_function : string, describing the kidney function of the patient 
     cpr             : string, CPR number of Patient 
     rigs_nr         : String
@@ -373,7 +381,7 @@ def generate_plot_text(
 
 
   ymax = 120
-  while clearence_norm > ymax:
+  while clearance_norm > ymax:
     ymax += 20
 
   xmax = 90
@@ -418,8 +426,8 @@ def generate_plot_text(
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
   height_str          = "Højde: {0} cm\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m²\n\n".format(BSA)
-  clearence_str       = "Clearance: {0:.2f} ml / min\n\n".format(clearence)
-  clearence_norm_str  = "Clearance, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearence_norm) 
+  clearance_str       = "Clearance: {0:.2f} ml / min\n\n".format(clearance)
+  clearance_norm_str  = "Clearance, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearance_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
   print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(
@@ -428,8 +436,8 @@ def generate_plot_text(
     weight_str,
     height_str,
     BSA_str,
-    clearence_str,
-    clearence_norm_str,
+    clearance_str,
+    clearance_norm_str,
     kidney_function_str
   )
 
@@ -443,7 +451,9 @@ def generate_plot_text(
   ax[0].set_xlabel('Alder (år)', fontsize = 18)
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
-  ax[0].plot(age, clearence_norm, marker = 'o', markersize = 12)
+  if len(history_age == history_ClrN):
+    ax[0].plot(history_age, history_ClrN, marker = 'x', markersize = 10)
+  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12)
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
