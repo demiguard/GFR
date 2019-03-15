@@ -217,7 +217,7 @@ def store_form(request, rigs_nr):
     gfr_type=study_str
   )
 
-  if len(request.POST['sex'] > 0):
+  if len(request.POST['sex']) > 0:
     ris.store_dicom(
       dicom_path,
       gender=request.POST['sex']
@@ -264,8 +264,8 @@ def store_form(request, rigs_nr):
     #If thining factor have been inputed
     if request.POST['thin_fac']:
       thin_factor = float(request.POST['thin_fac'])
-    if request.POST['std_cnt']:
-      std_cnt = float(request.POST['std_cnt'])
+    if request.POST['std_cnt_text_box']:
+      std_cnt = float(request.POST['std_cnt_text_box'])
 
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]

@@ -195,6 +195,7 @@ def list_studies(request):
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
   # Specify page template
+  print(request.POST)
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
@@ -302,7 +303,6 @@ def fill_study(request, rigs_nr):
       'weight': exam.info['weight'],
     }),
     'study_dosis_form' : forms.Filldosis( initial={
-      'std_cnt' : exam.info['std_cnt'],
       'thin_fac' : exam.info['thin_fact']
     }),
     'study_examination_form'  : forms.Fillexamination(initial={
@@ -321,7 +321,8 @@ def fill_study(request, rigs_nr):
     'previous_samples': previous_samples,
     'csv_data': csv_data,
     'csv_data_len': len(data_files),
-    'error_message' : error_message
+    'error_message' : error_message,
+    'standart_count' : exam.info['std_cnt'],
   }
 
   return HttpResponse(template.render(context, request))
@@ -676,11 +677,16 @@ def settings(request):
 
 
 def documentation(requet):
-  print("Test")
+  """
+    Generates the response for the /documentation
+
+    returns
+      FileResponse: a renderable response, that a
+
+  """
+
 
   return FileResponse(
     open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
     content_type='application/pdf'
   )
-
-  #return HttpResponse('Denne side burde redirect til en pdf med dokumentation for de anvendte formler og metoder (sprøg Søren om pdf dokument).')

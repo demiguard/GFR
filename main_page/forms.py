@@ -53,7 +53,7 @@ class Fillexamination(forms.Form):
   injection_date = forms.DateField(label='Injektionsdato (YYYY-MM-DD)', required=False)  
 
 class Filldosis(forms.Form):
-  std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
+  #std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
   thin_fac = forms.IntegerField(label='Faktor', required=False, min_value = 0)
 
 class FillStudyType(forms.Form):
@@ -75,3 +75,4 @@ class GetStudy(forms.Form):
   Rigs = forms.CharField(label='Accession nummer', required=False)
   Dato_start = forms.DateField(label='Fra dato (YYYY-MM-DD)', required=False)
   Dato_finish = forms.DateField(label='Til dato (YYYY-MM-DD)', required=False)
+
