@@ -97,6 +97,8 @@ def fill_study_post(request, rigs_nr):
 
     gfr = clearance_math.kidney_function(clearance_norm, cpr, age=age, gender=gender)
 
+    history_age, history_clrN = clearance_math.get_histroy(cpr)
+
     plot_path = clearance_math.generate_plot_text(
       weight,
       height,
@@ -108,6 +110,8 @@ def fill_study_post(request, rigs_nr):
       gender,
       rigs_nr,
       hosp_dir=request.user.hospital
+      history_age=history_age
+      history_clrN=history_clrN
     )
 
     base_resp_dir = server_config.FIND_RESPONS_DIR
