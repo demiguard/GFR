@@ -82,7 +82,7 @@ def fill_study_post(request, rigs_nr):
       method="INVALID METHOD"
 
     # Calculate GFR
-    clearence, clearence_norm = clearance_math.calc_clearance(
+    clearance, clearance_norm = clearance_math.calc_clearance(
       inj_datetime, 
       sample_datetimes,
       tec_counts,
@@ -95,14 +95,14 @@ def fill_study_post(request, rigs_nr):
     age = float(request.POST['age'])
     gender = request.POST['sex']
 
-    gfr = clearance_math.kidney_function(clearence_norm, cpr, age=age, gender=gender)
+    gfr = clearance_math.kidney_function(clearance_norm, cpr, age=age, gender=gender)
 
     plot_path = clearance_math.generate_plot_text(
       weight,
       height,
       BSA,
-      clearence,
-      clearence_norm,
+      clearance,
+      clearance_norm,
       gfr,
       age,
       gender,
@@ -159,8 +159,8 @@ def fill_study_post(request, rigs_nr):
     dicomlib.store_dicom(
       dcm_obj_path,
       gfr            = gfr,
-      clearence      = clearence,
-      clearence_norm = clearence_norm,
+      clearance      = clearance,
+      clearance_norm = clearance_norm,
       series_instance_uid= img_obj.SeriesInstanceUID,
       sop_class_uid= img_obj.SOPClassUID,
       sop_instance_uid= img_obj.SOPInstanceUID,
@@ -189,7 +189,7 @@ def store_form(request, rigs_nr):
 
   # Store age
   if request.POST['age']:    
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       age=request.POST['age']
     )
@@ -200,7 +200,7 @@ def store_form(request, rigs_nr):
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       injection_time = inj_datetime.strftime('%Y%m%d%H%M')
     )
@@ -216,13 +216,13 @@ def store_form(request, rigs_nr):
     study_str = 'Flere prøve Voksen'
 
   #Store Study
-  dicomlib.store_dicom(
+  ris.store_dicom(
     dicom_path,
     gfr_type=study_str
   )
 
   if len(request.POST['sex']) > 0:
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       gender=request.POST['sex']
     )
@@ -232,7 +232,7 @@ def store_form(request, rigs_nr):
     vial_weight_after = float(request.POST['vial_weight_after'])
     vial_weight_inj   = vial_weight_before - vial_weight_after
 
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       injection_before = vial_weight_before,
       injection_after  = vial_weight_after,
@@ -241,19 +241,19 @@ def store_form(request, rigs_nr):
 
   elif len(request.POST['vial_weight_before']) > 0:
     vial_weight_before = float(request.POST['vial_weight_before'])
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       injection_before= vial_weight_before
     )
 
   bsa_method = 'Haycock'
   if (len(request.POST['weight']) > 0):
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       weight     = float(request.POST['weight']) 
     ) 
   if (len(request.POST['height']) > 0):
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       height     = float(request.POST['height']),
       bsa_method = bsa_method 
@@ -280,7 +280,7 @@ def store_form(request, rigs_nr):
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
     
-    dicomlib.store_dicom(
+    ris.store_dicom(
       dicom_path,
       sample_seq = seq
     )

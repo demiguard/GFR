@@ -10,8 +10,8 @@ new_dict_items = {
   0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
   0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
   0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-  0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-  0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+  0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),
+  0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
   0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
   0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
   0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
@@ -76,8 +76,8 @@ def store_dicom(dicom_obj_path,
     injection_before    = None,
     injection_after     = None,
     bsa_method          = None,
-    clearence           = None,
-    clearence_norm      = None,
+    clearance           = None,
+    clearance_norm      = None,
     series_instance_uid = None,
     sop_class_uid       = None,
     sop_instance_uid    = None,
@@ -101,8 +101,8 @@ def store_dicom(dicom_obj_path,
     injection_before: float, Weight of Vial Before injection
     injection_after : float, Weight of Vial After Injection
     bsa_method      : string, Method used to calculate Body Surface area
-    clearence       : float, Clearence Value
-    clearence_norm  : float, Clearence Value Normalized to 1.73m²
+    clearance       : float, Clearence Value
+    clearance_norm  : float, Clearence Value Normalized to 1.73m²
     sample_seq      : list of lists where every list is on the format: 
       *List_elem_1  : string on format 'YYYYMMDDHHMM', describing sample taken time
       *List_elem_2  : float, cpm of sample
@@ -117,8 +117,8 @@ def store_dicom(dicom_obj_path,
     0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
     0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
     0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+    0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),
+    0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
     0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
     0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
     0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
@@ -141,6 +141,7 @@ def store_dicom(dicom_obj_path,
   ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
   ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
   ds.add_new(0x00080064, 'CS', 'SYN')
+  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
   #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
   #Number twos
   ds.add_new(0x00080030, 'TM', '')
@@ -148,7 +149,6 @@ def store_dicom(dicom_obj_path,
   ds.add_new(0x00200010, 'SH', '')
   ds.add_new(0x00200013, 'IS', '1')
 
-  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
 
   # Set StudyDate
   ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
@@ -209,13 +209,13 @@ def store_dicom(dicom_obj_path,
     # ds.BSAmethod = bsa_method
     ds.add_new(0x00231011, 'LO', bsa_method)
 
-  if clearence:
-    # ds.clearance = clearence
-    ds.add_new(0x00231012, 'DS', clearence)
+  if clearance:
+    # ds.clearance = clearance
+    ds.add_new(0x00231012, 'DS', clearance)
 
-  if clearence_norm:
-    # ds.normClear = clearence_norm
-    ds.add_new(0x00231014, 'DS', clearence_norm)
+  if clearance_norm:
+    # ds.normClear = clearance_norm
+    ds.add_new(0x00231014, 'DS', clearance_norm)
 
   if sample_seq:
     seq_list = []

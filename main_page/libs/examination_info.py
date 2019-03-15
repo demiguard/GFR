@@ -14,8 +14,8 @@ class ExaminationInfo:
     height      = 0.0,      # Height of patient
     weight      = 0.0,      # Weight of patient
     BSA         = 0.0,      # Body surface area of the patient
-    clearence   = 0.0,      # Computed clearence
-    clearence_N = 0.0,      # Normalized clearence
+    clearance   = 0.0,      # Computed clearance
+    clearance_N = 0.0,      # Normalized clearance
     Method      = '',       # Method of the examination (e.g. 'et punkts, 'flere punkts', etc.)
     inj_t       = datetime.datetime(2000,1,1,0,0), # Injection time of examination
     inj_weight  = 0.0,      # Weight difference between vials

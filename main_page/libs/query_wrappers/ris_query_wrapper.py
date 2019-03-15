@@ -14,9 +14,43 @@ import pandas
 
 from .. import dicomlib
 from .. import server_config
-from ..clearance_math import clearance_math
-from .. import examination_info
-from ..examination_info import ExaminationInfo
+
+try:
+  from ..clearance_math import clearance_math
+except ImportError:
+  # Allow relative import beyond upper top-level when running test script
+  sys.path.append('../clearance_math')
+  import clearance_math
+
+class ExaminationInfo():
+  def __init__(self):
+    self.info = {
+      'rigs_nr'      :'',
+      'name'        :'',
+      'cpr'         :'',
+      'age'         :'',
+      'date'        :'',
+      'sex'         :'',
+      'gfr'         :'',
+      'height'      :0.0,
+      'weight'      :0.0,
+      'BSA'         :0.0,
+      'clearance'   :'',
+      'clearance_N' :'',
+      'Method'      :'',
+      'inj_t'       : datetime.datetime(2000,1,1,0,0),
+      'inj_weight'  : 0.0,
+      'inj_before'  : 0.0,
+      'inj_after'   : 0.0,
+      'thin_fact'   : 0.0,
+      'std_cnt'     : 0.0,
+      'sam_t'       : numpy.array([]), #Datetime list
+      'tch_cnt'     : numpy.array([]), #list of technisium count
+      'dosis'       : 0,
+      'image'       : numpy.array([]) #pixeldata
+    }
+
+# Class done
 
 
 def execute_query(cmd):
@@ -207,8 +241,8 @@ def get_examination(user, rigs_nr, resp_dir):
     0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), #Version 1.
     0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
     0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-    0x00231012 : ('DS', '1', 'clearence', '', 'clearence'),
-    0x00231014 : ('DS', '1', 'normalized clearence', '', 'normClear'),
+    0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),
+    0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
     0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     #Tags Added
     0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
     0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
@@ -260,8 +294,8 @@ def get_examination(user, rigs_nr, resp_dir):
   try_get_exam_info('weight', (0x0010, 0x1030), no_callback)
   try_get_exam_info('height', (0x0010, 0x1020), no_callback)
   try_get_exam_info('age', (0x0010, 0x1010), clearance_math.calculate_age, examination_info.info['cpr'])
-  try_get_exam_info('clearence', (0x0023,0x1012), no_callback)
-  try_get_exam_info('clearence_N', (0x0023,0x1014), no_callback)
+  try_get_exam_info('clearance', (0x0023,0x1012), no_callback)
+  try_get_exam_info('clearance_N', (0x0023,0x1014), no_callback)
   try_get_exam_info('GFR', (0x0023,0x1001), no_callback)
   try_get_exam_info('inj_before', (0x0023,0x101B), no_callback)
   try_get_exam_info('inj_after', (0x0023,0x101C), no_callback)
