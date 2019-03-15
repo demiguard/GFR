@@ -6,14 +6,7 @@ import os
 from PIL import Image
 from scipy.stats import linregress
 
-class table_info():
-  def __init__(self, study_time, cnt, pos, rack, date, run_id):
-    self.time = study_time
-    self.cnt  = cnt
-    self.pos  = pos
-    self.rack = rack
-    self.date = date
-    self.run_id = run_id
+
 
 class UNKNOWNMETHODEXEPTION(Exception):
   def __init__(self):
@@ -270,40 +263,6 @@ def kidney_function(clearence_norm, cpr, age=1.0, gender='Kvinde'):
   else:
     return "Svært nedsat"
 
-def import_csv(csv_path, machine ='', method='Cr-51 Counts'):
-  """
-  Imports a generated csv file and extracts the data
-
-  Params:
-    machine : Is the machine that made CSV file, used to figure out the encoding of the CSV file
-    dicom   : A Dicom object for data to written to. Note that data in the object may be overwritten.
-    vials   : A list with vials for the dicom
-
-  Returns:
-    Error_msg: A string list containing any Error messages
-    Changed_tags: A uint list containing all tags that have been written to 
-
-  Remarks:
-    It's the user responsibility to save the Dicom object
-  """
-
-  data = pandas.read_csv(csv_path)
-
-  table_infos = []
-
-  for i in numpy.arange(data.shape[0]):
-    new_table_info = table_info(
-      data['Time'][i],
-      data[method][i],
-      data['Pos'][i],
-      data['Rack'][i],
-      data['Measurement date & time'][i], 
-      data['Run ID'][i]
-      )
-    table_infos.append(new_table_info)
-
-  return table_infos
-
 def compute_times(inj_time, times):
   """
   Calculates the times between the injection, and when samples are taken
@@ -319,110 +278,20 @@ def compute_times(inj_time, times):
   """
   return numpy.array([(time - inj_time).seconds / 60 for time in times])
 
-def generate_plot(
-  data_points1,
-  data_points2,
-  rigs_nr,
-  hosp_dir='RH',
-  imageHeight = 10.8,
-  imageWidth = 19.2,
-  save_fig = True,
-  show_fig = False
-  ):
+def get_histroy(cpr_number):
   """
-  Generate GFR plot
-
+  
   Args:
-    data_points1: [[npoints],[npoints]] - numpy.array Data points for first graph 
-    data_points2: Data points for second graph
+  
+  Returns: 
 
-
-
-  Remark:
-    Generate as one image, with multiple subplots.
   """
+  ages = []
+  clearance_norm = []
 
-  def fig2data ( fig ):
-    """
-    @brief Convert a Matplotlib figure to a 4D numpy array with RGBA channels and return it
-    @param fig a matplotlib figure
-    @return a numpy 3D array of RGBA values
-    """
-    # draw the renderer
-    fig.canvas.draw ( )
- 
-    # Get the RGBA buffer from the figure
-    w,h = fig.canvas.get_width_height()
-    buf = numpy.fromstring ( fig.canvas.tostring_argb(), dtype=numpy.uint8 )
-    buf.shape = ( w, h,4 )
- 
-    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
-    buf = numpy.roll ( buf, 3, axis = 2 )
-    return buf
 
-  def fig2img ( fig ):
-    """
-    @brief Convert a Matplotlib figure to a PIL Image in RGBA format and return it
-    @param fig a matplotlib figure
-    @return a Python Imaging Library ( PIL ) image
-    """
-    # put the figure pixmap into a numpy array
-    buf = fig2data ( fig )
-    w, h, d = buf.shape
-    return Image.frombytes( "RGBA", ( w ,h ), buf.tostring( ) )
+  return ages, clearance_norm
 
-  # Generate background fill
-  # TODO: These values define changed
-  save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
-
-  x =           [0, 40, 110]
-  zeros =       [0, 0, 0]
-  darkred_y =   [30, 30, 10]
-  light_red_y = [50, 50, 30]
-  yellow_y =    [75, 75, 35]
-  lightgrey_y = [160, 160, 160]
-  #grey_y =      [130, 130, 130]
-
-  fig, ax = plt.subplots(1, 2)
-  
-
-  # Generate backgroundsage = int(request.POST['age'])second graph
-  ax[1].set_xlim(0, 110)      
-  ax[1].set_ylim(0, 160)
-  ax[1].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
-  ax[1].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
-  ax[1].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
-  ax[1].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
-  #ax[1].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
-  
-  titlesize = 8
-  labelsize = 18
-
-  # Set titles and labels
-  ax[0].set_xlabel('min. efter inj.')
-  ax[0].set_ylabel('log(CPM)')
-  ax[0].grid(color='black')
-  plt.rc('axes', titlesize=titlesize)
-  plt.rc('axes', labelsize=labelsize)
-
-  ax[1].set_xlabel('Alder (år)')
-  ax[1].set_ylabel('GFR (ml/min pr. 1.73m²)')
-  ax[1].grid(color='black')
-
-  ax[0].scatter(data_points1[0,:], data_points1[1,:])
-  ax[1].scatter(data_points2[0,:], data_points2[1,:])
-    
-  fig.set_figheight(imageHeight)
-  fig.set_figwidth(imageWidth)
-  plt.legend()
-  image_path = "{0}/{1}.bmp".format(save_dir,rigs_nr)
-  if save_fig : 
-    im = fig2img(fig)
-    im.save(image_path)
-  if show_fig :
-    plt.show()
-
-  return image_path
 
 def generate_plot_text(
   weight,
