@@ -14,43 +14,9 @@ import pandas
 
 from .. import dicomlib
 from .. import server_config
-
-try:
-  from ..clearance_math import clearance_math
-except ImportError:
-  # Allow relative import beyond upper top-level when running test script
-  sys.path.append('../clearance_math')
-  import clearance_math
-
-class ExaminationInfo():
-  def __init__(self):
-    self.info = {
-      'rigs_nr'      :'',
-      'name'        :'',
-      'cpr'         :'',
-      'age'         :'',
-      'date'        :'',
-      'sex'         :'',
-      'gfr'         :'',
-      'height'      :0.0,
-      'weight'      :0.0,
-      'BSA'         :0.0,
-      'clearence'   :'',
-      'clearence_N' :'',
-      'Method'      :'',
-      'inj_t'       : datetime.datetime(2000,1,1,0,0),
-      'inj_weight'  : 0.0,
-      'inj_before'  : 0.0,
-      'inj_after'   : 0.0,
-      'thin_fact'   : 0.0,
-      'std_cnt'     : 0.0,
-      'sam_t'       : numpy.array([]), #Datetime list
-      'tch_cnt'     : numpy.array([]), #list of technisium count
-      'dosis'       : 0,
-      'image'       : numpy.array([]) #pixeldata
-    }
-
-# Class done
+from ..clearance_math import clearance_math
+from .. import examination_info
+from ..examination_info import ExaminationInfo
 
 
 def execute_query(cmd):
@@ -67,6 +33,7 @@ def execute_query(cmd):
     return check_output(cmd)
   except (CalledProcessError, FileNotFoundError):
     return None
+
 
 def store_dicom(dicom_obj_path,
     age                 = None,
@@ -140,13 +107,14 @@ def store_dicom(dicom_obj_path,
   keyword_dict.update(new_names_dirc)
 
   ds = dicomlib.dcmread_wrapper(dicom_obj_path)
+
+  # Set required dicom tags
   ds.add_new(0x00230010, 'LO', 'Clearence - Denmark - Region Hovedstaden')
   ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
   ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
   ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
   ds.add_new(0x00080064, 'CS', 'SYN')
   #ds.add_new(0x00080070, 'LO', 'GFR-calc')
-
 
   ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
 
@@ -179,42 +147,32 @@ def store_dicom(dicom_obj_path,
 
   # PRIVATE TAGS START
   if gfr:
-    # ds.GFR = gfr
-    # ds.GFRVersion = 'Version 1.0'
     ds.add_new(0x00231001, 'LO', gfr)
     ds.add_new(0x00231002, 'LO', 'Version 1.0')
 
   if gfr_type:
-    # ds.GFRMethod = gfr_type
     ds.add_new(0x00231010, 'LO', gfr_type)
     ds.add_new(0x0008103E, 'LO', 'Clearence ' + gfr_type)
 
   if injection_time:
-    # ds.injTime = injection_time
     ds.add_new(0x00231018, 'DT', injection_time)
 
   if injection_weight:
-    # ds.injWeight = injection_weight
     ds.add_new(0x0023101A, 'DS', injection_weight)
   
   if injection_before:
-    # ds.injbefore = injection_before
     ds.add_new(0x0023101B, 'DS', injection_before)
   
   if injection_after:
-    # ds.injafter = injection_after
     ds.add_new(0x0023101C, 'DS', injection_after)
 
   if bsa_method:
-    # ds.BSAmethod = bsa_method
     ds.add_new(0x00231011, 'LO', bsa_method)
 
   if clearence:
-    # ds.clearance = clearence
     ds.add_new(0x00231012, 'DS', clearence)
 
   if clearence_norm:
-    # ds.normClear = clearence_norm
     ds.add_new(0x00231014, 'DS', clearence_norm)
 
   if sample_seq:
@@ -226,14 +184,8 @@ def store_dicom(dicom_obj_path,
       seq_elem.add_new(0x00231022, 'DS', sample[1])
       seq_elem.add_new(0x00231024, 'DS', sample[2])
       seq_elem.add_new(0x00231028, 'DS', sample[3])
-      
-      # seq_elem.SampleTime    = sample[0]
-      # seq_elem.cpm           = sample[1]
-      # seq_elem.stdcnt        = sample[2]
-      # seq_elem.thiningfactor = sample[3]
 
       seq_list.append(seq_elem)
-    # ds.ClearTest = Sequence(seq_list)
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
 
   # PRIVATE TAGS END
@@ -252,6 +204,7 @@ def store_dicom(dicom_obj_path,
 
   ds.fix_meta_info()
   ds.save_as(dicom_obj_path)
+
 
 def parse_bookings(resp_dir):
   """
