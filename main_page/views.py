@@ -5,20 +5,20 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.log import DEFAULT_LOGGING
-import logging
 
 from . import forms
+from . import models
+
 from .libs.query_wrappers import ris_query_wrapper as ris
+from .libs.query_wrappers import pacs_query_wrapper as pacs
 from .libs.clearance_math import clearance_math
 from .libs import Post_Request_handler as PRH
 from .libs import server_config
 from .libs import samba_handler
 from .libs import dicomlib
 
-from . import models
-
-
 from dateutil import parser as date_parser
+import logging
 import datetime
 import shutil
 import glob
@@ -28,11 +28,6 @@ import numpy
 import pydicom
 import PIL
 import glob
-import pprint # Debug
-
-#Setting up logging 
-
-logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -510,6 +505,7 @@ def fetch_study(request):
 
   return HttpResponse(template.render(context, request))
 
+
 @login_required(login_url='/')
 def present_old_study(request, rigs_nr):
   """list(reversed(
@@ -653,6 +649,7 @@ def present_study(request, rigs_nr):
   }
 
   return HttpResponse(template.render(context,request))
+
 
 @login_required(login_url='/')
 def settings(request):
