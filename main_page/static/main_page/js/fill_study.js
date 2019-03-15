@@ -75,6 +75,7 @@ $(function() {
   });
 
   var csv_row_ids_array = [];
+  var sanity_checker = 0.25
   $('#add-test').click(function() {
     // Reset error messages container
     $('#error-message-container').empty()
@@ -94,10 +95,21 @@ $(function() {
         // Avg. of two selected rows
         var sum = 0
         if (csv_row_ids_array.length == 2) {
+          var data_values = []
+
           csv_row_ids_array.forEach(element => {
+            data_values.push(parseFloat($('#' + element).children().eq(3).text()))
             sum += parseFloat($('#' + element).children().eq(3).text()) / 2
           });
-        } else {
+          
+          var sanity = Math.abs(data_values[0] - data_values[1]) / sum
+          if (sanity > sanity_checker) {
+            $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!</p>");
+            $('#error-message').css('color', '#FFA71A');
+            $('#error-message').css('font-size', 18);
+          }
+
+        } else { //Only 1 element selected
           csv_row_ids_array.forEach(element => {
             sum += parseFloat($('#' + element).children().eq(3).text())
           });
@@ -108,6 +120,7 @@ $(function() {
         //------------ Range Checker --------------- 
         //Range checker for kids
         if ($('input[name=study_type]:checked').val() == 1) {
+          //Time ranges in minutes!
           var range_low = 110
           var range_high = 130
           
@@ -197,7 +210,53 @@ $(function() {
       $('#id_study_date').css('border', '2px solid lightcoral');
     }
   });
+  //Handler for tilføj-standart button
+  $('#add-standart').on('click', function() {
+    $('#error-message-container').empty()
 
+    if(csv_row_ids_array.length > 0) {
+      var sum = 0;
+      if (csv_row_ids_array.length == 2) {
+        //TO DO ADD Sanity checks
+        var data_values = [];
+        csv_row_ids_array.forEach(element => {
+          data_values.push(parseFloat($('#' + element).children().eq(3).text()))  
+          sum += parseFloat($('#' + element).children().eq(3).text()) / 2
+        });
+        var sanity = Math.abs(data_values[0] - data_values[1]) / sum
+        if (sanity > sanity_checker) { // Value to be updated
+          $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!</p>");
+          $('#error-message').css('color', '#FFA71A');
+          $('#error-message').css('font-size', 18);
+        }
+      } else {
+        csv_row_ids_array.forEach(element => {
+          sum += parseFloat($('#' + element).children().eq(3).text())
+        });
+      }
+    
+      if (csv_row_ids_array.length > 1) {
+        //If lenght = 2
+        $('#standart-text').val(sum);
+        console.log(sum)
+
+      } else {
+        //If lenght = 1
+        $('#standart-text').val(sum);
+        console.log(sum)
+        $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed</p>");
+        $('#error-message').css('color', '#FFA71A');
+        $('#error-message').css('font-size', 18);
+      
+      }
+    } else {
+      //If lenght = 0
+      $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales</p>");
+      $('#error-message').css('color', '#FF0000');
+      $('#error-message').css('font-size', 22);
+    }
+
+  });
 
   // Table row on click handlers
   $('.csv_row').on('click', function() {

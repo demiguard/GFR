@@ -9,6 +9,7 @@ from .query_wrappers import ris_query_wrapper as ris
 from .clearance_math import clearance_math
 
 from . import server_config
+from . import dicomlib
 
 from dateutil import parser as date_parser
 import datetime
@@ -155,7 +156,7 @@ def fill_study_post(request, rigs_nr):
     dcm_obj.save_as(dcm_obj_path)
     """
 
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dcm_obj_path,
       gfr            = gfr,
       clearence      = clearence,
@@ -164,7 +165,10 @@ def fill_study_post(request, rigs_nr):
       sop_class_uid= img_obj.SOPClassUID,
       sop_instance_uid= img_obj.SOPInstanceUID,
       pixeldata = img_obj.PixelData 
-    )   
+    )
+    #Remove bmp file and dcm file
+    os.remove(plot_path)
+    os.remove(dcm_img_path)
 
 
 def store_form(request, rigs_nr):
@@ -185,7 +189,7 @@ def store_form(request, rigs_nr):
 
   # Store age
   if request.POST['age']:    
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       age=request.POST['age']
     )
@@ -196,7 +200,7 @@ def store_form(request, rigs_nr):
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       injection_time = inj_datetime.strftime('%Y%m%d%H%M')
     )
@@ -212,13 +216,13 @@ def store_form(request, rigs_nr):
     study_str = 'Flere prøve Voksen'
 
   #Store Study
-  ris.store_dicom(
+  dicomlib.store_dicom(
     dicom_path,
     gfr_type=study_str
   )
 
-  if len(request.POST['sex'] > 0):
-    ris.store_dicom(
+  if len(request.POST['sex']) > 0:
+    dicomlib.store_dicom(
       dicom_path,
       gender=request.POST['sex']
     )
@@ -228,7 +232,7 @@ def store_form(request, rigs_nr):
     vial_weight_after = float(request.POST['vial_weight_after'])
     vial_weight_inj   = vial_weight_before - vial_weight_after
 
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       injection_before = vial_weight_before,
       injection_after  = vial_weight_after,
@@ -237,19 +241,19 @@ def store_form(request, rigs_nr):
 
   elif len(request.POST['vial_weight_before']) > 0:
     vial_weight_before = float(request.POST['vial_weight_before'])
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       injection_before= vial_weight_before
     )
 
   bsa_method = 'Haycock'
   if (len(request.POST['weight']) > 0):
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       weight     = float(request.POST['weight']) 
     ) 
   if (len(request.POST['height']) > 0):
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       height     = float(request.POST['height']),
       bsa_method = bsa_method 
@@ -264,8 +268,8 @@ def store_form(request, rigs_nr):
     #If thining factor have been inputed
     if request.POST['thin_fac']:
       thin_factor = float(request.POST['thin_fac'])
-    if request.POST['std_cnt']:
-      std_cnt = float(request.POST['std_cnt'])
+    if request.POST['std_cnt_text_box']:
+      std_cnt = float(request.POST['std_cnt_text_box'])
 
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]
@@ -276,7 +280,7 @@ def store_form(request, rigs_nr):
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
     
-    ris.store_dicom(
+    dicomlib.store_dicom(
       dicom_path,
       sample_seq = seq
     )
