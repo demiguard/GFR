@@ -162,3 +162,36 @@ def is_valid_study(cpr, name, study_date, rigs_nr):
   error_strings = list(filter(lambda x: x, error_strings))
 
   return (len(error_strings) == 0, error_strings)
+
+
+def name_to_person_name(name):
+  """
+  Converts a normally formatted name, e.g. "Jens Jensen" to a dicom person name
+  VR formatting. 
+  (for more details see: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+  
+  Args:
+    name: string to convert
+
+  Returns:
+    The formatted name conforming with the dicom standard.
+
+  Remark:
+    This function also accepts and handles dicom wildcards.
+  """
+  name = name.strip()
+
+  names = name.split(' ')
+
+  firstname = names[0]
+  middlenames = names[1:-1]
+  lastname = names[-1]
+
+  ret = ""
+  if middlenames:
+    ret = lastname + '^' + firstname + '^' + ' '.join(middlenames)
+  else:
+    ret = lastname + '^' + firstname
+
+  return ret
+  
