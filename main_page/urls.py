@@ -20,6 +20,7 @@ urlpatterns = [
   path('documentation', views.documentation, name='documentation'),
   # Async ajax urls
   path('ajax/login', views.ajax_login, name='ajax_login'),
+  path('ajax/search', views.ajax_search, name='ajax_search'),
 ]
 
 

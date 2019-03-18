@@ -333,9 +333,8 @@ def search(request):
   template = loader.get_template('main_page/search.html')
 
   search_resp = []
-  auto_fill_params = { }
 
-  if 'Søg' in request.GET:    
+  if 'search' in request.GET:    
     # Extract search parameters
     search_name = request.GET['name']
     search_cpr = request.GET['cpr']
@@ -352,16 +351,8 @@ def search(request):
       date_to=search_date_to,
     )
 
-    auto_fill_params = {
-      'name': search_name,
-      'cpr': search_cpr,
-      'Rigs': search_rigs_nr,
-      'Dato_start': search_date_from[:4] + '-' + search_date_from[4:6] + '-' + search_date_from[6:],
-      'Dato_finish': search_date_to[:4] + '-' + search_date_to[4:6] + '-' + search_date_to[6:],
-    }
-
   # Add specific bootstrap class to the form item and previous search parameters
-  get_study_form = forms.GetStudy(initial=auto_fill_params)
+  get_study_form = forms.GetStudy()
   for item in get_study_form:
     item.field.widget.attrs['class'] = 'form-control'
 
@@ -371,6 +362,31 @@ def search(request):
   }    
 
   return HttpResponse(template.render(context, request))
+
+
+@login_required(login_url='/')
+def ajax_search(request):  
+  # Extract search parameters
+  search_name = request.GET['name']
+  search_cpr = request.GET['cpr']
+  search_rigs_nr = request.GET['rigs_nr']
+  search_date_from = request.GET['date_from']
+  search_date_to = request.GET['date_to']
+
+  search_resp = pacs.search_pacs(
+    request.user,
+    name=search_name,
+    cpr=search_cpr,
+    rigs_nr=search_rigs_nr,
+    date_from=search_date_from,
+    date_to=search_date_to,
+  )
+
+  data = {
+    'search_results': search_resp
+  }
+
+  return JsonResponse(data)
 
 
 @login_required(login_url='/')
