@@ -10,6 +10,7 @@ import datetime
 import calendar
 import numpy
 import pandas
+import random
 
 from .. import dicomlib
 from .. import server_config
@@ -65,7 +66,7 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   out = execute_query(find_query)
 
   # Use first resp
-  rsp_paths = glob.glob(resp_path + 'rsp*.dcm') # list(filter(lambda x: 'rsp' in x, os.listdir(resp_path)))
+  rsp_paths = glob.glob(resp_path + 'rsp*.dcm')
   if len(rsp_paths) != 0:
     rsp_path = rsp_paths[0]
   else:
@@ -200,20 +201,15 @@ def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   if not os.path.exists(server_config.SEARCH_DIR):
     os.mkdir(server_config.SEARCH_DIR)
 
-  search_file_cnt = len(
-    glob.glob('{0}{1}*.dcm'.format(
-      server_config.SEARCH_DIR, 
-      base_filename
-    ))
-  )
+  search_file_hash = random.getrandbits(128)
 
   curr_search_file = "{0}{1}{2}.dcm".format(
     server_config.SEARCH_DIR,
     base_filename,
-    search_file_cnt
+    search_file_hash
   )
 
-  curr_resp_dir = "{0}rsp{1}/".format(server_config.SEARCH_DIR, search_file_cnt)
+  curr_resp_dir = "{0}rsp{1}/".format(server_config.SEARCH_DIR, search_file_hash)
 
   shutil.copyfile(server_config.BASE_SEARCH_FILE, curr_search_file)
   os.mkdir(curr_resp_dir)
