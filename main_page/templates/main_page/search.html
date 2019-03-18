@@ -49,17 +49,16 @@
       </tr>
     </thead>
     <tbody>
-      {% for cpr, name, study_date, rigs_nr in responses %}
-      <tr onclick="document.location='{% url "main_page:present_old_study" rigs_nr %}'">
-        <td>{{ name }}</td>
-        <td>{{ cpr }}</td>
-        <td>{{ study_date }}</td>
-        <td>{{ rigs_nr }}</td>
+      {% for resp in responses %}
+      <tr onclick="document.location='{% url "main_page:present_old_study" resp.rigs_nr %}'">
+        <td>{{ resp.name }}</td>
+        <td>{{ resp.cpr }}</td>
+        <td>{{ resp.date }}</td>
+        <td>{{ resp.rigs_nr }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-
 {% endblock %}
 
 {% block javascript %}

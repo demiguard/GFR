@@ -1,0 +1,8 @@
+(0008,0020) DA  []                              # Study date (can also be a range)
+(0008,0050) SH  []                              # Accession number - RIGS number
+(0008,0052) CS  [STUDY]                         # Root SOP class level
+(0010,0010) PN  []                              # Patient name (includes wildcards)
+(0010,0020) LO  []                              # Patient ID - cpr nr.
+#(0032,1060) LO  []   # Requested Procedure Description
+#(0020,000D) UI  []  # StudyInstanceUID
+#(0020,000E) UI  []  # SeriesInstanceUID

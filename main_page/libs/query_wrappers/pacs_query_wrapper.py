@@ -136,10 +136,11 @@ def get_examination(user, rigs_nr, resp_dir):
   # Read after dictionary update
   try:
     obj = dicomlib.dcmread_wrapper('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
+
   except FileNotFoundError:
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
-  
+
   return examination_info.deserialize(obj)
 
 
@@ -166,3 +167,103 @@ def store_in_pacs(user, obj_path):
   out = execute_query(store_query)
 
   return (out != None)
+
+
+def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
+  """
+  Searches PACS for basic examination/patient information
+
+  Args:
+    user: the currently signed in user
+    name: name to search for
+    cpr: cpr number to search for
+    rigs_nr: rigs number to search for
+    date_from: date to search from
+    date_to: date to search until
+
+  Returns:
+    list of ExaminationInfo objects containing information about the search results.
+    returns None if the command failed to execute.
+
+  Remarks:
+    Wildcards: the search parameters, i.e. the keyword args. to this function,
+               can also be passed dicom wildcard, e.g. '*' for the name arg.
+               to search for any name, or '20190101-' in date_from to search
+               for any date from 2019-01-01 until the present day.
+
+    There is no need to use the dcmwrapper function from dicomlib here, since 
+    the search functionality doesn't rely on any private tags.
+  """
+  # Construct new query file - create dirs if necessary
+  base_filename = "search_query"
+
+  if not os.path.exists(server_config.SEARCH_DIR):
+    os.mkdir(server_config.SEARCH_DIR)
+
+  search_file_cnt = len(
+    glob.glob('{0}{1}*.dcm'.format(
+      server_config.SEARCH_DIR, 
+      base_filename
+    ))
+  )
+
+  curr_search_file = "{0}{1}{2}.dcm".format(
+    server_config.SEARCH_DIR,
+    base_filename,
+    search_file_cnt
+  )
+
+  curr_resp_dir = "{0}rsp{1}/".format(server_config.SEARCH_DIR, search_file_cnt)
+
+  shutil.copyfile(server_config.BASE_SEARCH_FILE, curr_search_file)
+  os.mkdir(curr_resp_dir)
+
+  # Fill out query file
+  query_obj = pydicom.dcmread(curr_search_file)
+  
+  query_obj.PatientName = formatting.name_to_person_name(name)
+  query_obj.PatientID = cpr
+  query_obj.AccessionNumber = rigs_nr
+  query_obj.StudyDate = "{0}{1}".format(date_from, date_to)
+
+  query_obj.save_as(curr_search_file)
+
+  # Execute query
+  search_query = [
+    server_config.FINDSCU,
+    "-S",
+    "-aet",
+    user.config.pacs_calling,
+    "-aec",
+    user.config.pacs_aet,
+    user.config.pacs_ip,
+    user.config.pacs_port,
+    curr_search_file,
+    '-X',
+    '-od',
+    curr_resp_dir
+  ]
+
+  execute_query(search_query)
+
+  # Get responses
+  ret = []
+
+  for resp_file in glob.glob("{0}/*".format(curr_resp_dir)):
+    resp_obj = pydicom.dcmread(resp_file)
+    
+    tmp_exam = ExaminationInfo()
+
+    tmp_exam.name = formatting.format_name(resp_obj.PatientName)
+    tmp_exam.cpr = formatting.format_cpr(resp_obj.PatientID)
+    tmp_exam.rigs_nr = resp_obj.AccessionNumber
+    tmp_exam.date = formatting.format_date(resp_obj.StudyDate)
+
+    ret.append(tmp_exam)
+
+  # Remove query dirs and files
+  os.remove(curr_search_file)
+  shutil.rmtree(curr_resp_dir)
+
+  # Return
+  return ret

@@ -1,16 +1,13 @@
 # NOTE: All directories MUST end in a '/'
 
 # --- Dicom related configs ---
-DICOMDICT_UBUNTU = "/usr/share/libdcmtk12/dicom.dic"
-DICOMDICT_CENTOS = "/usr/local/share/dcmtk/dicom.dic"
-
 FINDSCU = "findscu"                               # Path to findscu application
 STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
 DCMCONV = "dcmconv"
 
 BASE_QUERY_DIR = "./base_queries/"                # Directory contaning all base query files
-SEARCH_RESPONS_DIR = "./search_responses/"        # Directory for temporarily storing search responses
+SEARCH_DIR = "./search_dir/"        # Directory for temporarily storing search responses
 FIND_RESPONS_DIR = "./active_dicom_objects/"      # Directory for temporarily storing find responses
 
 STATIC_DIR = "./main_page/static/main_page/"
@@ -18,9 +15,10 @@ IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
 
 BASE_FIND_QUERY = "{0}base_find_query.dcm".format(BASE_QUERY_DIR)                              # Used for the list studies page
 BASE_IMG_QUERY_PATH = "{0}base_img_query.dcm".format(BASE_QUERY_DIR)                          # Used for retreiving images
-BASE_SEARCH_QUERY = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
+BASE_SEARCH_FILE = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
 
-DCMDICTPATH = "/usr/share/libdcmtk12/dicom.dic:/usr/share/libdcmtk12/private.dic"         # Dicom standard and private tags
+DICOMDICT_UBUNTU = "/usr/share/libdcmtk12/dicom.dic"
+DICOMDICT_CENTOS = "/usr/local/share/dcmtk/dicom.dic"
 
 # Private Dicom tag definitions
 new_dict_items = {

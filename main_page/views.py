@@ -312,169 +312,46 @@ def fill_study(request, rigs_nr):
 
 
 @login_required(login_url='/')
-def fetch_study(request):
+def search(request):
   # Specify page template
-  template = loader.get_template('main_page/fetch_study.html')
+  template = loader.get_template('main_page/search.html')
 
-  # Construct new query file
-  history_dir = './hist_tmp/'
-  search_query = 'search_query'
-  base_search_file = "{0}base_{1}.dcm".format(history_dir, search_query)
-
-  # Find next number for query file
-  search_files = glob.glob('{0}{1}*.dcm'.format(history_dir, search_query))
-  
-  curr_num = len(search_files)
-  
-  curr_search_file = '{0}{1}{2}.dcm'.format(history_dir, search_query, curr_num)
-  
-  curr_rsp_dir = '{0}rsp{1}/'.format(history_dir, curr_num)
-  os.mkdir(curr_rsp_dir)
-
-  # Make a new copy to construct the current query
-  shutil.copyfile(base_search_file, curr_search_file)
-
-  sf = pydicom.dcmread(curr_search_file)
-
-  # Set auto fill parameters
+  search_resp = []
   auto_fill_params = { }
 
-  if 'Søg' in request.GET:
+  if 'Søg' in request.GET:    
     # Extract search parameters
-    s_name = request.GET['name']
-    s_cpr = request.GET['cpr']
-    s_rigs = request.GET['Rigs']
-    s_date_from = request.GET['Dato_start']
-    s_date_to = request.GET['Dato_finish']
+    search_name = request.GET['name']
+    search_cpr = request.GET['cpr']
+    search_rigs_nr = request.GET['Rigs']
+    search_date_from = request.GET['Dato_start']
+    search_date_to = request.GET['Dato_finish']
 
-    # Formatting...
-    s_date_from = s_date_from.replace('-','')
-    s_date_to = s_date_to.replace('-','')
-
-    auto_fill_params = {
-      'name': s_name,
-      'cpr': s_cpr,
-      'Rigs': s_rigs,
-      'Dato_start': s_date_from[:4] + '-' + s_date_from[4:6] + '-' + s_date_from[6:],
-      'Dato_finish': s_date_to[:4] + '-' + s_date_to[4:6] + '-' + s_date_to[6:],
-    }
-
-    # Search by name
-    if s_name:
-      s_name = s_name.strip()
-      name_arr = s_name.split(' ')
-
-      # Format as: "*LASTNAME^FIRSTNAME^MIDDLENAMES^*"
-      firstname = name_arr[0]
-      lastname = name_arr[-1]
-      middlenames = name_arr[1:len(name_arr) - 1]
-
-      # TODO: Shorten this name formatting
-      # TODO: Add a lastname field to make life easier
-      # If array is one element long
-      if firstname == lastname:
-        lastname = ''
-      
-      name_str = "*{0}^{1}^{2}^*".format(
-        lastname, 
-        firstname, 
-        '^'.join(middlenames)
-      )
-
-      sf.PatientName = name_str
-
-    # Search by cpr nr.
-    if s_cpr:
-      s_cpr = s_cpr.replace('-', '')
-      sf.PatientID = s_cpr
-
-    # Search by rigs number
-    if s_rigs:
-      sf.AccessionNumber = s_rigs
-    
-    # Search by date range
-    s_date_range = ''
-    
-    if s_date_from:
-      s_date_range += s_date_from + '-'
-
-    if s_date_to:
-      s_date_range += s_date_to
-    
-    sf.StudyDate = s_date_range
-  else:
-    # Default case: display the patients from the last week
-    now = datetime.datetime.now()
-    now_str = now.strftime('%Y%m%d')
-
-    week_delta = datetime.timedelta(days=7)
-    week_datetime = now - week_delta
-    last_week_str = week_datetime.strftime('%Y%m%d')
-
-    sf.StudyDate = '{0}-{1}'.format(last_week_str, now_str)    
-
-    # Set the dates in the auto fill
-    auto_fill_params = {
-      'Dato_start': last_week_str[:4] + '-' + last_week_str[4:6] + '-' + last_week_str[6:],
-      'Dato_finish': now_str[:4] + '-' + now_str[4:6] + '-' + now_str[6:],
-    }
-
-  # Save and execute the current search query file
-  sf.save_as(curr_search_file)
-
-  user = request.user
-
-  search_query = [
-    server_config.FINDSCU,
-    "-S",
-    "-v", # TODO: Remove this line since it's debugging
-    "-aet",
-    user.config.pacs_calling,
-    "-aec",
-    user.config.pacs_aet,
-    user.config.pacs_ip,
-    user.config.pacs_port,
-    curr_search_file,
-    '-X',
-    '-od',
-    curr_rsp_dir
-  ]
-
-  # TODO: Add error handling
-  out = ris.execute_query(search_query)
-  print("Executed query: {0}".format(search_query))
-  print("Output: {0}".format(out))
-
-  # Extract data from responses
-  rsps = []
-
-  for rsp_path in glob.glob('{0}*.dcm'.format(curr_rsp_dir)):
-    # TODO: Change this to use get_examination from ris_query_wrapper to make christoffer happy, yet still try to keep the querie files short
-    # rsp_name = rsp_path.split('.')[0]
-    # curr_exam = ris.get_examination(curr_rsp_dir, rsp_name)
-
-    ds = pydicom.dcmread(rsp_path)
-    rsp_info = (
-      formatting.format_cpr(ds.PatientID),
-      formatting.format_name(ds.PatientName),
-      formatting.format_date(ds.StudyDate),
-      ds.AccessionNumber,
+    search_resp = pacs.search_pacs(
+      request.user,
+      name=search_name,
+      cpr=search_cpr,
+      rigs_nr=search_rigs_nr,
+      date_from=search_date_from,
+      date_to=search_date_to,
     )
 
-    rsps.append(rsp_info)
+    auto_fill_params = {
+      'name': search_name,
+      'cpr': search_cpr,
+      'Rigs': search_rigs_nr,
+      'Dato_start': search_date_from[:4] + '-' + search_date_from[4:6] + '-' + search_date_from[6:],
+      'Dato_finish': search_date_to[:4] + '-' + search_date_to[4:6] + '-' + search_date_to[6:],
+    }
 
-  # Remove the search query file
-  os.remove(curr_search_file)
-  shutil.rmtree(curr_rsp_dir)
-
-  # Add specific bootstrap class to the form item
+  # Add specific bootstrap class to the form item and previous search parameters
   get_study_form = forms.GetStudy(initial=auto_fill_params)
   for item in get_study_form:
     item.field.widget.attrs['class'] = 'form-control'
 
   context = {
     'getstudy' : get_study_form,
-    'responses': rsps,
+    'responses': search_resp,
   }    
 
   return HttpResponse(template.render(context, request))
