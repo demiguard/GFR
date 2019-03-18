@@ -2,10 +2,11 @@ import numpy
 import matplotlib.pyplot as plt
 import pandas
 import datetime
-import os
+import os, shutil
 from PIL import Image
 from scipy.stats import linregress
 
+from ..query_wrappers import pacs_query_wrapper as pacs
 
 
 class UNKNOWNMETHODEXEPTION(Exception):
@@ -212,7 +213,7 @@ def calculate_sex(cprnr):
     return 'Mand'
 
 def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
-  """
+  """expression
     Calculate the Kidney function compared to their age and gender
   Args:
     Clearence_norm: Float, Clearence of the patient
@@ -278,7 +279,7 @@ def compute_times(inj_time, times):
   """
   return numpy.array([(time - inj_time).seconds / 60 for time in times])
 
-def get_histroy(cpr_number):
+def get_histroy(user, cpr_number):
   """
   
   Args:
@@ -288,13 +289,23 @@ def get_histroy(cpr_number):
   """
   ages = []
   clearance_norm = []
-
   exam_objs = []
-  #exam_objs = pacs.search_history(cpr_number)
+  
+  empty_exam_objs = pacs.search_pacs(user, cpr = cpr_number)
+  
+  dirfolder = str(datetime.datetime.today()).replace(' ','').replace('.','').replace(':','')
+
+  os.mkdir(dirfolder) #I SWEAR IF YOU MANAGE TO BREAK THIS I*M A PROUD BETA TESTER
+
+  for empty_exam_obj in empty_exam_objs:
+    obj = pacs.get_examination(user, empty_exam_obj.rigs_nr, dirfolder)
+    exam_objs.append(obj)
 
   for obj in exam_objs:
     ages.append(obj.age)
     clearance_norm.append(obj.clearance_N)
+
+  shutil.rmtree(dirfolder)
 
   return ages, clearance_norm
 
