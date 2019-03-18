@@ -111,9 +111,9 @@ def fill_study_post(request, rigs_nr):
       age,
       gender,
       rigs_nr,
-      hosp_dir=request.user.hospital
-      history_age=history_age
-      history_clrN=history_clrN
+      hosp_dir=request.user.hospital,
+      history_age=history_age,
+      history_clr_n=history_clrN
     )
 
     base_resp_dir = server_config.FIND_RESPONS_DIR

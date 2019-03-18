@@ -311,7 +311,7 @@ def generate_plot_text(
   rigs_nr,
   hosp_dir='',
   history_age = [],
-  history_ClrN = [],
+  history_clr_n = [],
   image_Height = 10.8,
   image_Width = 19.2,
   save_fig = True,
