@@ -99,8 +99,19 @@ def new_study(request):
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-        
+      blank_dicom_file_location = '{0}{1}'.format(server_config.BLANK_DICOM_LOC, server_config.BlANK_DICOM_FILE)
+      new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
+
+      shutil.copyfile(blank_dicom_file_location, new_destination, follow_symlinks=False)  
       
+      dicomlib.store_dicom(
+        new_destination,
+        cpr = cpr,
+        name = name,
+        study_date = study_date,
+        rigs_nr = rigs_nr        
+        )
+
       # redirect to fill_study/rigs_nr 
       return redirect('main_page:fill_study', rigs_nr=rigs_nr)
     else:
@@ -121,10 +132,12 @@ def list_studies(request):
   bookings = []
   for booking in ris.get_all(request.user):
     # Remove all booking previously sent to PACS
+
     sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.rigs_nr).exists()
     if not sent_to_pacs:
       bookings.append(booking)
 
+  # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
   # Fetch all old bookings
   DICOM_directory = '{0}/{1}'.format(
     server_config.FIND_RESPONS_DIR, 
@@ -161,8 +174,10 @@ def list_studies(request):
     exam.cpr = exam.cpr
     exam.rigs_nr = exam.rigs_nr
 
-    # checks if a user already exists
     def existing_user(rigs_nr):
+      """
+        checks if a user already exists
+      """
       for booking in bookings:
         if booking.rigs_nr == rigs_nr:
           return True
@@ -171,6 +186,7 @@ def list_studies(request):
     if not existing_user(exam.rigs_nr): 
       old_bookings.append(exam)
 
+  
   context = {
     'bookings': bookings,
     'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.date))
@@ -207,7 +223,7 @@ def fill_study(request, rigs_nr):
     '{0}{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
   )
 
-  today = datetime.datetime.today()
+  today = datetime.datetime.now()
   date, _ = str(today).split(' ')
   test_form = forms.FillStudyTest(initial = {'study_date' : date})
   for f in test_form:
@@ -523,10 +539,11 @@ def present_old_study(request, rigs_nr):
     previous_sample_counts
   )
 
-  today = datetime.datetime.today()
+  today = datetime.datetime.now()
   inj_time = today.strftime('%H:%M')
   inj_date = today.strftime('%Y-%m-%d')
   if exam.inj_t:
+
     inj_date = exam.inj_t.strftime('%Y-%m-%d')
     inj_time = exam.inj_t.strftime('%H:%M')
 

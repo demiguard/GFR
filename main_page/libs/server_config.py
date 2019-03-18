@@ -12,6 +12,8 @@ DCMCONV = "dcmconv"
 BASE_QUERY_DIR = "./base_queries/"                # Directory contaning all base query files
 SEARCH_RESPONS_DIR = "./search_responses/"        # Directory for temporarily storing search responses
 FIND_RESPONS_DIR = "./active_dicom_objects/"      # Directory for temporarily storing find responses
+BLANK_DICOM_LOC = "./main_page/libs/"
+BlANK_DICOM_FILE = "blank_dicom.dcm"
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
