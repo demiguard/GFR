@@ -5,6 +5,7 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 
 from .server_config import new_dict_items
+from . import formatting
 
 
 def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
@@ -50,6 +51,10 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
 
 
 def store_dicom(dicom_obj_path,
+    cpr                 = None,
+    name                = None,
+    rigs_nr             = None,
+    study_date          = None,
     age                 = None,
     height              = None,
     weight              = None,
@@ -76,6 +81,10 @@ def store_dicom(dicom_obj_path,
     dicom_obj_path  : string, path to the object where you wish information to stored
 
   Optional Args:
+    cpr             : string, CPR number
+    name            : string, Name on format Firstname<1 space>Middlenames sperated by 1 space<1 space>Lastname
+    rigs_nr         : string, Accession number
+    study_date      : string, on format YYYYMMDDHHMM, describing study date
     age             : int, Age of the patient
     height          : float, Height of patient wished to be stored
     weight          : float, Weight of patient wished to be stored
@@ -108,7 +117,7 @@ def store_dicom(dicom_obj_path,
   ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
   ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
   ds.add_new(0x00080064, 'CS', 'SYN')
-  ds.Modality =  ds.ScheduledProcedureStepSequence[0].Modality
+  ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
   #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
   #Number twos
   ds.add_new(0x00080030, 'TM', '')
@@ -118,7 +127,22 @@ def store_dicom(dicom_obj_path,
 
 
   # Set StudyDate
-  ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+  if study_date:
+    ds.StudyDate = study_date.replace('-','')
+    ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = study_date.replace('-','')
+
+  else:
+    ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+  
+  if rigs_nr:
+    ds.AccessionNumber = rigs_nr
+
+  if cpr:
+    ds.PatientID = cpr.replace('-','')
+
+  if name:
+    PN = formatting.name_to_person_name(name)
+    ds.PatientName = PN  
 
   if series_instance_uid:
     ds.SeriesInstanceUID = series_instance_uid
