@@ -47,10 +47,10 @@
     <tbody>
       {% for booking in old_bookings %}
       <tr onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">
-        <td>{{ booking.info.name }}</td>
-        <td>{{ booking.info.cpr }}</td>
-        <td>{{ booking.info.date }}</td>
-        <td>{{ booking.info.rigs_nr }}</td>
+        <td>{{ booking.name }}</td>
+        <td>{{ booking.cpr }}</td>
+        <td>{{ booking.date }}</td>
+        <td>{{ booking.rigs_nr }}</td>
       </tr>
       {% endfor %}
     </tbody>
