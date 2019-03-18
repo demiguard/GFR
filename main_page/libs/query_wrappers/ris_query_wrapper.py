@@ -110,4 +110,4 @@ def get_all(user):
 
     os.remove(key)
   
-  return sorted(ret, key=lambda x: x.info['name'])
+  return sorted(ret, key=lambda x: x.name)
