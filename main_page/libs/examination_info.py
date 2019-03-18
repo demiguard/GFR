@@ -57,7 +57,7 @@ def deserialize(dicom_obj):
   if 'PatientSex' in dicom_obj:
     exam.sex = dicom_obj.PatientSex
   else:
-    exam.sex = clearance_math.calculate_age(exam.cpr)
+    exam.sex = clearance_math.calculate_sex(exam.cpr)
 
   if 'PatientWeight' in dicom_obj:
     exam.weight = dicom_obj.PatientWeight
