@@ -7,28 +7,28 @@ from .clearance_math import clearance_math
 
 class ExaminationInfo:
   def __init__(self):
-    self.rigs_nr     = '',       # Rigs number of the examination
-    self.name        = '',       # Name of patient
-    self.cpr         = '',       # Cpr number of patient
-    self.age         = '',       # Age of patient
-    self.date        = '',       # Scheduled data of examination
-    self.sex         = '',       # Sex of patient
-    self.gfr         = '',       # GFR result (e.g. 'normal', 'svært nedsat', etc.)
-    self.height      = 0.0,      # Height of patient
-    self.weight      = 0.0,      # Weight of patient
-    self.BSA         = 0.0,      # Body surface area of the patient
-    self.clearance   = 0.0,      # Computed clearance
-    self.clearance_N = 0.0,      # Normalized clearance
-    self.Method      = '',       # Method of the examination (e.g. 'et punkts, 'flere punkts', etc.)
-    self.inj_t       = None,     # Injection time of examination (Datetime object, default=None)
-    self.inj_weight  = 0.0,      # Weight difference between vials
-    self.inj_before  = 0.0,      # Weight of vial before examination
-    self.inj_after   = 0.0,      # Weight of vial after examination
-    self.thin_fact   = 0.0,      # Thinning factor
-    self.std_cnt     = 0.0,      # Standard count
-    self.sam_t       = np.array([]), # Datetime list - sample times for the examination
-    self.tch_cnt     = np.array([]), # list of technetium counts
-    self.dosis       = 0,        # Derived value from standard count, thinning factor and weight difference between vials
+    self.rigs_nr     = ''       # Rigs number of the examination
+    self.name        = ''       # Name of patient
+    self.cpr         = ''       # Cpr number of patient
+    self.age         = ''       # Age of patient
+    self.date        = ''       # Scheduled data of examination
+    self.sex         = ''       # Sex of patient
+    self.gfr         = ''       # GFR result (e.g. 'normal', 'svært nedsat', etc.)
+    self.height      = 0.0      # Height of patient
+    self.weight      = 0.0      # Weight of patient
+    self.BSA         = 0.0      # Body surface area of the patient
+    self.clearance   = 0.0      # Computed clearance
+    self.clearance_N = 0.0      # Normalized clearance
+    self.Method      = ''       # Method of the examination (e.g. 'et punkts, 'flere punkts', etc.)
+    self.inj_t       = None     # Injection time of examination (Datetime object, default=None)
+    self.inj_weight  = 0.0      # Weight difference between vials
+    self.inj_before  = 0.0      # Weight of vial before examination
+    self.inj_after   = 0.0      # Weight of vial after examination
+    self.thin_fact   = 0.0      # Thinning factor
+    self.std_cnt     = 0.0      # Standard count
+    self.sam_t       = np.array([]) # Datetime list - sample times for the examination
+    self.tch_cnt     = np.array([]) # list of technetium counts
+    self.dosis       = 0        # Derived value from standard count, thinning factor and weight difference between vials
     self.image       = np.array([]) # pixeldata, contains the resulting image stored in PACS
 
 
