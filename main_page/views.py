@@ -491,10 +491,6 @@ def present_old_study(request, rigs_nr):
   """
   template = loader.get_template('main_page/present_old_study.html')
 
-  if request.method == 'POST':
-    PRH.send_to_pacs(request, rigs_nr)
-    redirect('main_page:list_studies')
-
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
   
