@@ -30,6 +30,7 @@ class ExaminationInfo:
     self.tch_cnt     = np.array([]) # list of technetium counts
     self.dosis       = 0        # Derived value from standard count, thinning factor and weight difference between vials
     self.image       = np.array([]) # pixeldata, contains the resulting image stored in PACS
+    self.procedure   = ''       # The procedure of the examination
 
 
 def deserialize(dicom_obj):
@@ -52,6 +53,12 @@ def deserialize(dicom_obj):
   exam.cpr = formatting.format_cpr(dicom_obj.PatientID)
   exam.date = formatting.format_date(dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
   exam.name = formatting.format_name(dicom_obj.PatientName)
+
+  
+  if 'RequestedProcedureDescription' in dicom_obj:
+    exam.procedure = dicom_obj.RequestedProcedureDescription
+  elif 'RequestedProcedureDescription' in dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription:
+    exam.procedure = dicom_obj
 
   # Depermine patient sex based on cpr nr. if not able to retreive it
   if 'PatientSex' in dicom_obj:
@@ -79,11 +86,11 @@ def deserialize(dicom_obj):
   if 'GFR' in dicom_obj:
     exam.gfr = dicom_obj.GFR
   
-  if 'inj_before' in dicom_obj:
-    exam.inj_befre = dicom_obj.inj_before
+  if 'injbefore' in dicom_obj:
+    exam.inj_before = dicom_obj.injbefore
 
-  if 'inj_after' in dicom_obj:
-    exam.inj_after = dicom_obj.inj_after
+  if 'injafter' in dicom_obj:
+    exam.inj_after = dicom_obj.injafter
 
   if 'ClearTest' in dicom_obj:
     if 'thiningfactor' in dicom_obj.ClearTest[0]:

@@ -471,8 +471,8 @@ def generate_plot_text(
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
   if len(history_age) == len(history_clr_n):
-    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10)
-  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12)
+    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10, color = 'blue')
+  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'green')
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)

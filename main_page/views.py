@@ -164,6 +164,11 @@ def list_studies(request):
     
     DAYS_THRESHOLD = 7
 
+    accepted_procedures = request.user.config.accepted_procedures.split('^')
+    if not exam.procedure in accepted_procedures:
+      os.remove(dcm_file)
+      continue
+
     if days_diff >= DAYS_THRESHOLD:
       os.remove(dcm_file)
       continue
@@ -294,6 +299,9 @@ def fill_study(request, rigs_nr):
     present_sex = 'Mand'
   else:
     present_sex = 'Kvinde'
+
+  print('value inj_before', exam.inj_before)
+  print('value inj_after',exam.inj_after)
 
   context = {
     'rigsnr': rigs_nr,

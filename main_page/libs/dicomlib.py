@@ -130,12 +130,16 @@ def store_dicom(dicom_obj_path,
   if study_date:
     ds.StudyDate = study_date.replace('-','')
     ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = study_date.replace('-','')
-
+    ds.SeriesDate = study_date
   else:
     ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-  
+    ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
   if rigs_nr:
     ds.AccessionNumber = rigs_nr
+
+  series_number = ds.AccessionNumber[4:]
+  ds.add_new(0x00200011, 'IS', series_number)
 
   if cpr:
     ds.PatientID = cpr.replace('-','')
@@ -188,14 +192,15 @@ def store_dicom(dicom_obj_path,
   if injection_weight:
     # ds.injWeight = injection_weight
     ds.add_new(0x0023101A, 'DS', injection_weight)
-  
+   
   if injection_before:
     # ds.injbefore = injection_before
     ds.add_new(0x0023101B, 'DS', injection_before)
-  
+
   if injection_after:
     # ds.injafter = injection_after
     ds.add_new(0x0023101C, 'DS', injection_after)
+
 
   if bsa_method:
     # ds.BSAmethod = bsa_method
