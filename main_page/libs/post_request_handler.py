@@ -99,7 +99,7 @@ def fill_study_post(request, rigs_nr):
 
     gfr = clearance_math.kidney_function(clearance_norm, cpr, age=age, gender=gender)
 
-    history_age, history_clrN = clearance_math.get_histroy(cpr)
+    history_age, history_clrN = clearance_math.get_histroy(request.user, cpr)
 
     plot_path = clearance_math.generate_plot_text(
       weight,

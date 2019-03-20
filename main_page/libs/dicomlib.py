@@ -162,10 +162,12 @@ def store_dicom(dicom_obj_path,
   if weight:
     ds.PatientWeight = weight
 
+  print('Dicomlib:165 \n Gender is:', gender)
   if gender:
-    if gender in ['Male', 'MALE', 'm', 'M', 'Mand', 'mand', 'MAND']:
+    gender = gender.lower()
+    if gender in ['male', 'm', 'mand', 'dreng']:
       ds.PatientSex = 'M'
-    if gender in ['Kvinde', 'KVINDE', 'd', 'D', 'k', 'K', 'woman', 'Woman','WOMAN', 'Dame', 'dame', 'DAME', 'female', 'Female', 'FEMALE']:
+    if gender in ['kvinde', 'd', 'k', 'pige', 'woman', 'dame', 'female' ]:
       ds.PatientSex = 'F'
 
   # PRIVATE TAGS START

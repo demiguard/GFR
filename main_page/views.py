@@ -290,12 +290,17 @@ def fill_study(request, rigs_nr):
     elif exam.Method == 'Flere prøve Voksen':
       study_type = 2
 
+  if exam.sex == 'M':
+    present_sex = 'Mand'
+  else:
+    present_sex = 'Kvinde'
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
       'cpr': exam.cpr,
       'name': exam.name,
-      'sex': exam.sex,
+      'sex': present_sex,
       'age': exam.age
     }),
     'study_patient_form_2': forms.Fillpatient_2(initial={
