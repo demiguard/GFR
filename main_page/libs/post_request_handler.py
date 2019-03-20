@@ -67,7 +67,7 @@ def fill_study_post(request, rigs_nr):
     inj_weight = inj_weight_before - inj_weight_after
 
     # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-    STD_CNT = int(request.POST['std_cnt'].split('.')[0])
+    STD_CNT = int(request.POST['std_cnt_text_box'].split('.')[0])
     FACTOR = int(request.POST['thin_fac'].split('.')[0])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 

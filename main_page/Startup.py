@@ -1,7 +1,12 @@
-import os
+import datetime, logging, os 
 import platform
 
+
 from .libs import server_config
+
+def init_logger():
+  pass
+  
 
 
 def init_dicom_env():
@@ -24,3 +29,4 @@ def start_up():
   components
   """
   init_dicom_env()
+  init_logger()

@@ -208,9 +208,9 @@ def calculate_sex(cprnr):
   Determine wheter the patient is male or female
   """
   if int(cprnr[-1]) % 2 == 0:
-    return 'Kvinde'
+    return 'F'
   else:
-    return 'Mand'
+    return 'M'
 
 def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
   """expression
@@ -239,14 +239,14 @@ def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
   elif age < 15 : # Childern
     Mean_GFR = 109
   elif age < 40: # Grown ups
-    if gender == 'Mand':
+    if gender == 'M':
       Mean_GFR = 111
     else:
       Mean_GFR = 103
   else : #Elders
     magic_number_1 = -1.16
     magic_number_2 = 157.8
-    if gender == 'Mand':
+    if gender == 'M':
       Mean_GFR = magic_number_1 * age + magic_number_2
     else:  
       Female_reference_pct = 0.929 #
@@ -470,7 +470,7 @@ def generate_plot_text(
   ax[0].set_xlabel('Alder (år)', fontsize = 18)
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
-  if len(history_age == history_clr_n):
+  if len(history_age) == len(history_clr_n):
     ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10)
   ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12)
     

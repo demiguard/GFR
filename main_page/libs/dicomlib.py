@@ -162,7 +162,6 @@ def store_dicom(dicom_obj_path,
   if weight:
     ds.PatientWeight = weight
 
-  print('Dicomlib:165 \n Gender is:', gender)
   if gender:
     gender = gender.lower()
     if gender in ['male', 'm', 'mand', 'dreng']:
