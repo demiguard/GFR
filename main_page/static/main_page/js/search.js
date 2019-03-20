@@ -37,7 +37,7 @@ $(function() {
     $('#id_Dato_start').attr('readonly', true);
     $('#id_Dato_finish').attr('readonly', true);
     
-    $('#search-table-body').prop('disabled', true);
+    $('#search-btn').prop('disabled', true);
   }
 
   // Set readonly to false on search fields
@@ -48,23 +48,38 @@ $(function() {
     $('#id_Dato_start').attr('readonly', false);
     $('#id_Dato_finish').attr('readonly', false);
 
-    $('#search-table-body').prop('disabled', false);
+    $('#search-btn').prop('disabled', false);
+  }
+
+  // Displays the loading spinner
+  let show_loading = function() {
+
+  }
+
+  // Removes the loading spinner
+  let hide_loading = function() {
+
   }
 
   // Sends an ajax GET request with the entered search parameters
   let ajax_search = function() {
     // Remove all previous search results
     $('#search-table-body').empty();
+    $('#error-message-container').empty();
 
     // Get search parameters
     let name = $('#id_name').val();
-    let cpr = $('#id_cpr').val();
+    var cpr = $('#id_cpr').val();
+    if (cpr.includes('-')) {
+      cpr = cpr.replace('-', '');
+    }
     let rigs_nr = $('#id_Rigs').val();
     let date_from = $('#id_Dato_start').val();
     let date_to = $('#id_Dato_finish').val();
 
     // Display loading element
     disable_search_fields();
+    show_loading();
 
     $.get({
       url: 'ajax/search',
@@ -109,6 +124,7 @@ $(function() {
           });
         }
 
+        hide_loading();
         enable_search_fields();
       },
       error: function(data) {
@@ -125,6 +141,7 @@ $(function() {
         error_msg.style.color = 'lightcoral';
         $('#error-message-container').append(error_msg);
 
+        hide_loading();
         enable_search_fields();
       },
       timeout: 60000

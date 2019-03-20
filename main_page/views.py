@@ -336,35 +336,73 @@ def fill_study(request, rigs_nr):
 def search(request):
   # Specify page template
   template = loader.get_template('main_page/search.html')
+  
+  # Default date case: display the patients from the last week
+  now = datetime.datetime.now()
+  default_date_to = now.strftime('%Y-%m-%d')
 
-  search_resp = []
+  week_delta = datetime.timedelta(days=7)
+  week_datetime = now - week_delta
+  default_date_from = week_datetime.strftime('%Y-%m-%d')
 
-  if 'search' in request.GET:    
-    # Extract search parameters
+  # Extract search parameters from url
+  if 'name' in request.GET:
     search_name = request.GET['name']
-    search_cpr = request.GET['cpr']
-    search_rigs_nr = request.GET['Rigs']
-    search_date_from = request.GET['Dato_start']
-    search_date_to = request.GET['Dato_finish']
+  else:
+    search_name = ''
 
-    search_resp = pacs.search_pacs(
-      request.user,
-      name=search_name,
-      cpr=search_cpr,
-      rigs_nr=search_rigs_nr,
-      date_from=search_date_from,
-      date_to=search_date_to,
-    )
+  if 'cpr' in request.GET:
+    search_cpr = request.GET['cpr']
+  else:
+    search_cpr = ''
+
+  if 'Rigs' in request.GET:
+    search_rigs_nr = request.GET['Rigs']
+  else:
+    search_rigs_nr = ''
+
+  date_set = False
+  if 'Dato_start' in request.GET:
+    search_date_from = request.GET['Dato_start']
+    date_set = True
+  else:
+    search_date_from = ''
+
+  if 'Dato_finish' in request.GET:
+    search_date_to = request.GET['Dato_finish']
+    date_set = True
+  else:
+    search_date_to = ''
+
+  if not date_set:
+    search_date_from = default_date_from
+    search_date_to = default_date_to
+
+  search_resp = pacs.search_pacs(
+    request.user,
+    name=search_name,
+    cpr=search_cpr,
+    rigs_nr=search_rigs_nr,
+    date_from=search_date_from,
+    date_to=search_date_to,
+  )
 
   # Add specific bootstrap class to the form item and previous search parameters
-  get_study_form = forms.GetStudy()
+  get_study_form = forms.GetStudy(initial={
+    'name': search_name,
+    'cpr': search_cpr,
+    'Rigs': search_rigs_nr,
+    'Dato_start': search_date_from,
+    'Dato_finish': search_date_to
+  })
+  
   for item in get_study_form:
     item.field.widget.attrs['class'] = 'form-control'
 
   context = {
     'getstudy' : get_study_form,
     'responses': search_resp,
-  }    
+  }
 
   return HttpResponse(template.render(context, request))
 
