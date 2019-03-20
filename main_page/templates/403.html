@@ -1,0 +1,9 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block content %}
+  <p>Server fejl: 403</p>
+  <p>Du har ikke adgang til den angivet side, forsøg at logge ind på: <a href="{% url 'main_page:index' %}">{% url 'main_page:index' %}</a></p>
+{% endblock %}
