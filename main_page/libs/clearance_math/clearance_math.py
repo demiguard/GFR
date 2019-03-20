@@ -281,16 +281,23 @@ def compute_times(inj_time, times):
 
 def get_histroy(user, cpr_number):
   """
-  
-  Args:
-  
-  Returns: 
+  Gets the result of all former examinations for a specific patient, and returns the conclusion from these tests
 
+  Args:
+    user: request.user - The user making the request 
+    cpr: string on format DDMMYYXXXX -  The ID of the patient, being searched for 
+  Returns: 
+    ages: Int List, containing the age of the patient, when the examination was done 
+    clearance_norm: float list, containing the normalized clearance from the examination
+
+    Remarks:
+      the ages list and the clearance_norm list are of equal lenght 
   """
   ages = []
   clearance_norm = []
   exam_objs = []
   
+  #Get all accession numbers from former examinations
   empty_exam_objs = pacs.search_pacs(user, cpr = cpr_number)
   
   dirfolder = str(datetime.datetime.today()).replace(' ','').replace('.','').replace(':','')
@@ -305,6 +312,7 @@ def get_histroy(user, cpr_number):
     ages.append(obj.age)
     clearance_norm.append(obj.clearance_N)
 
+  #Cleanup
   shutil.rmtree(dirfolder)
 
   return ages, clearance_norm
@@ -462,8 +470,8 @@ def generate_plot_text(
   ax[0].set_xlabel('Alder (år)', fontsize = 18)
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
-  if len(history_age == history_ClrN):
-    ax[0].plot(history_age, history_ClrN, marker = 'x', markersize = 10)
+  if len(history_age == history_clr_n):
+    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10)
   ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12)
     
   fig.set_figheight(image_Height)
