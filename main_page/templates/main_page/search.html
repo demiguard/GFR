@@ -39,6 +39,9 @@
 
   <br>
   <h2>Søgeresultater:</h2>
+  <div id="error-message-container">
+
+  </div>
   <table class="table table-bordered table-hover">
     <thead>
       <tr>
@@ -48,15 +51,8 @@
         <th>Accession nummer</th>
       </tr>
     </thead>
-    <tbody>
-      {% for resp in responses %}
-      <tr onclick="document.location='{% url "main_page:present_old_study" resp.rigs_nr %}'">
-        <td>{{ resp.name }}</td>
-        <td>{{ resp.cpr }}</td>
-        <td>{{ resp.date }}</td>
-        <td>{{ resp.rigs_nr }}</td>
-      </tr>
-      {% endfor %}
+    <tbody id="search-table-body">
+
     </tbody>
   </table>
 {% endblock %}

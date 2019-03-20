@@ -382,11 +382,21 @@ def ajax_search(request):
     date_to=search_date_to,
   )
 
+  # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
+  serialized_results = []
+  for res in search_resp:
+    serialized_results.append({
+      'rigs_nr': res.rigs_nr,
+      'name': res.name,
+      'cpr': res.cpr,
+      'date': res.date
+    })
+
   data = {
-    'search_results': search_resp
+    'search_results': serialized_results
   }
 
-  return JsonResponse(data)
+  return JsonResponse(data) 
 
 
 @login_required(login_url='/')
