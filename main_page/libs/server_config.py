@@ -1,3 +1,5 @@
+import logging
+
 # NOTE: All directories MUST end in a '/'
 
 # --- Dicom related configs ---
@@ -6,11 +8,11 @@ STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
 DCMCONV = "dcmconv"
 
-BASE_QUERY_DIR = "./base_queries/"                # Directory contaning all base query files
-SEARCH_DIR = "./search_dir/"        # Directory for temporarily storing search responses
-FIND_RESPONS_DIR = "./active_dicom_objects/"      # Directory for temporarily storing find responses
-BLANK_DICOM_LOC = "./main_page/libs/"
-BlANK_DICOM_FILE = "blank_dicom.dcm"
+BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
+SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
+FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses
+BLANK_DICOM_LOC     = "./main_page/libs/"
+BlANK_DICOM_FILE    = "blank_dicom.dcm"
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
@@ -38,14 +40,13 @@ new_dict_items = {
   0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), # Sequence Items
   0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
   0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+  0x00231028 : ('DS', '1', 'ThDEBUGining Factor', '', 'thiningfactor')
 }
 
 # --- Logging --- #
 
-LOG_DIR = "./logs/"
-LOG_FILE = ""
-LOG_LEVEL = "DEBUG"
+LOG_DIR = "./log/"
+LOG_LEVEL = logging.DEBUG
 
 # --- Samba Share --- #
 
