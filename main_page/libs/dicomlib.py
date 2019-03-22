@@ -1,4 +1,4 @@
-import pydicom
+import pydicom, datetime
 from pydicom.values import convert_SQ, convert_string
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
@@ -122,7 +122,7 @@ def store_dicom(dicom_obj_path,
   #Number twos
   ds.add_new(0x00080030, 'TM', '')
   ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
-  ds.add_new(0x00200010, 'SH', '')
+  ds.add_new(0x00200010, 'SH', '1')  #Study ID
   ds.add_new(0x00200013, 'IS', '1')
 
 
@@ -131,9 +131,11 @@ def store_dicom(dicom_obj_path,
     ds.StudyDate = study_date.replace('-','')
     ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = study_date.replace('-','')
     ds.SeriesDate = study_date
+    ds.StudyTime = datetime.datetime.now().strftime('%H%M')
   else:
     ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
     ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+    ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
 
   if rigs_nr:
     ds.AccessionNumber = rigs_nr

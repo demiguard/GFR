@@ -50,9 +50,6 @@ def ajax_login(request):
   """
     I ran out of 'lack of documentation jokes'
   """
-  
-  logging.info('Logger Started up')
-
   signed_in = False
   
   if request.method == 'POST':
@@ -67,12 +64,12 @@ def ajax_login(request):
 
       if user:
         login(request, user)
-        logger.info('{0} logged in successful'.format(request.user.username))
+        logger.info('User: {0} logged in successful'.format(request.user.username))
 
         if user.is_authenticated:
           signed_in = True
       else:
-        logger.warning('{0} Failed to log in'.format(request.user.username))
+        logger.warning('User: {0} Failed to log in'.format(request.POST['username']))
 
 
   data = {
@@ -94,6 +91,11 @@ def logout_page(request):
   Args:
     request: 
   """
+
+  logger.info('User - {0} logged out from ip: {1}'.format(
+    request.user.username,
+    request.META['REMOTE_ADDR']
+  ))
   logout(request)
   return redirect('main_page:index')
 
