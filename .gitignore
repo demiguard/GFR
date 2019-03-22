@@ -4,3 +4,6 @@ tmp/
 # Python cache
 __pycache__/
 *.pyc
+
+# Virtual environment
+venv/
