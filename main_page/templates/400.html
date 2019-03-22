@@ -1,1 +1,11 @@
-<p>Error 400 :  Bad Request, try refreshing or clear browser cookies</p>
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block content %}
+  <p>Server fejl: 400</p>
+  <p>Bad request, kontakt din afdelings it-support for yderligere hjælp.</p>
+  <p>Eller klik på et felt i menuen til venstre, for at gå tilbage.</p>
+{% endblock %}
+
