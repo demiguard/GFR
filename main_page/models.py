@@ -65,6 +65,7 @@ class User(AbstractBaseUser):
     ('FH', 'Frederiksberg hospital'),
     ('BH', 'Bispebjerg hospital'),
     ('GLO', 'Glostrup hospital'),
+    ('HVH', 'Hvidovre hospital'),
   )
   hospital = models.CharField(max_length=3, choices=HOSPS)
 
