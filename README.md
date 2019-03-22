@@ -12,6 +12,8 @@ The project was built using:
   * storescu 
 * Nginx (+ uWSGI)
 
+The project was built and tested on CentOS 7 and Ubuntu 18.04 (bionic beaver)
+
 ### Installing and using virtualenv
 Virtualenv is install through pip3:
 ```
@@ -56,7 +58,72 @@ To allow hosts on the local network to access the debug test site, run the comma
 ```
 
 ### Deploying with nginx
+1. Install uwsgi:
+```
+> pip3 install uwsgi
+```
+2. Test that the Django application can run using uwsgi
+```
+(venv)> uwsgi --http :8000 --module clairvoyance.wsgi
+```
+3. Install nginx
+```
+> sudo apt install nginx
+```
+4. Test that nginx was correctly installed
+```
+sudo /etc/init.d/nginx start
+```
+Then goto localhost:80 in a browser, this should display a welcome message.
 
+5. Configure nginx
+Download the file: https://github.com/nginx/nginx/blob/master/conf/uwsgi_params, and place it in the main Django project directory.
+
+Write the following to a config file under /etc/nginx/sites-available/clairvoyance_nginx.conf
+```
+# clairvoyance_nginx.conf
+
+# the upstream component nginx needs to connect to
+upstream django {
+    server unix:///home/simon/Documents/clearance-stuff/GFR/clairvoyance.sock; # for a file socket
+}
+
+# configuration of the server
+server {
+    listen      80; # the port your site will be served on
+    server_name 193.3.238.103; # substitute your machine's IP address
+    charset     utf-8;
+
+    # max upload size
+    client_max_body_size 75M;
+
+    location /static {
+        alias /home/simon/Documents/clearance-stuff/GFR/main_page/static; # your Django project's static files
+    }
+
+    # Finally, send all non-media requests to the Django server.
+    location / {
+        uwsgi_pass  django;
+        include     /home/simon/Documents/clearance-stuff/GFR/uwsgi_params; # the uwsgi_params file you installed
+    }
+}
+```
+Allow nginx to see this file by creating a symlink to it under the directory: /etc/nginx/sites-enabled/ by using the following command:
+```
+> sudo ln -s /etc/nginx/clairvoyance_nginx.conf /etc/nginx/sites-enabled/clairvoyance_nginx.conf
+```
+
+Edit the file /etc/nginx/default, so that nginx runs on port 8081 by default.
+
+6. Restart the nginx service:
+```
+> sudo /etc/init.d/nginx restart
+```
+7. Test that the server can run using:
+```
+> uwsgi --socket clairvoyance.sock --module clairvoyance.wsgi --chmod-socket=666 --enable-threads
+```
+Now you should be able to go to 'localhost' in a browser and see the server running (we can use just 'localhost' since we are running on port 80)
 
 ---
 
