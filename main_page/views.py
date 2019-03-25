@@ -353,7 +353,7 @@ def fill_study(request, rigs_nr):
     },
     'previous_samples': previous_samples,
     'csv_data': csv_data,
-    'csv_data_len': len(data_files),
+    'csv_data_len': len(data_names),
     'error_message' : error_message,
     'standart_count' : exam.std_cnt,
   }
