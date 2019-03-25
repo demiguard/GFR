@@ -128,7 +128,7 @@ $(function() {
 
 
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis</p><p id=\"error-message\">Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis<br>Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
 
@@ -145,7 +145,7 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.</p><p id=\"error-message\">Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
           }
