@@ -43,7 +43,7 @@ def fill_study_post(request, rigs_nr):
   if 'calculate' in request.POST:
     logger.info('User: {0} calculated GFR on Examination number: {1} from ip: {2}'.format(
       request.user.username,
-      request.POST['rigs_nr'],
+      rigs_nr,
       request.META['REMOTE_ADDR']
     ))
 
