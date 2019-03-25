@@ -211,7 +211,7 @@ def store_form(request, rigs_nr):
   dicomlib.store_dicom(dicom_path, update_dicom = True, update_date = True)
   
   dicomlib.store_dicom(dicom_path, series_number = rigs_nr[4:])
-  dicmmlib.store_dicom(dicom_path, station_name = request.user.config.pacs_calling)
+  dicomlib.store_dicom(dicom_path, station_name = request.user.config.pacs_calling)
 
   # Store age
   if request.POST['age']:    
