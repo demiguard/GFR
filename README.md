@@ -20,7 +20,12 @@ Virtualenv is install through pip3:
 > pip3 install virtualenv
 ```
 
-Running the virtualenv:
+Initializing virtualenv
+```
+> virtualenv venv
+```
+
+Running virtualenv:
 ```
 > source venv/bin/activate
 ```
@@ -66,18 +71,29 @@ To allow hosts on the local network to access the debug test site, run the comma
 ```
 (venv)> uwsgi --http :8000 --module clairvoyance.wsgi
 ```
-3. Install nginx
+3. Install nginx (**Ubuntu**)
 ```
 > sudo apt install nginx
 ```
+3. Install nginx (**CentOS 7**)
+```
+> sudo yum install epel-release
+> sudo yum install nginx
+```
 4. Test that nginx was correctly installed
 ```
-sudo /etc/init.d/nginx start
+sudo systemctl start nginx
 ```
 Then goto localhost:80 in a browser, this should display a welcome message.
 
 5. Configure nginx
 Download the file: https://github.com/nginx/nginx/blob/master/conf/uwsgi_params, and place it in the main Django project directory.
+
+If the /etc/nginx/sites-available and /etc/nginx/sites-enabled directories doesn't exist, then create them and edit the file /etc/nginx/nginx.conf and add the line:
+```
+include /etc/nginx/sites-enabled/*;
+```
+(No need to include the sites-avaiable since sites-enabled will contain symlinks to configs inside this directory)
 
 Write the following to a config file under /etc/nginx/sites-available/clairvoyance_nginx.conf
 ```
@@ -110,7 +126,7 @@ server {
 ```
 Allow nginx to see this file by creating a symlink to it under the directory: /etc/nginx/sites-enabled/ by using the following command:
 ```
-> sudo ln -s /etc/nginx/clairvoyance_nginx.conf /etc/nginx/sites-enabled/clairvoyance_nginx.conf
+> sudo ln -s /etc/nginx/sites-available/clairvoyance_nginx.conf /etc/nginx/sites-enabled/clairvoyance_nginx.conf
 ```
 
 Edit the file /etc/nginx/default, so that nginx runs on port 8081 by default.
@@ -121,7 +137,7 @@ Edit the file /etc/nginx/default, so that nginx runs on port 8081 by default.
 ```
 7. Test that the server can run using:
 ```
-> uwsgi --socket clairvoyance.sock --module clairvoyance.wsgi --chmod-socket=666 --enable-threads
+> uwsgi --socket clairvoyance.sock --module clairvoyance.wsgi --chmod-socket=666
 ```
 Now you should be able to go to 'localhost' in a browser and see the server running (we can use just 'localhost' since we are running on port 80)
 
