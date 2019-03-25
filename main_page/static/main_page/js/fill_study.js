@@ -119,29 +119,33 @@ $(function() {
         //------------ Range Checker --------------- 
         //Range checker for kids
         if ($('input[name=study_type]:checked').val() == 1) {
-          //Time ranges in minutes!
-          var range_low = 110
-          var range_high = 130
+          //Time ranges in milisecounds!
+          var range_low = 110*60*1000
+          var range_high = 130*60*1000
           
           var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
-          if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis</p><p>Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
+
+          if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis</p><p id=\"error-message\">Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
+
           }
+          
         }
         //Range Checker for grown ups
         if ($('input[name=study_type]:checked').val() == 0) {
-          var range_low = 180
-          var range_high = 240
+          //Time ranges in milisecounds!
+          var range_low = 180*60*1000
+          var range_high = 240*60*1000
           
           var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
-          if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.</p><p>Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
+          if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.</p><p id=\"error-message\">Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
           }
