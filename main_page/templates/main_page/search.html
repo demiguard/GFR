@@ -42,13 +42,13 @@
   <div id="error-message-container">
 
   </div>
-  <table class="table table-bordered table-hover">
+  <table class="table table-bordered table-hover" id="result_table">
     <thead>
       <tr>
-        <th>Navn</th>
-        <th>Cpr nr.</th>
-        <th>Dato</th>
-        <th>Accession nummer</th>
+        <th onclick="sort_table(0,'result_table')">Navn</th>
+        <th onclick="sort_table(1,'result_table')">Cpr nr.</th>
+        <th onclick="sort_table(2,'result_table')">Dato</th>
+        <th onclick="sort_table(3,'result_table')">Accession nummer</th>
       </tr>
     </thead>
     <tbody id="search-table-body">
@@ -66,4 +66,5 @@
 
 {% block javascript %}
   <script src="{% static 'main_page/js/search.js' %}"></script>
+  <script src="{% static 'main_page/js/sort_table.js' %}"></script>
 {% endblock %}

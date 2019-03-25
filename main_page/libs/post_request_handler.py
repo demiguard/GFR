@@ -16,7 +16,7 @@ from . import server_config
 from . import dicomlib
 
 from dateutil import parser as date_parser
-import datetime
+import datetime, logging
 import glob
 import os
 import pandas
@@ -24,6 +24,7 @@ import numpy
 import pydicom
 import PIL
 
+logger = logging.getLogger()
 
 def fill_study_post(request, rigs_nr):
   """
@@ -40,6 +41,12 @@ def fill_study_post(request, rigs_nr):
 
   #Beregn
   if 'calculate' in request.POST:
+    logger.info('User: {0} calculated GFR on Examination number: {1} from ip: {2}'.format(
+      request.user.username,
+      request.POST['rigs_nr'],
+      request.META['REMOTE_ADDR']
+    ))
+
     store_form(request, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']

@@ -31,8 +31,12 @@ import pydicom
 import PIL
 import glob
 
+logger = logging.getLogger()
 
 def index(request):
+  """
+  Would you believe me if i said i could fly
+  """
   template = loader.get_template('main_page/index.html')
 
   context = {
@@ -43,6 +47,9 @@ def index(request):
 
 
 def ajax_login(request):
+  """
+    I ran out of 'lack of documentation jokes'
+  """
   signed_in = False
   
   if request.method == 'POST':
@@ -57,9 +64,13 @@ def ajax_login(request):
 
       if user:
         login(request, user)
+        logger.info('User: {0} logged in successful'.format(request.user.username))
 
         if user.is_authenticated:
           signed_in = True
+      else:
+        logger.warning('User: {0} Failed to log in'.format(request.POST['username']))
+
 
   data = {
     'signed_in': signed_in,
@@ -74,12 +85,24 @@ def ajax_login(request):
 
 @login_required(login_url='/')
 def logout_page(request):
+  """
+  Logs a user out
+
+  Args:
+    request: 
+  """
+
+  logger.info('User - {0} logged out from ip: {1}'.format(
+    request.user.username,
+    request.META['REMOTE_ADDR']
+  ))
   logout(request)
   return redirect('main_page:index')
 
 
 @login_required(login_url='/')
 def new_study(request):
+  logger = logging.getLogger()
   # Specify page template
   template = loader.get_template('main_page/new_study.html')
 
@@ -203,7 +226,6 @@ def list_studies(request):
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
   # Specify page template
-  print(request.POST)
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
@@ -300,9 +322,6 @@ def fill_study(request, rigs_nr):
   else:
     present_sex = 'Kvinde'
 
-  print('value inj_before', exam.inj_before)
-  print('value inj_after',exam.inj_after)
-
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
@@ -342,6 +361,9 @@ def fill_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def search(request):
+  """
+    Needs doc - TODO SIMON
+  """
   # Specify page template
   template = loader.get_template('main_page/search.html')
   
@@ -416,7 +438,11 @@ def search(request):
 
 
 @login_required(login_url='/')
-def ajax_search(request):  
+def ajax_search(request): 
+  """
+  OOH LOOK DOCUMENTATION
+
+  """
   # Extract search parameters
   search_name = request.GET['name']
   search_cpr = request.GET['cpr']
@@ -452,7 +478,9 @@ def ajax_search(request):
 
 @login_required(login_url='/')
 def present_old_study(request, rigs_nr):
-  """list(reversed(
+  """
+
+  I FEEL SO UNDOCUMENTED
 
   Remark:
     Should pull information down from PACS, but not be able to send to it.
@@ -593,6 +621,10 @@ def present_study(request, rigs_nr):
 
 @login_required(login_url='/')
 def settings(request):
+  """
+    TRUMP would have deported me, being so undocumented!
+  """
+
   template = loader.get_template('main_page/settings.html')
 
   saved = False

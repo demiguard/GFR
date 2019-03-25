@@ -142,7 +142,6 @@ def get_examination(user, rigs_nr, resp_dir):
     # Get object from DCM4CHEE/PACS Database
     obj = get_from_pacs(user, rigs_nr, resp_dir)
 
-  print(obj)
   return examination_info.deserialize(obj)
 
 
