@@ -127,7 +127,7 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, Prøven kan derfor være upræcis</p>");
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis</p><p>Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
           }
@@ -141,7 +141,7 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if ( time_of_sample - time_of_inj  < range_low || time_of_sample - time_of_inj > range_high) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, Prøven kan derfor være upræcis</p>");
+            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.</p><p>Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
           }
@@ -175,7 +175,7 @@ $(function() {
         // 'Lock' button on click
         var lock_str = '#lock' + test_count.toString();
         $(lock_str).on('click', function() {
-          var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
+          var resp = confirm("Advarsel: Manuel rettelse bør kun anvendes i nødstilfælde!");
           
           if (resp) {
             var form_parent = $(this).parent().parent();
@@ -224,7 +224,7 @@ $(function() {
         });
         var sanity = Math.abs(data_values[0] - data_values[1]) / sum
         if (sanity > sanity_checker) { // Value to be updated
-          $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!</p>");
+          $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl!</p>");
           $('#error-message').css('color', '#FFA71A');
           $('#error-message').css('font-size', 18);
         }
@@ -243,14 +243,22 @@ $(function() {
         //If lenght = 1
         $('#standart-text').val(sum);
         console.log(sum)
-        $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed</p>");
+        $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed.</p>");
         $('#error-message').css('color', '#FFA71A');
         $('#error-message').css('font-size', 18);
       
       }
+      // Deselect the two tests
+      //Empty 
+      csv_row_ids_array.forEach(function(item) {
+        $("#" + item).css('background-color', 'white');
+      });
+      csv_row_ids_array = [];
+      
+
     } else {
       //If lenght = 0
-      $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales</p>");
+      $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales.</p>");
       $('#error-message').css('color', '#FF0000');
       $('#error-message').css('font-size', 22);
     }
@@ -305,7 +313,7 @@ $(function() {
     "#id_vial_weight_before":  {'min_value': 3,     'max_value': 5},
     "#id_vial_weight_after":   {'min_value': 0,     'max_value': 5},
     "#id_std_cnt":             {'min_value': 1000,  'max_value': 10000},
-    "#id_thin_fac":            {'min_value': 500,   'max_value': 1500},
+    "#id_thin_fac":            {'min_value': 3500,   'max_value': 7500},
   };
 
   for (var key in id_thresholds) {

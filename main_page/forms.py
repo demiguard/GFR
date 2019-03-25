@@ -54,7 +54,7 @@ class Fillexamination(forms.Form):
 
 class Filldosis(forms.Form):
   #std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
-  thin_fac = forms.IntegerField(label='Faktor', required=False, min_value = 0)
+  thin_fac = forms.IntegerField(label='Fortyndingsfaktor', required=False, min_value = 0)
 
 class FillStudyType(forms.Form):
   types = [
