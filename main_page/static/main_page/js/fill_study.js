@@ -26,7 +26,6 @@ $(function() {
       }
     }
 
-    //window.location.replace('http://localhost:8000/list_studies');
     window.location.replace("/list_studies");
   });
 
@@ -414,13 +413,6 @@ $(function() {
       }
     }
 
-    // Prompt to confim study
-    //var resp = confirm("Er undersøgelsen fuldendt?");
-    //if (!resp) {
-    //  $(window).on("beforeunload", unload_func);
-    //  return false;
-    //}
-
     return true;
   });
 
@@ -458,9 +450,5 @@ $(function() {
       $(window).on("beforeunload", unload_func);
       return false;
     }
-
-
-
   });
-
 });

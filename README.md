@@ -142,5 +142,17 @@ The creation can be validated using the sqlitebrowser, where the users lie under
 
 ---
 
+## Notes
+Example of different user agents (```request.META['HTTP_USER_AGENT']```):
+Internet explorer on the RH laptop: 
+Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
+
+Firefox on Ubuntu 18.04: 
+Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0
+
+Chrome on Ubuntu 18.04: 
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36
+
+
 ## Code documentation
 ...to come in the future...
