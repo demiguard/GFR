@@ -129,6 +129,8 @@ def new_study(request):
       
       dicomlib.store_dicom(
         new_destination,
+        update_date=True,
+        update_dicom=True,
         cpr = cpr,
         name = name,
         study_date = study_date,

@@ -51,6 +51,8 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
 
 
 def store_dicom(dicom_obj_path,
+    update_dicom        = False,
+    update_date         = False,
     cpr                 = None,
     name                = None,
     rigs_nr             = None,
@@ -69,8 +71,10 @@ def store_dicom(dicom_obj_path,
     clearance           = None,
     clearance_norm      = None,
     series_instance_uid = None,
+    series_number       = None,
     sop_class_uid       = None,
     sop_instance_uid    = None,
+    station_name        = None,
     sample_seq          = [],
     pixeldata           = []
   ):
@@ -112,36 +116,43 @@ def store_dicom(dicom_obj_path,
   keyword_dict.update(new_names_dirc)
 
   ds = dcmread_wrapper(dicom_obj_path)
-  ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
-  ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
-  ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
-  ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
-  ds.add_new(0x00080064, 'CS', 'SYN')
-  ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
-  #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
-  #Number twos
-  ds.add_new(0x00080030, 'TM', '')
-  ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
-  ds.add_new(0x00200010, 'SH', '1')  #Study ID
-  ds.add_new(0x00200013, 'IS', '1')
+
+  if update_dicom:
+
+    ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
+    ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
+    ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
+    ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
+    ds.add_new(0x00080064, 'CS', 'SYN')
+    ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
+    #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
+    #Number twos
+    ds.add_new(0x00080030, 'TM', '')
+    ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
+    ds.add_new(0x00200010, 'SH', '1')  #Study ID
+    ds.add_new(0x00200013, 'IS', '1')
 
 
   # Set StudyDate
-  if study_date:
-    ds.StudyDate = study_date.replace('-','')
-    ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = study_date.replace('-','')
-    ds.SeriesDate = study_date
-    ds.StudyTime = datetime.datetime.now().strftime('%H%M')
-  else:
-    ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-    ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-    ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+  if update_date:
+    if study_date:
+      date_string = study_date.replace('-','')
+      time_string = datetime.datetime.now().strftime('%H%M')
+
+      ds.StudyDate = date_string
+      ds.SeriesDate = date_string
+      ds.StudyTime = time_string
+      ds.SeriesTime = time_string
+      ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = date_string
+      ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime = time_string
+    else:
+      ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+      ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+      ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+      ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
 
   if rigs_nr:
     ds.AccessionNumber = rigs_nr
-
-  series_number = ds.AccessionNumber[4:]
-  ds.add_new(0x00200011, 'IS', series_number)
 
   if cpr:
     ds.PatientID = cpr.replace('-','')
@@ -149,6 +160,9 @@ def store_dicom(dicom_obj_path,
   if name:
     PN = formatting.name_to_person_name(name)
     ds.PatientName = PN  
+
+  if series_number:
+    ds.add_new(0x00200011, 'IS', series_number)
 
   if series_instance_uid:
     ds.SeriesInstanceUID = series_instance_uid
@@ -158,6 +172,9 @@ def store_dicom(dicom_obj_path,
 
   if sop_instance_uid:
     ds.SOPInstanceUID = sop_instance_uid
+
+  if station_name:
+    ds.StationName = station_name
 
   if age:
     ds.PatientAge = age

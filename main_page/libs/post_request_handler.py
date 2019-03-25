@@ -196,6 +196,7 @@ def store_form(request, rigs_nr):
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
 
+
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
 
@@ -205,6 +206,12 @@ def store_form(request, rigs_nr):
   DICOM_dirc = '{0}{1}/'.format(base_resp_dir, hospital)
 
   dicom_path = '{0}{1}.dcm'.format(DICOM_dirc, rigs_nr)  
+
+  #Initail Storing
+  dicomlib.store_dicom(dicom_path, update_dicom = True, update_date = True)
+  
+  dicomlib.store_dicom(dicom_path, series_number = rigs_nr[4:])
+  dicmmlib.store_dicom(dicom_path, station_name = request.user.config.pacs_calling)
 
   # Store age
   if request.POST['age']:    
