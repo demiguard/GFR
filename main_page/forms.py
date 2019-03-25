@@ -25,7 +25,7 @@ class LoginForm(forms.Form):
 
 # Ny undersøgelse
 class NewStudy(forms.Form):
-  cpr = forms.IntegerField(label='Cpr. nr.')
+  cpr = forms.CharField(label='Cpr. nr.')
   name = forms.CharField(label='Navn')
   study_date = forms.DateField(label='Dato (YYYY-MM-DD)')
   rigs_nr = forms.CharField(label='RIS nr.')
