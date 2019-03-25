@@ -24,4 +24,10 @@
       {% endbuttons %}
     </form>
   </div>
-{% endblock %}
+{% endblock content %}
+
+{% block javascript %}
+<script>
+  $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
+</script>
+{% endblock javascript %}
