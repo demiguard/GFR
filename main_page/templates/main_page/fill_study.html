@@ -76,6 +76,9 @@
     {% buttons %}
       <input type="button" value="Tilføj Prøve" id="add-test">
       <input type="button" value="Tilføj Standard" id="add-standart">
+      <input type="submit" name="calculate" value="Beregn" id="calculate">
+      <input type="submit" name="save" value="Gem" id="save">
+      <input type="button" value="Afbryd" id="cancel">
     {% endbuttons %}
 
     <!-- Select test values from csv file -->
@@ -126,11 +129,7 @@
     
     </div>
 
-    {% buttons %}
-      <input type="submit" name="calculate" value="Beregn" id="calculate">
-      <input type="submit" name="save" value="Gem" id="save">
-      <input type="button" value="Afbryd" id="cancel">
-    {% endbuttons %}
+
   </form>
 
 {% endblock %}
