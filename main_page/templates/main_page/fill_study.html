@@ -75,7 +75,7 @@
     <div id="error-message-container"></div>
     {% buttons %}
       <input type="button" value="Tilføj Prøve" id="add-test">
-      <input type="button" value="Tilføj Standart" id="add-standart">
+      <input type="button" value="Tilføj Standard" id="add-standart">
     {% endbuttons %}
 
     <!-- Select test values from csv file -->
@@ -98,7 +98,6 @@
                   <tr>
                     <th>Rack</th>
                     <th>Position</th>
-                    <th>Tc-99 Counts</th>
                     <th>Tc-99 CPM</th>
                   </tr>
                 </thead>
@@ -108,7 +107,6 @@
                       <td>{{ data_row.0 }}</td>
                       <td>{{ data_row.1 }}</td>
                       <td>{{ data_row.2 }}</td>
-                      <td>{{ data_row.3 }}</td>
                     </tr>  
                   {% endfor %}
                 </tbody>

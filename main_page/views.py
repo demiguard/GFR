@@ -277,7 +277,6 @@ def fill_study(request, rigs_nr):
       for i, row in data_file.iterrows():
         curr_data[i].append(row['Rack'])
         curr_data[i].append(row['Pos'])
-        curr_data[i].append(row['Tc-99m Counts'])
         curr_data[i].append(row['Tc-99m CPM'])
         data_names.append(i)
 
