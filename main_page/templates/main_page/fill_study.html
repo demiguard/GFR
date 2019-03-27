@@ -3,6 +3,11 @@
 {% load static %}
 {% load bootstrap4 %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/fill_study.css' %}">
+{% endblock head %}
+
+
 {% block content %}
   <h2>Udfyld undersøgelse</h2>
   <strong>Undersøgelse rigs nr.:</strong><p>{{ rigsnr }}</p>
@@ -23,111 +28,124 @@
       </div>  
       <div class = "form-group col-md-3">
         {% bootstrap_form study_dosis_form %}
+        {% bootstrap_form study_type_form %}
       </div>
     </div>
     
-    {% bootstrap_form study_type_form %}
-    
-    <!-- Display test info -->
-    {% if csv_data_len != 0 %}
-    <strong>Stardard tælle tal</strong>
-    <div class="form-row">
-      <div class="form-group col-md-3">
-        <input type="number" step="0.001" class="form-control" id="standart-text" name="std_cnt_text_box" value="{{ standart_count }}">
-      </div>
-    </div>
-    <h5>Prøve data</h5>
-    <div id="test-data-container">
-      <!-- Place where JS inserts new test data -->
+    <hr>
 
-      <!-- Insert previous tests -->
-      {% for psd, pst, psc in previous_samples %}
+    <!-- Second Half -->
+    <div class="row">
+      <!-- Left side-->
+      <div class="col-md-6">
+        <!-- Display test info -->
+        {% if csv_data_len != 0 %}
+        <strong>Stardard tælle tal</strong>
         <div class="form-row">
-          <div class="form-group col-md-3 readonly-field">
-            <input type="text" class="form-control" name="study_date" value="{{ psd }}" readonly>
-          </div>
-          <div class="form-group col-md-3 readonly-field">
-            <input type="text" class="form-control" name="study_time" value="{{ pst }}" readonly>
-          </div>
-          <div class="form-group col-md-3 readonly-field">
-            <input type="text" class="form-control" name="test_value" value="{{ psc }}" readonly>
-          </div>
-          <div class="form-group col-md-3 readonly-field">
-            <input type="button" value="X" class="row-remove-btn btn btn-danger">
-            <input type="button" value="&#x1f512;" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+          <div class="form-group col-md-8">
+            <input type="number" step="0.001" class="form-control" id="standart-text" name="std_cnt_text_box" value="{{ standart_count }}">
           </div>
         </div>
-      {% endfor %}
-    </div>
+        <h5>Prøve data</h5>
+        <div id="test-data-container">
+          <!-- Place where JS inserts new test data -->
 
-    <!-- Add test info -->
-    <strong>Tilføj prøve:</strong>
-    <div class="form-row" id="form-top">
-      <div class="form-group col-md-3">
-        {{ test_context.test_form.study_date.label }}
-        {{ test_context.test_form.study_date }}
-      </div>
-      <div class="form-group col-md-3">
-        {{ test_context.test_form.study_time.label }}
-        {{ test_context.test_form.study_time }}
-      </div>
-    </div>
-    <div id="error-message-container"></div>
-    {% buttons %}
-      <input type="button" value="Tilføj Prøve" id="add-test">
-      <input type="button" value="Tilføj Standard" id="add-standart">
-      <input type="submit" name="calculate" value="Beregn" id="calculate">
-      <input type="submit" name="save" value="Gem" id="save">
-      <input type="button" value="Afbryd" id="cancel">
-    {% endbuttons %}
-
-    <!-- Select test values from csv file -->
-    <p>Vælg prøve fra fil:</p>
-    <div class="csvAccordion" id="accordionContainer">
-      {% for name, data, id in csv_data %}
-        <div class="card">
-          <div class="card-header" id="heading-{{ id }}">
-            <h2 class="mb-0">
-              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ id }}" aria-expanded="true" aria-controls="collapse-{{ id }}">
-                {{ name }}
-              </button>
-            </h2>
-          </div>
-
-          <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
-            <div class="card-body">
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Rack</th>
-                    <th>Position</th>
-                    <th>Tc-99 CPM</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for data_row in data %}
-                    <tr class="csv_row" id="{{ id }}-{{ forloop.counter }}">
-                      <td>{{ data_row.0 }}</td>
-                      <td>{{ data_row.1 }}</td>
-                      <td>{{ data_row.2 }}</td>
-                    </tr>  
-                  {% endfor %}
-                </tbody>
-              </table>
+          <!-- Insert previous tests -->
+          {% for psd, pst, psc in previous_samples %}
+            <div class="form-row">
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="study_date" value="{{ psd }}" readonly>
+              </div>
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="study_time" value="{{ pst }}" readonly>
+              </div>
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="test_value" value="{{ psc }}" readonly>
+              </div>
+              <div class="form-group col-md-3 readonly-field">
+                <input type="button" value="X" class="row-remove-btn btn btn-danger">
+                <input type="button" value="&#x1f512;" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+              </div>
             </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add test info -->
+        <strong>Tilføj prøve:</strong>
+        <div class="form-row" id="form-top">
+          <div class="form-group col-md-4">
+            {{ test_context.test_form.study_date.label }}
+            {{ test_context.test_form.study_date }}
+          </div>
+          <div class="form-group col-md-4">
+            {{ test_context.test_form.study_time.label }}
+            {{ test_context.test_form.study_time }}
           </div>
         </div>
-        <br>
-      {% endfor %}
-    </div>
-    {% else %}
-      <p>{{ error_message }}</p>
-    {% endif %}
+        <div id="error-message-container"></div>
+        {% buttons %}
+          <input type="button" value="Tilføj Prøve" id="add-test">
+          <input type="button" value="Tilføj Standard" id="add-standart">
+          <input type="submit" name="calculate" value="Beregn" id="calculate">
+          <input type="submit" name="save" value="Gem" id="save">
+          <input type="button" value="Afbryd" id="cancel">
+        {% endbuttons %}
 
-    <!-- Submission buttons -->
-    <div id="submit-err-container">
+        <div id="submit-err-container">
+  
+        </div>
+      <!--Left Closing-->
+      </div>
+
+      <!-- Right side-->
+      <div class="col-md-6" id="right_side">
+        <p><strong>Vælg prøve fra fil</strong></p>
+        <div class="csvAccordion" id="accordionContainer">
+          {% for name, data, id in csv_data %}
+            <div class="card">
+              <div class="card-header" id="heading-{{ id }}">
+                <h2 class="mb-0">
+                  <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ id }}" aria-expanded="true" aria-controls="collapse-{{ id }}">
+                    {{ name }}
+                  </button>
+                </h2>
+              </div>
     
+              <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
+                <div class="card-body">
+                  <table class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th>Rack</th>
+                        <th>Position</th>
+                        <th>Tc-99 CPM</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for data_row in data %}
+                        <tr class="csv_row" id="{{ id }}-{{ forloop.counter }}">
+                          <td>{{ data_row.0 }}</td>
+                          <td>{{ data_row.1 }}</td>
+                          <td>{{ data_row.2 }}</td>
+                        </tr>  
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <br>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p>{{ error_message }}</p>
+        {% endif %}  
+      <!-- Right closing-->
+      </div>
     </div>
+
+
+    
 
 
   </form>

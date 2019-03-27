@@ -93,12 +93,14 @@ $(function() {
         if (csv_row_ids_array.length > 0){
         // Avg. of two selected rows
         var sum = 0
+        console.log(sum)
+        console.log(csv_row_ids_array)
         if (csv_row_ids_array.length == 2) {
           var data_values = []
 
           csv_row_ids_array.forEach(element => {
-            data_values.push(parseFloat($('#' + element).children().eq(3).text()))
-            sum += parseFloat($('#' + element).children().eq(3).text()) / 2
+            data_values.push(parseFloat($('#' + element).children().eq(2).text()))
+            sum += parseFloat($('#' + element).children().eq(2).text()) / 2
           });
           
           var sanity = Math.abs(data_values[0] - data_values[1]) / sum
@@ -110,12 +112,13 @@ $(function() {
 
         } else { //Only 1 element selected
           csv_row_ids_array.forEach(element => {
-            sum += parseFloat($('#' + element).children().eq(3).text())
+            sum += parseFloat($('#' + element).children().eq(2).text())
           });
           $('#error-message-container').append("<p id=\"error-message\">Det anbefaldes at der bruges 2 datapunkter for større sikkerhed</p>");
           $('#error-message').css('color', '#FFA71A');
           $('#error-message').css('font-size', 18);
         }
+        console.log(sum)
         //------------ Range Checker --------------- 
         //Range checker for kids
         if ($('input[name=study_type]:checked').val() == 1) {
@@ -223,8 +226,8 @@ $(function() {
         //TO DO ADD Sanity checks
         var data_values = [];
         csv_row_ids_array.forEach(element => {
-          data_values.push(parseFloat($('#' + element).children().eq(3).text()))  
-          sum += parseFloat($('#' + element).children().eq(3).text()) / 2
+          data_values.push(parseFloat($('#' + element).children().eq(2).text()))  
+          sum += parseFloat($('#' + element).children().eq(2).text()) / 2
         });
         var sanity = Math.abs(data_values[0] - data_values[1]) / sum
         if (sanity > sanity_checker) { // Value to be updated
@@ -234,7 +237,7 @@ $(function() {
         }
       } else {
         csv_row_ids_array.forEach(element => {
-          sum += parseFloat($('#' + element).children().eq(3).text())
+          sum += parseFloat($('#' + element).children().eq(2).text())
         });
       }
     
@@ -284,7 +287,7 @@ $(function() {
       $(this).css('background-color', '#bada55');
     } 
   });
-  
+   
 
   // Click function to reset color
   var ids_to_check = [

@@ -1,0 +1,8 @@
+#id_study_type > label {
+  display:block;
+}
+
+#right_side {
+  height: 480px;
+  overflow: auto
+}

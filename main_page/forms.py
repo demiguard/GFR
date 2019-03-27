@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import ModelForm
+from django.utils.safestring import mark_safe
 from main_page.models import Config
 
 # User settings form
