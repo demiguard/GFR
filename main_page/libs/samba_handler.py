@@ -68,7 +68,6 @@ def smb_get_csv(hospital, timeout = 60):
     temp_file.seek(0)
 
     pandas_ds = pandas.read_csv(temp_file.name)
-    returnarray.append(pandas_ds)
     #File Cleanup
     datestring = pandas_ds['Measurement date & time'][0]
     protocol = pandas_ds['Protocol name'][0]
@@ -81,8 +80,9 @@ def smb_get_csv(hospital, timeout = 60):
     dt_examination = datetime.datetime.strptime(datestring, '%Y-%m-%d %H:%M:%S')
     if not ((now -  dt_examination).days <= 0):
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
-
-
+    else:
+      returnarray.append(pandas_ds)
+      
     temp_file.close()
 
 
