@@ -323,6 +323,13 @@ def fill_study(request, rigs_nr):
   else:
     present_sex = 'Kvinde'
 
+  if exam.inj_before == 0.0:
+    exam.inj_before = None
+
+  if exam.inj_after == 0.0:
+    exam.inj_after = None
+
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
