@@ -323,12 +323,25 @@ def fill_study(request, rigs_nr):
   else:
     present_sex = 'Kvinde'
 
+  #This Code is not approve of the pretty police
   if exam.inj_before == 0.0:
     exam.inj_before = None
 
   if exam.inj_after == 0.0:
     exam.inj_after = None
 
+  if exam.height == 0.0:
+    exam.height = None
+
+  if exam.weight == 0.0:
+    exam.weight = None
+
+  if exam.thin_fact == 0.0:
+    exam.thin_fact = None
+
+  if exam.std_cnt == 0.0:
+    exam.std_cnt = None
+  # --- ---
 
   context = {
     'rigsnr': rigs_nr,
