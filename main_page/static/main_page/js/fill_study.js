@@ -206,8 +206,8 @@ $(function() {
           $('#error-message').css('color', '#FF0000');
           $('#error-message').css('font-size', 22);
         }
-      } else { // Incorrect time format
-        $('#id_study_time').css('border', '2px solid lightcoral');
+      } else { // Incorrect time formatinjection_time
+        $('#id_study_time').css('borderinjection_time lightcoral');
       }
     } else { // Incorrect date format
       $('#id_study_date').css('border', '2px solid lightcoral');
@@ -463,4 +463,23 @@ $(function() {
       return false;
     }
   });
+
+  //Adding Colons to time fields
+  var $jq_inj_time_field = jQuery('input[name=\"injection_time\"]');
+  var $jq_sam_time_field = jQuery('input[name=\"study_time\"]')
+
+  function addcolon(key){
+    if(key.witch !== 8){
+      var number_of_chars = $(this).val().length;
+      if (number_of_chars === 2){
+        var copyvalue = $(this).val()
+        copyvalue += ':'
+        $(this).val(copyvalue)
+      }
+    }
+  }
+
+  $jq_inj_time_field.bind('keypress', addcolon)
+  $jq_sam_time_field.bind('keypress', addcolon)
+
 });
