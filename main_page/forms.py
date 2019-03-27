@@ -43,18 +43,18 @@ class Fillpatient_1(forms.Form):
   age = forms.FloatField(label='Alder', required=False, min_value=0)
   
 class Fillpatient_2(forms.Form):
-  height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)
-  weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0)
+  height = forms.FloatField(label='Højde (cm)', required=False)
+  weight = forms.FloatField(label='Vægt (kg)', required=False)
 
 class Fillexamination(forms.Form):
-  vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False, min_value=0)
-  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
+  vial_weight_before = forms.FloatField(label='Sprøjtevægt før Injektion (g)', required=False)
+  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False)
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
   injection_date = forms.DateField(label='Injektionsdato (YYYY-MM-DD)', required=False)  
 
 class Filldosis(forms.Form):
   #std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
-  thin_fac = forms.IntegerField(label='Fortyndingsfaktor', required=False, min_value = 0)
+  thin_fac = forms.IntegerField(label='Fortyndingsfaktor', required=False)
 
 class FillStudyType(forms.Form):
   types = [
