@@ -343,6 +343,8 @@ def fill_study(request, rigs_nr):
     exam.std_cnt = None
   # --- ---
 
+  logger.info('exan weight: {0}'.format(exam.weight))
+
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
