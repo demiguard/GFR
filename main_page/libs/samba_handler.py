@@ -85,9 +85,11 @@ def smb_get_csv(hospital, timeout = 60):
       
     temp_file.close()
 
-
   conn.close()
-  return returnarray
+  #sort return array
+  sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0],reverse=True)
+
+  return sorted_array
 
 def get_backup_file(date, hospital, timeout = 30):
   """

@@ -269,7 +269,7 @@ def fill_study(request, rigs_nr):
     data_files = samba_handler.smb_get_csv(request.user.hospital, timeout=10)
 
     # Read required data from each csv file  
-    for data_file in list(reversed(data_files)):
+    for data_file in data_files:
       prestring = "Undersøgelse lavet: "
 
       curr_data = [[] for _ in range(data_file.shape[0])]
