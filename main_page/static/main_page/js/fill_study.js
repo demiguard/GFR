@@ -485,4 +485,11 @@ $(function() {
   $jq_inj_time_field.bind('keypress', addcolon)
   $jq_sam_time_field.bind('keypress', addcolon)
 
+  $('#reset-selected').click(function(){
+    csv_row_ids_array.forEach(function(item) {
+      $("#" + item).css('background-color', 'white');
+    });
+    csv_row_ids_array = [];
+  })
+
 });
