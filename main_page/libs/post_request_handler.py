@@ -291,7 +291,9 @@ def store_form(request, rigs_nr):
 
   #There's Data to put in
   if sample_dates:
-    #If thining factor have been inputed
+    # If thining factor have been inputed
+    thin_factor = ''
+    std_cnt = ''
     if request.POST['thin_fac']:
       thin_factor = float(request.POST['thin_fac'])
     if request.POST['std_cnt_text_box']:

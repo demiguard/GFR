@@ -79,6 +79,15 @@ $(function() {
     });
   });
 
+  // Add the on click event handlers to the previous sample remove buttons
+  $('.row-remove-btn').each(function() {
+    $('.row-remove-btn').on('click', function() {
+      test_count--;
+      $(this).parent().parent().remove();
+    });
+  });
+
+
   var csv_row_ids_array = [];
   var sanity_checker = 0.25
   $('#add-test').click(function() {
@@ -99,8 +108,6 @@ $(function() {
         if (csv_row_ids_array.length > 0){
         // Avg. of two selected rows
         var sum = 0
-        console.log(sum)
-        console.log(csv_row_ids_array)
         if (csv_row_ids_array.length == 2) {
           var data_values = []
 
@@ -124,7 +131,7 @@ $(function() {
           $('#error-message').css('color', '#FFA71A');
           $('#error-message').css('font-size', 18);
         }
-        console.log(sum)
+
         //------------ Range Checker --------------- 
         //Range checker for kids
         if ($('input[name=study_type]:checked').val() == 1) {
