@@ -166,7 +166,7 @@ $(function() {
         $('#test-data-container').append(html_row_base_begin);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_time" + html_field_input_end + study_time + html_field_end);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum + html_field_end);
+        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum.toFixed(2) + html_field_end);
         $('#test-data-container .form-row').last().append(html_button_div + html_remove_btn + html_lock_btn + html_button_div_end);
         $('#test-data-container').append(html_row_base_end);
 
@@ -213,6 +213,7 @@ $(function() {
       $('#id_study_date').css('border', '2px solid lightcoral');
     }
   });
+
   //Handler for tilføj-standart button
   $('#add-standart').on('click', function() {
     $('#error-message-container').empty()
@@ -240,13 +241,11 @@ $(function() {
     
       if (csv_row_ids_array.length > 1) {
         //If lenght = 2
-        $('#standart-text').val(sum);
-        console.log(sum)
-
+        $('#standart-text').val(sum.toFixed(2));
       } else {
         //If lenght = 1
-        $('#standart-text').val(sum);
-        console.log(sum)
+        $('#standart-text').val(sum.toFixed(2));
+
         $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed.</p>");
         $('#error-message').css('color', '#FFA71A');
         $('#error-message').css('font-size', 18);
