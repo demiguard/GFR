@@ -1,5 +1,11 @@
 // Wait until document ready
 $(function() {
+  // Helper function to round of floating point numbers
+  function round_to(num, n) {
+    p = Math.pow(10, n);
+    return Math.round(num * p) / p;
+  }
+
   // Add date pickers to date fields
   $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
@@ -169,7 +175,7 @@ $(function() {
         $('#test-data-container').append(html_row_base_begin);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
         $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_time" + html_field_input_end + study_time + html_field_end);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + sum.toFixed(2) + html_field_end);
+        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + round_to(sum, 3) + html_field_end);
         $('#test-data-container .form-row').last().append(html_button_div + html_remove_btn + html_lock_btn + html_button_div_end);
         $('#test-data-container').append(html_row_base_end);
 
@@ -244,10 +250,10 @@ $(function() {
     
       if (csv_row_ids_array.length > 1) {
         //If lenght = 2
-        $('#standart-text').val(sum.toFixed(2));
+        $('#standart-text').val(round_to(sum, 3));
       } else {
         //If lenght = 1
-        $('#standart-text').val(sum.toFixed(2));
+        $('#standart-text').val(round_to(sum, 3));
 
         $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed.</p>");
         $('#error-message').css('color', '#FFA71A');

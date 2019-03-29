@@ -102,7 +102,6 @@ def logout_page(request):
 
 @login_required(login_url='/')
 def new_study(request):
-  logger = logging.getLogger()
   # Specify page template
   template = loader.get_template('main_page/new_study.html')
 
@@ -227,6 +226,8 @@ def list_studies(request):
 
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
+  
+  logger.info("TESTTESTTESTTESTTESTTEST")
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
 
