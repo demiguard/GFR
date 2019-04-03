@@ -270,7 +270,7 @@ def fill_study(request, rigs_nr):
 
     # Read required data from each csv file  
     for data_file in data_files:
-      prestring = "Undersøgelse lavet: "
+      prestring = ""
 
       curr_data = [[] for _ in range(data_file.shape[0])]
 
@@ -287,7 +287,7 @@ def fill_study(request, rigs_nr):
   except:
     error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
-  inj_time = today.strftime('%H:%M')
+  inj_time = ""
   inj_date = today.strftime('%Y-%m-%d')
   if exam.inj_t:
     inj_date = exam.inj_t.strftime('%Y-%m-%d')
