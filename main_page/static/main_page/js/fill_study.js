@@ -108,16 +108,24 @@ $(function() {
         if (csv_row_ids_array.length > 0){
         // Avg. of two selected rows
         var sum = 0
-        if (csv_row_ids_array.length == 2) {
+        if (csv_row_ids_array.length >= 2) {
           var data_values = []
 
           csv_row_ids_array.forEach(element => {
             data_values.push(parseFloat($('#' + element).children().eq(2).text()))
-            sum += parseFloat($('#' + element).children().eq(2).text()) / 2
+            sum += parseFloat($('#' + element).children().eq(2).text()) / csv_row_ids_array.length
           });
           
-          var sanity = Math.abs(data_values[0] - data_values[1]) / sum
-          if (sanity > sanity_checker) {
+          var sanity = true;
+          for (i = 0; i < csv_row_ids_array.length; i++) {
+            for (j = i+1; j < csv_row_ids_array.length; j++){
+              var distance = Math.abs((data_values[i] - data_values[j]) / (data_values[i] + data_values[j])); 
+              console.log(distance)
+              sanity &= distance > sanity_checker;
+            }
+          }
+
+          if (sanity) {
             $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!</p>");
             $('#error-message').css('color', '#FFA71A');
             $('#error-message').css('font-size', 18);
@@ -236,15 +244,22 @@ $(function() {
 
     if(csv_row_ids_array.length > 0) {
       var sum = 0;
-      if (csv_row_ids_array.length == 2) {
+      if (csv_row_ids_array.length >= 2) {
         //TO DO ADD Sanity checks
         var data_values = [];
         csv_row_ids_array.forEach(element => {
           data_values.push(parseFloat($('#' + element).children().eq(2).text()))  
-          sum += parseFloat($('#' + element).children().eq(2).text()) / 2
+          sum += parseFloat($('#' + element).children().eq(2).text()) / csv_row_ids_array.length
         });
-        var sanity = Math.abs(data_values[0] - data_values[1]) / sum
-        if (sanity > sanity_checker) { // Value to be updated
+        var sanity = true;
+        for (i = 0; i < csv_row_ids_array.length; i++) {
+          for (j = i+1; j < csv_row_ids_array.length; j++){
+            var distance = Math.abs((data_values[i] - data_values[j]) / (data_values[i] + data_values[j])); 
+            sanity &= distance > sanity_checker;
+          }
+
+        }
+        if (sanity) { // Value to be updated
           $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl!</p>");
           $('#error-message').css('color', '#FFA71A');
           $('#error-message').css('font-size', 18);
@@ -256,7 +271,7 @@ $(function() {
       }
     
       if (csv_row_ids_array.length > 1) {
-        //If lenght = 2
+        //If lenght = 2,3
         $('#standart-text').val(round_to(sum, 3));
       } else {
         //If lenght = 1
@@ -294,7 +309,7 @@ $(function() {
         return id != item;
       });
     }
-    else if(csv_row_ids_array.length < 2 ){
+    else if(csv_row_ids_array.length < 3 ){
       csv_row_ids_array.push($(this).attr("id"));
       $(this).css('background-color', '#bada55');
     } 
