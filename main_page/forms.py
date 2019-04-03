@@ -61,7 +61,7 @@ class FillStudyType(forms.Form):
   types = [
     (0, 'Et punkt voksen'),
     (1, 'Et punkt barn'),
-    (2, 'Flere Prøve, inc 24 timer prøve, børn og voksne')
+    (2, 'Flere punkts prøve')
   ]
 
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
