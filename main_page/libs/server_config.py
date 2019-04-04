@@ -52,11 +52,11 @@ LOG_LEVEL = logging.INFO
 
 #PYSMB Connection
 samba_ip = '172.16.78.176'
-samba_name = 'ubuntu'
+samba_name = 'gfr'
 
 samba_user = 'gfr'
-samba_pass = 'clearance'
-samba_pc   = 'kylle'
+samba_pass = 'gfr'
+samba_pc   = 'gfr'
 samba_share = 'data'
 
 samba_Sample = 'Samples'
