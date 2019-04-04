@@ -8,11 +8,12 @@ STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
 DCMCONV = "dcmconv"
 
+DAYS_THRESHOLD = 3                                # How long dicom files should be kept stored on the server
+
 BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
 SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
 FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses
-BLANK_DICOM_LOC     = "./main_page/libs/"
-BlANK_DICOM_FILE    = "blank_dicom.dcm"
+BLANK_DICOM_FILE    = "{0}blank_dicom.dcm".format(BASE_QUERY_DIR)
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
@@ -20,6 +21,7 @@ IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
 BASE_FIND_QUERY = "{0}base_find_query.dcm".format(BASE_QUERY_DIR)                              # Used for the list studies page
 BASE_IMG_QUERY_PATH = "{0}base_img_query.dcm".format(BASE_QUERY_DIR)                          # Used for retreiving images
 BASE_SEARCH_FILE = "{0}base_search_query.dcm".format(BASE_QUERY_DIR)                            # Used for the searching page
+BASE_RIGS_QUERY = "{0}base_rigs_query.dcm".format(BASE_QUERY_DIR)                             # Used for retreiving examinations from rigs booking system
 
 DICOMDICT_UBUNTU = "/usr/share/libdcmtk12/dicom.dic"
 DICOMDICT_CENTOS = "/usr/local/share/dcmtk/dicom.dic"

@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse, FileResponse, JsonResponse, Http404
 from django.template import loader
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.log import DEFAULT_LOGGING
@@ -121,7 +123,7 @@ def new_study(request):
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-      blank_dicom_file_location = '{0}{1}'.format(server_config.BLANK_DICOM_LOC, server_config.BlANK_DICOM_FILE)
+      blank_dicom_file_location = '{0}{1}'.format(server_config.BASE_QUERY_DIR, server_config.BLANK_DICOM_FILE)
       new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
 
       shutil.copyfile(blank_dicom_file_location, new_destination, follow_symlinks=False)  
@@ -144,90 +146,22 @@ def new_study(request):
   return HttpResponse(template.render(context, request))
 
 
-@login_required(login_url='/')
-def list_studies(request):
-  """
-    1. get studies from RIGS (Using wrapper functions)
-    2. display studies
-  """
-  # Specify page template
-  template = loader.get_template('main_page/list_studies.html')
-  
-  bookings = []
-  for booking in ris.get_all(request.user):
-    # Remove all booking previously sent to PACS
+class ListStudies(TemplateView, LoginRequiredMixin):
+  template_name = 'main_page/list_studies.html'
+  login_url = '/'
 
-    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=booking.rigs_nr).exists()
-    if not sent_to_pacs:
-      bookings.append(booking)
+  def get(self, request):
+    bookings = ris.get_all(request.user)
 
-  # TODO: Move this into ris query wrapper (v2.0 when ris_query_wrapper is split into a pacs wrapper as well)
-  # Fetch all old bookings
-  DICOM_directory = '{0}/{1}'.format(
-    server_config.FIND_RESPONS_DIR, 
-    request.user.hospital
-  )
+    context = {
+      'bookings': bookings,
+    }
 
-  old_bookings = []
-  for dcm_file in glob.glob('{0}/*.dcm'.format(DICOM_directory)):
-    # Delete file if more than one week since procedure start
-    dcm_name = os.path.basename(dcm_file).split('.')[0]
-    dcm_dirc = os.path.dirname(dcm_file)
-
-    # Don't display old booking which have already been sent to PACS
-    sent_to_pacs = models.HandledExaminations.objects.filter(rigs_nr=dcm_name).exists()
-    if sent_to_pacs:
-      continue
-
-    exam = pacs.get_examination(request.user, dcm_name, dcm_dirc)
-    procedure_date = datetime.datetime.strptime(exam.date, '%d/%m-%Y')
-
-    now = datetime.datetime.now()
-    time_diff = now - procedure_date
-    days_diff = time_diff.days
-    
-    DAYS_THRESHOLD = 7
-
-    accepted_procedures = request.user.config.accepted_procedures.split('^')
-    if not exam.procedure in accepted_procedures:
-      os.remove(dcm_file)
-      continue
-
-    if days_diff >= DAYS_THRESHOLD:
-      os.remove(dcm_file)
-      continue
-
-    # read additional contents    
-    exam.name = exam.name
-    exam.date = exam.date
-    exam.cpr = exam.cpr
-    exam.rigs_nr = exam.rigs_nr
-
-    def existing_user(rigs_nr):
-      """
-        checks if a user already exists
-      """
-      for booking in bookings:
-        if booking.rigs_nr == rigs_nr:
-          return True
-      return False
-
-    if not existing_user(exam.rigs_nr): 
-      old_bookings.append(exam)
-
-  
-  context = {
-    'bookings': bookings,
-    'old_bookings': reversed(sorted(old_bookings, key=lambda x: x.date))
-  }
-
-  return HttpResponse(template.render(context, request))
+    return render(request, self.template_name, context)
 
 
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
-  
-  logger.info("TESTTESTTESTTESTTESTTEST")
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
 

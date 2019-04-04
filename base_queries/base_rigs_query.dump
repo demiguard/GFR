@@ -11,24 +11,6 @@
 (0002,0012) UI [1.2.276.0.7230010.3.0.3.6.2]            #  28, 1 ImplementationClassUID
 (0002,0013) SH [OFFIS_DCMTK_362]                        #  16, 1 ImplementationVersionName
 
-# Private tags
-(0023,0010) LO []
-(0023,1001) LO []
-(0023,1002) LO []
-(0023,1010) LO []
-(0023,1011) LO []
-(0023,1012) DS []
-(0023,1014) DS []
-(0023,1018) DT []
-(0023,101A) DS []
-(0023,101B) DS []
-(0023,101C) DS []
-#(0023,1020) SQ []
-#  (0023,1021) DT []
-#  (0023,1022) DS []
-#  (0023,1024) DS []
-#  (0023,1028) DS []
-
 # Dicom-Data-Set
 # Used TransferSyntax: Little Endian Explicit
 (0008,0022) DA (no value available)                     #   0, 0 AcquisitionDate
