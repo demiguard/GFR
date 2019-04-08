@@ -55,8 +55,8 @@ def check_cpr(cpr):
   elif len(cpr) == 11: # Cpr string contains '-' char
     if cpr[6] == '-':
       cpr = cpr.replace('-', '')
-  else: 
-    return "Incorrect CPR nr."
+  else:
+    return "Forkert formattering af cpr nr."
 
   # Check if digits and validate checksum
   if cpr.isdigit():
@@ -68,17 +68,17 @@ def check_cpr(cpr):
     if (p_cpr * p_con).sum() % 11 == 0:
       return None
 
-  return "Incorrect CPR nr."
+  return "Forkert formattering af cpr nr."
 
 
 def check_name(name):
   if name == '':
-    return "No name given"
+    return "Intet navn angivet"
   
   if ' ' in name:
     return None
 
-  return "No first or lastname given"
+  return "Fornavn og efternavn skal udfyldes"
 
 
 def check_date(date):
@@ -107,20 +107,20 @@ def check_date(date):
           if day > 0 and day < days_in_month:
             return None
           else:
-            return "Invalid day in study date"
+            return "Fejlagtig dag i dato."
         else:
-          return "Invalid month in study date"
+          return "Fejlagtig måned i dato."
       else:
-        return "Invalid study date, contains none digit characters"
+        return "Dato må kun indeholde heltal og '-'."
     else:
-      return "Invalid study date, check format"
+      return "Forkert formattering af dato."
 
-  return "Invalid study date, check format"
+  return "Forkert formattering af dato."
 
 
 def check_rigs_nr(rigs_nr):
   """
-  Checs if a given RIGS nr is valid
+  Checks if a given RIGS nr is valid
 
   Args:
     rigs_nr: RIGS nr to check
@@ -131,7 +131,7 @@ def check_rigs_nr(rigs_nr):
   if 'REGH' in rigs_nr:
     return None
 
-  return "Invalid RIGS nr, check format"
+  return "Accession nr. skal starte med 'REGH'."
 
 
 def is_valid_study(cpr, name, study_date, rigs_nr):

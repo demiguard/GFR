@@ -35,17 +35,18 @@ import glob
 
 logger = logging.getLogger()
 
-def index(request):
+class IndexView(TemplateView):
   """
-  Would you believe me if i said i could fly
+  Index page - also serves as the login page
   """
-  template = loader.get_template('main_page/index.html')
+  template_name = 'main_page/index.html'
 
-  context = {
-    'login_form': forms.LoginForm()
-  }
+  def get(self, request):
+    context = {
+      'login_form': forms.LoginForm()
+    }
 
-  return HttpResponse(template.render(context, request))
+    return render(request, self.template_name, context)
 
 
 def ajax_login(request):

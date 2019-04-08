@@ -8,7 +8,7 @@ Startup.start_up()
 
 app_name = 'main_page'
 urlpatterns = [
-  path('', views.index, name='index'),
+  path('', views.IndexView.as_view(), name='index'),
   path('list_studies/new_study', views.NewStudy.as_view(), name='new_study'),
   path('list_studies', views.ListStudies.as_view(), name='list_studies'),
   path('fill_study/<str:rigs_nr>', views.fill_study, name='fill_study'),
