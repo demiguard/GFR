@@ -593,17 +593,23 @@ def present_study(request, rigs_nr):
   return HttpResponse(template.render(context,request))
 
 
-@login_required(login_url='/')
-def settings(request):
+class SettingsView(TemplateView, LoginRequiredMixin):
   """
-    TRUMP would have deported me, being so undocumented!
+  User configuration view
   """
+  template_name = 'main_page/settings.html'
+  login_url = '/'
 
-  template = loader.get_template('main_page/settings.html')
+  def get(self, request):
+    context = {
+      'settings_form': forms.SettingsForm(instance=request.user.config)
+    }
 
-  saved = False
+    return render(request, self.template_name, context)
 
-  if request.method == 'POST':
+  def post(self, request):
+    saved = False
+
     instance = models.Config.objects.get(pk=request.user.config.config_id)
     form = forms.SettingsForm(request.POST, instance=instance)
     if form.is_valid():
@@ -612,12 +618,12 @@ def settings(request):
 
       saved = True
 
-  context = {
-    'settings_form': forms.SettingsForm(instance=request.user.config),
-    'saved': saved,
-  }
+    context = {
+      'settings_form': forms.SettingsForm(instance=request.user.config),
+      'saved': saved
+    }
 
-  return HttpResponse(template.render(context, request))
+    return render(request, self.template_name, context)
 
 
 def documentation(request):
