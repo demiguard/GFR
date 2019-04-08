@@ -70,20 +70,25 @@
         </div>
 
         <!-- Add test info -->
-        <strong>Tilføj prøve:</strong>
-        <div class="form-row" id="form-top">
-          <div class="form-group col-md-4">
-            {{ test_context.test_form.study_date.label }}
-            {{ test_context.test_form.study_date }}
+        <div id="add-test-container">
+          <strong>Tilføj prøve:</strong>
+          <div class="form-row" id="form-top">
+            <div class="form-group col-md-4">
+              {{ test_context.test_form.study_date.label }}
+              {{ test_context.test_form.study_date }}
+            </div>
+            <div class="form-group col-md-4">
+              {{ test_context.test_form.study_time.label }}
+              {{ test_context.test_form.study_time }}
+            </div>
+            
           </div>
-          <div class="form-group col-md-4">
-            {{ test_context.test_form.study_time.label }}
-            {{ test_context.test_form.study_time }}
-          </div>
+          {% buttons %}
+            <input type="button" value="Tilføj Prøve" id="add-test">
+          {% endbuttons %}
         </div>
         <div id="error-message-container"></div>
         {% buttons %}
-          <input type="button" value="Tilføj Prøve" id="add-test">
           <input type="button" value="Tilføj Standard" id="add-standart">
           <input type="button" value="Nulstil valgte prøver" id="reset-selected">
         {% endbuttons %}
