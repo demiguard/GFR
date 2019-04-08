@@ -102,31 +102,42 @@ def logout_page(request):
   return redirect('main_page:index')
 
 
-@login_required(login_url='/')
-def new_study(request):
-  # Specify page template
-  template = loader.get_template('main_page/new_study.html')
+class NewStudy(TemplateView, LoginRequiredMixin):
+  template_name = 'main_page/new_study.html'
+  login_url = '/'
 
-  context = {
-    'study_form': forms.NewStudy(initial={'study_date': datetime.date.today}),
-    'error_msg' : ''
-  }
+  def get(self, request):
+    context = {
+      'study_form': forms.NewStudy(initial={'study_date': datetime.date.today})
+    }
 
-  # Handle POST requests
-  if request.method == 'POST':
+    return render(request, self.template_name, context)
+
+  def post(self, request):
+
     # Create and store dicom object for new study
     cpr = request.POST['cpr']
     name = request.POST['name']
     study_date = request.POST['study_date']
     rigs_nr = request.POST['rigs_nr']
 
+    new_study_form = forms.NewStudy(initial={
+      'cpr': cpr,
+      'name': name,
+      'study_date': study_date,
+      'rigs_nr': rigs_nr
+    })
+
+    context = {
+      'study_form': new_study_form,
+      'error_msg' : ''
+    }
+
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-      blank_dicom_file_location = '{0}{1}'.format(server_config.BASE_QUERY_DIR, server_config.BLANK_DICOM_FILE)
       new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
-
-      shutil.copyfile(blank_dicom_file_location, new_destination, follow_symlinks=False)  
+      shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
       
       dicomlib.store_dicom(
         new_destination,
@@ -136,14 +147,13 @@ def new_study(request):
         name = name,
         study_date = study_date,
         rigs_nr = rigs_nr        
-        )
+      )
 
       # redirect to fill_study/rigs_nr 
       return redirect('main_page:fill_study', rigs_nr=rigs_nr)
     else:
       context['error_msgs'] = error_msgs
-
-  return HttpResponse(template.render(context, request))
+      return render(request, self.template_name, context)
 
 
 class ListStudies(TemplateView, LoginRequiredMixin):
