@@ -49,13 +49,13 @@ class IndexView(TemplateView):
     return render(request, self.template_name, context)
 
 
-def ajax_login(request):
+class AjaxLogin(TemplateView):
   """
-    I ran out of 'lack of documentation jokes'
+  Handles processing of login requests from javascript
   """
-  signed_in = False
-  
-  if request.method == 'POST':
+  def post(self, request):
+    signed_in = False
+    
     login_form = forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
@@ -74,36 +74,41 @@ def ajax_login(request):
       else:
         logger.warning('User: {0} Failed to log in'.format(request.POST['username']))
 
+    data = {
+      'signed_in': signed_in,
+    }
+    resp = JsonResponse(data)
 
-  data = {
-    'signed_in': signed_in,
-  }
-  resp = JsonResponse(data)
+    if not signed_in:
+      resp.status_code = 403
 
-  if not signed_in:
-    resp.status_code = 403
-
-  return resp
+    return resp
 
 
-@login_required(login_url='/')
-def logout_page(request):
+class LogoutView(TemplateView, LoginRequiredMixin):
   """
-  Logs a user out
-
-  Args:
-    request: 
+  Logouts out the current user from the session.
+  (either through a GET or POST request)
   """
+  login_url = '/'
 
-  logger.info('User - {0} logged out from ip: {1}'.format(
-    request.user.username,
-    request.META['REMOTE_ADDR']
-  ))
-  logout(request)
-  return redirect('main_page:index')
+  def logout_current_user(self, request):
+    logger.info('User - {0} logged out from ip: {1}'.format(
+      request.user.username,
+      request.META['REMOTE_ADDR']
+    ))
 
+    logout(request)
+    return redirect('main_page:index')
 
-class NewStudy(TemplateView, LoginRequiredMixin):
+  def get(self, request):
+    return self.logout_current_user(request)
+
+  def post(self, request):
+    return self.logout_current_user(request)
+  
+
+class NewStudyView(TemplateView, LoginRequiredMixin):
   template_name = 'main_page/new_study.html'
   login_url = '/'
 
@@ -157,7 +162,7 @@ class NewStudy(TemplateView, LoginRequiredMixin):
       return render(request, self.template_name, context)
 
 
-class ListStudies(TemplateView, LoginRequiredMixin):
+class ListStudiesView(TemplateView, LoginRequiredMixin):
   template_name = 'main_page/list_studies.html'
   login_url = '/'
 
