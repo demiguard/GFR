@@ -54,8 +54,12 @@ def fill_study_post(request, rigs_nr):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
+  if int(request.POST['study_type']) == 2:
     sample_dates = request.POST.getlist('study_date')[:-1]
     sample_times = request.POST.getlist('study_time')[:-1]
+  else:
+    sample_dates = request.POST.getlist('study_date')
+    sample_times = request.POST.getlist('study_time')
 
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])
@@ -101,10 +105,10 @@ def fill_study_post(request, rigs_nr):
     )
 
     cpr = request.POST['cpr']
-    age = float(request.POST['age'])
+    birthdate = request.POST['birthdate']
     gender = request.POST['sex']
 
-    gfr = clearance_math.kidney_function(clearance_norm, cpr, age=age, gender=gender)
+    gfr = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
     history_age, history_clrN = clearance_math.get_histroy(request.user, cpr)
 
@@ -115,7 +119,7 @@ def fill_study_post(request, rigs_nr):
       clearance,
       clearance_norm,
       gfr,
-      age,
+      birthdate,
       gender,
       rigs_nr,
       hosp_dir=request.user.hospital,
@@ -214,10 +218,11 @@ def store_form(request, rigs_nr):
   dicomlib.store_dicom(dicom_path, station_name = request.user.config.pacs_calling)
 
   # Store age
-  if request.POST['age']:    
+  if request.POST['birthdate']:    
+    clearance_math
     dicomlib.store_dicom(
       dicom_path,
-      age=request.POST['age']
+      age=request.POST['birthdate']
     )
 
   #Injection Date Time information
@@ -285,8 +290,15 @@ def store_form(request, rigs_nr):
       bsa_method = bsa_method 
     )
 
-  sample_dates = request.POST.getlist('study_date')[:-1]
-  sample_times = request.POST.getlist('study_time')[:-1]
+
+  if int(request.POST['study_type']) == 2:
+    sample_dates = request.POST.getlist('study_date')[:-1]
+    sample_times = request.POST.getlist('study_time')[:-1]
+  else:
+    sample_dates = request.POST.getlist('study_date')
+    sample_times = request.POST.getlist('study_time')
+    
+
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
   #There's Data to put in

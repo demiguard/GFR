@@ -302,7 +302,7 @@ def fill_study(request, rigs_nr):
       'cpr': exam.cpr,
       'name': exam.name,
       'sex': present_sex,
-      'age': exam.age
+      'birthdate': exam.birthdate
     }),
     'study_patient_form_2': forms.Fillpatient_2(initial={
       'height': exam.height,

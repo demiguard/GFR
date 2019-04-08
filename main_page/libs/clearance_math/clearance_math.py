@@ -3,11 +3,13 @@ import matplotlib.pyplot as plt
 import pandas
 import datetime
 import os, shutil
+import logging
 from PIL import Image
 from scipy.stats import linregress
 
 from ..query_wrappers import pacs_query_wrapper as pacs
 
+logger = logging.getLogger()
 
 class UNKNOWNMETHODEXEPTION(Exception):
   def __init__(self):
@@ -212,7 +214,7 @@ def calculate_sex(cprnr):
   else:
     return 'M'
 
-def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
+def kidney_function(clearance_norm, cpr, birthdate, gender='Kvinde'):
   """expression
     Calculate the Kidney function compared to their age and gender
   Args:
@@ -227,8 +229,11 @@ def kidney_function(clearance_norm, cpr, age=1.0, gender='Kvinde'):
     age_in_days = calculate_age_in_days(cpr)
     gender = calculate_sex(cpr)
   except:
-    age = age
-    age_in_days = age * 365
+    now = datetime.datetime.today()
+    birthdate = datetime.datetime.strptime(birthdate, '%Y-%m-%d')
+
+    age_in_days = (now - birthdate).days
+    age = int((now - birthdate).days / 365)
     gender = gender
 
   #Calculate Mean GFR
@@ -317,6 +322,72 @@ def get_histroy(user, cpr_number):
 
   return ages, clearance_norm
 
+def calculate_birthdate(cpr):
+  """
+    Calculate birthdate from cpr 
+
+    Return a string on format
+      YYYY-MM-DD
+  """
+  logger.debug('Called with argument:{0}'.format(cpr))
+
+  cpr = cpr.replace('-','')
+
+  day_of_birth = int(cpr[0:2])
+  month_of_birth = int(cpr[2:4])
+  last_digits_year_of_birth = int(cpr[4:6])
+  control = int(cpr[6])
+
+  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+  if control in [0,1,2,3] or (control in [4,9] and 37 <= last_digits_year_of_birth ): 
+    first_digits_year_of_birth = 19
+  elif (control in [4,9] and last_digits_year_of_birth <= 36) or (control in [5,6,7,8] and last_digits_year_of_birth <= 57):
+    first_digits_year_of_birth = 20
+  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
+
+  returnstring = '{0}-{1}-{2}{3}'.format(
+    day_of_birth,
+    month_of_birth,
+    first_digits_year_of_birth,
+    last_digits_year_of_birth
+    )
+
+  logger.debug('Returning with string:{0}'.format(returnstring))
+  
+  return returnstring 
+
+
+def _age_string(day_of_birth):
+
+  logger.debug('Called with argument:{0}'.format(day_of_birth))
+
+  today = datetime.datetime.today()
+  date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
+
+  diff = today - date_of_birth
+
+  age_in_years = int(diff.days / 365)
+  if age_in_years > 2:
+    return '{0} år'.format(age_in_years)
+  else:
+    days_since_last_birthday = diff.days % 365
+    months_since_last_birthday = int(days_since_last_birthday / 30)
+
+    month_str = 'måneder'
+    if months_since_last_birthday == 1:
+      month_str = 'måned'
+    elif months_since_last_birthday == 0:
+      month_str = ''
+
+    if age_in_years > 0 and not(months_since_last_birthday == 0) :
+      return '{0} år {1} {2}'.format(age_in_years, months_since_last_birthday, month_str)
+    elif age_in_years > 0:
+      return '{0} år'.format(age_in_years)
+    elif not(months_since_last_birthday == 0):
+      return '{0} {1}'.format(months_since_last_birthday, month_str)
+    else:
+      return 'Mindre end 1 måned.'
+
 
 def generate_plot_text(
   weight,
@@ -325,7 +396,7 @@ def generate_plot_text(
   clearance,
   clearance_norm,
   kidney_function,
-  age,
+  day_of_birth,
   sex,
   rigs_nr,
   hosp_dir='',
@@ -395,9 +466,7 @@ def generate_plot_text(
   #grey_y =      [130, 130, 130]
 
   gender = sex
-  if age >= 3.0:
-    age = int(age)
-
+  age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
 
   ymax = 120
   while clearance_norm > ymax:
@@ -441,12 +510,12 @@ def generate_plot_text(
 
   #Text setup for graph 1
   gender_str          = "Køn: {0}\n\n".format(gender)
-  age_str             = "Alder: {0} år\n\n".format(age)
+  age_str             = "Alder: {0}\n\n".format(_age_string(day_of_birth))
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
-  height_str          = "Højde: {0} cm\n\n".format(height)
+  height_str          = "Højde: {0:.0f} cm\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m²\n\n".format(BSA)
-  clearance_str       = "Clearance: {0:.2f} ml / min\n\n".format(clearance)
-  clearance_norm_str  = "Clearance, Normaliseret til 1,73: {0:.2f} ml / min\n\n".format(clearance_norm) 
+  clearance_str       = "GFR: {0:.0f} ml / min\n\n".format(clearance)
+  clearance_norm_str  = "GFR, Normaliseret til 1,73m²: {0:.0f} ml / min\n\n".format(clearance_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
   print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(
@@ -472,7 +541,7 @@ def generate_plot_text(
   ax[0].grid(color='black')
   if len(history_age) == len(history_clr_n):
     ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10, color = 'blue')
-  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'green')
+  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'black')
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)

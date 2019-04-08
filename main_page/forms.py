@@ -41,7 +41,7 @@ class Fillpatient_1(forms.Form):
   cpr = forms.CharField(label='Cpr nr.', required=False)
   name = forms.CharField(label='Navn', required=False)
   sex = forms.CharField(label='Køn', required=False)
-  age = forms.FloatField(label='Alder', required=False, min_value=0)
+  birthdate = forms.DateField(label='Fødselsdato', required=False)
   
 class Fillpatient_2(forms.Form):
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)

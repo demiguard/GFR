@@ -11,6 +11,7 @@ class ExaminationInfo:
     self.name        = ''       # Name of patient
     self.cpr         = ''       # Cpr number of patient
     self.age         = ''       # Age of patient
+    self.birthdate   = None
     self.date        = ''       # Scheduled data of examination
     self.sex         = ''       # Sex of patient
     self.gfr         = ''       # GFR result (e.g. 'normal', 'svært nedsat', etc.)
@@ -76,6 +77,12 @@ def deserialize(dicom_obj):
     exam.age = dicom_obj.PatientAge
   else:
     exam.age = clearance_math.calculate_age(exam.cpr)
+
+  if 'PatientBirthDate' in dicom_obj:
+    birthday_str = dicom_obj.PatientBirthDate[0:4] + '-' + dicom_obj.PatientBirthDate[4:6] + '-' + dicom_obj.PatientBirthDate[6:8]
+    exam.birthdate = birthday_str
+  else: 
+    exam.birthdate = clearance_math.calculate_birthdate(exam.cpr)
 
   if 'clearance' in dicom_obj:
     exam.clearance = dicom_obj.clearance

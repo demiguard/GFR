@@ -56,6 +56,7 @@ def store_dicom(dicom_obj_path,
     name                = None,
     rigs_nr             = None,
     study_date          = None,
+    birthday            = None,
     age                 = None,
     height              = None,
     weight              = None,
@@ -150,6 +151,10 @@ def store_dicom(dicom_obj_path,
 
   if rigs_nr:
     ds.AccessionNumber = rigs_nr
+
+  if birthday:
+    birthday.replace('-','')
+    ds.PatientBirthDate = birthday
 
   if cpr:
     ds.PatientID = cpr.replace('-','')
