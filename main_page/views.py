@@ -296,6 +296,8 @@ def fill_study(request, rigs_nr):
 
   logger.info('exan weight: {0}'.format(exam.weight))
 
+  # TODO: Many of these parameters passed to the template can be simplified by
+  # just passing in the exam object
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
@@ -333,121 +335,122 @@ def fill_study(request, rigs_nr):
   return HttpResponse(template.render(context, request))
 
 
-@login_required(login_url='/')
-def search(request):
+class SearchView(TemplateView, LoginRequiredMixin):
   """
-    Needs doc - TODO SIMON
+  Search view
   """
-  # Specify page template
-  template = loader.get_template('main_page/search.html')
+  template_name = 'main_page/search.html'
+  login_url='/'
   
-  # Default date case: display the patients from the last week
-  now = datetime.datetime.now()
-  default_date_to = now.strftime('%Y-%m-%d')
+  def get(self, request):
+    # Default date case: display the patients from the last week
+    now = datetime.datetime.now()
+    default_date_to = now.strftime('%Y-%m-%d')
 
-  week_delta = datetime.timedelta(days=7)
-  week_datetime = now - week_delta
-  default_date_from = week_datetime.strftime('%Y-%m-%d')
+    week_delta = datetime.timedelta(days=7)
+    week_datetime = now - week_delta
+    default_date_from = week_datetime.strftime('%Y-%m-%d')
 
-  # Extract search parameters from url
-  if 'name' in request.GET:
-    search_name = request.GET['name']
-  else:
-    search_name = ''
+    # Extract search parameters from url
+    if 'name' in request.GET:
+      search_name = request.GET['name']
+    else:
+      search_name = ''
 
-  if 'cpr' in request.GET:
-    search_cpr = request.GET['cpr']
-  else:
-    search_cpr = ''
+    if 'cpr' in request.GET:
+      search_cpr = request.GET['cpr']
+    else:
+      search_cpr = ''
 
-  if 'Rigs' in request.GET:
-    search_rigs_nr = request.GET['Rigs']
-  else:
-    search_rigs_nr = ''
+    if 'Rigs' in request.GET:
+      search_rigs_nr = request.GET['Rigs']
+    else:
+      search_rigs_nr = ''
 
-  date_set = False
-  if 'Dato_start' in request.GET:
-    search_date_from = request.GET['Dato_start']
-    date_set = True
-  else:
-    search_date_from = ''
+    date_set = False
+    if 'Dato_start' in request.GET:
+      search_date_from = request.GET['Dato_start']
+      date_set = True
+    else:
+      search_date_from = ''
 
-  if 'Dato_finish' in request.GET:
-    search_date_to = request.GET['Dato_finish']
-    date_set = True
-  else:
-    search_date_to = ''
+    if 'Dato_finish' in request.GET:
+      search_date_to = request.GET['Dato_finish']
+      date_set = True
+    else:
+      search_date_to = ''
 
-  if not date_set:
-    search_date_from = default_date_from
-    search_date_to = default_date_to
+    if not date_set:
+      search_date_from = default_date_from
+      search_date_to = default_date_to
 
-  search_resp = pacs.search_pacs(
-    request.user,
-    name=search_name,
-    cpr=search_cpr,
-    rigs_nr=search_rigs_nr,
-    date_from=search_date_from,
-    date_to=search_date_to,
-  )
+    search_resp = pacs.search_pacs(
+      request.user,
+      name=search_name,
+      cpr=search_cpr,
+      rigs_nr=search_rigs_nr,
+      date_from=search_date_from,
+      date_to=search_date_to,
+    )
 
-  # Add specific bootstrap class to the form item and previous search parameters
-  get_study_form = forms.GetStudy(initial={
-    'name': search_name,
-    'cpr': search_cpr,
-    'Rigs': search_rigs_nr,
-    'Dato_start': search_date_from,
-    'Dato_finish': search_date_to
-  })
-  
-  for item in get_study_form:
-    item.field.widget.attrs['class'] = 'form-control'
-
-  context = {
-    'getstudy' : get_study_form,
-    'responses': search_resp,
-  }
-
-  return HttpResponse(template.render(context, request))
-
-
-@login_required(login_url='/')
-def ajax_search(request): 
-  """
-  OOH LOOK DOCUMENTATION
-
-  """
-  # Extract search parameters
-  search_name = request.GET['name']
-  search_cpr = request.GET['cpr']
-  search_rigs_nr = request.GET['rigs_nr']
-  search_date_from = request.GET['date_from']
-  search_date_to = request.GET['date_to']
-
-  search_resp = pacs.search_pacs(
-    request.user,
-    name=search_name,
-    cpr=search_cpr,
-    rigs_nr=search_rigs_nr,
-    date_from=search_date_from,
-    date_to=search_date_to,
-  )
-
-  # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
-  serialized_results = []
-  for res in search_resp:
-    serialized_results.append({
-      'rigs_nr': res.rigs_nr,
-      'name': res.name,
-      'cpr': res.cpr,
-      'date': res.date
+    # Add specific bootstrap class to the form item and previous search parameters
+    get_study_form = forms.GetStudy(initial={
+      'name': search_name,
+      'cpr': search_cpr,
+      'Rigs': search_rigs_nr,
+      'Dato_start': search_date_from,
+      'Dato_finish': search_date_to
     })
+    
+    for item in get_study_form:
+      item.field.widget.attrs['class'] = 'form-control'
 
-  data = {
-    'search_results': serialized_results
-  }
+    context = {
+      'getstudy' : get_study_form,
+      'responses': search_resp,
+    }
 
-  return JsonResponse(data) 
+    return render(request, self.template_name, context)
+
+
+class AjaxSearch(TemplateView, LoginRequiredMixin):
+  """
+  Handles ajax search requests
+  """
+  login_url = '/'
+
+  def get(self, request):  
+    # Extract search parameters
+    search_name = request.GET['name']
+    search_cpr = request.GET['cpr']
+    search_rigs_nr = request.GET['rigs_nr']
+    search_date_from = request.GET['date_from']
+    search_date_to = request.GET['date_to']
+
+    search_resp = pacs.search_pacs(
+      request.user,
+      name=search_name,
+      cpr=search_cpr,
+      rigs_nr=search_rigs_nr,
+      date_from=search_date_from,
+      date_to=search_date_to,
+    )
+
+    # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
+    serialized_results = []
+    for res in search_resp:
+      serialized_results.append({
+        'rigs_nr': res.rigs_nr,
+        'name': res.name,
+        'cpr': res.cpr,
+        'date': res.date
+      })
+
+    data = {
+      'search_results': serialized_results
+    }
+
+    return JsonResponse(data) 
 
 
 @login_required(login_url='/')
