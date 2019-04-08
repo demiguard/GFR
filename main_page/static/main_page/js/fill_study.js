@@ -6,6 +6,25 @@ $(function() {
     return Math.round(num * p) / p;
   }
 
+  //Adding Colons to time fields
+  var $jq_inj_time_field = $('input[name=\"injection_time\"]');
+  var $jq_sam_time_field = $('input[name=\"study_time\"]');
+
+  function addcolon(key){
+    if(key.witch !== 8){
+      var number_of_chars = $(this).val().length;
+      if (number_of_chars === 2){
+        var copyvalue = $(this).val()
+        copyvalue += ':'
+        $(this).val(copyvalue)
+      }
+    }
+  }
+
+  $jq_inj_time_field.bind('keypress', addcolon)
+  $jq_sam_time_field.bind('keypress', addcolon)
+  //END:Adding Colons to time fields
+
   // Add date pickers to date fields
   $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
@@ -84,6 +103,8 @@ $(function() {
     $('.row-remove-btn').on('click', function() {
       test_count--;
       $(this).parent().parent().remove();
+      add_add_test_functionality();
+
     });
   });
 
@@ -120,7 +141,6 @@ $(function() {
           for (i = 0; i < csv_row_ids_array.length; i++) {
             for (j = i+1; j < csv_row_ids_array.length; j++){
               var distance = Math.abs((data_values[i] - data_values[j]) / (data_values[i] + data_values[j])); 
-              console.log(distance)
               sanity &= distance > sanity_checker;
             }
           }
@@ -198,6 +218,10 @@ $(function() {
         $('.row-remove-btn').on('click', function() {
           test_count--;
           $(this).parent().parent().remove();
+          if(test_count == 0) {
+            add_add_test_functionality();
+          }
+          $('#error-message-container').empty();
         });
 
         // 'Lock' button on click
@@ -224,6 +248,13 @@ $(function() {
           $("#" + item).css('background-color', 'white');
         });
         csv_row_ids_array = [];
+
+        //If method one point Remove option to add more tests
+        if ($('input[name="study_type"]:checked').val() != 2) {
+          //This function is a one liner
+          //$('#add-test-container').empty()
+          remove_add_test_functionality()
+        }
 
         } else { //Not enought Data selected
           $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales</p>");
@@ -494,29 +525,47 @@ $(function() {
     }
   });
 
-  //Adding Colons to time fields
-  var $jq_inj_time_field = jQuery('input[name=\"injection_time\"]');
-  var $jq_sam_time_field = jQuery('input[name=\"study_time\"]')
-
-  function addcolon(key){
-    if(key.witch !== 8){
-      var number_of_chars = $(this).val().length;
-      if (number_of_chars === 2){
-        var copyvalue = $(this).val()
-        copyvalue += ':'
-        $(this).val(copyvalue)
-      }
-    }
-  }
-
-  $jq_inj_time_field.bind('keypress', addcolon)
-  $jq_sam_time_field.bind('keypress', addcolon)
-
+  //'Nulstil prøver' knappen functionality
   $('#reset-selected').click(function(){
     csv_row_ids_array.forEach(function(item) {
       $("#" + item).css('background-color', 'white');
     });
     csv_row_ids_array = [];
   })
+  //END:'Nulstil prøver' knappen functionality
+
+  //Radio, method selection
+  //Note we do not remove selected tests
+  $('input[name="study_type"]').click(function(){
+    // one sample Grown up or Childern method selection
+    if (this.value < 2 && test_count != 0) {
+      remove_add_test_functionality();
+    }
+    // Multiple samples method selected
+    if (this.value == 2){
+      add_add_test_functionality(); 
+    }
+  })
+
+  //Comic relief line: By the saying 'The user is always right' it have been commanded from the high heavens to remove the add test functional, after a test have been added
+  // Used by the function remove_add_test_functionality, add_add_test_functionality
+  var test_container_full = true;
+  var add_test_container = $('#add-test-container').clone(true,true);
+
+  // These Functions are Removes and add the option to add more tests
+  function remove_add_test_functionality() {
+    //User understanding: Removes option to add additional test
+    //Programmer understadning: Removes the contains of the add-test-container
+    test_container_full = false;
+    $('#add-test-container').empty();
+  }
+
+  function add_add_test_functionality() {
+    //Add the functionality
+    if (!test_container_full) {
+      $('#add-test-container').append((add_test_container.clone(true,true)).contents());
+      test_container_full = true;
+    }
+  }
 
 });
