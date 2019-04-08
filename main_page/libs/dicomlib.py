@@ -46,7 +46,6 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
       for ds_sq in ds:
         update_tags(ds_sq)
 
-
   return obj
 
 
@@ -118,7 +117,6 @@ def store_dicom(dicom_obj_path,
   ds = dcmread_wrapper(dicom_obj_path)
 
   if update_dicom:
-
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
     ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
     ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
@@ -131,7 +129,6 @@ def store_dicom(dicom_obj_path,
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
     ds.add_new(0x00200010, 'SH', '1')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
-
 
   # Set StudyDate
   if update_date:

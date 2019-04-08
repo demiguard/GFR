@@ -1,12 +1,17 @@
 import glob
 import os
+import datetime
+import random
+import shutil
+import pydicom
+
+from ... import models
 
 from .. import dicomlib
 from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
 from ..examination_info import ExaminationInfo
-from .. import formatting
 from .query_executer import execute_query
 
 
@@ -18,7 +23,7 @@ def parse_bookings(resp_dir):
     resp_dir: path to directory containing dicom responses from findscu
 
   Returns:
-    List of dicom objects for all responses
+    dict of dicom objects for all responses
   """
   ret = {}
 
@@ -29,39 +34,75 @@ def parse_bookings(resp_dir):
   return ret
 
 
+def is_old_dcm_obj(obj_path):
+  """
+  Determines whether a dicom object is too old (i.e. it should be removed)
+
+  Args:
+    obj_path: path to the dicom obj to check
+
+  Returns:
+    True, the dicom object was to old and has been removed.
+    False, the dicom object was NOT to old and still remains
+
+  Remark:
+    Only accepts valid dicom objects
+  """
+  obj = dicomlib.dcmread_wrapper(obj_path)
+  
+  exam = examination_info.deserialize(obj)
+
+  # If more then 3 days old remove it
+  procedure_date = datetime.datetime.strptime(exam.date, '%d/%m-%Y')
+
+  now = datetime.datetime.now()
+  time_diff = now - procedure_date
+  days_diff = time_diff.days
+  
+  if days_diff >= server_config.DAYS_THRESHOLD:
+    os.remove(obj_path)
+    return True
+
+  return False
+
+
 def get_all(user):
   """
-  Get registed patients from a specific hospital, using a user
+  Get registed examinations from a specific hospital, using a user
 
   Args:
     user: the currently logged in user object
 
   Returns:
     Ordered list, based on names, of ExaminationInfo instances containing infomation 
-    about patients registed at the specified hospital.
-  """  
-  edta_obj = dicomlib.dcmread_wrapper('main_page/libs/edta_query.dcm')
+    about examinations registed at the specified hospital.
+  """
+  # Create query file
+  base_query_file = server_config.BASE_RIGS_QUERY
 
-  # Create dcm filter
-  edta_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = user.config.rigs_calling
+  query_file = '{0}_{1}.dcm'.format(
+    base_query_file.split('.')[0],
+    random.getrandbits(128)
+  )
 
-  query_file = 'main_page/libs/edta_query_{0}.dcm'.format(user.config.rigs_calling)
-  edta_obj.save_as(query_file)
+  shutil.copy(base_query_file, query_file)
+
+  qf_obj = pydicom.dcmread(query_file)
+  qf_obj.ScheduledProcedureStepSequence[0].ScheduledStationAETitle = user.config.rigs_calling
+  qf_obj.save_as(query_file)
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  DICOM_dirc = '{0}{1}'.format(base_resp_dir, user.hospital)
+  resp_dir = '{0}{1}/'.format(base_resp_dir, user.hospital)
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
 
-  if not os.path.exists(DICOM_dirc):
-    os.mkdir(DICOM_dirc)
-
-  resp_dir = '{0}'.format(DICOM_dirc)
+  if not os.path.exists(resp_dir):
+    os.mkdir(resp_dir)
 
   # Construct query and execute
   query_arr = [
-    server_config.FINDSCU, 
+    server_config.FINDSCU,
     '-aet', # Set calling AET
     user.config.rigs_calling,
     '-aec', # Set AET to call
@@ -83,31 +124,32 @@ def get_all(user):
   os.remove(query_file)
 
   dcm_objs = parse_bookings(resp_dir)
-
-  # Extract needed info from dcm objects (w/ formatting)
   ret = []
+
+  # Add previous examinations to return list
+  for obj_path in glob.glob('{0}REGH*.dcm'.format(resp_dir)):
+    if not is_old_dcm_obj(obj_path):
+      obj = dicomlib.dcmread_wrapper(obj_path)
+      ret.append(examination_info.deserialize(obj))
+
+  # Add new examinations to return list
   accepted_procedures = user.config.accepted_procedures.split('^')
 
-  for key, obj in dcm_objs.items():
+  for obj_path, obj in dcm_objs.items():
     if obj.RequestedProcedureDescription in accepted_procedures:
-      exam = ExaminationInfo()
-      
-      exam.rigs_nr = obj.AccessionNumber
-      exam.cpr = formatting.format_cpr(obj.PatientID)
-      exam.date = formatting.format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
-      exam.name = formatting.format_name(obj.PatientName)
+      # Save to file if not already retreived
+      if not os.path.exists('{0}{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
+        exam = examination_info.deserialize(obj)
+        obj.save_as('{0}{1}.dcm'.format(resp_dir, obj.AccessionNumber))
+        ret.append(exam)
 
-      exam.rigs_nr = obj.AccessionNumber
-      exam.cpr = formatting.format_cpr(obj.PatientID)
-      exam.date = formatting.format_date(obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
-      exam.name = formatting.format_name(obj.PatientName)
-
-      ret.append(exam)
-      
-      # Save to dcm file with rigs nr. as  corresponding rsp file
-      if not os.path.exists('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber)):
-        obj.save_as('{0}/{1}.dcm'.format(resp_dir, obj.AccessionNumber))
-
-    os.remove(key)
+    # Remove the response file
+    os.remove(obj_path)
   
-  return sorted(ret, key=lambda x: x.name)
+  # Filter out examinations previously sent to PACS
+  def sent_to_pacs(ex):
+    return not models.HandledExaminations.objects.filter(rigs_nr=ex.rigs_nr).exists()
+  
+  ret = list(filter(sent_to_pacs, ret))
+  
+  return list(sorted(ret, key=lambda x: x.name))

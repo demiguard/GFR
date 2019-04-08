@@ -10,17 +10,14 @@
       {% csrf_token %}
       {% bootstrap_form study_form %}
       
-      <!-- Display possible error messages -->
       {% for err in error_msgs %}
-        <small style="color: coral;">{{ err }}</small> <br>
+        <div class="alert alert-danger" role="alert">
+          Fejl: {{ err }}
+        </div>
       {% endfor %}
-      
-      <br>
-      
+
       {% buttons %}
-        <button type="submit" class="btn">
-          Opret
-        </button>
+        <input type="submit" value="Opret">
       {% endbuttons %}
     </form>
   </div>

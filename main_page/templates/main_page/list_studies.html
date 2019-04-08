@@ -4,7 +4,7 @@
 {% load staticfiles %}
 
 {% block content %}
-  <h2>Vælg dagens undersøgelse</h2> <br>
+  <h2>Vælg undersøgelse</h2> <br>
 
   <table class="table table-bordered table-hover" id="new_studies"> 
     <thead>
@@ -12,7 +12,7 @@
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
         <th onclick="sort_table(1, 'new_studies')">Cpr nr.</th>
         <th onclick="sort_table(2, 'new_studies')">Dato</th>
-        <th onclick="sort_table(3, 'new_studies')">Accession nummer</th>
+        <th onclick="sort_table(3, 'new_studies')">Accession nr.</th>
       </tr>
     </thead>
     <tbody>
@@ -29,28 +29,6 @@
   </table>
 
   <a href="{% url 'main_page:new_study' %}">Nødoprettelse</a>
-  
-  <h2>Vælg uafsluttet undersøgelser</h2>
-  <table class="table table-bordered table-hover" id="old_studies">
-    <thead>
-      <tr>
-        <th onclick="sort_table(0, 'old_studies')">Navn</th>
-        <th onclick="sort_table(1, 'old_studies')">Cpr nr.</th>
-        <th onclick="sort_table(2, 'old_studies')">Dato</th>
-        <th onclick="sort_table(3, 'old_studies')">Accession nummer</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for booking in old_bookings %}
-      <tr onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">
-        <td>{{ booking.name }}</td>
-        <td>{{ booking.cpr }}</td>
-        <td>{{ booking.date }}</td>
-        <td>{{ booking.rigs_nr }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
 {% endblock %}
 
 {% block javascript %}
