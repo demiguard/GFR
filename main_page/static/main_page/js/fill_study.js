@@ -14,9 +14,9 @@ $(function() {
     if(key.witch !== 8){
       var number_of_chars = $(this).val().length;
       if (number_of_chars === 2){
-        var copyvalue = $(this).val()
-        copyvalue += ':'
-        $(this).val(copyvalue)
+        var copyvalue = $(this).val();
+        copyvalue += ':';
+        $(this).val(copyvalue);
       }
     }
   }
@@ -28,7 +28,8 @@ $(function() {
   // Add date pickers to date fields
   $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
-  
+  $('#id_birthdate').datepicker({format:'yyyy-mm-dd'});
+
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
     $("#fill-study-form").data('changed', true);
