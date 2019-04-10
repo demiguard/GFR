@@ -1,8 +1,10 @@
-import glob, os, datetime, tempfile
+import glob, os, datetime, tempfile, logging
 import pandas
 
 from . import server_config
 from smb.SMBConnection import SMBConnection
+
+logger = logging.getLogger()
 
 
 def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
@@ -33,7 +35,7 @@ def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
   )
   smbconn.deleteFiles(server_config.samba_share, fullpath) 
 
-def smb_get_csv(hospital, timeout = 60):
+def smb_get_csv(hospital, timeout = 5):
   """
     hospital: string 
 
@@ -50,7 +52,9 @@ def smb_get_csv(hospital, timeout = 60):
     server_config.samba_name
     )
 
-  conn.connect(server_config.samba_ip, timeout = timeout)
+  is_connected = conn.connect(server_config.samba_ip, timeout = timeout)
+
+  logger.INFO('Samba Connection was succesful:{0}'.format(is_connected))
 
   hospital_sample_folder = '/{0}/{1}/'.format(server_config.samba_Sample, hospital)
   
