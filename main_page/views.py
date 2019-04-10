@@ -217,7 +217,7 @@ def fill_study(request, rigs_nr):
   
   try: 
     data_files = samba_handler.smb_get_csv(request.user.hospital, timeout=10)
-
+    
     # Read required data from each csv file  
     for data_file in data_files:
       prestring = ""
@@ -235,6 +235,7 @@ def fill_study(request, rigs_nr):
 
     csv_data = zip(csv_present_names, csv_data, data_names)
   except:
+    logger.warning('SMB Connection Failed')
     error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
   inj_time = None

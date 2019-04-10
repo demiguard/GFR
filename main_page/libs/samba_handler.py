@@ -54,7 +54,7 @@ def smb_get_csv(hospital, timeout = 5):
 
   is_connected = conn.connect(server_config.samba_ip, timeout = timeout)
 
-  logger.INFO('Samba Connection was succesful:{0}'.format(is_connected))
+  logger.info('Samba Connection was succesful:{0}'.format(is_connected))
 
   hospital_sample_folder = '/{0}/{1}/'.format(server_config.samba_Sample, hospital)
   
