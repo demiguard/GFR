@@ -8,6 +8,8 @@ from PIL import Image
 from scipy.stats import linregress
 
 from ..query_wrappers import pacs_query_wrapper as pacs
+from .. import server_config
+from .. import dicomlib
 
 logger = logging.getLogger()
 
@@ -380,13 +382,13 @@ def _age_string(day_of_birth):
       month_str = ''
 
     if age_in_years > 0 and not(months_since_last_birthday == 0) :
-      return '{0} år {1} {2}'.format(age_in_years, months_since_last_birthday, month_str)
+      return '{0} år, {1} {2}'.format(age_in_years, months_since_last_birthday, month_str)
     elif age_in_years > 0:
       return '{0} år'.format(age_in_years)
     elif not(months_since_last_birthday == 0):
       return '{0} {1}'.format(months_since_last_birthday, month_str)
     else:
-      return 'Mindre end 1 måned.'
+      return '{0} Dage'.format(diff.days)
 
 
 def generate_plot_text(
@@ -476,6 +478,14 @@ def generate_plot_text(
   while age > xmax :
     xmax += 20 
     
+  #Used to get requested procedure
+  dicom_obj = dicomlib.dcmread_wrapper('{0}{1}{2}{3}{4}'.format(
+    server_config.FIND_RESPONS_DIR,
+    hosp_dir,
+    '/',
+    rigs_nr,
+    '.dcm'
+  ))
 
   fig, ax = plt.subplots(1, 2)
 
@@ -491,20 +501,10 @@ def generate_plot_text(
   titlesize = 8
   labelsize = 18
 
-  if hosp_dir:
-    if hosp_dir == 'RH':
-      fig.suptitle('Undersøgelse udført på Rigshospitalet', fontsize = 30)
-    if hosp_dir == 'GL':
-      fig.suptitle('Undersøgelse udført på Glostrup Hospital', fontsize = 30)
-    if hosp_dir == 'HH':
-      fig.suptitle('Undersøgelse udført på Herlev Hospital', fontsize = 30)
-    if hosp_dir == 'FH':
-      fig.suptitle('Undersøgelse udført på Frederiksberg Hospital', fontsize = 30)
-    if hosp_dir == 'BH':
-      fig.suptitle('Undersøgelse udført på Bispeberg Hospital', fontsize = 30)
-    if hosp_dir == 'HI':
-      fig.suptitle('Undersøgelse udført på Hillerød Hospital', fontsize = 30)
+  #Example on a title string: 
+  titlestring = 'Undersøgelsen udført på: ' + server_config.hospitals[hosp_dir] + '\n' + dicom_obj[0x00321060].value 
 
+  fig.suptitle(titlestring, fontsize = 28)
   
   ax[0].tick_params(labelsize = 14)
 
@@ -515,7 +515,7 @@ def generate_plot_text(
   height_str          = "Højde: {0:.0f} cm\n\n".format(height)
   BSA_str             = "Overflade: {0:.2f} m²\n\n".format(BSA)
   clearance_str       = "GFR: {0:.0f} ml / min\n\n".format(clearance)
-  clearance_norm_str  = "GFR, Normaliseret til 1,73m²: {0:.0f} ml / min\n\n".format(clearance_norm) 
+  clearance_norm_str  = "GFR, normaliseret til 1,73m²: {0:.0f} ml / min\n\n".format(clearance_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
   print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(

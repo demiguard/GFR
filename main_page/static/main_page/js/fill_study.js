@@ -182,12 +182,13 @@ $(function() {
   // Add the on click event handlers to the previous sample locks
   $('.row-lock-btn').each(function() {
     $('#' + this.id).on('click', function() {
+      var id_val = this.id
       var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
-          
       if (resp) {
         var form_parent = $(this).parent().parent();
         form_parent.children('.readonly-field').each(function() {
-         $(this).children('input').attr('readonly', false);
+        $(this).children('input').attr('readonly', false);
+        $('#' + id_val).remove() 
         });
       }
     });
@@ -647,9 +648,7 @@ $(function() {
     }
   }
 
-  if (test_count > 0 && document.getElementById("id_study_type_2").checked) {
+  if (test_count > 0 && !document.getElementById("id_study_type_2").checked) {
     remove_add_test_functionality()
-    console.log(testcount > 0)
-    conlone.log(document.getElementById("id_study_type_2").checked)
   }
 });

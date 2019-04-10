@@ -54,12 +54,12 @@ def fill_study_post(request, rigs_nr):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
-  if int(request.POST['study_type']) == 2:
-    sample_dates = request.POST.getlist('study_date')[:-1]
-    sample_times = request.POST.getlist('study_time')[:-1]
-  else:
-    sample_dates = request.POST.getlist('study_date')
-    sample_times = request.POST.getlist('study_time')
+    if int(request.POST['study_type']) == 2:
+      sample_dates = request.POST.getlist('study_date')[:-1]
+      sample_times = request.POST.getlist('study_time')[:-1]
+    else:
+      sample_dates = request.POST.getlist('study_date')
+      sample_times = request.POST.getlist('study_time')
 
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])

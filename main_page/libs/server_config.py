@@ -63,3 +63,16 @@ samba_share = 'data'
 
 samba_Sample = 'Samples'
 samba_backup = 'backup'
+
+
+# -- Hospital Dictionary -- #
+
+hospitals = {
+    'RH': 'Rigshospitalet',
+    'HEH': 'Herlev hospital',
+    'HI': 'Hillerød hospital',
+    'FH': 'Frederiksberg hospital',
+    'BH': 'Bispebjerg hospital',
+    'GLO': 'Glostrup hospital',
+    'HVH': 'Hvidovre hospital',
+}

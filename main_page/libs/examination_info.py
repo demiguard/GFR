@@ -27,6 +27,7 @@ class ExaminationInfo:
     self.inj_after   = None      # Weight of vial after examination
     self.thin_fact   = None      # Thinning factor
     self.std_cnt     = None      # Standard count
+    self.exam_type   = ''
     self.sam_t       = np.array([]) # Datetime list - sample times for the examination
     self.tch_cnt     = np.array([]) # list of technetium counts
     self.dosis       = 0        # Derived value from standard count, thinning factor and weight difference between vials
@@ -87,6 +88,9 @@ def deserialize(dicom_obj):
   if 'clearance' in dicom_obj:
     exam.clearance = dicom_obj.clearance
   
+  if 'RequestedProcedureDescription' in dicom_obj:
+    exam.exam_type = dicom_obj.RequestedProcedureDescription
+
   if 'clearance_N' in dicom_obj:
     exam.clearance_N = dicom_obj.clearance_N
 
