@@ -1,6 +1,7 @@
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from .libs import server_config
 
 # Manager class of Sser class
 class UserManager(BaseUserManager):
@@ -58,16 +59,8 @@ class User(AbstractBaseUser):
     null=True
   )
 
-  HOSPS = (
-    ('RH', 'Rigshospitalet'),
-    ('HEH', 'Herlev hospital'),
-    ('HI', 'Hillerød hospital'),
-    ('FH', 'Frederiksberg hospital'),
-    ('BH', 'Bispebjerg hospital'),
-    ('GLO', 'Glostrup hospital'),
-    ('HVH', 'Hvidovre hospital'),
-  )
-  hospital = models.CharField(max_length=3, choices=HOSPS)
+  hospitals = [(k,v) for k,v in server_config.hospitals.items()]
+  hospital = models.CharField(max_length=3, choices=hospitals)
 
   USERNAME_FIELD = 'username'
   REQUIRED_FIELDS = ['password', 'hospital']
