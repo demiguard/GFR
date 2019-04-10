@@ -1,5 +1,25 @@
 // Wait until document ready
 $(function() {
+  // TODO: THIS IS JUST A TEMPORARY FIX AND SHOULD FIXED IN CSS
+  // Correctly size the select test div on window resizing
+  let largescreen_offset = 80;
+  let smallscreen_offset = 105;
+  let screen_diff = 1300;
+
+  $(window).on('resize', function() {
+    var test_div = $('#right_side')
+    var doc_height = $(document).innerHeight();
+    var new_height = 0;
+    
+    if (doc_height <= screen_diff) {
+      new_height = (doc_height - test_div.position().top) - smallscreen_offset;
+    } else {
+      new_height = (doc_height - test_div.position().top) - largescreen_offset;
+    }
+
+    test_div.height(new_height);
+  });
+
   // Helper function to round of floating point numbers
   function round_to(num, n) {
     p = Math.pow(10, n);
