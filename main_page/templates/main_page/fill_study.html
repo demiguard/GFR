@@ -9,7 +9,7 @@
 
 
 {% block content %}
-  <strong>Undersøgelse Accession nr.:</strong><p>{{ rigsnr }}</p>
+  <strong>Accession nr.:</strong><p>{{ rigsnr }}</p>
 
   <form method="POST" id="fill-study-form">
     {% csrf_token %}
@@ -85,7 +85,6 @@
             <input type="button" value="Tilføj Prøve" id="add-test">
           {% endbuttons %}
         </div>
-        <div id="error-message-container"></div>
         {% buttons %}
           <input type="button" value="Tilføj Standard" id="add-standart">
           <input type="button" value="Nulstil valgte prøver" id="reset-selected">
@@ -96,13 +95,14 @@
           <input type="button" value="Afbryd" id="cancel">
         {% endbuttons %}
 
-        <div id="submit-err-container">
+        <!-- Container for error/alert messages -->
+        <div id="error-message-container">
   
         </div>
-      <!--Left Closing-->
+      <!-- Left Closing -->
       </div>
 
-      <!-- Right side-->
+      <!-- Right side -->
       <div class="col-md-6" id="right_side">
         <p><strong>Vælg prøve fra fil</strong></p>
         <div class="csvAccordion" id="accordionContainer">
@@ -144,7 +144,7 @@
         </div>
         {% else %}
           <p>{{ error_message }}</p>
-        {% endif %}  
+        {% endif %}
       <!-- Right closing-->
       </div>
     </div>
@@ -154,9 +154,4 @@
 
 {% block javascript %}
   <script src="{% static 'main_page/js/fill_study.js' %}"></script>
-  <style>
-    #id_study_type > label {
-      display: block;
-    }
-  </style>
 {% endblock %}

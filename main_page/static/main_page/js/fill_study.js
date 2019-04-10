@@ -1,48 +1,122 @@
 // Wait until document ready
 $(function() {
-  // TODO: THIS IS JUST A TEMPORARY FIX AND SHOULD FIXED IN CSS
-  // Correctly size the select test div on window resizing
-  let largescreen_offset = 80;
-  let smallscreen_offset = 105;
-  let screen_diff = 1300;
+  /*
+  Initializes the correct sizing the select test div on window resizing
+  
+  TODO: THIS IS JUST A TEMPORARY FIX AND SHOULD FIXED IN CSS
+  */
+  (function init_test_div_resizer() {
+    let largescreen_offset = 80;
+    let smallscreen_offset = 105;
+    let screen_diff = 1300;
+  
+    $(window).on('resize', function() {
+      var test_div = $('#right_side')
+      var doc_height = $(document).innerHeight();
+      var new_height = 0;
+      
+      if (doc_height <= screen_diff) {
+        new_height = (doc_height - test_div.position().top) - smallscreen_offset;
+      } else {
+        new_height = (doc_height - test_div.position().top) - largescreen_offset;
+      }
+  
+      test_div.height(new_height);
+    });
+  })();
 
-  $(window).on('resize', function() {
-    var test_div = $('#right_side')
-    var doc_height = $(document).innerHeight();
-    var new_height = 0;
-    
-    if (doc_height <= screen_diff) {
-      new_height = (doc_height - test_div.position().top) - smallscreen_offset;
-    } else {
-      new_height = (doc_height - test_div.position().top) - largescreen_offset;
+  /* 
+  Adds an alert to the error message container
+
+  Args:
+    msg: alert message to display
+    type: type string representing the type of alert to display
+
+  Remark:
+    Alerts can only be either 'warning' or 'danger'
+    For more details: https://getbootstrap.com/docs/4.2/components/alerts/
+  */
+  function add_alert(msg, type) {
+    // Ensure type is valid
+    let valid_types = [
+      'warning',
+      'danger'
+    ]
+
+    if (!valid_types.includes(type)) {
+      throw new Error("Invalid type for alert.");
     }
+    
+    // Create strong indicator
+    var alert_indicator = document.createElement('strong');
+    var indicator_msg = '';
+    if (type == valid_types[0]) {         // Warning
+      indicator_msg = 'Advarsel: ';
+    } else if (type == valid_types[1]) {  // Danger
+      indicator_msg = 'Fejl: ';
+    }
+    alert_indicator.innerHTML = indicator_msg;
 
-    test_div.height(new_height);
-  });
+    // Create alert
+    var alert_div = document.createElement('div');
+    alert_div.classList.add('alert');
+    alert_div.classList.add('alert-' + type);
+    alert_div.innerHTML = msg;
 
-  // Helper function to round of floating point numbers
+    // Insert alert at top of container
+    alert_div.prepend(alert_indicator);
+    $('#error-message-container').prepend(alert_div);
+  }
+
+  /*
+  Removes all alerts
+  */
+  function remove_alerts() {
+    $('#error-message-container').empty();
+  }
+
+  /*
+  Helper function to round of floating point numbers
+
+  Args:
+    num: number to round off
+    n: how many decimals to round off to
+  */
   function round_to(num, n) {
     p = Math.pow(10, n);
     return Math.round(num * p) / p;
   }
 
-  //Adding Colons to time fields
-  var $jq_inj_time_field = $('input[name=\"injection_time\"]');
-  var $jq_sam_time_field = $('input[name=\"study_time\"]');
+  /*
+  Automatically appends a character after the n'th character is typed.
 
-  function addcolon(key){
-    if(key.witch !== 8){
-      var number_of_chars = $(this).val().length;
-      if (number_of_chars === 2){
-        var copyvalue = $(this).val();
-        copyvalue += ':';
-        $(this).val(copyvalue);
+  Args:
+    field: the field to apply the bind on.
+    c: character to append
+    n: after how many characters should it append
+
+  Remark:
+    The function ignores backspaces (the character code 8)
+  */
+  function auto_char(field, c, n) {
+    function add_char(key){
+      if (key.which !== 8){
+        var number_of_chars = $(this).val().length;
+        if (number_of_chars === n){
+          var copyvalue = $(this).val();
+          copyvalue += c;
+          $(this).val(copyvalue);
+        }
       }
     }
+    
+    field.bind('keypress', add_char);
   }
 
-  $jq_inj_time_field.bind('keypress', addcolon)
-  $jq_sam_time_field.bind('keypress', addcolon)
+  // Adding Colons to time fields
+  auto_char($("input[name='injection_time']"), ':', 2);
+  auto_char($("input[name='study_time']"), ':', 2);
+  
   //END:Adding Colons to time fields
 
   // Add date pickers to date fields
@@ -91,14 +165,14 @@ $(function() {
   });
 
   // Validates a given time string (format: tt:mm)
-  var valid_time_format = function(time_str) {
-    var TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
+  function valid_time_format(time_str) {
+    let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
     return TIME_FORMAT.test(time_str);
   }
 
   // Validates a given date string (format: YYYY-MM-DD)
-  var valid_date_format = function(date_str) {
-    var DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
+  function valid_date_format(date_str) {
+    let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
     return DATE_FORMAT.test(date_str);
   }
 
@@ -134,7 +208,7 @@ $(function() {
   var sanity_checker = 0.25
   $('#add-test').click(function() {
     // Reset error messages container
-    $('#error-message-container').empty()
+    remove_alerts();
 
     // Reset borders
     $('#id_study_time').css('border', '1px solid #CED4DA');
@@ -167,22 +241,19 @@ $(function() {
           }
 
           if (sanity) {
-            $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!</p>");
-            $('#error-message').css('color', '#FFA71A');
-            $('#error-message').css('font-size', 18);
+            add_alert('Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 'warning');
           }
 
         } else { //Only 1 element selected
           csv_row_ids_array.forEach(element => {
             sum += parseFloat($('#' + element).children().eq(2).text())
           });
-          $('#error-message-container').append("<p id=\"error-message\">Det anbefaldes at der bruges 2 datapunkter for større sikkerhed</p>");
-          $('#error-message').css('color', '#FFA71A');
-          $('#error-message').css('font-size', 18);
+
+          add_alert('Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
         }
 
-        //------------ Range Checker --------------- 
-        //Range checker for kids
+        // ------------ Range Checker --------------- 
+        // Range checker for kids
         if ($('input[name=study_type]:checked').val() == 1) {
           //Time ranges in milisecounds!
           var range_low = 110*60*1000
@@ -191,18 +262,17 @@ $(function() {
           var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
-
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis<br>Det anbefalet interval er imellem 110 minuter og 130 minuter</p>");
-            $('#error-message').css('color', '#FFA71A');
-            $('#error-message').css('font-size', 18);
-
+            add_alert(
+              'Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis<br>Det anbefalet interval er imellem 110 minuter og 130 minuter.', 
+              'warning'
+            );
           }
-          
         }
-        //Range Checker for grown ups
+
+        // Range Checker for grown ups
         if ($('input[name=study_type]:checked').val() == 0) {
-          //Time ranges in milisecounds!
+          // Time ranges in milisecounds!
           var range_low = 180*60*1000
           var range_high = 240*60*1000
           
@@ -210,9 +280,10 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            $('#error-message-container').append("<p id=\"error-message\"> Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem 180 minuter og 240 minuter</p>");
-            $('#error-message').css('color', '#FFA71A');
-            $('#error-message').css('font-size', 18);
+            add_alert(
+              'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem 180 minuter og 240 minuter',
+              'warning'
+            );
           }
         }
 
@@ -242,7 +313,8 @@ $(function() {
           if(test_count == 0) {
             add_add_test_functionality();
           }
-          $('#error-message-container').empty();
+
+          remove_alerts();
         });
 
         // 'Lock' button on click
@@ -268,36 +340,33 @@ $(function() {
         csv_row_ids_array.forEach(function(item) {
           $("#" + item).css('background-color', 'white');
         });
+
         csv_row_ids_array = [];
 
-        //If method one point Remove option to add more tests
+        // If method one point Remove option to add more tests
         if ($('input[name="study_type"]:checked').val() != 2) {
-          //This function is a one liner
-          //$('#add-test-container').empty()
           remove_add_test_functionality()
         }
 
         } else { //Not enought Data selected
-          $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales</p>");
-          $('#error-message').css('color', '#FF0000');
-          $('#error-message').css('font-size', 22);
+          add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
         }
       } else { // Incorrect time formatinjection_time
-        $('#id_study_time').css('borderinjection_time lightcoral');
+        $('#id_study_time').css('border', '2px solid lightcoral');
       }
     } else { // Incorrect date format
       $('#id_study_date').css('border', '2px solid lightcoral');
     }
   });
 
-  //Handler for tilføj-standart button
+  // Handler for tilføj-standart button
   $('#add-standart').on('click', function() {
-    $('#error-message-container').empty()
+    remove_alerts();
 
     if(csv_row_ids_array.length > 0) {
       var sum = 0;
       if (csv_row_ids_array.length >= 2) {
-        //TO DO ADD Sanity checks
+        // TO DO ADD Sanity checks
         var data_values = [];
         csv_row_ids_array.forEach(element => {
           data_values.push(parseFloat($('#' + element).children().eq(2).text()))  
@@ -312,9 +381,7 @@ $(function() {
 
         }
         if (sanity) { // Value to be updated
-          $('#error-message-container').append("<p id=\"error-message\">Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl!</p>");
-          $('#error-message').css('color', '#FFA71A');
-          $('#error-message').css('font-size', 18);
+          add_alert('Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 'warning');
         }
       } else {
         csv_row_ids_array.forEach(element => {
@@ -326,29 +393,21 @@ $(function() {
         //If lenght = 2,3
         $('#standart-text').val(round_to(sum, 3));
       } else {
-        //If lenght = 1
+        // If lenght = 1
         $('#standart-text').val(round_to(sum, 3));
 
-        $('#error-message-container').append("<p id=\"error-message\">Det anbefales at der bruges 2 prøver, for øget sikkerhed.</p>");
-        $('#error-message').css('color', '#FFA71A');
-        $('#error-message').css('font-size', 18);
-      
+        add_alert('Det anbefales at der bruges 2 prøver, for øget sikkerhed.', 'warning');      
       }
       // Deselect the two tests
-      //Empty 
       csv_row_ids_array.forEach(function(item) {
         $("#" + item).css('background-color', 'white');
       });
+
       csv_row_ids_array = [];
-      
-
     } else {
-      //If lenght = 0
-      $('#error-message-container').append("<p id=\"error-message\">Der skal bruges midst 1 datapunkt, 2 anbefales.</p>");
-      $('#error-message').css('color', '#FF0000');
-      $('#error-message').css('font-size', 22);
+      // If lenght = 0
+      add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
     }
-
   });
 
   // Table row on click handlers
@@ -389,7 +448,6 @@ $(function() {
       $(this).css("border", "1px solid #CED4DA");
     });
   });
-
 
   // Evaluate if entered value is within threshold
   var id_thresholds = {
@@ -594,5 +652,4 @@ $(function() {
     console.log(testcount > 0)
     conlone.log(document.getElementById("id_study_type_2").checked)
   }
-
 });
