@@ -569,4 +569,10 @@ $(function() {
     }
   }
 
+  if (test_count > 0 && document.getElementById("id_study_type_2").checked) {
+    remove_add_test_functionality()
+    console.log(testcount > 0)
+    conlone.log(document.getElementById("id_study_type_2").checked)
+  }
+
 });
