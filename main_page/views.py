@@ -179,14 +179,12 @@ class ListStudiesView(TemplateView, LoginRequiredMixin):
 @login_required(login_url='/')
 def fill_study(request, rigs_nr):
   # Specify page template
-  logger.warning('Fill study Start')
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
     PRH.fill_study_post(request, rigs_nr)
     
-    if 'calculate' in request.POST:
-      logger.warning('Fill_study Redirect')  
+    if 'calculate' in request.POST:  
       return redirect('main_page:present_study', rigs_nr=rigs_nr) 
 
   hospital = request.user.hospital # Hospital of current user
@@ -333,7 +331,6 @@ def fill_study(request, rigs_nr):
     'standart_count' : exam.std_cnt,
   }
 
-  logger.warning('Fill Study Returns')
 
   return HttpResponse(template.render(context, request))
 
@@ -558,7 +555,6 @@ def present_study(request, rigs_nr):
   Remark:
     Should not pull information down from PACS
   """
-  logger.warning('Present Study start')
 
   template = loader.get_template('main_page/present_study.html')
 
@@ -598,7 +594,6 @@ def present_study(request, rigs_nr):
     'image_path': plot_path,
   }
 
-  logger.warning('present study returns:')
   return HttpResponse(template.render(context,request))
 
 
