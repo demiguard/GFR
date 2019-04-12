@@ -16,6 +16,7 @@ from . import server_config
 from . import dicomlib
 
 from dateutil import parser as date_parser
+from pydicom import uid
 import datetime, logging
 import glob
 import os
@@ -34,8 +35,8 @@ def fill_study_post(request, rigs_nr):
     Request: The Post request
     rigs_nr: The REGH number for the corosponding examination
   """
+  logger.warning('Starting to ')
   #Save Without Redirect
-
   if 'save' in request.POST:
     store_form(request,rigs_nr)
 
@@ -112,7 +113,7 @@ def fill_study_post(request, rigs_nr):
 
     history_age, history_clrN = clearance_math.get_histroy(request.user, cpr)
 
-    plot_path = clearance_math.generate_plot_text(
+    pixel_data = clearance_math.generate_plot_text(
       weight,
       height,
       BSA,
@@ -124,7 +125,8 @@ def fill_study_post(request, rigs_nr):
       rigs_nr,
       hosp_dir=request.user.hospital,
       history_age=history_age,
-      history_clr_n=history_clrN
+      history_clr_n=history_clrN,
+      save_fig=False
     )
 
     base_resp_dir = server_config.FIND_RESPONS_DIR
@@ -144,18 +146,18 @@ def fill_study_post(request, rigs_nr):
 
     dcm_img_path = '{0}/{1}/{2}.dcm'.format(img_path, hospital, rigs_nr)
 
-    img2dcm_query = [
-      'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
-      plot_path,                    # Input location of image
-      dcm_img_path,                 # Output location
-      '-sc',                        # Write as secondary capture SOP class
-      '-i',                         # Specify input image format
-      'BMP'
-    ]
+    #img2dcm_query = [
+    #  'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
+    #  plot_path,                    # Input location of image
+    #  dcm_img_path,                 # Output location
+    #  '-sc',                        # Write as secondary capture SOP class
+    #  '-i',                         # Specify input image format
+    #  'BMP'
+    #]
 
     # TODO: Check exit-code of query and handle errors
-    ris.execute_query(img2dcm_query)
-    img_obj = pydicom.dcmread(dcm_img_path)
+    #ris.execute_query(img2dcm_query)
+    #img_obj = pydicom.dcmread(dcm_img_path)
   
     # Read StudyInstanceUID from main dicom object, to allow storage of image together with it
     """
@@ -172,22 +174,23 @@ def fill_study_post(request, rigs_nr):
     img_obj.save_as(dcm_img_path)
     dcm_obj.save_as(dcm_obj_path)
     """
-
-    print(type(img_obj.PixelData))
+    series_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'series'])
+    sop_class_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'class'])
+    sop_instance_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'instance'])
 
     dicomlib.store_dicom(
       dcm_obj_path,
       gfr            = gfr,
       clearance      = clearance,
       clearance_norm = clearance_norm,
-      series_instance_uid= img_obj.SeriesInstanceUID,
-      sop_class_uid= img_obj.SOPClassUID,
-      sop_instance_uid= img_obj.SOPInstanceUID,
-      pixeldata = img_obj.PixelData 
+      series_instance_uid= series_uid,
+      sop_class_uid= sop_class_uid,
+      sop_instance_uid= sop_instance_uid,
+      pixeldata = pixel_data 
     )
     #Remove bmp file and dcm file
-    os.remove(plot_path)
-    os.remove(dcm_img_path)
+    #os.remove(plot_path)
+    #os.remove(dcm_img_path)
 
 
 def store_form(request, rigs_nr):
@@ -198,10 +201,10 @@ def store_form(request, rigs_nr):
   Args:
     rigs_nr: rigs number of the examination to store in
   """
-  
+  logger.warn('Store_form Start')
+
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
-
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
@@ -213,30 +216,29 @@ def store_form(request, rigs_nr):
 
   dicom_path = '{0}{1}.dcm'.format(DICOM_dirc, rigs_nr)  
 
-  #Initail Storing
-  dicomlib.store_dicom(dicom_path, update_dicom = True, update_date = True)
-  
-  dicomlib.store_dicom(dicom_path, series_number = rigs_nr[4:])
-  dicomlib.store_dicom(dicom_path, station_name = request.user.config.pacs_calling)
+  #All Fields to be stored
+  birthdate = None
+  injection_time = None
+  gfr_type = None
+  gender = None
+  injection_before = None
+  injection_after  = None
+  injection_weight = None
+  weight = None
+  height = None
+  bsa_method = 'Haycock'
+  seq = None
 
   # Store age
   if request.POST['birthdate']:    
-    clearance_math
-    dicomlib.store_dicom(
-      dicom_path,
-      age=request.POST['birthdate']
-    )
+    birthdate = request.POST['birthdate']
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
-
-    dicomlib.store_dicom(
-      dicom_path,
-      injection_time = inj_datetime.strftime('%Y%m%d%H%M')
-    )
+    injection_time = inj_datetime.strftime('%Y%m%d%H%M')
 
   #Study Always exists
   study_type = int(request.POST['study_type'])
@@ -248,50 +250,28 @@ def store_form(request, rigs_nr):
   elif study_type == 2:
     study_str = 'Flere prøve Voksen'
 
-  #Store Study
-  dicomlib.store_dicom(
-    dicom_path,
-    gfr_type=study_str
-  )
+    gfr_type = study_str
 
   if len(request.POST['sex']) > 0:
-    dicomlib.store_dicom(
-      dicom_path,
-      gender=request.POST['sex']
-    )
+    gender = request.POST['sex']
 
   if (len(request.POST['vial_weight_before']) > 0) and (len(request.POST['vial_weight_after']) > 0):
-    vial_weight_before = float(request.POST['vial_weight_before'])
-    vial_weight_after = float(request.POST['vial_weight_after'])
-    vial_weight_inj   = vial_weight_before - vial_weight_after
-
-    dicomlib.store_dicom(
-      dicom_path,
-      injection_before = vial_weight_before,
-      injection_after  = vial_weight_after,
-      injection_weight = vial_weight_inj 
-      )
-
+    injection_before = float(request.POST['vial_weight_before'])
+    injection_after  = float(request.POST['vial_weight_after'])
+    injection_weight = injection_before - injection_after
   elif len(request.POST['vial_weight_before']) > 0:
-    vial_weight_before = float(request.POST['vial_weight_before'])
-    dicomlib.store_dicom(
-      dicom_path,
-      injection_before= vial_weight_before
-    )
-
-  bsa_method = 'Haycock'
+    injection_before = float(request.POST['vial_weight_before'])
+ 
   if (len(request.POST['weight']) > 0):
-    dicomlib.store_dicom(
-      dicom_path,
-      weight     = float(request.POST['weight']) 
-    ) 
-  if (len(request.POST['height']) > 0):
-    dicomlib.store_dicom(
-      dicom_path,
-      height     = float(request.POST['height']),
-      bsa_method = bsa_method 
-    )
+      weight = float(request.POST['weight']) 
 
+  if (len(request.POST['height']) > 0):
+      height = float(request.POST['height'])
+
+  if request.POST['thin_fac']:
+    thiningfactor = float(request.POST['thin_fac'])
+  if request.POST['std_cnt_text_box']:
+    std_cnt= float(request.POST['std_cnt_text_box'])
 
   if int(request.POST['study_type']) == 2:
     sample_dates = request.POST.getlist('study_date')[:-1]
@@ -299,20 +279,11 @@ def store_form(request, rigs_nr):
   else:
     sample_dates = request.POST.getlist('study_date')
     sample_times = request.POST.getlist('study_time')
-    
 
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
   #There's Data to put in
-  if sample_dates:
-    # If thining factor have been inputed
-    thin_factor = ''
-    std_cnt = ''
-    if request.POST['thin_fac']:
-      thin_factor = float(request.POST['thin_fac'])
-    if request.POST['std_cnt_text_box']:
-      std_cnt = float(request.POST['std_cnt_text_box'])
-
+  if sample_tec99:
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
@@ -320,13 +291,34 @@ def store_form(request, rigs_nr):
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
     
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
-    seq = [(datetime, cnt, std_cnt, thin_factor) for datetime, cnt in zip_obj_seq]
+    seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
     
-    dicomlib.store_dicom(
-      dicom_path,
-      sample_seq = seq
-    )
+  else:
+      seq = []      
 
+  dicomlib.store_dicom(dicom_path, 
+    update_dicom = True,
+    update_date = True,
+    birthday=birthdate,
+    injection_time=injection_time,
+    gfr_type=gfr_type,
+    series_number = rigs_nr[4:],
+    station_name = request.user.config.pacs_calling,
+    gender=gender,
+    injection_before = injection_before,
+    injection_after  = injection_after,
+    injection_weight = injection_weight,
+    weight=weight,
+    height=height,
+    bsa_method=bsa_method,
+    thiningfactor=thiningfactor,
+    std_cnt=std_cnt,
+    sample_seq=seq
+    )
+  
+
+
+  logger.warning('Store_form Done')
 
 def present_study_post(request, rigs_nr):
   """

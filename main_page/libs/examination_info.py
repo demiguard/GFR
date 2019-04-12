@@ -103,12 +103,12 @@ def deserialize(dicom_obj):
   if 'injafter' in dicom_obj:
     exam.inj_after = dicom_obj.injafter
 
+  if 'thiningfactor' in dicom_obj:
+    exam.thin_fact = dicom_obj.thiningfactor
+  if 'stdcnt' in dicom_obj:
+    exam.std_cnt = dicom_obj.stdcnt
+  
   if 'ClearTest' in dicom_obj:
-    if 'thiningfactor' in dicom_obj.ClearTest[0]:
-      exam.thin_fact = dicom_obj.ClearTest[0].thiningfactor
-    if 'stdcnt' in dicom_obj.ClearTest[0]:
-      exam.std_cnt = dicom_obj.ClearTest[0].stdcnt
-
     sample_times = []
     tch99_cnt = []
     for test in dicom_obj.ClearTest:

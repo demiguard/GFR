@@ -295,8 +295,6 @@ def fill_study(request, rigs_nr):
     exam.std_cnt = None
   # --- ---
 
-  logger.info('exan weight: {0}'.format(exam.weight))
-
   # TODO: Many of these parameters passed to the template can be simplified by
   # just passing in the exam object
   context = {
@@ -332,6 +330,7 @@ def fill_study(request, rigs_nr):
     'error_message' : error_message,
     'standart_count' : exam.std_cnt,
   }
+
 
   return HttpResponse(template.render(context, request))
 
@@ -556,6 +555,7 @@ def present_study(request, rigs_nr):
   Remark:
     Should not pull information down from PACS
   """
+
   template = loader.get_template('main_page/present_study.html')
 
   if request.method == 'POST':

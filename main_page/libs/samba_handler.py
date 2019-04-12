@@ -49,7 +49,8 @@ def smb_get_csv(hospital, timeout = 5):
     server_config.samba_user, 
     server_config.samba_pass, 
     server_config.samba_pc, 
-    server_config.samba_name
+    server_config.samba_name,
+    use_ntlm_v2=True
     )
 
   is_connected = conn.connect(server_config.samba_ip, timeout = timeout)

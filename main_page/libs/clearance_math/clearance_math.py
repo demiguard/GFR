@@ -437,11 +437,11 @@ def generate_plot_text(
  
     # Get the RGBA buffer from the figure
     w,h = fig.canvas.get_width_height()
-    buf = numpy.fromstring ( fig.canvas.tostring_argb(), dtype=numpy.uint8 )
-    buf.shape = ( w, h,4 )
+    buf = numpy.fromstring ( fig.canvas.tostring_rgb(), dtype=numpy.uint8 )
+    buf.shape = ( w, h, 3 )
  
     # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
-    buf = numpy.roll ( buf, 3, axis = 2 )
+    #buf = numpy.roll ( buf, 3, axis = 2 )
     return buf
 
   def fig2img ( fig ):
@@ -453,7 +453,7 @@ def generate_plot_text(
     # put the figure pixmap into a numpy array
     buf = fig2data ( fig )
     w, h, d = buf.shape
-    return Image.frombytes( "RGBA", ( w ,h ), buf.tostring( ) )
+    return Image.frombytes( "RGB", ( w ,h ), buf.tostring( ) )
 
   # Generate background fill
   # TODO: These values define changed
@@ -547,16 +547,14 @@ def generate_plot_text(
   fig.set_figwidth(image_Width)
   ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
 
-  if not os.path.exists(save_dir):
-    os.mkdir(save_dir)
-
-  image_path = "{0}/{1}.bmp".format(save_dir, rigs_nr)
-
   if save_fig:
     im = fig2img(fig)
+    image_path = "{0}/{1}.bmp".format(save_dir, rigs_nr)
+    if not os.path.exists(save_dir):
+      os.mkdir(save_dir)
     im.save(image_path)
   if show_fig:
     plt.show()
 
-  return image_path
+  return numpy.asarray(fig2data(fig)).tobytes()
 
