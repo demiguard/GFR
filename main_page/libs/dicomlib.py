@@ -157,8 +157,7 @@ def store_dicom(dicom_obj_path,
     ds.AccessionNumber = rigs_nr
 
   if birthday:
-    birthday.replace('-','')
-    ds.PatientBirthDate = birthday
+    ds.PatientBirthDate = birthday.replace('-','')
 
   if cpr:
     ds.PatientID = cpr.replace('-','')
