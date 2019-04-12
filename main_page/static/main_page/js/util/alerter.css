@@ -1,0 +1,11 @@
+/* Warning fields */
+.warn-field {
+  border: 2px solid #F5DF9C;
+  background-color: #FFEEBA;
+}
+
+/* Error fields */
+.danger-field {
+  border: 2px solid lightcoral;
+  background-color: #F7A9A9;
+}

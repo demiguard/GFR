@@ -1,128 +1,226 @@
-// Wait until document ready
-$(function() {
-  /*
-  Initializes the correct sizing the select test div on window resizing
+// ### THESE FUNCTIONS SHOULD BE MOVE TO A SEPERATE MODULE FILE ###
+/*
+Checks if a value is within a given threshold
+
+Args:
+  val: value to check on
+  min_val: minimum value
+  max_val: maximum value
+
+Returns:
+  true if the value is within the bounds, false otherwise
+*/
+function is_within_threshold(val, min_val, max_val) {
+  if (val < min_val || val > max_val) {
+    return false;
+  }
+
+  return true;
+}
+
+/*
+Helper function to round of floating point numbers
+
+Args:
+  num: number to round off
+  n: how many decimals to round off to
+*/
+function round_to(num, n) {
+  p = Math.pow(10, n);
+  return Math.round(num * p) / p;
+}
+
+/*
+Checks if a string only contains digits or '.' (floats)
+
+Args:
+  str: string to check on
+
+Returns:
+  true if the string is a number, false otherwise.
+*/
+function is_number(str) {
+  let re_number = /-?\d+\.?\d*/;
+  return re_number.test(str);
+}
+
+// Validates a given time string (format: tt:mm)
+function valid_time_format(time_str) {
+  let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
+  return TIME_FORMAT.test(time_str);
+}
+
+// Validates a given date string (format: YYYY-MM-DD)
+function valid_date_format(date_str) {
+  let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
+  return DATE_FORMAT.test(date_str);
+}
+
+/*
+Automatically appends a character after the n'th character is typed.
+
+Args:
+  field: the field to apply the bind on.
+  c: character to append
+  n: after how many characters should it append
+
+Remark:
+  The function ignores backspaces (the character code 8)
+*/
+function auto_char(field, c, n) {
+  const BACKSPACE_KEY = 8;
   
-  TODO: THIS IS JUST A TEMPORARY FIX AND SHOULD FIXED IN CSS
-  */
-  (function init_test_div_resizer() {
-    let largescreen_offset = 80;
-    let smallscreen_offset = 105;
-    let screen_diff = 1300;
-  
-    $(window).on('resize', function() {
-      var test_div = $('#right_side')
-      var doc_height = $(document).innerHeight();
-      var new_height = 0;
+  field.bind('keypress', function(key) {
+    if (key.which !== BACKSPACE_KEY) {
+      let number_of_chars = $(this).val().length;
       
-      if (doc_height <= screen_diff) {
-        new_height = (doc_height - test_div.position().top) - smallscreen_offset;
-      } else {
-        new_height = (doc_height - test_div.position().top) - largescreen_offset;
+      if (number_of_chars === n){
+        let prev_val = $(this).val();
+        $(this).val(prev_val + c);
       }
+    }
+  });
+}
+
+/*
+Initializes the correct sizing of the select test div on window resizing
+
+Remarks: 
+  THIS IS JUST A TEMPORARY FIX AND SHOULD FIXED IN CSS
+*/
+function init_test_div_resizer() {
+  let largescreen_offset = 80;
+  let smallscreen_offset = 105;
+  let screen_diff = 1300;
+
+  $(window).on('resize', function() {
+    var test_div = $('#right_side')
+    var doc_height = $(document).innerHeight();
+    var new_height = 0;
+    
+    if (doc_height <= screen_diff) {
+      new_height = (doc_height - test_div.position().top) - smallscreen_offset;
+    } else {
+      new_height = (doc_height - test_div.position().top) - largescreen_offset;
+    }
+
+    test_div.height(new_height);
+  });
+};
+
+// ### END OF FUNCTIONS TO MOVE TO MODULE ###
+
+
+
+
+
+/*
+Adds threshold checking on number fields
+*/
+function add_threshold_checking() {
+  let id_thresholds = [
+    {'id': '#id_height',              'min_val': 40,    'max_val': 210},
+    {'id': '#id_weight',              'min_val': 30,    'max_val': 150},
+    {'id': '#id_vial_weight_before',  'min_val': 3,     'max_val': 5},
+    {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
+    {'id': '#id_std_cnt',             'min_val': 1000,  'max_val': 10000},
+    {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 7500}
+  ];
   
-      test_div.height(new_height);
-    });
-  })();
-
-  /* 
-  Adds an alert to the error message container
-
-  Args:
-    msg: alert message to display
-    type: type string representing the type of alert to display
-
-  Remark:
-    Alerts can only be either 'warning' or 'danger'
-    For more details: https://getbootstrap.com/docs/4.2/components/alerts/
-  */
-  function add_alert(msg, type) {
-    // Ensure type is valid
-    let valid_types = [
+  let id_thresholds_length = id_thresholds.length;
+  for (var i = 0; i < id_thresholds_length; i++) {
+    alerter.field_auto_warn(
+      $(id_thresholds[i].id),
       'warning',
-      'danger'
-    ]
-
-    if (!valid_types.includes(type)) {
-      throw new Error("Invalid type for alert.");
-    }
-    
-    // Create strong indicator
-    var alert_indicator = document.createElement('strong');
-    var indicator_msg = '';
-    if (type == valid_types[0]) {         // Warning
-      indicator_msg = 'Advarsel: ';
-    } else if (type == valid_types[1]) {  // Danger
-      indicator_msg = 'Fejl: ';
-    }
-    alert_indicator.innerHTML = indicator_msg;
-
-    // Create alert
-    var alert_div = document.createElement('div');
-    alert_div.classList.add('alert');
-    alert_div.classList.add('alert-' + type);
-    alert_div.innerHTML = msg;
-
-    // Insert alert at top of container
-    alert_div.prepend(alert_indicator);
-    $('#error-message-container').prepend(alert_div);
-  }
-
-  /*
-  Removes all alerts
-  */
-  function remove_alerts() {
-    $('#error-message-container').empty();
-  }
-
-  /*
-  Helper function to round of floating point numbers
-
-  Args:
-    num: number to round off
-    n: how many decimals to round off to
-  */
-  function round_to(num, n) {
-    p = Math.pow(10, n);
-    return Math.round(num * p) / p;
-  }
-
-  /*
-  Automatically appends a character after the n'th character is typed.
-
-  Args:
-    field: the field to apply the bind on.
-    c: character to append
-    n: after how many characters should it append
-
-  Remark:
-    The function ignores backspaces (the character code 8)
-  */
-  function auto_char(field, c, n) {
-    function add_char(key){
-      if (key.which !== 8){
-        var number_of_chars = $(this).val().length;
-        if (number_of_chars === n){
-          var copyvalue = $(this).val();
-          copyvalue += c;
-          $(this).val(copyvalue);
+      function(field, options) {
+        let field_val = field.val();
+        if (!is_number(field_val)) {
+          return true;
         }
+        
+        let parse_val = parseFloat(field_val);
+        return !is_within_threshold(parse_val, options.min_val, options.max_val);
+      },
+      {
+        'min_val': id_thresholds[i].min_val,
+        'max_val': id_thresholds[i].max_val
       }
-    }
-    
-    field.bind('keypress', add_char);
+    );
   }
+}
 
-  // Adding Colons to time fields
-  auto_char($("input[name='injection_time']"), ':', 2);
-  auto_char($("input[name='study_time']"), ':', 2);
-  
-  //END:Adding Colons to time fields
+/*
+Adds checking on time fields
+*/
+function add_time_checking() {
+  // Check formatting on injection time
+  alerter.field_auto_warn(
+    $("#id_injection_time"),
+    'danger',
+    function(field) {
+      return !valid_time_format(field.val());
+    }
+  );
+}
 
+/*
+Adds checking on date fields
+*/
+function add_date_checking() {
+  // Check formatting on injection date
+  alerter.field_auto_warn(
+    $("#id_injection_date"),
+    'danger',
+    function(field) {
+      return !valid_date_format(field.val());
+    }
+  );
+}
+
+/*
+Initializes date fields
+*/
+function initialize_date_fields() {
   // Add date pickers to date fields
   $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_birthdate').datepicker({format:'yyyy-mm-dd'});
+}
+
+/*
+Initializes time fields
+*/
+function initialize_time_fields() {
+  // Adding Colons to time fields after seconds character
+  auto_char($("input[name='injection_time']"), ':', 2);
+  auto_char($("input[name='study_time']"), ':', 2);
+
+
+}
+
+/*
+Performs initialization of required modules
+*/
+function initialize_modules() {
+  alerter.init_alerter($('#error-message-container'));
+}
+
+// Wait until document ready
+$(function() {
+  initialize_modules();
+
+  initialize_date_fields();
+  initialize_time_fields();
+
+  add_threshold_checking();
+  add_time_checking();
+  add_date_checking();
+
+
+
+
+
+
 
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
@@ -164,17 +262,7 @@ $(function() {
     return true;
   });
 
-  // Validates a given time string (format: tt:mm)
-  function valid_time_format(time_str) {
-    let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
-    return TIME_FORMAT.test(time_str);
-  }
 
-  // Validates a given date string (format: YYYY-MM-DD)
-  function valid_date_format(date_str) {
-    let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
-    return DATE_FORMAT.test(date_str);
-  }
 
   // 'Tilføj' clicked for manual study entry
   var test_count = $('.row-lock-btn').length; // Get the count of previous samples
@@ -209,7 +297,7 @@ $(function() {
   var sanity_checker = 0.25
   $('#add-test').click(function() {
     // Reset error messages container
-    remove_alerts();
+    alerter.clear_alerts();
 
     // Reset borders
     $('#id_study_time').css('border', '1px solid #CED4DA');
@@ -242,7 +330,7 @@ $(function() {
           }
 
           if (sanity) {
-            add_alert('Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 'warning');
+            alerter.add_alert('Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 'warning');
           }
 
         } else { //Only 1 element selected
@@ -250,7 +338,7 @@ $(function() {
             sum += parseFloat($('#' + element).children().eq(2).text())
           });
 
-          add_alert('Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
+          alerter.add_alert('Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
         }
 
         // ------------ Range Checker --------------- 
@@ -264,7 +352,7 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            add_alert(
+            alerter.add_alert(
               'Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis<br>Det anbefalet interval er imellem 110 minuter og 130 minuter.', 
               'warning'
             );
@@ -281,7 +369,7 @@ $(function() {
           var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
 
           if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            add_alert(
+            alerter.add_alert(
               'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem 180 minuter og 240 minuter',
               'warning'
             );
@@ -315,7 +403,7 @@ $(function() {
             add_add_test_functionality();
           }
 
-          remove_alerts();
+          alerter.clear_alerts();
         });
 
         // 'Lock' button on click
@@ -350,7 +438,7 @@ $(function() {
         }
 
         } else { //Not enought Data selected
-          add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
+          alerter.add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
         }
       } else { // Incorrect time formatinjection_time
         $('#id_study_time').css('border', '2px solid lightcoral');
@@ -362,7 +450,7 @@ $(function() {
 
   // Handler for tilføj-standart button
   $('#add-standart').on('click', function() {
-    remove_alerts();
+    alerter.clear_alerts();
 
     if(csv_row_ids_array.length > 0) {
       var sum = 0;
@@ -382,7 +470,7 @@ $(function() {
 
         }
         if (sanity) { // Value to be updated
-          add_alert('Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 'warning');
+          alerter.add_alert('Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 'warning');
         }
       } else {
         csv_row_ids_array.forEach(element => {
@@ -397,7 +485,7 @@ $(function() {
         // If lenght = 1
         $('#standart-text').val(round_to(sum, 3));
 
-        add_alert('Det anbefales at der bruges 2 prøver, for øget sikkerhed.', 'warning');      
+        alerter.add_alert('Det anbefales at der bruges 2 prøver, for øget sikkerhed.', 'warning');      
       }
       // Deselect the two tests
       csv_row_ids_array.forEach(function(item) {
@@ -407,7 +495,7 @@ $(function() {
       csv_row_ids_array = [];
     } else {
       // If lenght = 0
-      add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
+      alerter.add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
     }
   });
 
@@ -424,89 +512,22 @@ $(function() {
     else if(csv_row_ids_array.length < 3 ){
       csv_row_ids_array.push($(this).attr("id"));
       $(this).css('background-color', '#bada55');
-    } 
-  });
-   
-
-  // Click function to reset color
-  var ids_to_check = [
-    "#id_cpr",
-    "#id_name",
-    "#id_sex",
-    "#id_age",
-    "#id_height",
-    "#id_weight",
-    "#id_vial_weight_before",
-    "#id_vial_weight_after",
-    "#id_injection_time",
-    "#id_injection_date",
-    "#id_std_cnt",
-    "#id_thin_fac"
-  ];
-
-  ids_to_check.forEach(function(elm) {
-    $(elm).on('click', function() {
-      $(this).css("border", "1px solid #CED4DA");
-    });
-  });
-
-  // Evaluate if entered value is within threshold
-  var id_thresholds = {
-    "#id_age":                 {'min_value': 0,     'max_value': 99},
-    "#id_height":              {'min_value': 40,    'max_value': 210},
-    "#id_weight":              {'min_value': 30,    'max_value': 150},
-    "#id_vial_weight_before":  {'min_value': 3,     'max_value': 5},
-    "#id_vial_weight_after":   {'min_value': 0,     'max_value': 5},
-    "#id_std_cnt":             {'min_value': 1000,  'max_value': 10000},
-    "#id_thin_fac":            {'min_value': 3500,   'max_value': 7500},
-  };
-
-  for (var key in id_thresholds) {
-    $(key).focusout(function() {
-      var v = parseFloat($(this).val());
-      var th = id_thresholds["#" + $(this).attr('id')];
-      
-      if (v < th['min_value'] || v > th['max_value']) {
-        $(this).css('border', '2px solid #ffeeba'); // Set warning color
-      } else {
-        $(this).css('border', '1px solid #CED4DA'); // Set back to normal
-      }
-    });
-  };
-
-
-  // Check formatting on injection time and date
-  $("#id_injection_time").focusout(function() {
-    if (!valid_time_format($(this).val())) {
-      $(this).css('border', '2px solid lightcoral');
     }
   });
 
-  $("#id_injection_time").click(function() {
-    $(this).css('border', '1px solid #CED4DA');
-  });
-
-  $("#id_injection_date").focusout(function() {
-    if (!valid_date_format($(this).val())) {
-      $(this).css('border', '2px solid lightcoral');
-    }
-  });
-
-  $("#id_injection_date").click(function() {
-    $(this).css('border', '1px solid #CED4DA');
-  });
 
   // 'Beregn' on click event
   $('#calculate').click(function() {
     $(window).off("beforeunload");
-
-    // Remove previous error message, if any
-    $("#submit-err-container").empty();
-
+    
     // Check if any tests have been added
     var test_count = $('#test-data-container').children().length;
     if (test_count == 0) {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Kan ikke beregne uden prøver.</p>");
+      alerter.alerter.add_alert(
+        'Kan ikke beregne uden prøver.',
+        'danger'
+      );
+
       return false;
     }
 
@@ -522,7 +543,10 @@ $(function() {
     };
 
     if (!is_valid) {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Et eller flere felter er ikke udfyldt.</p>");
+      alerter.alerter.add_alert(
+        'Et eller flere felter er ikke udfyldt.',
+        'danger'
+      );
       $(failed_id).css('border', '2px solid lightcoral');
       return false;
     }
@@ -535,7 +559,10 @@ $(function() {
     var dt = Date.parse(dt_str);
 
     if (dt > now) {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Injektionstidspunkt kan ikke være i fremtiden.</p>");
+      alerter.alerter.add_alert(
+        'Injektionstidspunkt kan ikke være i fremtiden.',
+        'danger'
+      );
       return false;
     }
 
@@ -543,7 +570,10 @@ $(function() {
     var weight_before = $('#id_vial_weight_before').val();
     var weight_after = $('#id_vial_weight_after').val();
     if (weight_before - weight_after <= 0) {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Injektionsvægt efter kan ikke være større end den før.</p>");
+      alerter.alerter.add_alert(
+        'Injektionsvægt efter kan ikke være større end den før.',
+        'danger'
+      )
       return false;
     }
 
@@ -561,7 +591,10 @@ $(function() {
       var t = Date.parse(t_str);
       
       if (dt >= t) { // injection timestamp >= test timestamp
-        $("#submit-err-container").append("<p style=\"color: lightcoral;\">Prøvetidspunkter kan ikke være før injektionstidspunkter.</p>");
+        alerter.alerter.add_alert(
+          'Prøvetidspunkter kan ikke være før injektionstidspunkter.',
+          'danger'
+        );
         return false;
       }
     }

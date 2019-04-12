@@ -173,6 +173,8 @@ def fill_study_post(request, rigs_nr):
     dcm_obj.save_as(dcm_obj_path)
     """
 
+    print(type(img_obj.PixelData))
+
     dicomlib.store_dicom(
       dcm_obj_path,
       gfr            = gfr,
