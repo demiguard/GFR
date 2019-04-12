@@ -1,4 +1,4 @@
-import pydicom, datetime
+import pydicom, datetime, logging
 from pydicom.values import convert_SQ, convert_string
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
@@ -6,6 +6,8 @@ from pydicom.datadict import DicomDictionary, keyword_dict
 
 from .server_config import new_dict_items
 from . import formatting
+
+logger = logging.getLogger()
 
 
 def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
@@ -63,6 +65,8 @@ def store_dicom(dicom_obj_path,
     gender              = None,
     gfr                 = None,
     gfr_type            = None,
+    thiningfactor       = None,
+    std_cnt             = None,
     injection_time      = None,
     injection_weight    = None,
     injection_before    = None,
@@ -75,8 +79,8 @@ def store_dicom(dicom_obj_path,
     sop_class_uid       = None,
     sop_instance_uid    = None,
     station_name        = None,
-    sample_seq          = [],
-    pixeldata           = []
+    sample_seq          = None,
+    pixeldata           = None
   ):
   """
   Saves information in dicom object, overwriting previous data, with no checks
@@ -235,15 +239,20 @@ def store_dicom(dicom_obj_path,
     # ds.normClear = clearance_norm
     ds.add_new(0x00231014, 'DS', clearance_norm)
 
+  if std_cnt:
+    ds.add_new(0x00231024, 'DS', std_cnt)
+  if thiningfactor:
+    ds.add_new(0x00231028, 'DS', thiningfactor)
+
+
   if sample_seq:
+    logger.info('adding Seqence:{0}'.format(sample_seq))
     seq_list = []
     #Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
       seq_elem.add_new(0x00231021, 'DT', sample[0])
       seq_elem.add_new(0x00231022, 'DS', sample[1])
-      seq_elem.add_new(0x00231024, 'DS', sample[2])
-      seq_elem.add_new(0x00231028, 'DS', sample[3])
       
       # seq_elem.SampleTime    = sample[0]
       # seq_elem.cpm           = sample[1]
@@ -253,6 +262,10 @@ def store_dicom(dicom_obj_path,
       seq_list.append(seq_elem)
     # ds.ClearTest = Sequence(seq_list)
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
+  elif sample_seq == [] and 'ClearTest' in ds:
+    logger.info('Removing Seqence')
+    del ds[0x00231020]
+
 
   # PRIVATE TAGS END
 
