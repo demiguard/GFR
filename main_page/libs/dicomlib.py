@@ -76,7 +76,6 @@ def store_dicom(dicom_obj_path,
     clearance_norm      = None,
     series_instance_uid = None,
     series_number       = None,
-    sop_class_uid       = None,
     sop_instance_uid    = None,
     station_name        = None,
     sample_seq          = None,
@@ -122,6 +121,7 @@ def store_dicom(dicom_obj_path,
   ds = dcmread_wrapper(dicom_obj_path)
 
   if update_dicom:
+    ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7'
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
     ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
     ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
@@ -171,9 +171,6 @@ def store_dicom(dicom_obj_path,
 
   if series_instance_uid:
     ds.SeriesInstanceUID = series_instance_uid
-
-  if sop_class_uid:
-    ds.SOPClassUID = sop_class_uid
 
   if sop_instance_uid:
     ds.SOPInstanceUID = sop_instance_uid

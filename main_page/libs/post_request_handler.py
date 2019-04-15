@@ -184,7 +184,6 @@ def fill_study_post(request, rigs_nr):
       clearance      = clearance,
       clearance_norm = clearance_norm,
       series_instance_uid= series_uid,
-      sop_class_uid= sop_class_uid,
       sop_instance_uid= sop_instance_uid,
       pixeldata = pixel_data 
     )
