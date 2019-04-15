@@ -80,6 +80,10 @@ var alerter = (function() {
     Asigns classes to the field to fields to indicate the warning/error
   */
   var field_auto_warn = function(field, alert_type, warn_check, options) {
+    
+    // TODO: Add the same kind of check as the add_alert function above
+    // TODO: The fields should also be checked when the page loads, i.e. the same check with focusout should be done right before it
+    
     var alert_class = '';
     if (alert_type === 'warning') {
       alert_class = 'warn-field';

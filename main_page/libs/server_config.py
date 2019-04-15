@@ -8,7 +8,7 @@ STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
 DCMCONV = "dcmconv"
 
-DAYS_THRESHOLD = 3                                # How long dicom files should be kept stored on the server
+DAYS_THRESHOLD = 30                                # How long dicom files should be kept stored on the server
 
 BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
 SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
