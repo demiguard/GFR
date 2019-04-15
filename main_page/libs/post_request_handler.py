@@ -35,7 +35,6 @@ def fill_study_post(request, rigs_nr):
     Request: The Post request
     rigs_nr: The REGH number for the corosponding examination
   """
-  logger.warning('Starting to ')
   #Save Without Redirect
   if 'save' in request.POST:
     store_form(request,rigs_nr)
@@ -174,6 +173,7 @@ def fill_study_post(request, rigs_nr):
     img_obj.save_as(dcm_img_path)
     dcm_obj.save_as(dcm_obj_path)
     """
+
     series_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'series'])
     sop_class_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'class'])
     sop_instance_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'instance'])
@@ -201,8 +201,7 @@ def store_form(request, rigs_nr):
   Args:
     rigs_nr: rigs number of the examination to store in
   """
-  logger.warn('Store_form Start')
-
+  
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
 
@@ -316,10 +315,7 @@ def store_form(request, rigs_nr):
     sample_seq=seq
     )
   
-
-
-  logger.warning('Store_form Done')
-
+  
 def present_study_post(request, rigs_nr):
   """
   Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
