@@ -1,87 +1,3 @@
-// ### THESE FUNCTIONS SHOULD BE MOVE TO A SEPERATE MODULE FILE ###
-/*
-Checks if a value is within a given threshold
-
-Args:
-  val: value to check on
-  min_val: minimum value
-  max_val: maximum value
-
-Returns:
-  true if the value is within the bounds, false otherwise
-*/
-function is_within_threshold(val, min_val, max_val) {
-  if (val < min_val || val > max_val) {
-    return false;
-  }
-
-  return true;
-}
-
-/*
-Helper function to round of floating point numbers
-
-Args:
-  num: number to round off
-  n: how many decimals to round off to
-*/
-function round_to(num, n) {
-  p = Math.pow(10, n);
-  return Math.round(num * p) / p;
-}
-
-/*
-Checks if a string only contains digits or '.' (floats)
-
-Args:
-  str: string to check on
-
-Returns:
-  true if the string is a number, false otherwise.
-*/
-function is_number(str) {
-  let re_number = /-?\d+\.?\d*/;
-  return re_number.test(str);
-}
-
-// Validates a given time string (format: tt:mm)
-function valid_time_format(time_str) {
-  let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
-  return TIME_FORMAT.test(time_str);
-}
-
-// Validates a given date string (format: YYYY-MM-DD)
-function valid_date_format(date_str) {
-  let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
-  return DATE_FORMAT.test(date_str);
-}
-
-/*
-Automatically appends a character after the n'th character is typed.
-
-Args:
-  field: the field to apply the bind on.
-  c: character to append
-  n: after how many characters should it append
-
-Remark:
-  The function ignores backspaces (the character code 8)
-*/
-function auto_char(field, c, n) {
-  const BACKSPACE_KEY = 8;
-  
-  field.bind('keypress', function(key) {
-    if (key.which !== BACKSPACE_KEY) {
-      let number_of_chars = $(this).val().length;
-      
-      if (number_of_chars === n){
-        let prev_val = $(this).val();
-        $(this).val(prev_val + c);
-      }
-    }
-  });
-}
-
 /*
 Initializes the correct sizing of the select test div on window resizing
 
@@ -108,12 +24,6 @@ function init_test_div_resizer() {
   });
 };
 
-// ### END OF FUNCTIONS TO MOVE TO MODULE ###
-
-
-
-
-
 /*
 Adds threshold checking on number fields
 */
@@ -124,7 +34,8 @@ function add_threshold_checking() {
     {'id': '#id_vial_weight_before',  'min_val': 3,     'max_val': 5},
     {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
     {'id': '#id_std_cnt',             'min_val': 1000,  'max_val': 10000},
-    {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 7500}
+    {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 7500},
+    {'id': '#standard-field',         'min_val': 0,     'max_val': 100000}
   ];
   
   let id_thresholds_length = id_thresholds.length;
@@ -134,12 +45,12 @@ function add_threshold_checking() {
       'warning',
       function(field, options) {
         let field_val = field.val();
-        if (!is_number(field_val)) {
+        if (!helper.is_number(field_val)) {
           return true;
         }
         
         let parse_val = parseFloat(field_val);
-        return !is_within_threshold(parse_val, options.min_val, options.max_val);
+        return !helper.is_within_threshold(parse_val, options.min_val, options.max_val);
       },
       {
         'min_val': id_thresholds[i].min_val,
@@ -153,28 +64,43 @@ function add_threshold_checking() {
 Adds checking on time fields
 */
 function add_time_checking() {
-  // Check formatting on injection time
-  alerter.field_auto_warn(
-    $("#id_injection_time"),
-    'danger',
-    function(field) {
-      return !valid_time_format(field.val());
-    }
-  );
+  let time_ids = [
+    ['#id_injection_time', 'danger'],
+    ['#id_study_time', 'danger']
+  ];
+  let time_ids_len = time_ids.length;
+  
+  for (var i = 0; i < time_ids_len; i++) {
+    alerter.field_auto_warn(
+      $(time_ids[i][0]),
+      time_ids[i][1],
+      function(field) {
+        return !helper.valid_time_format(field.val());
+      }
+    );
+  }
 }
 
 /*
 Adds checking on date fields
 */
 function add_date_checking() {
-  // Check formatting on injection date
-  alerter.field_auto_warn(
-    $("#id_injection_date"),
-    'danger',
-    function(field) {
-      return !valid_date_format(field.val());
-    }
-  );
+  let date_ids = [
+    ['#id_injection_date', 'danger'],
+    ['#id_study_date', 'danger'],
+    ['#id_birthdate', 'danger']
+  ];
+  let date_ids_len = date_ids.length;
+  
+  for (var i = 0; i < date_ids_len; i++) {
+    alerter.field_auto_warn(
+      $(date_ids[i][0]),
+      date_ids[i][1],
+      function(field) {
+        return !helper.valid_date_format(field.val());
+      }
+    );
+  }
 }
 
 /*
@@ -192,17 +118,23 @@ Initializes time fields
 */
 function initialize_time_fields() {
   // Adding Colons to time fields after seconds character
-  auto_char($("input[name='injection_time']"), ':', 2);
-  auto_char($("input[name='study_time']"), ':', 2);
-
-
+  helper.auto_char($("input[name='injection_time']"), ':', 2);
+  helper.auto_char($("input[name='study_time']"), ':', 2);
 }
 
 /*
 Performs initialization of required modules
 */
 function initialize_modules() {
+  // Set the container to display errors in
   alerter.init_alerter($('#error-message-container'));
+
+  csv_handler.initialize_handler(alerter);
+  csv_handler.init_row_selector('.csv_row');
+  csv_handler.init_add_test();
+  csv_handler.init_reset_selected($('#reset-selected'));
+  csv_handler.init_add_standard($('#add-standard'));
+  csv_handler.init_study_method();
 }
 
 // Wait until document ready
@@ -218,312 +150,79 @@ $(function() {
 
 
 
-
-
-
-
+  // ### 'beforeunload' handler START ###
   // Set changed parameter when a change event in the form occurs
   $("#fill-study-form :input").change(function() {
     $("#fill-study-form").data('changed', true);
   });
 
+  /*
+  Prompts the user to confirm that some information might be lost if they cancel the study
+
+  Args:
+    success_callback: function to call if the confirm returned true
+    failure_callback: function to call if the confirm returned false
+  */
+  var confirm_cancel_study = function(success_callback, failure_callback) {
+    if ($("#fill-study-form").data('changed')) {
+      var resp = confirm("Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!");
+      if (resp) {
+        success_callback();
+      } else {
+        failure_callback();
+      }
+    }
+  };
+
+  /*
+  Helper function for the 'beforeunload' event
+  */
   var unload_func = function() {
     if ($('#fill-study-form').data('changed')) {
       return "Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!";
     }
-  }
+  };
 
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
   $("#cancel").click(function() {
-    if ($("#fill-study-form").data('changed')) {
-      var resp = confirm("Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!");
-      if (!resp) {
-        return false;
-      }
-    }
-
-    window.location.replace("/list_studies");
+    confirm_cancel_study(
+      function() {
+        // Redirect on success
+        window.location.replace("/list_studies");
+      },
+      function() { }
+    );
   });
 
   // Sidemenu item clicked
   $(".menu-item").click(function() {
     $(window).off("beforeunload");
 
-    if ($("#fill-study-form").data('changed')) {
-      var resp = confirm("Skal undersøgelsen afbrydes?\nIndtastet information vil gå tabt!");
-      if (!resp) {
+    confirm_cancel_study(
+      function() { },
+      function() {
+        // Reenable the beforeunload function if failed
         $(window).on("beforeunload", unload_func);
-        return false;
       }
-    }
-
-    return true;
+    );
   });
+  // ### 'beforeunload' handler END ###
 
-
-
-  // 'Tilføj' clicked for manual study entry
-  var test_count = $('.row-lock-btn').length; // Get the count of previous samples
-
-  // Add the on click event handlers to the previous sample locks
-  $('.row-lock-btn').each(function() {
-    $('#' + this.id).on('click', function() {
-      var id_val = this.id
-      var resp = confirm("Advarsel: manuel rettelse bør kun anvendes i nødstilfælde!");
-      if (resp) {
-        var form_parent = $(this).parent().parent();
-        form_parent.children('.readonly-field').each(function() {
-        $(this).children('input').attr('readonly', false);
-        $('#' + id_val).remove() 
-        });
-      }
-    });
-  });
-
-  // Add the on click event handlers to the previous sample remove buttons
-  $('.row-remove-btn').each(function() {
-    $('.row-remove-btn').on('click', function() {
-      test_count--;
-      $(this).parent().parent().remove();
-      add_add_test_functionality();
-
-    });
-  });
-
-
-  var csv_row_ids_array = [];
-  var sanity_checker = 0.25
-  $('#add-test').click(function() {
-    // Reset error messages container
-    alerter.clear_alerts();
-
-    // Reset borders
-    $('#id_study_time').css('border', '1px solid #CED4DA');
-    $('#id_study_date').css('border', '1px solid #CED4DA');
-    
-    // Extract form contents
-    var study_time = $('#id_study_time').val();
-    var study_date = $('#id_study_date').val();
-
-    // Validate contents
-    if (valid_date_format(study_date)) {
-      if (valid_time_format(study_time)) { 
-        if (csv_row_ids_array.length > 0){
-        // Avg. of two selected rows
-        var sum = 0
-        if (csv_row_ids_array.length >= 2) {
-          var data_values = []
-
-          csv_row_ids_array.forEach(element => {
-            data_values.push(parseFloat($('#' + element).children().eq(2).text()))
-            sum += parseFloat($('#' + element).children().eq(2).text()) / csv_row_ids_array.length
-          });
-          
-          var sanity = true;
-          for (i = 0; i < csv_row_ids_array.length; i++) {
-            for (j = i+1; j < csv_row_ids_array.length; j++){
-              var distance = Math.abs((data_values[i] - data_values[j]) / (data_values[i] + data_values[j])); 
-              sanity &= distance > sanity_checker;
-            }
-          }
-
-          if (sanity) {
-            alerter.add_alert('Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 'warning');
-          }
-
-        } else { //Only 1 element selected
-          csv_row_ids_array.forEach(element => {
-            sum += parseFloat($('#' + element).children().eq(2).text())
-          });
-
-          alerter.add_alert('Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
-        }
-
-        // ------------ Range Checker --------------- 
-        // Range checker for kids
-        if ($('input[name=study_type]:checked').val() == 1) {
-          //Time ranges in milisecounds!
-          var range_low = 110*60*1000
-          var range_high = 130*60*1000
-          
-          var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
-          var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
-
-          if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            alerter.add_alert(
-              'Prøven er foretaget udenfor det tidskorrigeret interval, prøven kan derfor være upræcis<br>Det anbefalet interval er imellem 110 minuter og 130 minuter.', 
-              'warning'
-            );
-          }
-        }
-
-        // Range Checker for grown ups
-        if ($('input[name=study_type]:checked').val() == 0) {
-          // Time ranges in milisecounds!
-          var range_low = 180*60*1000
-          var range_high = 240*60*1000
-          
-          var time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00')
-          var time_of_sample = new Date($('#id_study_date').val() + 'T' + $('#id_study_time').val() + ':00')
-
-          if (!(time_of_sample - time_of_inj >= range_low && time_of_sample - time_of_inj <= range_high)) {
-            alerter.add_alert(
-              'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem 180 minuter og 240 minuter',
-              'warning'
-            );
-          }
-        }
-
-        var html_row_base_begin = "<div class=\"form-row\">";
-        var html_row_base_end = "</div>";
-        var html_field_begin = "<div class=\"form-group col-md-3 readonly-field\">";
-        var html_field_input_begin = "<input type=\"text\" class=\"form-control\" name=\"";
-        var html_field_input_end = "\" value=\""
-        var html_field_end = "\" readonly></div>";
-        
-        var html_button_div = "<div class=\"form-group col-md-3\">"
-        var html_button_div_end = "</div>";
-        var html_remove_btn = "<input type=\"button\" value=\"X\" class=\"row-remove-btn btn btn-danger\">";
-        var html_lock_btn = "<input type=\"button\" value=\"&#x1f512;\" class=\"row-lock-btn btn btn-light\" id=\"lock" + test_count.toString() + "\">";
-
-        $('#test-data-container').append(html_row_base_begin);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_date" + html_field_input_end + study_date + html_field_end);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "study_time" + html_field_input_end + study_time + html_field_end);
-        $('#test-data-container .form-row').last().append(html_field_begin + html_field_input_begin + "test_value" + html_field_input_end + round_to(sum, 3) + html_field_end);
-        $('#test-data-container .form-row').last().append(html_button_div + html_remove_btn + html_lock_btn + html_button_div_end);
-        $('#test-data-container').append(html_row_base_end);
-
-        // Register on click event-handler for remove row button
-        $('.row-remove-btn').on('click', function() {
-          test_count--;
-          $(this).parent().parent().remove();
-          if(test_count == 0) {
-            add_add_test_functionality();
-          }
-
-          alerter.clear_alerts();
-        });
-
-        // 'Lock' button on click
-        var lock_str = '#lock' + test_count.toString();
-        $(lock_str).on('click', function() {
-          var resp = confirm("Advarsel: Manuel rettelse bør kun anvendes i nødstilfælde!");
-          
-          if (resp) {
-            var form_parent = $(this).parent().parent();
-            form_parent.children('.readonly-field').each(function() {
-             $(this).children('input').attr('readonly', false);
-            });
-          }
-        });
-
-        test_count++;
-
-        // Clear input fields
-        $('#id_study_time').val("");
-        $('#id_study_value').val("");
-
-        // Deselect the two tests
-        csv_row_ids_array.forEach(function(item) {
-          $("#" + item).css('background-color', 'white');
-        });
-
-        csv_row_ids_array = [];
-
-        // If method one point Remove option to add more tests
-        if ($('input[name="study_type"]:checked').val() != 2) {
-          remove_add_test_functionality()
-        }
-
-        } else { //Not enought Data selected
-          alerter.add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
-        }
-      } else { // Incorrect time formatinjection_time
-        $('#id_study_time').css('border', '2px solid lightcoral');
-      }
-    } else { // Incorrect date format
-      $('#id_study_date').css('border', '2px solid lightcoral');
-    }
-  });
-
-  // Handler for tilføj-standart button
-  $('#add-standart').on('click', function() {
-    alerter.clear_alerts();
-
-    if(csv_row_ids_array.length > 0) {
-      var sum = 0;
-      if (csv_row_ids_array.length >= 2) {
-        // TO DO ADD Sanity checks
-        var data_values = [];
-        csv_row_ids_array.forEach(element => {
-          data_values.push(parseFloat($('#' + element).children().eq(2).text()))  
-          sum += parseFloat($('#' + element).children().eq(2).text()) / csv_row_ids_array.length
-        });
-        var sanity = true;
-        for (i = 0; i < csv_row_ids_array.length; i++) {
-          for (j = i+1; j < csv_row_ids_array.length; j++){
-            var distance = Math.abs((data_values[i] - data_values[j]) / (data_values[i] + data_values[j])); 
-            sanity &= distance > sanity_checker;
-          }
-
-        }
-        if (sanity) { // Value to be updated
-          alerter.add_alert('Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 'warning');
-        }
-      } else {
-        csv_row_ids_array.forEach(element => {
-          sum += parseFloat($('#' + element).children().eq(2).text())
-        });
-      }
-    
-      if (csv_row_ids_array.length > 1) {
-        //If lenght = 2,3
-        $('#standart-text').val(round_to(sum, 3));
-      } else {
-        // If lenght = 1
-        $('#standart-text').val(round_to(sum, 3));
-
-        alerter.add_alert('Det anbefales at der bruges 2 prøver, for øget sikkerhed.', 'warning');      
-      }
-      // Deselect the two tests
-      csv_row_ids_array.forEach(function(item) {
-        $("#" + item).css('background-color', 'white');
-      });
-
-      csv_row_ids_array = [];
-    } else {
-      // If lenght = 0
-      alerter.add_alert('Der skal bruges midst 1 datapunkt, 2 anbefales.', 'danger');
-    }
-  });
-
-  // Table row on click handlers
-  $('.csv_row').on('click', function() {
-    // Extract count value from table
-    if (csv_row_ids_array.includes($(this).attr("id"))) {
-      $(this).css('background-color', ''); // This shouldn't be directly set to a color since it's hover is done by bootstrap
-      var id = $(this).attr("id");
-      csv_row_ids_array = csv_row_ids_array.filter(function(item){
-        return id != item;
-      });
-    }
-    else if(csv_row_ids_array.length < 3 ){
-      csv_row_ids_array.push($(this).attr("id"));
-      $(this).css('background-color', '#bada55');
-    }
-  });
 
 
   // 'Beregn' on click event
   $('#calculate').click(function() {
+    // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
-    
+  
+    alerter.clear_alerts();
+
     // Check if any tests have been added
-    var test_count = $('#test-data-container').children().length;
+    let test_count = $('#test-data-container .form-row').length;
     if (test_count == 0) {
-      alerter.alerter.add_alert(
+      alerter.add_alert(
         'Kan ikke beregne uden prøver.',
         'danger'
       );
@@ -531,11 +230,27 @@ $(function() {
       return false;
     }
 
-    // Check that all fields are filled out
+    // Check that all fields are filled out or has a danger alert
+    let ids_to_check = [
+      "#id_cpr",
+      "#id_name",
+      "#id_sex",
+      "#id_age",
+      "#id_height",
+      "#id_weight",
+      "#id_vial_weight_before",
+      "#id_vial_weight_after",
+      "#id_injection_time",
+      "#id_injection_date",
+      "#id_std_cnt",
+      "#id_thin_fac",
+      '#standard-field'
+    ];
+    
     is_valid = true;
     failed_id = "";
     for (var i = 0; i < ids_to_check.length; i++) {
-      if ($(ids_to_check[i]).val() == "") {
+      if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
         is_valid = false;
         failed_id = ids_to_check[i];
         break;
@@ -543,11 +258,13 @@ $(function() {
     };
 
     if (!is_valid) {
-      alerter.alerter.add_alert(
+      alerter.add_alert(
         'Et eller flere felter er ikke udfyldt.',
         'danger'
       );
-      $(failed_id).css('border', '2px solid lightcoral');
+     
+      alerter.add_field_alert($(failed_id), 'danger');
+
       return false;
     }
 
@@ -559,7 +276,7 @@ $(function() {
     var dt = Date.parse(dt_str);
 
     if (dt > now) {
-      alerter.alerter.add_alert(
+      alerter.add_alert(
         'Injektionstidspunkt kan ikke være i fremtiden.',
         'danger'
       );
@@ -570,7 +287,7 @@ $(function() {
     var weight_before = $('#id_vial_weight_before').val();
     var weight_after = $('#id_vial_weight_after').val();
     if (weight_before - weight_after <= 0) {
-      alerter.alerter.add_alert(
+      alerter.add_alert(
         'Injektionsvægt efter kan ikke være større end den før.',
         'danger'
       )
@@ -591,7 +308,7 @@ $(function() {
       var t = Date.parse(t_str);
       
       if (dt >= t) { // injection timestamp >= test timestamp
-        alerter.alerter.add_alert(
+        alerter.add_alert(
           'Prøvetidspunkter kan ikke være før injektionstidspunkter.',
           'danger'
         );
@@ -605,21 +322,24 @@ $(function() {
 
   // 'Gem' on click event
   $('#save').click(function() {
+    // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
-
-    // Clear previous error message
-    $("#submit-err-container").empty();
+  
+    alerter.clear_alerts();
 
     // Check that both date and time fields are filled out
     inj_time = $("#id_injection_time").val();
     inj_date = $("#id_injection_date").val();
     if ((inj_time == "" ? 0 : 1) ^ (inj_date == "" ? 0 : 1)) {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Både tid og dato skal være udfyldt før der kan gemmes.</p>");
+      alerter.add_alert(
+        'Både tid og dato skal være udfyldt før der kan gemmes.',
+        'danger'
+      );
       
       if (inj_time = "") {
-        $("#id_injection_time").css('border', '2px solid lightcoral');
+        alerter.add_field_alert($("#id_injection_time"), 'danger');
       } else {
-        $("#id_injection_date").css('border', '2px solid lightcoral');
+        alerter.add_field_alert($("#id_injection_date"), 'danger');
       }
 
       $(window).on("beforeunload", unload_func);
@@ -629,59 +349,13 @@ $(function() {
     // Check that if 'sprøjtevægt efter injektion' is entered then 'sprøjtevægt før injektion' must also be entered
     inj_after = $("#id_vial_weight_after").val();
     inj_before = $("#id_vial_weight_before").val();
+    
     if (inj_after != "" && inj_before == "") {
-      $("#submit-err-container").append("<p style=\"color: lightcoral;\">Sprøjtevægt før skal indtastes.</p>");
-      $("#id_vial_weight_before").css('border', '2px solid lightcoral');
+      alerter.add_alert('Sprøjtevægt før skal indtastes.', 'danger');
+      alerter.add_field_alert($("#id_vial_weight_before"), 'danger');
 
       $(window).on("beforeunload", unload_func);
       return false;
     }
   });
-
-  //'Nulstil prøver' knappen functionality
-  $('#reset-selected').click(function(){
-    csv_row_ids_array.forEach(function(item) {
-      $("#" + item).css('background-color', 'white');
-    });
-    csv_row_ids_array = [];
-  })
-  //END:'Nulstil prøver' knappen functionality
-
-  //Radio, method selection
-  //Note we do not remove selected tests
-  $('input[name="study_type"]').click(function(){
-    // one sample Grown up or Childern method selection
-    if (this.value < 2 && test_count != 0) {
-      remove_add_test_functionality();
-    }
-    // Multiple samples method selected
-    if (this.value == 2){
-      add_add_test_functionality(); 
-    }
-  })
-
-  //Comic relief line: By the saying 'The user is always right' it have been commanded from the high heavens to remove the add test functional, after a test have been added
-  // Used by the function remove_add_test_functionality, add_add_test_functionality
-  var test_container_full = true;
-  var add_test_container = $('#add-test-container').clone(true,true);
-
-  // These Functions are Removes and add the option to add more tests
-  function remove_add_test_functionality() {
-    //User understanding: Removes option to add additional test
-    //Programmer understadning: Removes the contains of the add-test-container
-    test_container_full = false;
-    $('#add-test-container').empty();
-  }
-
-  function add_add_test_functionality() {
-    //Add the functionality
-    if (!test_container_full) {
-      $('#add-test-container').append((add_test_container.clone(true,true)).contents());
-      test_container_full = true;
-    }
-  }
-
-  if (test_count > 0 && !document.getElementById("id_study_type_2").checked) {
-    remove_add_test_functionality()
-  }
 });

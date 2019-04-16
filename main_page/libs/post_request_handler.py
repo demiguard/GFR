@@ -200,7 +200,6 @@ def store_form(request, rigs_nr):
   Args:
     rigs_nr: rigs number of the examination to store in
   """
-  
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.hospital
 
@@ -240,15 +239,13 @@ def store_form(request, rigs_nr):
 
   #Study Always exists
   study_type = int(request.POST['study_type'])
-  study_str = ''
+  gfr_type = ''
   if study_type == 0:
-    study_str = 'Et punkt Voksen'
+    gfr_type = 'Et punkt Voksen'
   elif study_type == 1:
-    study_str = 'Et punkt Barn'
+    gfr_type = 'Et punkt Barn'
   elif study_type == 2:
-    study_str = 'Flere prøve Voksen'
-
-    gfr_type = study_str
+    gfr_type = 'Flere prøve Voksen'
 
   if len(request.POST['sex']) > 0:
     gender = request.POST['sex']
@@ -266,6 +263,8 @@ def store_form(request, rigs_nr):
   if (len(request.POST['height']) > 0):
       height = float(request.POST['height'])
 
+  thiningfactor = 0.0
+  std_cnt = 0.0
   if request.POST['thin_fac']:
     thiningfactor = float(request.POST['thin_fac'])
   if request.POST['std_cnt_text_box']:

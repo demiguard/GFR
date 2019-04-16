@@ -3,6 +3,19 @@ var alerter = (function() {
   var alert_container = null;
   var is_initialied = false;
 
+  var warn_ids = [];
+  var danger_ids = [];
+
+  const VALID_TYPES = [
+    'warning',
+    'danger'
+  ]
+
+  const ALERT_CLASS_MAPPINGS = {
+    'warning': 'warn-field',
+    'danger': 'danger-field'
+  }
+
   /*
   Asigns the alert_container to the given div.
   */
@@ -17,6 +30,27 @@ var alerter = (function() {
   };
 
   /*
+  Validates if a string is a correct alert type
+  
+  Args:
+    type_str: string representing the alert type
+
+  Returns:
+    True if the alert type is valid, false otherwise.
+  
+  Remark:
+    Throws an error indicating that an invalid type was passed.
+  */
+ var is_valid_type = function(type_str) {
+  if (!VALID_TYPES.includes(type_str)) {
+    return false;
+  }
+
+  return true;
+ };
+  
+
+  /*
   Adds an alert to the alert container
 
   Args:
@@ -29,21 +63,16 @@ var alerter = (function() {
   */
   var add_alert = function(msg, type) {
     // Ensure type is valid
-    let valid_types = [
-      'warning',
-      'danger'
-    ]
-
-    if (!valid_types.includes(type)) {
+    if (!is_valid_type(type)) {
       throw new Error("Invalid type for alert.");
     }
 
     // Create strong indicator
     var alert_indicator = document.createElement('strong');
     var indicator_msg = '';
-    if (type == valid_types[0]) {         // Warning
+    if (type == VALID_TYPES[0]) {         // Warning
       indicator_msg = 'Advarsel: ';
-    } else if (type == valid_types[1]) {  // Danger
+    } else if (type == VALID_TYPES[1]) {  // Danger
       indicator_msg = 'Fejl: ';
     }
     alert_indicator.innerHTML = indicator_msg;
@@ -67,7 +96,65 @@ var alerter = (function() {
   };
 
   /*
-  Adds a focusout and on click event on a field which validates whether or not to indicate a warning
+  Adds an alert from a field, and adds it from the list of either warning or danger ids.
+  */
+  var add_field_alert = function(field, type_str) {
+    let field_id = field.attr('id');
+    let alert_class = ALERT_CLASS_MAPPINGS[type_str];
+    
+    if (type_str === VALID_TYPES[0]) {        // Warning
+      warn_ids.push(field_id);
+    } else if (type_str === VALID_TYPES[1]) { // Danger
+      danger_ids.push(field_id);
+    }
+    
+    field.addClass(alert_class);
+  }
+
+  /*
+  Removes an alert from a field, and removes it from the list of either warning or danger ids.
+  */
+  var remove_field_alert = function(field, type_str) {    
+    let field_id = field.attr('id');
+    let alert_class = ALERT_CLASS_MAPPINGS[type_str];
+    
+    if (type_str === VALID_TYPES[0]) {        // Warning
+      let idx = warn_ids.indexOf(field_id);
+      if (idx >= 0) {
+        warn_ids.splice(idx, 1);
+      }
+    } else if (type_str === VALID_TYPES[1]) { // Danger
+      let idx = danger_ids.indexOf(field_id);
+      if (idx >= 0) {
+        danger_ids.splice(idx, 1);
+      }
+    }
+
+    field.removeClass(alert_class);
+  }
+
+  /*
+  Checks if a given id has an alert of a given type
+  */
+  var has_alert = function(id, type_str) {
+    // Remove '#' from the id if it's contained within the string
+    var check_id = id;
+    if (id) {
+      if (id[0] === '#') {
+        check_id = id.substring(1, id.length);
+      }
+    }
+
+    // Perform check
+    if (type_str === VALID_TYPES[0]) {        // Warning
+      return warn_ids.includes(check_id);
+    } else if (type_str === VALID_TYPES[1]) { // Danger
+      return danger_ids.includes(check_id);
+    }
+  };
+
+  /*
+  Adds a change and on click event on a field which validates whether or not to indicate a warning
   on the field by coloring it yellow.
 
   Args:
@@ -77,34 +164,41 @@ var alerter = (function() {
                 this function should perform the checking on the field and it's value.
     options: a dict of arguments to call the warn_check function with
   Remark:
-    Asigns classes to the field to fields to indicate the warning/error
+    When this function is called an initial check is also made.
+    Asigns classes to the field to fields to indicate the warning/error.
   */
   var field_auto_warn = function(field, alert_type, warn_check, options) {
-    
-    // TODO: Add the same kind of check as the add_alert function above
-    // TODO: The fields should also be checked when the page loads, i.e. the same check with focusout should be done right before it
-    
-    var alert_class = '';
-    if (alert_type === 'warning') {
-      alert_class = 'warn-field';
-    } else if (alert_type === 'danger') {
-      alert_class = 'danger-field';
+    // Ensure valid type
+    if (!is_valid_type(alert_type)) {
+      throw new Error("Invalid type for alert.");
     }
     
-    // Reset border on click
+    // Map the alert_type to the assigned class
+    let alert_class = ALERT_CLASS_MAPPINGS[alert_type];
+
+    // Initialization check
+    if (field.val() != '') {
+      if (warn_check(field, options)) {
+        add_field_alert(field, alert_type);
+      }
+    }
+    
+    // Reset alert classes on click
     field.on('click', function() {
-      if (field.hasClass(alert_class)) {
-        field.removeClass(alert_class);
+      for (var i = 0; i < VALID_TYPES.length; i++) {
+        if (field.hasClass(ALERT_CLASS_MAPPINGS[VALID_TYPES[i]])) {
+          remove_field_alert(field, VALID_TYPES[i]);
+        }
       }
     });
 
-    // Check on focusout
-    field.on('focusout', function() {
+    // Check on change
+    field.on('change', function() {
       if (warn_check(field, options)) {
-        field.addClass(alert_class);
+        add_field_alert(field, alert_type);
       } else {
         if (field.hasClass(alert_class)) {
-          field.removeClass(alert_class)
+          remove_field_alert(field, alert_type);
         }
       }
     });
@@ -114,6 +208,9 @@ var alerter = (function() {
     init_alerter: init_alerter,
     add_alert: add_alert,
     clear_alerts: clear_alerts,
-    field_auto_warn: field_auto_warn
+    field_auto_warn: field_auto_warn,
+    has_alert: has_alert,
+    add_field_alert: add_field_alert,
+    remove_field_alert: remove_field_alert
   };
 })();

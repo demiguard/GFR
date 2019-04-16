@@ -1,0 +1,8 @@
+.row-selected {
+  background-color: #BADA55;
+}
+
+/* Overwrite Bootstrap hover */
+.row-selected:hover {
+  background-color: #BADA55 !important; 
+}
