@@ -30,6 +30,7 @@ ALLOWED_HOSTS = ['193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'ky
 
 AUTH_USER_MODEL = 'main_page.User'
 AUTHENTICATION_BACKENDS = ['main_page.backends.SimpleBackend']
+LOGIN_URL = '/'
 
 # Application definition
 

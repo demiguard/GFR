@@ -85,13 +85,11 @@ class AjaxLogin(TemplateView):
     return resp
 
 
-class LogoutView(TemplateView, LoginRequiredMixin):
+class LogoutView(LoginRequiredMixin, TemplateView):
   """
   Logouts out the current user from the session.
   (either through a GET or POST request)
   """
-  login_url = '/'
-
   def logout_current_user(self, request):
     logger.info('User - {0} logged out from ip: {1}'.format(
       request.user.username,
@@ -108,9 +106,8 @@ class LogoutView(TemplateView, LoginRequiredMixin):
     return self.logout_current_user(request)
   
 
-class NewStudyView(TemplateView, LoginRequiredMixin):
+class NewStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/new_study.html'
-  login_url = '/'
 
   def get(self, request):
     context = {
@@ -162,9 +159,8 @@ class NewStudyView(TemplateView, LoginRequiredMixin):
       return render(request, self.template_name, context)
 
 
-class ListStudiesView(TemplateView, LoginRequiredMixin):
+class ListStudiesView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/list_studies.html'
-  login_url = '/'
 
   def get(self, request):
     bookings = ris.get_all(request.user)
@@ -176,7 +172,7 @@ class ListStudiesView(TemplateView, LoginRequiredMixin):
     return render(request, self.template_name, context)
 
 
-@login_required(login_url='/')
+@login_required()
 def fill_study(request, rigs_nr):
   # Specify page template
   template = loader.get_template('main_page/fill_study.html')
@@ -335,12 +331,11 @@ def fill_study(request, rigs_nr):
   return HttpResponse(template.render(context, request))
 
 
-class SearchView(TemplateView, LoginRequiredMixin):
+class SearchView(LoginRequiredMixin, TemplateView):
   """
   Search view
   """
   template_name = 'main_page/search.html'
-  login_url='/'
   
   def get(self, request):
     # Default date case: display the patients from the last week
@@ -413,12 +408,10 @@ class SearchView(TemplateView, LoginRequiredMixin):
     return render(request, self.template_name, context)
 
 
-class AjaxSearch(TemplateView, LoginRequiredMixin):
+class AjaxSearch(LoginRequiredMixin, TemplateView):
   """
   Handles ajax search requests
   """
-  login_url = '/'
-
   def get(self, request):  
     # Extract search parameters
     search_name = request.GET['name']
@@ -453,7 +446,7 @@ class AjaxSearch(TemplateView, LoginRequiredMixin):
     return JsonResponse(data) 
 
 
-@login_required(login_url='/')
+@login_required()
 def present_old_study(request, rigs_nr):
   """
 
@@ -543,7 +536,7 @@ def present_old_study(request, rigs_nr):
   return HttpResponse(template.render(context,request))
 
 
-@login_required(login_url='/')
+@login_required()
 def present_study(request, rigs_nr):
   """
   Function for presenting the result
@@ -597,12 +590,11 @@ def present_study(request, rigs_nr):
   return HttpResponse(template.render(context,request))
 
 
-class SettingsView(TemplateView, LoginRequiredMixin):
+class SettingsView(LoginRequiredMixin, TemplateView):
   """
   User configuration view
   """
   template_name = 'main_page/settings.html'
-  login_url = '/'
 
   def get(self, request):
     context = {
