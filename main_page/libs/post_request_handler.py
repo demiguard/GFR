@@ -247,20 +247,20 @@ def store_form(request, rigs_nr):
   elif study_type == 2:
     gfr_type = 'Flere prøve Voksen'
 
-  if len(request.POST['sex']) > 0:
+  if request.POST['sex']:
     gender = request.POST['sex']
 
-  if (len(request.POST['vial_weight_before']) > 0) and (len(request.POST['vial_weight_after']) > 0):
+  if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
     injection_before = float(request.POST['vial_weight_before'])
     injection_after  = float(request.POST['vial_weight_after'])
     injection_weight = injection_before - injection_after
-  elif len(request.POST['vial_weight_before']) > 0:
+  elif request.POST['vial_weight_before']:
     injection_before = float(request.POST['vial_weight_before'])
  
-  if (len(request.POST['weight']) > 0):
+  if request.POST['weight']:
       weight = float(request.POST['weight']) 
 
-  if (len(request.POST['height']) > 0):
+  if request.POST['height']:
       height = float(request.POST['height'])
 
   thiningfactor = 0.0
@@ -289,9 +289,8 @@ def store_form(request, rigs_nr):
     
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
-    
   else:
-      seq = []      
+    seq = []      
 
   dicomlib.store_dicom(dicom_path, 
     update_dicom = True,
@@ -311,7 +310,7 @@ def store_form(request, rigs_nr):
     thiningfactor=thiningfactor,
     std_cnt=std_cnt,
     sample_seq=seq
-    )
+  )
   
   
 def present_study_post(request, rigs_nr):
