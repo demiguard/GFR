@@ -160,6 +160,9 @@ var csv_handler = (function() {
       for (var i = 0; i < readonly_fields_len; i++) {
         readonly_fields[i].firstElementChild.readOnly = false;
       }
+
+      // Remove the lock once clicked
+      $(this).remove();
     });
   };
 
