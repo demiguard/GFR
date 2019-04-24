@@ -40,7 +40,6 @@
       <!-- Left side-->
       <div class="col-md-6">
         <!-- Display test info -->
-        {% if csv_data_len != 0 %}
         <strong>Stardard tælle tal</strong>
         <div class="form-row">
           <div class="form-group col-md-6">
@@ -107,6 +106,7 @@
       </div>
 
       <!-- Right side -->
+      {% if csv_data_len != 0 %}
       <div class="col-md-6" id="right_side">
         <p><strong>Vælg prøve fra fil</strong></p>
         <div class="csvAccordion" id="accordionContainer">
