@@ -35,6 +35,7 @@ assoc = ae.associate(server_ip, server_port, ae_title=server_AE_title, contexts=
 if assoc.is_established:
   status = assoc.send_c_store(ds)
 
+  
 
   assoc.release()
 else:
