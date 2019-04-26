@@ -53,7 +53,7 @@ LOG_LEVEL = logging.INFO
 # --- Samba Share --- #
 
 #PYSMB Connection
-samba_ip = '172.16.78.176'
+samba_ip = '10.49.144.2'
 samba_name = 'gfr'
 
 samba_user = 'gfr'

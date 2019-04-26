@@ -27,17 +27,19 @@ import PIL
 
 logger = logging.getLogger()
 
-def fill_study_post(request, rigs_nr):
+def fill_study_post(request, rigs_nr, dataset):
   """
   Handles Post request for fill study
 
   Args:
     Request: The Post request
     rigs_nr: The REGH number for the corosponding examination
+    dataset
   """
   #Save Without Redirect
+
   if 'save' in request.POST:
-    store_form(request,rigs_nr)
+    return store_form(request, rigs_nr, dataset)
 
   #Beregn
   if 'calculate' in request.POST:
@@ -47,7 +49,7 @@ def fill_study_post(request, rigs_nr):
       request.META['REMOTE_ADDR']
     ))
 
-    store_form(request, rigs_nr) 
+    dataset = store_form(request, dataset, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
@@ -178,8 +180,8 @@ def fill_study_post(request, rigs_nr):
     sop_class_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'class'])
     sop_instance_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'instance'])
 
-    dicomlib.store_dicom(
-      dcm_obj_path,
+    dicomlib.fill_dicom(
+      dataset,
       gfr            = gfr,
       clearance      = clearance,
       clearance_norm = clearance_norm,
@@ -190,9 +192,12 @@ def fill_study_post(request, rigs_nr):
     #Remove bmp file and dcm file
     #os.remove(plot_path)
     #os.remove(dcm_img_path)
+    return dataset
 
 
-def store_form(request, rigs_nr):
+
+
+def store_form(request, dataset, rigs_nr):
   """
   Stores information from the post request in a dicom file with the name
   <rigs_nr>.dcm
@@ -292,7 +297,7 @@ def store_form(request, rigs_nr):
   else:
     seq = []      
 
-  dicomlib.store_dicom(dicom_path, 
+  dicomlib.fill_dicom(dataset, 
     update_dicom = True,
     update_date = True,
     birthday=birthdate,
@@ -311,7 +316,7 @@ def store_form(request, rigs_nr):
     std_cnt=std_cnt,
     sample_seq=seq
   )
-  
+  return dataset
   
 def present_study_post(request, rigs_nr):
   """

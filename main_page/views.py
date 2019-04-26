@@ -20,6 +20,7 @@ from .libs import post_request_handler as PRH
 from .libs import server_config
 from .libs import samba_handler
 from .libs import dicomlib
+from .libs import dataset_creator
 
 from dateutil import parser as date_parser
 import logging
@@ -142,15 +143,14 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
       shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
       
-      dicomlib.store_dicom(
-        new_destination,
-        update_date=True,
-        update_dicom=True,
-        cpr = cpr,
-        name = name,
-        study_date = study_date,
-        rigs_nr = rigs_nr        
+      dataset_creator.get_blank(
+        cpr,
+        name,
+        study_date,
+        rigs_nr,
+        request.user.hospital
       )
+
 
       # redirect to fill_study/rigs_nr 
       return redirect('main_page:fill_study', rigs_nr=rigs_nr)
@@ -178,8 +178,17 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
-    PRH.fill_study_post(request, rigs_nr)
-    
+
+    file_path = '{0}{1}/{2}.dcm'.format(
+      server_config.FIND_RESPONS_DIR,
+      request.user.hospital,
+      rigs_nr
+      )
+
+    dataset = dicomlib.dcmread_wrapper(file_path)
+    dataset = PRH.fill_study_post(request, rigs_nr, dataset)
+    dicomlib.save_dicom(file_path, dataset)
+
     if 'calculate' in request.POST:  
       return redirect('main_page:present_study', rigs_nr=rigs_nr) 
 
