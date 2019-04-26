@@ -268,15 +268,17 @@ var csv_handler = (function() {
         upper = 240 * 60 * 1000;  // 240 min.
       }
 
-      // Perform difference check
-      if (!helper.is_within_threshold(time_diff, lower, upper)) {
-        let lower_min = lower / 60 / 1000;
-        let upper_min = upper / 60 / 1000;
-
-        alerter.add_alert(
-          'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
-          'warning'
-        );
+      // Perform difference check - not for multiple point tests
+      if ($('input[name=study_type]:checked').val() != 2) {
+        if (!helper.is_within_threshold(time_diff, lower, upper)) {
+          let lower_min = lower / 60 / 1000;
+          let upper_min = upper / 60 / 1000;
+  
+          alerter.add_alert(
+            'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
+            'warning'
+          );
+        }
       }
 
       // Generate DOM elements for study fields
