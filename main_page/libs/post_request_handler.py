@@ -39,7 +39,7 @@ def fill_study_post(request, rigs_nr, dataset):
   #Save Without Redirect
 
   if 'save' in request.POST:
-    return store_form(request, rigs_nr, dataset)
+    return store_form(request, dataset, rigs_nr)
 
   #Beregn
   if 'calculate' in request.POST:
@@ -96,6 +96,7 @@ def fill_study_post(request, rigs_nr, dataset):
     else:
       method="INVALID METHOD"
 
+
     # Calculate GFR
     clearance, clearance_norm = clearance_math.calc_clearance(
       inj_datetime, 
@@ -105,6 +106,18 @@ def fill_study_post(request, rigs_nr, dataset):
       dosis,
       method=method
     )
+    logger.debug('{0}\ninjection time: {1}\nSample Times: {2}\nTch99 cnt: {3}\nBody Surface Area: {4}\nDosis: {5}\nMethod: {6}\n{7}\nClearnance: {8}\nClearence Normal: {9}'.format(
+      'Clearance calculation input:',
+      inj_datetime,
+      sample_datetimes,
+      tec_counts,
+      BSA,
+      dosis,
+      method,
+      'Result:', 
+      clearance,
+      clearance_norm,
+      ))
 
     cpr = request.POST['cpr']
     birthdate = request.POST['birthdate']
@@ -285,7 +298,7 @@ def store_form(request, dataset, rigs_nr):
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
   #There's Data to put in
-  if sample_tec99:
+  if sample_tec99 != []:
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
