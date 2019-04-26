@@ -30,6 +30,7 @@ def init_dicom_env():
 
   logging.debug('DICOM envoriment variable set to: {0}'.format(dcmdictpath))
 
+
 def start_up():
   """
   The main start up function which calls aditional start up functions for other

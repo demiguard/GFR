@@ -408,17 +408,17 @@ var csv_handler = (function() {
   };
 
   /*
-  Disables the 'tilføj prøve' button
+  Disables the 'tilføj prøve' container
   */
   var disable_add_test = function() {
-    $('#add-test').css('display', 'none');
+    $('#add-test-container').addClass('hide-elm');
   };
 
   /*
-  Enables the 'tilføj prøve' button
+  Enables the 'tilføj prøve' container
   */
   var enable_add_test = function() {
-    $('#add-test').css('display', '');
+    $('#add-test-container').removeClass('hide-elm');
   };
 
   /*

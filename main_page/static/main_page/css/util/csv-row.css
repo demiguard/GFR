@@ -6,3 +6,8 @@
 .row-selected:hover {
   background-color: #BADA55 !important; 
 }
+
+/* Hides an element */
+.hide-elm {
+  display: none
+}
