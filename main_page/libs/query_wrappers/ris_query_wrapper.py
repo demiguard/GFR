@@ -3,10 +3,14 @@ import os
 import datetime
 import random
 import shutil
-import pydicom
+import pydicom, pynetdicom
+import logging
+
 
 from ... import models
 
+from .. import dirmanager
+from .. import dataset_creator
 from .. import dicomlib
 from .. import server_config
 from ..clearance_math import clearance_math
@@ -14,6 +18,7 @@ from .. import examination_info
 from ..examination_info import ExaminationInfo
 from .query_executer import execute_query
 
+logger = logging.getLogger()
 
 def parse_bookings(resp_dir):
   """
@@ -66,8 +71,134 @@ def is_old_dcm_obj(obj_path):
   return False
 
 
+def get_patients_from_rigs(user):
+  """
+
+  Args:
+    user : Django User model who is making the call to rigs
+  Returns:
+    pydicom Dataset List : with all patients availble to the server  
+    Error message : If an error happens it's described here, if no error happened, returns an empty string
+  Raises:
+    
+  NOTE: This function is not thread safe
+  
+  """
+
+  def complicated_and_statement(dataset, accession_numbers, accepted_procedures):
+    fst_truth_val = not dataset.AccessionNumber in accession_numbers
+    snd_truth_val = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures
+    thr_truth_val = not models.HandledExaminations.objects.filter(rigs_nr=dataset.AccessionNumber).exists()
+    logger.warn(not fst_truth_val)
+    logger.warn(snd_truth_val)
+    logger.warn(not thr_truth_val)
+    return fst_truth_val and snd_truth_val and thr_truth_val
+
+  returnlist = []
+  accession_numbers = []
+  ErrorMessage = ''
+  #First Find all Dicom Objects
+
+  dirmanager.check_combined_and_create(server_config.FIND_RESPONS_DIR , user.hospital)
+
+
+  dcm_file_paths = glob.glob('{0}{1}/*.dcm'.format(
+    server_config.FIND_RESPONS_DIR,
+    user.hospital
+  ))
+  
+  today = datetime.datetime.now()
+  for dcm_file_path in dcm_file_paths:
+    dataset = dicomlib.dcmread_wrapper(dcm_file_path)
+    date_string= dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+    date_of_examination = datetime.datetime.strptime(date_string,'%Y%m%d')
+    if (today - date_of_examination).days <= server_config.DAYS_THRESHOLD:
+      returnlist.append(dataset)
+      accession_numbers.append(dataset.AccessionNumber)
+    else:
+      #TODO: Move to recycle bin
+      logger.info('Old file Detected Moving {0}.dcm to recycle bin'.format(
+        dataset.AccessionNumber
+      ))
+      
+
+  #Make a Querry up to Ris
+  
+  ae = pynetdicom.AE(ae_title=user.config.rigs_calling)
+  
+  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+
+  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+  #If the object is not created, then Create an new object else add it to return list 
+  assocation = ae.associate(
+    user.config.rigs_ip,
+    int(user.config.rigs_port), #Portnumbers should be shorts or ints! bad database 
+    ae_title=user.config.rigs_aet
+  )
+
+  if assocation.is_established:
+    logger.info('connected to Rigs with:\nIP:{0}\nPort:{1}\nMy ae Title:{2}\nCalling AE title:{3}'.format(
+      user.config.rigs_ip,
+      user.config.rigs_port,
+      user.config.rigs_calling,
+      user.config.rigs_aet))
+
+    #Create query file
+    query_ds = dataset_creator.get_rigs_base(rigs_calling=user.config.rigs_calling)
+    accepted_procedures = user.config.accepted_procedures.split('^')
+    logger.warn(query_ds)
+    response = assocation.send_c_find(query_ds, query_model='S')
+
+    for (status, dataset) in response:
+      logger.warn(status)
+      logger.warn(dataset)
+      if status.Status == 65280 :
+        #0 is code for no more files available
+        #65280 is code for dataset availble
+        #Succes, I have a dataset
+        if complicated_and_statement(dataset,accession_numbers, accepted_procedures):
+          #Dataset is valid
+          dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
+              server_config.FIND_RESPONS_DIR,
+              user.hospital,
+              dataset.AccessionNumber
+            ),
+            dataset,
+          )
+          returnlist.append(dataset)
+          accession_numbers.append(dataset.AccessionNumber)
+        else:
+          pass #Discard the value
+      else:
+        #Failed to get something from Rigs
+        if not status.Status == 0:
+          logger.warning( 'Status Code returns: {0}'.format(
+            status.Status
+          ))
+
+    #Clean up after we are done
+    assocation.release()
+  else:
+    #Error Messages to 
+    logger.warn('Could not connect to Rigs with:\nIP:{0}\nPort:{1}\nMy ae Title:{2}\nCalling AE title:{3}'.format(
+      user.config.rigs_ip,
+      user.config.rigs_port, #SIMON DID A BADDY, when he thought port numbers wasn't shorts / ints
+      user.config.rigs_calling,
+      user.config.rigs_aet))
+    ErrorMessage += 'Kunne ikke forbinde til Rigs, der mangler måske nye undersøgelser'
+
+
+
+  return returnlist, ErrorMessage
+
+
+
+
+
 def get_all(user):
   """
+  RETRIED FUNCTION use get_patients_from_rigs instead!
+
   Get registed examinations from a specific hospital, using a user
 
   Args:

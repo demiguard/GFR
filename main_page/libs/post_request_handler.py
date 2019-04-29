@@ -189,17 +189,12 @@ def fill_study_post(request, rigs_nr, dataset):
     dcm_obj.save_as(dcm_obj_path)
     """
 
-    series_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'series'])
-    sop_class_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'class'])
-    sop_instance_uid = uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'instance'])
-
+    
     dicomlib.fill_dicom(
       dataset,
       gfr            = gfr,
       clearance      = clearance,
       clearance_norm = clearance_norm,
-      series_instance_uid= series_uid,
-      sop_instance_uid= sop_instance_uid,
       pixeldata = pixel_data 
     )
     #Remove bmp file and dcm file

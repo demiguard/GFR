@@ -133,3 +133,10 @@ def deserialize(dicom_obj):
     exam.Method = dicom_obj.GFRMethod
 
   return exam
+
+def mass_deserialize(dicom_objs):
+  returnlist = []
+  for dicom_obj in dicom_objs:
+    exam_obj = deserialize(dicom_obj)
+    returnlist.append(exam_obj)
+  return returnlist

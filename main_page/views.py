@@ -15,6 +15,7 @@ from .libs.query_wrappers import ris_query_wrapper as ris
 from .libs.query_wrappers import pacs_query_wrapper as pacs
 from .libs.clearance_math import clearance_math
 from .libs.examination_info import ExaminationInfo
+from .libs import examination_info
 from .libs import formatting
 from .libs import post_request_handler as PRH
 from .libs import server_config
@@ -140,15 +141,22 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-      new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
-      shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
+      #new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
+      #shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
       
-      dataset_creator.get_blank(
+      dataset = dataset_creator.get_blank(
         cpr,
         name,
         study_date,
         rigs_nr,
         request.user.hospital
+      )
+      dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
+          server_config.FIND_RESPONS_DIR,
+          request.user.hospital,
+          rigs_nr
+        ), 
+        dataset
       )
 
 
@@ -163,10 +171,15 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/list_studies.html'
 
   def get(self, request):
-    bookings = ris.get_all(request.user)
 
+    dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
+    
+    bookings = examination_info.mass_deserialize(dicom_objs)
+  
+    #Note that error message is not implimented yet
     context = {
       'bookings': bookings,
+      'error_message' : error_message
     }
 
     return render(request, self.template_name, context)
