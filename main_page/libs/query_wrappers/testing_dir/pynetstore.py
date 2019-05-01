@@ -14,6 +14,6 @@ assoc = ae.associate(pacs_ip, pacs_port, ae_title=pacs_AET)
 
 if assoc.is_established:
   ds = pydicom.dcmread('REGH13985169.dcm')
-  assoc.send_c_store(ds)
+  response = assoc.send_c_store(ds)
 
   assoc.release()

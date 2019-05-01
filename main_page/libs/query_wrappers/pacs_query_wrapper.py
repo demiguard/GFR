@@ -1,7 +1,8 @@
-import pydicom
+import pydicom, pynetdicom
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
+from pynetdicom import AE, StoragePresentationContexts
 import os
 import sys
 import shutil
@@ -12,7 +13,7 @@ import numpy
 import pandas
 import random
 
-from .. import dicomlib
+from .. import dicomlib, dirmanager
 from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
@@ -168,6 +169,92 @@ def store_in_pacs(user, obj_path):
   out = execute_query(store_query)
 
   return (out != None)
+
+def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
+  """
+    Stores a dicom object in the user defined pacs (user.config)
+    It uses a C-store message
+
+    Args:
+      dicom_object : pydicom dataset, the dataset to be stored
+      user : a django model user, the user that stores 
+
+    KWargs:
+      ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
+    Returns:
+      Success : Bool, returns true on a success full storage, false on failed storage
+      Failure Message : String, A user friendly message of what went wrong. Empty on success. 
+    Raises
+      Value error: If the dicom set doesn't contain
+
+  """
+  ae = AE(ae_title=user.config.pacs_calling)
+  ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7')
+  assoc = ae.associate(
+    user.config.pacs_ip,
+    user.config.pact_port,
+    ae_title=user.config.pacs_aet
+  )
+
+  if assoc.is_established:
+    status = assoc.send_c_store(dicom_object, originator_aet=ae.ae_title)
+    if status.Status == 0x0000:
+      return True, ''
+      #To Do error handling
+    elif status.Status == 0x0124:
+      return False, 'Duplikeret Argument'
+    elif status.Status >= 0xA700 and status.Status <= 0xA7FF:
+      return False, 'Pacs har ikke hukommelse til at gemme undersøgelsen'
+    else:
+      return False, 'Fejlede at gemme i pacs med ukendt fejlkode:{0}'.format(hex(status.Status))
+  else: 
+    return False , 'Kunne ikke forbinde til pacs'
+  
+def Start_scp_server():
+  """
+    Problems:
+      The server host multiple AE titles 
+        TEMP SOLUTION:
+          Accepts all AE title
+      Shutting down the server is difficult, since it's on another thread
+      server_instance.shutdown() needs to becalled for normal shutdown 
+        TEMP SOLUTION:
+          ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
+            Potential Solution:
+              Create Global Variable in server config and set it to none
+              When Creating Server overwrite global Variable with server instance
+              THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
+      Saving a file, While it's clear that it should be saved in the search_dir.
+      However Saving in subdirectories are difficult 
+
+      
+
+  """
+  
+
+  def on_store(dataset, context, info):
+    """
+    Stores a Files 
+
+
+
+    """
+    filename = 'REGH{0}.dcm'.format(
+      dataset.PatientID
+    )
+    fullpath = server_config.SEARCH_DIR + filename
+
+    dicomlib.save_dicom(fullpath, dataset)
+
+    return 0x0000
+
+  server_ae = AE(ae_title='RH_EDTA')
+  server_ae.on_c_store = on_store
+  server_ae.supported_contexts = StoragePresentationContexts
+
+  server_instance = server_ae.start_server(('', 104), block=False)
+
+  return server_instance
 
 
 def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):

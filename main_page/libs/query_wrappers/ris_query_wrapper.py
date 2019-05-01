@@ -152,7 +152,7 @@ def get_patients_from_rigs(user):
     for (status, dataset) in response:
       logger.warn(status)
       logger.warn(dataset)
-      if status.Status == 65280 :
+      if status.Status == 0xFF00 :
         #0 is code for no more files available
         #65280 is code for dataset availble
         #Succes, I have a dataset
@@ -169,15 +169,14 @@ def get_patients_from_rigs(user):
           accession_numbers.append(dataset.AccessionNumber)
         else:
           pass #Discard the value
+      elif: status.Status == 0x0000
+        #Query Complete with no Errors
+        assocation.release()
       else:
-        #Failed to get something from Rigs
-        if not status.Status == 0:
-          logger.warning( 'Status Code returns: {0}'.format(
-            status.Status
-          ))
+        logger.warn('Status code:{0}'.format(hex(status.Status)))
+        
 
     #Clean up after we are done
-    assocation.release()
   else:
     #Error Messages to 
     logger.warn('Could not connect to Rigs with:\nIP:{0}\nPort:{1}\nMy ae Title:{2}\nCalling AE title:{3}'.format(

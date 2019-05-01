@@ -341,7 +341,11 @@ def present_study_post(request, rigs_nr):
     rigs_nr
   )
 
-  if pacs.store_in_pacs(request.user, obj_path):
+  dicom_object = dicomlib.dcmread_wrapper(obj_path)
+
+  success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
+
+  if success_rate:
     # Remove the file
     os.remove(obj_path)
 
