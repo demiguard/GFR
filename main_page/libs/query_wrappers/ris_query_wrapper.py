@@ -89,9 +89,7 @@ def get_patients_from_rigs(user):
     fst_truth_val = not dataset.AccessionNumber in accession_numbers
     snd_truth_val = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures
     thr_truth_val = not models.HandledExaminations.objects.filter(rigs_nr=dataset.AccessionNumber).exists()
-    logger.warn(not fst_truth_val)
-    logger.warn(snd_truth_val)
-    logger.warn(not thr_truth_val)
+
     return fst_truth_val and snd_truth_val and thr_truth_val
 
   returnlist = []
@@ -153,8 +151,8 @@ def get_patients_from_rigs(user):
       logger.warn(status)
       logger.warn(dataset)
       if status.Status == 0xFF00 :
-        #0 is code for no more files available
-        #65280 is code for dataset availble
+        #0x0000 is code for no more files available
+        #0xFF00 is code for dataset availble
         #Succes, I have a dataset
         if complicated_and_statement(dataset,accession_numbers, accepted_procedures):
           #Dataset is valid
@@ -169,7 +167,7 @@ def get_patients_from_rigs(user):
           accession_numbers.append(dataset.AccessionNumber)
         else:
           pass #Discard the value
-      elif: status.Status == 0x0000
+      elif status.Status == 0x0000:
         #Query Complete with no Errors
         assocation.release()
       else:
@@ -189,10 +187,6 @@ def get_patients_from_rigs(user):
 
 
   return returnlist, ErrorMessage
-
-
-
-
 
 def get_all(user):
   """

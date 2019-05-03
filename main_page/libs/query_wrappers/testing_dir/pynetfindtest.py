@@ -40,7 +40,6 @@ if assoc.is_established:
   for (status, dataset_from_rigs) in response:
     #Show Status
     print(status)
-    print(status.Status == 65280)
     #Save dataset
     datasets.append(dataset_from_rigs)
   assoc.release()

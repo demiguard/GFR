@@ -10,6 +10,7 @@ from scipy.stats import linregress
 from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
 from .. import dicomlib
+from .. import dirmanager
 
 logger = logging.getLogger()
 
@@ -458,6 +459,8 @@ def generate_plot_text(
   # Generate background fill
   # TODO: These values define changed
   save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
+  dirmanager
+
 
   x =           [0, 40, 110]
   zeros =       [0, 0, 0]

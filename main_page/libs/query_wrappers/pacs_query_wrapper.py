@@ -150,6 +150,8 @@ def store_in_pacs(user, obj_path):
   """
   Stores a given study in the PACS database
 
+  Retired function use store_dicom_pacs instead
+
   Args:
     user: currently logged in user
     obj_path: path to object to store
@@ -185,7 +187,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
       Success : Bool, returns true on a success full storage, false on failed storage
       Failure Message : String, A user friendly message of what went wrong. Empty on success. 
     Raises
-      Value error: If the dicom set doesn't contain
+      Value error: If the dicom set doesn't contain required information to send
 
   """
   ae = AE(ae_title=user.config.pacs_calling)
@@ -230,7 +232,6 @@ def Start_scp_server():
       
 
   """
-  
 
   def on_store(dataset, context, info):
     """
@@ -242,7 +243,12 @@ def Start_scp_server():
     filename = 'REGH{0}.dcm'.format(
       dataset.PatientID
     )
+
+
+    
     fullpath = server_config.SEARCH_DIR + filename
+
+
 
     dicomlib.save_dicom(fullpath, dataset)
 
