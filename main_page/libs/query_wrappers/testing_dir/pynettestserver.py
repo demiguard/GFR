@@ -2,9 +2,10 @@ import pynetdicom, pydicom, logging
 from pynetdicom import AE, StoragePresentationContexts, evt
 
 logging.basicConfig(filename='testlogfile.log', level = logging.DEBUG)
-logger = logging.getLogger()
+
 
 def on_store(dataset, context, info):
+  logger = logging.getLogger()
 
   logger.info('\n')  
   logger.info(dataset)
@@ -22,6 +23,8 @@ def on_move(dataset, move_aet, context, info):
 
 
   """
+  logger = logging.getLogger()
+
   logger.info('\n')
   logger.info(dataset)
   logger.info('\n')
@@ -35,6 +38,8 @@ def on_move(dataset, move_aet, context, info):
   return 0xA801
 
 def log_event(event):
+  logger = logging.getLogger()
+
   logger('\n New Event Logged!\n')
   logger.info(event.name)
   logger.info(event.description)
@@ -53,12 +58,13 @@ handlers = [
 
 
 
-server_ae = AE(ae_title='HEHKFARGHOTR05')
+server_ae = AE(ae_title='HVHFBERGHK7')
 
 server_ae.supported_contexts = StoragePresentationContexts
 server_ae.on_c_move = on_move
 server_ae.on_c_store = on_store
 
+logger = logging.getLogger()
 logger.info('Starting Server!')
 server_instance = server_ae.start_server(('', 104), evt_handlers=handlers)
 

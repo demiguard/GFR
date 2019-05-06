@@ -76,3 +76,5 @@ hospitals = {
     'GLO': 'Glostrup hospital',
     'HVH': 'Hvidovre hospital',
 }
+
+SERVER_AE_TITLE = 'HVHFBERGHK7' 

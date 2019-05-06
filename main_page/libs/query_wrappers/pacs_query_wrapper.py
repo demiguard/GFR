@@ -212,7 +212,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   else: 
     return False , 'Kunne ikke forbinde til pacs'
   
-def Start_scp_server():
+def start_scp_server():
   """
     Problems:
       The server host multiple AE titles 
@@ -240,21 +240,19 @@ def Start_scp_server():
 
 
     """
-    filename = 'REGH{0}.dcm'.format(
-      dataset.PatientID
+    filename = '{0}.dcm'.format(
+      dataset.AccessionNumber
     )
-
-
     
     fullpath = server_config.SEARCH_DIR + filename
-
-
 
     dicomlib.save_dicom(fullpath, dataset)
 
     return 0x0000
 
-  server_ae = AE(ae_title='RH_EDTA')
+  dirmanager.check_combined_and_create(server_config.SEARCH_DIR)
+
+  server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.on_c_store = on_store
   server_ae.supported_contexts = StoragePresentationContexts
 

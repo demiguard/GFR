@@ -2,6 +2,7 @@ import datetime, logging, os
 import platform
 
 from .libs import server_config
+from .libs.query_wrappers import pacs_query_wrapper as pacs
 
 
 def init_logger():  
@@ -38,3 +39,4 @@ def start_up():
   """
   init_logger()
   init_dicom_env()
+  pacs.start_scp_server()
