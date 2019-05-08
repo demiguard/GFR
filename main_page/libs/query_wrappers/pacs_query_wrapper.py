@@ -3,7 +3,7 @@ from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pynetdicom import AE, StoragePresentationContexts
-import os
+import os, logging
 import sys
 import shutil
 import glob
@@ -20,6 +20,8 @@ from .. import examination_info
 from ..examination_info import ExaminationInfo
 from .. import formatting
 from .query_executer import execute_query
+
+logger = logging.getLogger()
 
 
 def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
@@ -190,7 +192,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
       Value error: If the dicom set doesn't contain required information to send
 
   """
-  ae = AE(ae_title=user.config.pacs_calling)
+  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7')
   assoc = ae.associate(
     user.config.pacs_ip,
@@ -199,10 +201,9 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   )
 
   if assoc.is_established:
-    status = assoc.send_c_store(dicom_object, originator_aet=ae.ae_title)
+    status = assoc.send_c_store(dicom_object, )
     if status.Status == 0x0000:
       return True, ''
-      #To Do error handling
     elif status.Status == 0x0124:
       return False, 'Duplikeret Argument'
     elif status.Status >= 0xA700 and status.Status <= 0xA7FF:
@@ -229,9 +230,8 @@ def start_scp_server():
       Saving a file, While it's clear that it should be saved in the search_dir.
       However Saving in subdirectories are difficult 
 
-      
-
   """
+  logger.info('Starting Server')
 
   def on_store(dataset, context, info):
     """
@@ -240,6 +240,7 @@ def start_scp_server():
 
 
     """
+    logger.info('Recieved C-STORE')
     filename = '{0}.dcm'.format(
       dataset.AccessionNumber
     )
@@ -260,6 +261,37 @@ def start_scp_server():
 
   return server_instance
 
+def search_query_pacs(user, name="", cpr="", assestion_number= "", date_from = "", date_to = ""):
+  
+  #Construct Search Dataset
+  search_dataset = Dataset()
+  search_dataset.StudyDate = '{0}-{1}'.format(
+    date_from,
+    date_to
+  )
+  search_dataset.QueryRetrieveLevel = 'STUDY'
+  search_dataset.PatientName = name
+  search_dataset.PatientID = cpr
+  search_dataset.AccessionNumber = assestion_number
+
+
+  #Construct AE
+  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
+
+  #Connect with AE
+  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_aet)
+  if assoc.is_established:
+    #Make Search Request
+    response = assoc.send_c_find(search_dataset, query_model='S')
+    for (status, dataset) in response:
+      if status == 0xFF00:
+        exam_obj = examination_info.deserialize(dataset)
+
+  else:
+    logger.warn('Connection to pacs failed!')
+
+  #Handle
 
 def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   """
@@ -311,7 +343,7 @@ def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   query_obj.PatientName = formatting.name_to_person_name(name)
   query_obj.PatientID = cpr
   query_obj.AccessionNumber = rigs_nr
-  query_obj.StudyDate = "{0}{1}".format(date_from, date_to)
+  query_obj.StudyDate = "{0}-{1}".format(date_from, date_to)
 
   query_obj.save_as(curr_search_file)
 

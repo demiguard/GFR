@@ -51,7 +51,7 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
 
   return obj
 
-def save_dicom(file_path, dataset):
+def save_dicom(file_path, dataset, default_error_handling = True ):
   """
   Saves a dicom file to a selected file path
 
@@ -59,16 +59,27 @@ def save_dicom(file_path, dataset):
     file_path : String, desination for file to be saved
     dataset
 
-  Raises Incomplete Dicom
-
-
+  kwargs:
+    no_error: With default dicom handling
+  Raises
+    Attribute Error: Incomplete Dicom, without default errorhandling
+    Value Error: No given AccessionNumber
   """
   
   dataset.is_implicit_VR = True
   dataset.is_little_endian = True
-  fill_dicom(dataset, update_dicom=True)
+  if (not 'SOPClassUID' in dataset) or (not 'SOPInstanceUID' in dataset):  #Dicom is incomplete
+    if default_error_handling: 
+      if 'AccessionNumber' in dataset:
+        dataset.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secondary Image Capture
+        dataset.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[dataset.AccessionNumber, 'SOP'])
+      else:
+        raise ValueError('default Error handling for saving dicom failed!\nCannot create SOPInstanceUID without AccessionNumber!')
+    else: 
+      raise AttributeError('Incomplete Dicom Required Tags are SOPClassUID and SOPInstanceUID')
+  
   dataset.fix_meta_info()
-  logger.warn(dataset.file_meta)
+  logger.info('Saving Dicom file at:{0}'.format(file_path))
   dataset.save_as(file_path, write_like_original = False)
 
 def fill_dicom(ds,
@@ -153,7 +164,7 @@ def fill_dicom(ds,
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
     ds.add_new(0x00200010, 'SH', '1')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
-    ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7'
+    ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
     ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
@@ -256,7 +267,7 @@ def fill_dicom(ds,
   if thiningfactor:
     ds.add_new(0x00231028, 'DS', thiningfactor)
 
-
+  print('Sample Seq:', sample_seq)
   if sample_seq:
     logger.info('adding Seqence:{0}'.format(sample_seq))
     seq_list = []

@@ -68,6 +68,8 @@ def get_rigs_base(rigs_calling = None):
   #Create New dataset
   ds = Dataset()
   #Fill it with tags
+  ds.add_new(0x00080016, 'UI', '')
+  ds.add_new(0x00080018, 'UI', '')
   ds.add_new(0x00080020, 'DA', '') #Study date
   ds.add_new(0x00080050, 'SH', '') #Accession Number
   ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
