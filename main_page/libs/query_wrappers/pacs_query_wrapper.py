@@ -13,7 +13,7 @@ import numpy
 import pandas
 import random
 
-from .. import dicomlib, dirmanager
+from .. import dicomlib, dirmanager, dataset_creator
 from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
@@ -261,19 +261,11 @@ def start_scp_server():
 
   return server_instance
 
-def search_query_pacs(user, name="", cpr="", assestion_number= "", date_from = "", date_to = ""):
+def search_query_pacs(user, name="", cpr="", accession_number= "", date_from = "", date_to = ""):
   
+  response_list = []
   #Construct Search Dataset
-  search_dataset = Dataset()
-  search_dataset.StudyDate = '{0}-{1}'.format(
-    date_from,
-    date_to
-  )
-  search_dataset.QueryRetrieveLevel = 'STUDY'
-  search_dataset.PatientName = name
-  search_dataset.PatientID = cpr
-  search_dataset.AccessionNumber = assestion_number
-
+  search_dataset = dataset_creator.create_search_dataset(name, cpr, date_from, date_to, accession_number)
 
   #Construct AE
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)
@@ -285,11 +277,19 @@ def search_query_pacs(user, name="", cpr="", assestion_number= "", date_from = "
     #Make Search Request
     response = assoc.send_c_find(search_dataset, query_model='S')
     for (status, dataset) in response:
-      if status == 0xFF00:
+      if status.Status == 0xFF00:
         exam_obj = examination_info.deserialize(dataset)
-
+        response_list.append(exam_obj)
+      elif status.Status == 0x0000:
+        #Operation successfull
+        assoc.release()
+      else:
+        logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
+    assoc.release()
   else:
     logger.warn('Connection to pacs failed!')
+
+  return response_list
 
   #Handle
 

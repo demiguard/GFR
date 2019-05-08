@@ -40,7 +40,7 @@ def on_move(dataset, move_aet, context, info):
 def log_event(event):
   logger = logging.getLogger()
 
-  logger('\n New Event Logged!\n')
+  logger.info('\n New Event Logged!\n')
   logger.info(event.name)
   logger.info(event.description)
   logger.info(event.assoc)

@@ -39,4 +39,4 @@ def start_up():
   """
   init_logger()
   init_dicom_env()
-  pacs.start_scp_server()
+  #pacs.start_scp_server()

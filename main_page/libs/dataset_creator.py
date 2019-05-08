@@ -53,7 +53,6 @@ def get_blank(
   return ds
 
 
-
 def get_rigs_base(rigs_calling = None):
   """
   Makes a dataset matching Base_search_query
@@ -68,8 +67,8 @@ def get_rigs_base(rigs_calling = None):
   #Create New dataset
   ds = Dataset()
   #Fill it with tags
-  ds.add_new(0x00080016, 'UI', '')
-  ds.add_new(0x00080018, 'UI', '')
+  ds.add_new(0x00080016, 'UI', '') #SOPClassUID These values may be discarded
+  ds.add_new(0x00080018, 'UI', '') #SOPInstanceUID These values may be discarded
   ds.add_new(0x00080020, 'DA', '') #Study date
   ds.add_new(0x00080050, 'SH', '') #Accession Number
   ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
@@ -78,6 +77,7 @@ def get_rigs_base(rigs_calling = None):
   ds.add_new(0x00100020, 'LO', '') #PatientID / CPR NUMBER
   ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
   ds.add_new(0x0020000D, 'UI', '')
+  ds.add_new(0x0020000E, 'UI', '')
   ds.add_new(0x00321060, 'LO', '')
 
   #Create Sequences
@@ -101,3 +101,22 @@ def get_rigs_base(rigs_calling = None):
 
   #Done adding tags
   return ds
+
+def create_search_dataset(name, cpr, date_from, date_to, accession_number):
+  #Generate Dataset
+  dataset = Dataset()
+  #Fill Dataset
+  dataset.StudyDate = '{0}-{1}'.format(
+    date_from,
+    date_to
+  )
+  dataset.AccessionNumber = accession_number
+  dataset.PatientID = cpr
+  dataset.PatientName = name
+  dataset.QueryRetrieveLevel = 'STUDY'
+  dataset.SOPClassUID = ''
+  dataset.SOPInstanceUID = ''
+  dataset.SeriesInstanceUID = ''
+  dataset.StudyInstanceUID = ''
+
+  return dataset
