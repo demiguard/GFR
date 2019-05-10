@@ -56,8 +56,6 @@ handlers = [
     (evt.EVT_CONN_OPEN, log_event),
     (evt.EVT_REQUESTED, log_event), ]
 
-
-
 server_ae = AE(ae_title='HVHFBERGHK7')
 
 server_ae.supported_contexts = StoragePresentationContexts

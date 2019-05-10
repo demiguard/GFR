@@ -231,11 +231,6 @@ def start_scp_server():
       However Saving in subdirectories are difficult 
 
   """
-  logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(levelname)s %(message)s',
-    filename='/log/serverlog.log',
-  )
   logger = logging.getLogger()
   logger.info('Starting Server')
   def on_store(dataset, context, info):
