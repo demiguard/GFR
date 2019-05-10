@@ -231,7 +231,12 @@ def start_scp_server():
       However Saving in subdirectories are difficult 
 
   """
-
+  logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s %(levelname)s %(message)s',
+    filename='/log/serverlog.log',
+  )
+  logger = logging.getLogger(name='serverlog')
   logger.info('Starting Server')
   def on_store(dataset, context, info):
     """
@@ -304,6 +309,7 @@ def start_scp_server():
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.supported_contexts = StoragePresentationContexts
   server_ae.on_c_store = on_store
+  server_ae.on_c_move = on_move
 
   server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
 
