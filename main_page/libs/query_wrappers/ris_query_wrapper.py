@@ -99,7 +99,6 @@ def get_patients_from_rigs(user):
 
   dirmanager.check_combined_and_create(server_config.FIND_RESPONS_DIR , user.hospital)
 
-
   dcm_file_paths = glob.glob('{0}{1}/*.dcm'.format(
     server_config.FIND_RESPONS_DIR,
     user.hospital
@@ -119,9 +118,7 @@ def get_patients_from_rigs(user):
         dataset.AccessionNumber
       ))
       
-
   #Make a Querry up to Ris
-  
   ae = pynetdicom.AE(ae_title=user.config.rigs_calling)
   
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'

@@ -2,8 +2,8 @@ import pydicom, pynetdicom
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
-from pynetdicom import AE, StoragePresentationContexts
-import os
+from pynetdicom import AE, StoragePresentationContexts, evt
+import os, logging
 import sys
 import shutil
 import glob
@@ -13,13 +13,15 @@ import numpy
 import pandas
 import random
 
-from .. import dicomlib, dirmanager
+from .. import dicomlib, dirmanager, dataset_creator
 from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
 from ..examination_info import ExaminationInfo
 from .. import formatting
 from .query_executer import execute_query
+
+logger = logging.getLogger()
 
 
 def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
@@ -190,7 +192,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
       Value error: If the dicom set doesn't contain required information to send
 
   """
-  ae = AE(ae_title=user.config.pacs_calling)
+  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7')
   assoc = ae.associate(
     user.config.pacs_ip,
@@ -199,10 +201,9 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   )
 
   if assoc.is_established:
-    status = assoc.send_c_store(dicom_object, originator_aet=ae.ae_title)
+    status = assoc.send_c_store(dicom_object, )
     if status.Status == 0x0000:
       return True, ''
-      #To Do error handling
     elif status.Status == 0x0124:
       return False, 'Duplikeret Argument'
     elif status.Status >= 0xA700 and status.Status <= 0xA7FF:
@@ -212,7 +213,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   else: 
     return False , 'Kunne ikke forbinde til pacs'
   
-def Start_scp_server():
+def start_scp_server():
   """
     Problems:
       The server host multiple AE titles 
@@ -229,10 +230,9 @@ def Start_scp_server():
       Saving a file, While it's clear that it should be saved in the search_dir.
       However Saving in subdirectories are difficult 
 
-      
-
   """
-
+  logger = logging.getLogger()
+  logger.info('Starting Server')
   def on_store(dataset, context, info):
     """
     Stores a Files 
@@ -240,28 +240,107 @@ def Start_scp_server():
 
 
     """
-    filename = 'REGH{0}.dcm'.format(
-      dataset.PatientID
+    logger.info('Recieved C-STORE')
+    filename = '{0}.dcm'.format(
+      dataset.AccessionNumber
     )
-
-
     
     fullpath = server_config.SEARCH_DIR + filename
-
-
 
     dicomlib.save_dicom(fullpath, dataset)
 
     return 0x0000
 
-  server_ae = AE(ae_title='RH_EDTA')
-  server_ae.on_c_store = on_store
-  server_ae.supported_contexts = StoragePresentationContexts
+  def on_move(dataset, move_aet, context, info):
+    """
+      C-Move is unsupported by our Application as we do not have access to the list
 
-  server_instance = server_ae.start_server(('', 104), block=False)
+
+    """
+    logger.info('Recieved C-move')
+    logger.info('\n')
+    logger.info(dataset)
+    logger.info('\n')
+    logger.info(move_aet)
+    logger.info('\n')
+    logger.info(context)
+    logger.info('\n')
+    logger.info(info)
+    logger.info('\n')
+
+    return 0xA801
+
+  def sop_common_handler(event):
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+    logger.info(event.items)
+
+  def sop_extended_handler(event):
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+    logger.info(event.app_info)
+
+  def log_event_handler(event):
+    logger.info('\n New Event Logged!\n')
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+
+  event_handlers = [
+    (evt.EVT_ASYNC_OPS, log_event_handler),
+    (evt.EVT_SOP_COMMON, sop_common_handler),
+    (evt.EVT_SOP_EXTENDED, sop_extended_handler),
+    (evt.EVT_USER_ID, log_event_handler), 
+    # No Response
+    (evt.EVT_ABORTED, log_event_handler),
+    (evt.EVT_CONN_OPEN, log_event_handler),
+    (evt.EVT_REQUESTED, log_event_handler),
+  ]
+
+  dirmanager.check_combined_and_create(server_config.SEARCH_DIR)
+
+  server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  server_ae.supported_contexts = StoragePresentationContexts
+  server_ae.on_c_store = on_store
+  server_ae.on_c_move = on_move
+
+  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
 
   return server_instance
 
+def search_query_pacs(user, name="", cpr="", accession_number= "", date_from = "", date_to = ""):
+  
+  response_list = []
+  #Construct Search Dataset
+  search_dataset = dataset_creator.create_search_dataset(name, cpr, date_from, date_to, accession_number)
+
+  #Construct AE
+  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
+
+  #Connect with AE
+  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_aet)
+  if assoc.is_established:
+    #Make Search Request
+    response = assoc.send_c_find(search_dataset, query_model='S')
+    for (status, dataset) in response:
+      if status.Status == 0xFF00:
+        exam_obj = examination_info.deserialize(dataset)
+        response_list.append(exam_obj)
+      elif status.Status == 0x0000:
+        #Operation successfull
+        assoc.release()
+      else:
+        logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
+    assoc.release()
+  else:
+    logger.warn('Connection to pacs failed!')
+
+  return response_list
+
+  #Handle
 
 def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   """
@@ -313,7 +392,7 @@ def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   query_obj.PatientName = formatting.name_to_person_name(name)
   query_obj.PatientID = cpr
   query_obj.AccessionNumber = rigs_nr
-  query_obj.StudyDate = "{0}{1}".format(date_from, date_to)
+  query_obj.StudyDate = "{0}-{1}".format(date_from, date_to)
 
   query_obj.save_as(curr_search_file)
 

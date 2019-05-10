@@ -56,13 +56,10 @@ def fill_study_post(request, rigs_nr, dataset):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
-    if int(request.POST['study_type']) == 2:
-      sample_dates = request.POST.getlist('study_date')[:-1]
-      sample_times = request.POST.getlist('study_time')[:-1]
-    else:
-      sample_dates = request.POST.getlist('study_date')
-      sample_times = request.POST.getlist('study_time')
 
+    sample_dates = request.POST.getlist('study_date')[:-1]
+    sample_times = request.POST.getlist('study_time')[:-1]
+  
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])
 
@@ -283,13 +280,9 @@ def store_form(request, dataset, rigs_nr):
   if request.POST['std_cnt_text_box']:
     std_cnt= float(request.POST['std_cnt_text_box'])
 
-  if int(request.POST['study_type']) == 2:
-    sample_dates = request.POST.getlist('study_date')[:-1]
-    sample_times = request.POST.getlist('study_time')[:-1]
-  else:
-    sample_dates = request.POST.getlist('study_date')
-    sample_times = request.POST.getlist('study_time')
-
+  sample_dates = request.POST.getlist('study_date')[:-1]
+  sample_times = request.POST.getlist('study_time')[:-1]
+  
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
   # There's Data to put in
@@ -299,11 +292,13 @@ def store_form(request, dataset, rigs_nr):
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
 
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
-    
+    print(sample_datetimes)    
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
   else:
     seq = []      
+
+  print(seq)
 
   dicomlib.fill_dicom(dataset, 
     update_dicom = True,
