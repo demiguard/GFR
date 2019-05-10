@@ -232,8 +232,8 @@ def start_scp_server():
 
   """
 
-  def on_store(dataset, context, info):
   logger.info('Starting Server')
+  def on_store(dataset, context, info):
     """
     Stores a Files 
 
