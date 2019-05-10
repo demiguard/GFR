@@ -236,7 +236,7 @@ def start_scp_server():
     format='%(asctime)s %(levelname)s %(message)s',
     filename='/log/serverlog.log',
   )
-  logger = logging.getLogger(name='serverlog')
+  logger = logging.getLogger()
   logger.info('Starting Server')
   def on_store(dataset, context, info):
     """
