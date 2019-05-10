@@ -292,8 +292,8 @@ def store_form(request, dataset, rigs_nr):
 
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
-  #There's Data to put in
-  if sample_tec99 != []:
+  # There's Data to put in
+  if sample_tec99:
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
