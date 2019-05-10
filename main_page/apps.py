@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 from .libs.query_wrappers import pacs_query_wrapper as pacs
-import Startup
+from . import Startup
 
 import logging
 
