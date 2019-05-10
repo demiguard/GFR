@@ -8,6 +8,7 @@
     <title>GFRcalc</title>
     <!-- Load Boostrap 4 css -->
     <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/bootstrap/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/bootstrap/open-iconic-bootstrap.css' %}">
 
     <!-- Load base css -->
     <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/base.css' %}">
@@ -25,7 +26,8 @@
               <li><a class="menu-item" href="{% url 'main_page:list_studies' %}">Åben undersøgelse</a></li>
               <li><a class="menu-item" href="{% url 'main_page:search' %}">Historisk undersøgelser</a></li>
               <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
-              <li><a class="menu-item" href="{% url 'main_page:settings' %}">Indstillinger</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:settings' %}">Bruger indstillinger</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:deleted_studies' %}">Slettede undersøgelser</a></li>
             </ul>
             {% if user.is_authenticated %}
               <p style="color: white;">Logget ind som: {{ user.username }}</p>

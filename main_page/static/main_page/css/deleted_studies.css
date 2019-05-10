@@ -1,0 +1,7 @@
+.restore-btn {
+  color: gray;
+}
+
+.restore-btn:hover {
+  color: black;
+}

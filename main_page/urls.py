@@ -14,10 +14,11 @@ urlpatterns = [
   path('fill_study/<str:rigs_nr>', views.fill_study, name='fill_study'),
   path('search', views.SearchView.as_view(), name='search'),
   path('present_study/<str:rigs_nr>', views.present_study, name='present_study'),
-   path('present_old_study/<str:rigs_nr>', views.present_old_study, name='present_old_study'),
+  path('present_old_study/<str:rigs_nr>', views.present_old_study, name='present_old_study'),
   path('logout', views.LogoutView.as_view(), name='logout'),
   path('settings', views.SettingsView.as_view(), name='settings'),
   path('documentation', views.documentation, name='documentation'),
+  path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   # Async ajax urls
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),

@@ -3,34 +3,69 @@
 {% load bootstrap4 %}
 {% load staticfiles %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/list_studies.css' %}">
+{% endblock head %}
+
 {% block content %}
   <h2>Vælg undersøgelse</h2> <br>
 
-  <table class="table table-bordered table-hover" id="new_studies"> 
+  <table class="table table-hover" id="new_studies"> 
     <thead>
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
         <th onclick="sort_table(1, 'new_studies')">Cpr nr.</th>
         <th onclick="sort_table(2, 'new_studies')">Dato</th>
         <th onclick="sort_table(3, 'new_studies')">Accession nr.</th>
+        <th></th> <!-- Empty column for action buttons -->
       </tr>
     </thead>
     <tbody>
       <!-- Make each row redirect to fill_study/rigsnr with rigsnr being the rigs nr. of the patient clicked -->
       {% for booking in bookings %}
-        <tr onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">
-          <td>{{ booking.name }}</td>
-          <td>{{ booking.cpr }}</td>
-          <td>{{ booking.date }}</td>
-          <td>{{ booking.rigs_nr }}</td>
+        <tr>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.name }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.cpr }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.date }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.rigs_nr }}</td>
+          <td>
+            <button type="button" class="trash-btn btn btn-link">
+              <span class="oi oi-trash" title="Fjern undersøgelse" aria-hidden="true"></span>
+            </button>
+          </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
 
   <a href="{% url 'main_page:new_study' %}">Nødoprettelse</a>
+
+
+  <!-- Delete study modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Vil du slette undersøgelsen</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Slettede undersøgelser bliver bevaret i en uge, og kan gendannes via. menu punktet 'Slettede undersøgelser'.</p>
+          <p>Du er ved at slette undersøgelse med accession nummer: <span id="modal-accession-number"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
+          <button id="delete-modal-accept" type="button" class="btn btn-danger">Slet undersøgelse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}
 
 {% block javascript %}
+  <script src="{% static 'main_page/js/list_studies.js' %}"></script>
   <script src="{% static 'main_page/js/sort_table.js' %}"></script>
 {% endblock %}
