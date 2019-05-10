@@ -254,8 +254,8 @@ def start_scp_server():
   dirmanager.check_combined_and_create(server_config.SEARCH_DIR)
 
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  server_ae.on_c_store = on_store
   server_ae.supported_contexts = StoragePresentationContexts
+  server_ae.on_c_store = on_store
 
   server_instance = server_ae.start_server(('', 104), block=False)
 
