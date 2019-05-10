@@ -231,9 +231,9 @@ def start_scp_server():
       However Saving in subdirectories are difficult 
 
   """
-  logger.info('Starting Server')
 
   def on_store(dataset, context, info):
+  logger.info('Starting Server')
     """
     Stores a Files 
 
@@ -253,7 +253,7 @@ def start_scp_server():
 
   def on_move(dataset, move_aet, context, info):
     """
-
+      C-Move is unsupported by our Application as we do not have access to the list
 
 
     """
@@ -268,7 +268,7 @@ def start_scp_server():
     logger.info(info)
     logger.info('\n')
 
-  return 0xA801
+    return 0xA801
 
   def sop_common_handler(event):
     logger.info(event.name)
