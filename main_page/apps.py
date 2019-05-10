@@ -14,5 +14,5 @@ class MainPageConfig(AppConfig):
         try:
             self.scp_server = pacs.start_scp_server()
             logger.info('Started SCP server')
-        except:
-            logger.info('Failed to start SCP server')
+        except Exception as e:
+            logger.info('Failed to start SCP server because:{0}'.format(str(e)))
