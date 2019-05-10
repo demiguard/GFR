@@ -2,7 +2,7 @@ import pydicom, pynetdicom
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
-from pynetdicom import AE, StoragePresentationContexts
+from pynetdicom import AE, StoragePresentationContexts, evt
 import os, logging
 import sys
 import shutil
@@ -251,13 +251,61 @@ def start_scp_server():
 
     return 0x0000
 
+  def on_move(dataset, move_aet, context, info):
+    """
+
+
+
+    """
+    logger.info('Recieved C-move')
+    logger.info('\n')
+    logger.info(dataset)
+    logger.info('\n')
+    logger.info(move_aet)
+    logger.info('\n')
+    logger.info(context)
+    logger.info('\n')
+    logger.info(info)
+    logger.info('\n')
+
+  return 0xA801
+
+  def sop_common_handler(event):
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+    logger.info(event.items)
+
+  def sop_extended_handler(event):
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+    logger.info(event.app_info)
+
+  def log_event_handler(event):
+    logger.info('\n New Event Logged!\n')
+    logger.info(event.name)
+    logger.info(event.description)
+    logger.info(event.assoc)
+
+  event_handlers = [
+    (evt.EVT_ASYNC_OPS, log_event_handler),
+    (evt.EVT_SOP_COMMON, sop_common_handler),
+    (evt.EVT_SOP_EXTENDED, sop_extended_handler),
+    (evt.EVT_USER_ID, log_event_handler), 
+    # No Response
+    (evt.EVT_ABORTED, log_event_handler),
+    (evt.EVT_CONN_OPEN, log_event_handler),
+    (evt.EVT_REQUESTED, log_event_handler),
+  ]
+
   dirmanager.check_combined_and_create(server_config.SEARCH_DIR)
 
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.supported_contexts = StoragePresentationContexts
   server_ae.on_c_store = on_store
 
-  server_instance = server_ae.start_server(('', 104), block=False)
+  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
 
   return server_instance
 
