@@ -528,6 +528,7 @@ def present_old_study(request, rigs_nr):
   # Search to find patient id - pick field response
   search_resp = pacs.search_query_pacs(current_user, accession_number=rigs_nr)
   patient_id = search_resp[0].cpr
+  logger.info(f"patient id for present old: {patient_id}")
 
   study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
   series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
