@@ -360,7 +360,7 @@ def start_scp_server():
   server_ae.on_c_store = on_store
   server_ae.on_c_move = on_move
 
-  server_instance = server_ae.start_server(('', 11112), block=False, evt_handlers=event_handlers)
+  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
 
   return server_instance
 
