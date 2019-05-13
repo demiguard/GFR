@@ -70,7 +70,9 @@ $(function() {
     // Get search parameters
     let name = $('#id_name').val();
     var cpr = $('#id_cpr').val();
-    if (cpr.includes('-')) {
+
+    let re_alpha = /[a-zA-Z]/;    
+    if (cpr.includes('-') && !re_alpha.test(cpr)) {
       cpr = cpr.replace('-', '');
     }
     let rigs_nr = $('#id_Rigs').val();

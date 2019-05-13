@@ -280,8 +280,7 @@ def start_scp_server():
               When Creating Server overwrite global Variable with server instance
               THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
       Saving a file, While it's clear that it should be saved in the search_dir.
-      However Saving in subdirectories are difficult 
-
+      However Saving in subdirectories are difficult
   """
   logger = logging.getLogger()
   logger.info('Starting Server')
@@ -383,6 +382,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
     for (status, dataset) in response:
       if status.Status == 0xFF00:
         exam_obj = examination_info.deserialize(dataset)
+        logger.info(f"Got dataset from search: {dataset}")
         response_list.append(exam_obj)
       elif status.Status == 0x0000:
         # Operation successfull
