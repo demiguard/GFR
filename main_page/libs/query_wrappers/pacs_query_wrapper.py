@@ -23,6 +23,58 @@ from .query_executer import execute_query
 
 logger = logging.getLogger()
 
+def move_from_pacs(user, accession_number, patient_id = "", series_id = "", study_id = "", instance_id = ""):
+  """
+
+
+    Returns:
+      None or Dataset
+  """
+  # # # Get file from pacs # # #
+  #Create Dataset
+  ds = Dataset()
+  ds.PatientID = patient_id #0x00100020
+  ds.SOPInstanceUID = instance_id #0x00080018
+  ds.add_new(0x00080052, 'CS', 'STUDY') #Query level
+  ds.StudyInstanceUID = study_id #0x0020000D 
+  ds.SeriesInstanceUID = series_id #0x0020000E
+
+  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
+  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_calling)
+
+  if assoc.is_established:
+    successfull_move = False
+    response = assoc.send_c_move(
+      ds,
+      server_config.SERVER_AE_TITLE,
+      query_model='S'
+      )
+    for (status, identifier) in response:
+      if status.Status == 0x0000:
+        # We are successful
+        logger.info('C-move successful')
+        successfull_move = True
+      if status.Status == 0xFF00:
+        #We are not done, but shit have not broken down
+        pass
+      else:
+        logger.warn('C-Move move opration failed with Status code:{0}'.format(hex(status.Status)))
+    assoc.release()
+  else:
+    logger.warn('Move_from_pacs could not connect to pacs')
+    return None
+
+  file_src = server_config.SEARCH_DIR + accession_number + '.dcm'
+  file_dst = server_config.SEARCH_DIR + user.hospital + '/' + accession_number + '.dcm'
+  if successfull_move and os.path.exists(file_src):
+    dirmanager.check_combined_and_create(server_config.SEARCH_DIR, user.hospital) #Ensure The correct file
+    shutil.move(file_src, file_dst)
+    dataset = dicomlib.dcmread_wrapper(file_dst)
+    return examination_info.deserialize(dataset)    
+  else:
+    logger.warn('Mismatching matching Accession number, Perhaps Pacs doesn\'t have the requested file? Maybe you have incorrect info')
+    return None
 
 def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   """

@@ -118,5 +118,6 @@ def create_search_dataset(name, cpr, date_from, date_to, accession_number):
   dataset.SOPInstanceUID = ''
   dataset.SeriesInstanceUID = ''
   dataset.StudyInstanceUID = ''
+  dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
 
   return dataset
