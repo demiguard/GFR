@@ -306,31 +306,34 @@ def start_scp_server():
   server_ae.on_c_store = on_store
   server_ae.on_c_move = on_move
 
-  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
+  server_instance = server_ae.start_server(('', 11112), block=False, evt_handlers=event_handlers)
 
   return server_instance
 
-def search_query_pacs(user, name="", cpr="", accession_number= "", date_from = "", date_to = ""):
-  
+def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", date_to=""):
   response_list = []
-  #Construct Search Dataset
+
+  # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(name, cpr, date_from, date_to, accession_number)
 
-  #Construct AE
+  logger.info(f"Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
+
+  # Construct AE
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
 
-  #Connect with AE
+  # Connect with AE
   assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_aet)
+  
   if assoc.is_established:
-    #Make Search Request
+    # Make Search Request
     response = assoc.send_c_find(search_dataset, query_model='S')
     for (status, dataset) in response:
       if status.Status == 0xFF00:
         exam_obj = examination_info.deserialize(dataset)
         response_list.append(exam_obj)
       elif status.Status == 0x0000:
-        #Operation successfull
+        # Operation successfull
         assoc.release()
       else:
         logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
@@ -340,7 +343,6 @@ def search_query_pacs(user, name="", cpr="", accession_number= "", date_from = "
 
   return response_list
 
-  #Handle
 
 def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
   """
@@ -411,6 +413,8 @@ def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
     '-od',
     curr_resp_dir
   ]
+
+  logger.info(f"Executing search query: {search_query}")
 
   execute_query(search_query)
 

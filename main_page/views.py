@@ -441,14 +441,16 @@ class SearchView(LoginRequiredMixin, TemplateView):
       search_date_from = default_date_from
       search_date_to = default_date_to
 
-    search_resp = pacs.search_pacs(
+    search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
       cpr=search_cpr,
-      rigs_nr=search_rigs_nr,
+      accession_number=search_rigs_nr,
       date_from=search_date_from,
       date_to=search_date_to,
     )
+
+    logger.info(f"Initial search responses: {search_resp}")
 
     # Add specific bootstrap class to the form item and previous search parameters
     get_study_form = forms.GetStudy(initial={
@@ -482,11 +484,13 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
 
-    search_resp = pacs.search_pacs(
+    print(request.GET)
+
+    search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
       cpr=search_cpr,
-      rigs_nr=search_rigs_nr,
+      accession_number=search_rigs_nr,
       date_from=search_date_from,
       date_to=search_date_to,
     )

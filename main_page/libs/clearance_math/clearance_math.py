@@ -355,7 +355,7 @@ def calculate_birthdate(cpr):
     month_of_birth,
     first_digits_year_of_birth,
     last_digits_year_of_birth
-    )
+  )
 
   logger.debug('Returning with string:{0}'.format(returnstring))
   
