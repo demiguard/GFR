@@ -39,6 +39,8 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
   ds.StudyInstanceUID = study_id #0x0020000D 
   ds.SeriesInstanceUID = series_id #0x0020000E
 
+  logger.info(f"Executing move_from_pacs with dataset: {ds}")
+
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
   assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_calling)
