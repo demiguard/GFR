@@ -164,6 +164,7 @@ def fill_dicom(ds,
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
     ds.add_new(0x00200010, 'SH', '1')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
+    ds.StudyDescription = 'GFR, Tc-99m-DTPA'
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
     ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
