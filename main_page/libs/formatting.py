@@ -1,5 +1,6 @@
 import calendar
 import pandas
+import re
 
 
 def format_name(name):
@@ -24,6 +25,10 @@ def format_cpr(cpr):
   Formats a cpr nr. to the format: XXXXXX-XXXX
   """
   cpr = str(cpr)
+
+  if re.match(r"[a-zA-Z]", cpr):
+    return cpr
+
   return cpr[:6] + '-' + cpr[6:]
 
 
