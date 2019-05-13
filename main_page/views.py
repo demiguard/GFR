@@ -515,9 +515,6 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
 @login_required()
 def present_old_study(request, rigs_nr):
   """
-
-  I FEEL SO UNDOCUMENTED
-
   Remark:
     Should pull information down from PACS, but not be able to send to it.
     Additionally no button for going back to editing the study should be
@@ -525,18 +522,25 @@ def present_old_study(request, rigs_nr):
   """
   template = loader.get_template('main_page/present_old_study.html')
 
-  base_resp_dir = server_config.FIND_RESPONS_DIR
+  current_user = request.user
   hospital = request.user.hospital
-  
-  DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
 
-  if not os.path.exists(base_resp_dir):
-    os.mkdir(base_resp_dir)
+  # Search to find patient id - pick field response
+  search_resp = pacs.search_query_pacs(current_user, accession_number=rigs_nr)
+  patient_id = search_resp[0].cpr
 
-  if not os.path.exists(DICOM_directory):
-    os.mkdir(DICOM_directory)
+  study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
+  series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
+  instance_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'SOP'])
 
-  exam = pacs.get_examination(request.user, rigs_nr, DICOM_directory)
+  exam = pacs.move_from_pacs(
+    current_user,
+    rigs_nr,
+    patient_id=patient_id,
+    series_id=series_id,
+    study_id=study_id,
+    instance_id=instance_id
+  )
 
   # Read in previous samples from examination info
   previous_sample_times = []

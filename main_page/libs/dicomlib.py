@@ -268,23 +268,17 @@ def fill_dicom(ds,
   if thiningfactor:
     ds.add_new(0x00231028, 'DS', thiningfactor)
 
-  print('Sample Seq:', sample_seq)
   if sample_seq:
     logger.info('adding Seqence:{0}'.format(sample_seq))
     seq_list = []
-    #Add Information About the Sample
+    
+    # Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
       seq_elem.add_new(0x00231021, 'DT', sample[0])
       seq_elem.add_new(0x00231022, 'DS', sample[1])
-      
-      # seq_elem.SampleTime    = sample[0]
-      # seq_elem.cpm           = sample[1]
-      # seq_elem.stdcnt        = sample[2]
-      # seq_elem.thiningfactor = sample[3]
-
       seq_list.append(seq_elem)
-    # ds.ClearTest = Sequence(seq_list)
+    
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
   elif sample_seq == [] and 'ClearTest' in ds:
     logger.info('Removing Seqence')
