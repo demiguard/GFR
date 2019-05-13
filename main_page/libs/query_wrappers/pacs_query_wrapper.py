@@ -382,7 +382,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
     response = assoc.send_c_find(search_dataset, query_model='S')
     for (status, dataset) in response:
       if status.Status == 0xFF00:
-        logger.info(dataset)
+        logger.info (dataset)
         
         exam_obj = examination_info.deserialize(dataset)
 

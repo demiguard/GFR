@@ -9,7 +9,7 @@ logger = logging.getLogger()
 pacs_ip = '10.143.128.234'
 pacs_port = 104
 pacs_aet = 'VIPDICOM'
-my_ae = 'HEHKFARGHOTR05'
+my_ae = 'HVHFBERGHK7'
 
 ae = AE(ae_title=my_ae)
 
@@ -21,7 +21,7 @@ ds = Dataset()
 
 ds.SpecificCharacterSet = 'ISO_IR 100' 
 ds.add_new(0x00080018, 'UI', '1.2.276.0.7230010.3.1.4.279752782.5764.1554286136.933281')
-ds.add_new(0x00080052, 'CS', 'Series')
+ds.add_new(0x00080052, 'CS', 'STUDY')
 ds.PatientID = 'QP-3849995'
 ds.add_new(0x0020000D, 'UI', '1.3.51.0.1.1.10.143.20.159.13951884.6955968')
 ds.add_new(0x0020000E, 'UI', '1.2.276.0.7230010.3.1.3.279752782.5764.1554286136.933279')
