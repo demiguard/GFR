@@ -585,7 +585,7 @@ def present_old_study(request, rigs_nr):
   
   pixel_arr = exam.image
   if pixel_arr.shape[0] != 0:
-    Im = PIL.Image.fromarray(pixel_arr)
+    Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
     Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
   
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
