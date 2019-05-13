@@ -250,7 +250,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7')
   assoc = ae.associate(
     user.config.pacs_ip,
-    user.config.pact_port,
+    int(user.config.pacs_port),
     ae_title=user.config.pacs_aet
   )
 
