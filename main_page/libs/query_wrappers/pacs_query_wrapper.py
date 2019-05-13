@@ -23,7 +23,7 @@ from .query_executer import execute_query
 
 logger = logging.getLogger()
 
-def move_from_pacs(user, accession_number, patient_id = "", series_id = "", study_id = "", instance_id = ""):
+def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id="", instance_id=""):
   """
 
 
@@ -71,7 +71,7 @@ def move_from_pacs(user, accession_number, patient_id = "", series_id = "", stud
     dirmanager.check_combined_and_create(server_config.SEARCH_DIR, user.hospital) #Ensure The correct file
     shutil.move(file_src, file_dst)
     dataset = dicomlib.dcmread_wrapper(file_dst)
-    return examination_info.deserialize(dataset)    
+    return examination_info.deserialize(dataset)
   else:
     logger.warn('Mismatching matching Accession number, Perhaps Pacs doesn\'t have the requested file? Maybe you have incorrect info')
     return None
