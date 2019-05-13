@@ -21,18 +21,37 @@ function sort_table(n, tablename) {
       shouldSwitch = false;
       /* Get the two elements you want to compare,
       one from current row and one from the next: */
-      x = rows[i].getElementsByTagName("TD")[n];
-      y = rows[i + 1].getElementsByTagName("TD")[n];
+      x = rows[i].getElementsByTagName("TD")[n].innerHTML.toLowerCase();
+      y = rows[i + 1].getElementsByTagName("TD")[n].innerHTML.toLowerCase();
+      
+      // Reformat if date
+      function try_reformat_date(s) {
+        if (s.indexOf('/') > -1 && s.indexOf('-') > -1) {
+          let d = s.substring(0,2);
+          let m = s.substring(3,5);
+          let y = s.substring(6,10);
+          
+          let ret = [y, m, d];
+
+          return ret.toString();
+        } else {
+          return s;
+        }
+      }
+      
+      x = try_reformat_date(x);
+      y = try_reformat_date(y);
+      
       /* Check if the two rows should switch place,
       based on the direction, asc or desc: */
       if (dir == "asc") {
-        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+        if (x > y) {
           // If so, mark as a switch and break the loop:
           shouldSwitch = true;
           break;
         }
       } else if (dir == "desc") {
-        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+        if (x < y) {
           // If so, mark as a switch and break the loop:
           shouldSwitch = true;
           break;

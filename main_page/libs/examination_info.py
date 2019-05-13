@@ -53,14 +53,21 @@ def deserialize(dicom_obj):
 
   exam.rigs_nr = dicom_obj.AccessionNumber
   exam.cpr = formatting.format_cpr(dicom_obj.PatientID)
-  exam.date = formatting.format_date(dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
   exam.name = formatting.format_name(dicom_obj.PatientName)
-
   
+  try:
+    exam.date = formatting.format_date(dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)
+  except AttributeError:
+    exam.date = formatting.format_date(dicom_obj.StudyDate)
+
   if 'RequestedProcedureDescription' in dicom_obj:
     exam.procedure = dicom_obj.RequestedProcedureDescription
-  elif 'RequestedProcedureDescription' in dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription:
-    exam.procedure = dicom_obj
+  else:
+    try:
+      if 'RequestedProcedureDescription' in dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription:
+        exam.procedure = dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
+    except AttributeError:
+      exam.procedure = ""
 
   # Depermine patient sex based on cpr nr. if not able to retreive it
   if 'PatientSex' in dicom_obj:
@@ -82,8 +89,11 @@ def deserialize(dicom_obj):
   if 'PatientBirthDate' in dicom_obj:
     birthday_str = dicom_obj.PatientBirthDate[0:4] + '-' + dicom_obj.PatientBirthDate[4:6] + '-' + dicom_obj.PatientBirthDate[6:8]
     exam.birthdate = birthday_str
-  else: 
-    exam.birthdate = clearance_math.calculate_birthdate(exam.cpr)
+  else:
+    try:
+      exam.birthdate = clearance_math.calculate_birthdate(exam.cpr)
+    except ValueError:
+      exam.birthdate = '0000-00-00'
 
   if 'clearance' in dicom_obj:
     exam.clearance = dicom_obj.clearance

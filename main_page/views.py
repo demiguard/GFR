@@ -24,8 +24,9 @@ from .libs import dicomlib
 from .libs import dataset_creator
 
 from dateutil import parser as date_parser
-import logging
 import datetime
+import time
+import logging
 import shutil
 import glob
 import os
@@ -159,7 +160,6 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         dataset
       )
 
-
       # redirect to fill_study/rigs_nr 
       return redirect('main_page:fill_study', rigs_nr=rigs_nr)
     else:
@@ -171,7 +171,6 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/list_studies.html'
 
   def get(self, request):
-
     dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
     
     bookings = examination_info.mass_deserialize(dicom_objs)
@@ -184,6 +183,48 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, context)
 
+  def post(self, request):
+    delete_status = True
+
+    user_hosp = request.user.hospital
+
+    delete_accession_number = request.POST['delete_accession_number']
+
+    logger.info(f"Attempting to delete study: {delete_accession_number}")
+
+    # Create deleted studies directory if doesn't exist
+    if not os.path.exists(server_config.DELETED_STUDIES_DIR):
+      os.mkdir(server_config.DELETED_STUDIES_DIR)
+
+    inner_hosp_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}"
+    if not os.path.exists(inner_hosp_dir):
+      os.mkdir(inner_hosp_dir)
+
+    move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{delete_accession_number}.dcm"
+
+    if not os.path.exists(move_src):
+      delete_status = False
+
+    if delete_status:
+      move_dst = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{delete_accession_number}.dcm"
+      
+      # Reset modification time
+      del_time = time.mktime(datetime.datetime.now().timetuple())
+      os.utime(move_src, (del_time, del_time))
+
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully deleted study: {delete_accession_number}")
+
+    data = { }
+    resp = JsonResponse(data)
+
+    if not delete_status:
+      resp.status_code = 403
+
+    return resp
+
 
 @login_required()
 def fill_study(request, rigs_nr):
@@ -191,7 +232,6 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
-
     file_path = '{0}{1}/{2}.dcm'.format(
       server_config.FIND_RESPONS_DIR,
       request.user.hospital,
@@ -401,14 +441,16 @@ class SearchView(LoginRequiredMixin, TemplateView):
       search_date_from = default_date_from
       search_date_to = default_date_to
 
-    search_resp = pacs.search_pacs(
+    search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
       cpr=search_cpr,
-      rigs_nr=search_rigs_nr,
+      accession_number=search_rigs_nr,
       date_from=search_date_from,
       date_to=search_date_to,
     )
+
+    logger.info(f"Initial search responses: {search_resp}")
 
     # Add specific bootstrap class to the form item and previous search parameters
     get_study_form = forms.GetStudy(initial={
@@ -442,11 +484,13 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
 
-    search_resp = pacs.search_pacs(
+    print(request.GET)
+
+    search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
       cpr=search_cpr,
-      rigs_nr=search_rigs_nr,
+      accession_number=search_rigs_nr,
       date_from=search_date_from,
       date_to=search_date_to,
     )
@@ -652,3 +696,75 @@ def documentation(request):
     open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
     content_type='application/pdf'
   )
+
+class DeletedStudiesView(LoginRequiredMixin, TemplateView):
+  """
+  Displays deleted studies from 30 days ago.
+  Works like a trashcan for files, that deleted studies lie for 30 days until
+  they are completly removed.
+  """
+
+  template_name = "main_page/deleted_studies.html"
+
+  def get(self, request):
+    # Get list of all deleted studies
+    user_hosp = request.user.hospital
+
+    deleted_studies = [] # Contains ExaminationInfo objects
+
+    deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/"
+    glob_pattern = f"{deleted_dir}*.dcm"
+    for filepath in glob.glob(glob_pattern):
+      curr_rigs_nr = os.path.basename(filepath).split('.')[0]
+
+      curr_exam = pacs.get_examination(request.user, curr_rigs_nr, deleted_dir)
+      
+      # Set the deletion date
+      deletion_date = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
+      curr_exam.deletion_date = deletion_date.strftime('%d/%m-%Y')
+      
+      deleted_studies.append(curr_exam)
+    
+    context = {
+      'deleted_studies': deleted_studies,
+    }
+
+    return render(request, self.template_name, context)
+
+  def post(self, request):
+    recover_status = True
+
+    user_hosp = request.user.hospital
+
+    recover_accession_number = request.POST['recover_accession_number']
+
+    logger.info(f"Attempting to recover study: {recover_accession_number}")
+
+    # Create deleted studies directory if doesn't exist
+    if not os.path.exists(server_config.FIND_RESPONS_DIR):
+      os.mkdir(server_config.FIND_RESPONS_DIR)
+
+    inner_hosp_dir = f"{server_config.FIND_RESPONS_DIR}{user_hosp}"
+    if not os.path.exists(inner_hosp_dir):
+      os.mkdir(inner_hosp_dir)
+
+    move_src = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{recover_accession_number}.dcm"
+
+    if not os.path.exists(move_src):
+      recover_status = False
+
+    if recover_status:
+      move_dst = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{recover_accession_number}.dcm"
+      
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully recovered study: {recover_accession_number}")
+
+    data = { }
+    resp = JsonResponse(data)
+
+    if not recover_status:
+      resp.status_code = 403
+
+    return resp

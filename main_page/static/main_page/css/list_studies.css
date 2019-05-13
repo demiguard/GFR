@@ -1,0 +1,7 @@
+.trash-btn {
+  color: lightcoral;
+}
+
+.trash-btn:hover {
+  color: red;
+}

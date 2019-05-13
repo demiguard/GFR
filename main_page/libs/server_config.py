@@ -14,6 +14,7 @@ BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all b
 SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
 FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses
 BLANK_DICOM_FILE    = "{0}blank_dicom.dcm".format(BASE_QUERY_DIR)
+DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = "{0}/images/".format(STATIC_DIR)
