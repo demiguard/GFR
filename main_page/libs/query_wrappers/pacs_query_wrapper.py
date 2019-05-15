@@ -255,7 +255,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   )
 
   if assoc.is_established:
-    status = assoc.send_c_store(dicom_object, )
+    status = assoc.send_c_store(dicom_object)
     if status.Status == 0x0000:
       return True, ''
     elif status.Status == 0x0124:
