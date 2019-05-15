@@ -14,6 +14,7 @@ from .query_wrappers import pacs_query_wrapper as pacs
 from .clearance_math import clearance_math
 from . import server_config
 from . import dicomlib
+from . import dirmanager
 
 from dateutil import parser as date_parser
 from pydicom import uid
@@ -56,10 +57,20 @@ def fill_study_post(request, rigs_nr, dataset):
     inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
 
     # Construct datetimes for study times
+    # Determine study method
+    # TODO: Possibly make an Enum in the future
+    study_type = int(request.POST['study_type'])
+    if study_type == 0:
+      method = "EPV"
+    elif study_type == 1:
+      method = "EPB"
+    elif study_type == 2:
+      method = "Multi-4"
+    else:
+      method="INVALID METHOD"
 
-    sample_dates = request.POST.getlist('study_date')[:-1]
     sample_times = request.POST.getlist('study_time')[:-1]
-  
+    sample_dates = request.POST.getlist('study_date')[:-1]
     sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
                           for time, date in zip(sample_times, sample_dates)])
 
@@ -80,19 +91,6 @@ def fill_study_post(request, rigs_nr, dataset):
     STD_CNT = int(request.POST['std_cnt_text_box'].split('.')[0])
     FACTOR = int(request.POST['thin_fac'].split('.')[0])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
-
-    # Determine study method
-    # TODO: Possibly make an Enum in the future
-    study_type = int(request.POST['study_type'])
-    if study_type == 0:
-      method = "EPV"
-    elif study_type == 1:
-      method = "EPB"
-    elif study_type == 2:
-      method = "Multi-4"
-    else:
-      method="INVALID METHOD"
-
 
     # Calculate GFR
     clearance, clearance_norm = clearance_math.calc_clearance(
@@ -144,6 +142,10 @@ def fill_study_post(request, rigs_nr, dataset):
     hospital     = request.user.hospital
     img_path     = 'main_page/static/main_page/images'
 
+    dirmanager.check_combined_and_create(base_resp_dir, hospital)
+    dirmanager.check_combined_and_create('main_page', 'static', 'main_page', 'images', hospital)
+
+    """
     if not os.path.exists(base_resp_dir):
       os.mkdir(base_resp_dir)
 
@@ -152,6 +154,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     if not os.path.exists('{0}/{1}'.format(img_path, hospital)):
       os.mkdir('{0}/{1}'.format(img_path, hospital))
+    """
 
     dcm_obj_path = '{0}/{1}/{2}.dcm'.format(base_resp_dir, hospital, rigs_nr)
 
@@ -198,8 +201,6 @@ def fill_study_post(request, rigs_nr, dataset):
     #os.remove(plot_path)
     #os.remove(dcm_img_path)
     return dataset
-
-
 
 
 def store_form(request, dataset, rigs_nr):
@@ -280,25 +281,22 @@ def store_form(request, dataset, rigs_nr):
   if request.POST['std_cnt_text_box']:
     std_cnt= float(request.POST['std_cnt_text_box'])
 
-  sample_dates = request.POST.getlist('study_date')[:-1]
-  sample_times = request.POST.getlist('study_time')[:-1]
-  
-  sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
+  sample_dates = request.POST.getlist('study_date')[:-1]
+  sample_times = request.POST.getlist('study_time')[:-1]  
+
+  sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
   # There's Data to put in
-  if sample_tec99 != []:
+  if len(sample_tec99) > 0:
     formated_sample_date = [date.replace('-','') for date in sample_dates]
     formated_sample_time = [time.replace(':','') for time in sample_times]
     zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
 
     sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
-    print(sample_datetimes)    
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
   else:
-    seq = []      
-
-  print(seq)
+    seq = []     
 
   dicomlib.fill_dicom(dataset, 
     update_dicom = True,
@@ -307,7 +305,7 @@ def store_form(request, dataset, rigs_nr):
     injection_time=injection_time,
     gfr_type=gfr_type,
     series_number = rigs_nr[4:],
-    station_name = request.user.config.pacs_calling,
+    station_name = request.user.config.rigs_calling,
     gender=gender,
     injection_before = injection_before,
     injection_after  = injection_after,
