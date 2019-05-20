@@ -170,7 +170,6 @@ def fill_dicom(ds,
     ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
-
   # Set StudyDate
   if update_date:
     if study_date:
@@ -283,7 +282,6 @@ def fill_dicom(ds,
   elif sample_seq == [] and 'ClearTest' in ds:
     logger.info('Removing Seqence')
     del ds[0x00231020]
-
 
   # PRIVATE TAGS END
 

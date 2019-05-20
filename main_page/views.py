@@ -240,6 +240,7 @@ def fill_study(request, rigs_nr):
 
     dataset = dicomlib.dcmread_wrapper(file_path)
     dataset = PRH.fill_study_post(request, rigs_nr, dataset)
+    
     dicomlib.save_dicom(file_path, dataset)
 
     if 'calculate' in request.POST:  

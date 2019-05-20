@@ -120,7 +120,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     gfr = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
-    history_age, history_clrN = clearance_math.get_histroy(request.user, cpr)
+    #history_age, history_clrN = clearance_math.get_histroy(request.user, cpr)
 
     pixel_data = clearance_math.generate_plot_text(
       weight,
@@ -133,8 +133,8 @@ def fill_study_post(request, rigs_nr, dataset):
       gender,
       rigs_nr,
       hosp_dir=request.user.hospital,
-      history_age=history_age,
-      history_clr_n=history_clrN,
+      #history_age=history_age,
+      #history_clr_n=history_clrN,
       save_fig=False
     )
 
