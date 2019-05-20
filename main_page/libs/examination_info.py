@@ -138,7 +138,7 @@ def deserialize(dicom_obj):
 
   if 'PixelData' in dicom_obj:
     # Reads DICOM conformant image to PIL displayable image
-    exam.image = np.array(dicom_obj.pixel_array)
+    exam.image = np.frombuffer(dicom_obj.PixelData, dtype=np.uint8)
     exam.image = np.reshape(exam.image, (1920, 1080, 3))
     exam.image = np.reshape(exam.image, (1080, 1920, 3))
 
