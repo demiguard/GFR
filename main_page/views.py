@@ -175,6 +175,12 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     
     bookings = examination_info.mass_deserialize(dicom_objs)
   
+    def date_sort(item):
+      item_time = datetime.datetime.strptime(item.date, "%d/%m-%Y")
+      return int(item_time.strftime("%Y%m%d"))
+
+    bookings = list(sorted(bookings, key=date_sort, reverse=True))
+
     #Note that error message is not implimented yet
     context = {
       'bookings': bookings,
