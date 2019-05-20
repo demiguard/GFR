@@ -166,7 +166,7 @@ def is_valid_study(cpr, name, study_date, rigs_nr):
   # Filter out None values
   error_strings = list(filter(lambda x: x, error_strings))
 
-  return (len(error_strings) == 0, error_strings)
+  return (True, error_strings)
 
 
 def name_to_person_name(name):
