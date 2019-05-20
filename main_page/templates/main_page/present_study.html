@@ -6,7 +6,7 @@
 {% block content %}
 <h2>Resultat af {{ name }}'s undersøgelse den {{ date }}</h2>
 
-<img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
+<img height="75%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
 <form method="POST">
   {% csrf_token %}
   <div>

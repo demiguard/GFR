@@ -169,7 +169,7 @@ def fill_dicom(ds,
     ds.StudyDescription = 'GFR, Tc-99m-DTPA'
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
-    ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
+    #ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
   # Set StudyDate
