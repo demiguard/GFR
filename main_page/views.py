@@ -652,6 +652,7 @@ def present_study(request, rigs_nr):
     os.mkdir(img_resp_dir)
   
   pixel_arr = exam.image
+  print(f"pixel_arr shape 1. :{pixel_arr.shape}")
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
     Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))

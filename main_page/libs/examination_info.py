@@ -137,7 +137,10 @@ def deserialize(dicom_obj):
     exam.BSA = clearance_math.surface_area(dicom_obj.PatientSize, dicom_obj.PatientWeight)
 
   if 'PixelData' in dicom_obj:
+    # Reads DICOM conformant image to PIL displayable image
     exam.image = np.array(dicom_obj.pixel_array)
+    exam.image = np.reshape(exam.image, (1920, 1080, 3))
+    exam.image = np.reshape(exam.image, (1080, 1920, 3))
 
   if 'GFRMethod' in dicom_obj:
     exam.Method = dicom_obj.GFRMethod

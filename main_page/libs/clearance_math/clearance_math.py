@@ -441,8 +441,10 @@ def generate_plot_text(
     # Get the RGBA buffer from the figure
     w,h = fig.canvas.get_width_height()
     buf = numpy.fromstring ( fig.canvas.tostring_rgb(), dtype=numpy.uint8 )
+    print(f"1. buf: {buf.shape}")
     buf.shape = ( w, h, 3 )
- 
+    print(f"2. buf: {buf.shape}")
+
     # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
     #buf = numpy.roll ( buf, 3, axis = 2 )
     return buf
@@ -551,7 +553,7 @@ def generate_plot_text(
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
   ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
-
+  
   if save_fig:
     im = fig2img(fig)
     image_path = "{0}/{1}.bmp".format(save_dir, rigs_nr)
@@ -561,5 +563,5 @@ def generate_plot_text(
   if show_fig:
     plt.show()
 
-  return numpy.asarray(fig2data(fig)).tobytes()
-
+  fig.canvas.draw()
+  return fig.canvas.tostring_rgb()

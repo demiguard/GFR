@@ -138,6 +138,11 @@ def fill_study_post(request, rigs_nr, dataset):
       save_fig=False
     )
 
+    with open('pixel_data.b', 'wb') as f:
+      f.write(pixel_data)
+
+    #print(f"4. pixel data: {pixel_data}")
+
     base_resp_dir = server_config.FIND_RESPONS_DIR
     hospital     = request.user.hospital
     img_path     = 'main_page/static/main_page/images'
