@@ -58,7 +58,7 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
         # We are successful
         logger.info('C-move successful')
         successfull_move = True
-      if status.Status == 0xFF00:
+      elif status.Status == 0xFF00:
         #We are not done, but shit have not broken down
         pass
       else:
