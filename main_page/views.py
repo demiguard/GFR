@@ -541,7 +541,7 @@ def present_old_study(request, rigs_nr):
 
   logger.info(f"patient id for present old: {patient_id}")
 
-  study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
+  #study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
   series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
   instance_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'SOP'])
 
@@ -550,7 +550,7 @@ def present_old_study(request, rigs_nr):
     rigs_nr,
     patient_id=patient_id,
     series_id=series_id,
-    study_id=study_id,
+    #study_id=study_id,
     instance_id=instance_id
   )
 
