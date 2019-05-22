@@ -66,16 +66,15 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
   if method == "EPV":
     #In this method deltatimes and tec99_cnt lenght is equal to one
-    #Magical number a credible doctor once found
+    #Magical number a credible doctor once found, See documentation
     magic_number_1 = 0.213
     magic_number_2 = 104
     magic_number_3 = 1.88
     magic_number_4 = 928
 
     clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * numpy.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
-    #
-    magic_number_5 = 1.73
-    clearance = clearance_normalized * BSA / magic_number_5 
+    
+ 
   elif method == "EPB":
     #
     #Magical Numbers
@@ -89,11 +88,11 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     magic_number_2 = 2.602
     magic_number_3 = 0.273
 
-    clearance = ((magic_number_2 * V120) - magic_number_3)
+    GFR = ((magic_number_2 * V120) - magic_number_3)
 
     normalizing_constant = 1.73
 
-    clearance_normalized = clearance * normalizing_constant / BSA 
+    clearance_normalized = GFR * normalizing_constant / BSA 
 
   elif method == "Multi-4" :
 
@@ -114,22 +113,24 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
     clearance_normalized = clearance * magic_number_3 / BSA
 
+    #Inulin Korrigering for 24 prøver 
     if delta_times[-1] > 1440:
       magic_number_4 = 0.5
 
-      clearance             = clearance - 0.5
       clearance_normalized  = clearance_normalized - 0.5
+      clearance = clearance_normalized * BSA * magic_number_3
 
       return clearance, clearance_normalized
 
   else:
     raise UNKNOWNMETHODEXEPTION
 
+  #inulin Korrigering 
   magic_number_1 = 3.7
   magic_number_2 = 1.1
 
-  clearance = (clearance - magic_number_1) * magic_number_2
   clearance_normalized = (clearance_normalized - magic_number_1) * magic_number_2
+  clearance = clearance_normalized * BSA / 1.73
 
   return clearance, clearance_normalized
 
@@ -404,6 +405,8 @@ def generate_plot_text(
   day_of_birth,
   sex,
   rigs_nr,
+  name = '',
+  cpr = '',
   hosp_dir='',
   history_age = [],
   history_clr_n = [],
@@ -422,8 +425,11 @@ def generate_plot_text(
     clearance       : float, clearance value of examination 
     clearance_norm  : float, Normalized Clearence of examination
     kidney_function : string, describing the kidney function of the patient 
-    cpr             : string, CPR number of Patient 
     rigs_nr         : String
+
+  KWargs:
+    Name            : string, Name of patient
+    cpr             : string, CPR number of Patient 
 
   Remark:
     Generate as one image, with multiple subplots.
@@ -516,6 +522,8 @@ def generate_plot_text(
   ax[0].tick_params(labelsize = 14)
 
   #Text setup for graph 1
+  name_str            = "Navn: {0}\n\n".format(name)
+  cpr_str             = "CPR: {0}\n\n".format(cpr)
   gender_str          = "Køn: {0}\n\n".format(gender)
   age_str             = "Alder: {0}\n\n".format(_age_string(day_of_birth))
   weight_str          = "Vægt: {0} kg\n\n".format(weight)
@@ -525,7 +533,9 @@ def generate_plot_text(
   clearance_norm_str  = "GFR, normaliseret til 1,73m²: {0:.0f} ml / min\n\n".format(clearance_norm) 
   kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
 
-  print_str = "{0}{1}{2}{3}{4}{5}{6}{7}".format(
+  print_str = "{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}".format(
+    name_str,
+    cpr_str,
     gender_str,
     age_str,
     weight_str,
@@ -536,7 +546,7 @@ def generate_plot_text(
     kidney_function_str
   )
 
-  ax[1].text(0, 0.25, print_str, ha='left', fontsize = 20) 
+  ax[1].text(0, 0.10, print_str, ha='left', fontsize = 20) 
   ax[1].axis('off')
   
   

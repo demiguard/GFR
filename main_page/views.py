@@ -448,6 +448,8 @@ class SearchView(LoginRequiredMixin, TemplateView):
       search_date_from = default_date_from
       search_date_to = default_date_to
 
+    #Removed initial 
+  
     search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
@@ -456,6 +458,7 @@ class SearchView(LoginRequiredMixin, TemplateView):
       date_from=search_date_from,
       date_to=search_date_to,
     )
+    
 
     logger.info(f"Initial search responses: {search_resp}")
 

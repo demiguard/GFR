@@ -114,6 +114,7 @@ def fill_study_post(request, rigs_nr, dataset):
       clearance_norm,
       ))
 
+    name = request.POST['name']
     cpr = request.POST['cpr']
     birthdate = request.POST['birthdate']
     gender = request.POST['sex']
@@ -133,6 +134,8 @@ def fill_study_post(request, rigs_nr, dataset):
       gender,
       rigs_nr,
       hosp_dir=request.user.hospital,
+      name = name,
+      cpr = cpr,
       #history_age=history_age,
       #history_clr_n=history_clrN,
       save_fig=False
