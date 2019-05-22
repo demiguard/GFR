@@ -34,6 +34,7 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
   #Create Dataset
   ds = Dataset()
   ds.PatientID = patient_id #0x00100020
+  ds.AccessionNumber = accession_number
   ds.SOPInstanceUID = instance_id #0x00080018
   ds.add_new(0x00080052, 'CS', 'STUDY') #Query level
   ds.StudyInstanceUID = study_id #0x0020000D 
