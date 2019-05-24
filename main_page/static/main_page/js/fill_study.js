@@ -253,7 +253,7 @@ $(function() {
       if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
         is_valid = false;
         failed_id = ids_to_check[i];
-        break;
+        return False;
       }
     };
 
