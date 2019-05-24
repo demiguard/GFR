@@ -46,10 +46,11 @@ class Config(models.Model):
 # Department class,
 # The purpose of this class is to hold information specific to a department
 class Department(models.Model):
-  thining_factor = models.FloatField(default=0.0)
-  Department = models.CharField(primary_key = True, max_length = 200)
-  Hospital_Name = models.CharField(default='', max_length = 200) 
-  Address = models.CharField(default='', max_length = 200)
+  department_id = models.AutoField(primary_key=True)
+  thining_factor = models.FloatField(default=0.0, null=True)
+  department = models.CharField(default='', max_length = 200, null=True)
+  hospital_Name = models.CharField(default='', max_length = 200, null=True) 
+  address = models.CharField(default='', max_length = 200, null=True)
 
 
 # User class
@@ -67,11 +68,14 @@ class User(AbstractBaseUser):
     on_delete=models.SET_NULL,
     null=True
   )
-  department = models.ManyToManyField(
+  
+  department = models.ForeignKey(
     Department,
     on_delete=models.SET_NULL,
     null=True
   )
+  
+
 
   hospitals = [(k,v) for k,v in server_config.hospitals.items()]
   hospital = models.CharField(max_length=3, choices=hospitals)
