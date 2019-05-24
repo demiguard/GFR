@@ -77,3 +77,5 @@ class GetStudy(forms.Form):
   Dato_start = forms.DateField(label='Fra dato (YYYY-MM-DD)', required=False)
   Dato_finish = forms.DateField(label='Til dato (YYYY-MM-DD)', required=False)
 
+class FillThiningFactor(forms.Form):
+  thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)

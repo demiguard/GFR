@@ -181,8 +181,18 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
     bookings = list(sorted(bookings, key=date_sort, reverse=True))
 
+    department_thin_fact = request.user.department.thining_factor
+    department_changed_date = request.user.department.thining_factor_change_date
+
+    if department_changed_date == datetime.date.today():
+      input_thin_factor = department_thin_fact
+    else:
+      input_thin_factor = 0.0
+
+
     #Note that error message is not implimented yet
     context = {
+      'thin_fac_form' : forms.FillThiningFactor(initial={'thin_fac': input_thin_factor}),
       'bookings': bookings,
       'error_message' : error_message
     }

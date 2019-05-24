@@ -1,7 +1,9 @@
+import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from .libs import server_config
+
 
 # Manager class of Sser class
 class UserManager(BaseUserManager):
@@ -48,6 +50,7 @@ class Config(models.Model):
 class Department(models.Model):
   department_id = models.AutoField(primary_key=True)
   thining_factor = models.FloatField(default=0.0, null=True)
+  thining_factor_change_date = models.DateField(default=datetime.date(1,1,1))
   department = models.CharField(default='', max_length = 200, null=True)
   hospital_Name = models.CharField(default='', max_length = 200, null=True) 
   address = models.CharField(default='', max_length = 200, null=True)

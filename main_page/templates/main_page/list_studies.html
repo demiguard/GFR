@@ -8,7 +8,11 @@
 {% endblock head %}
 
 {% block content %}
-  <h2>Vælg undersøgelse</h2> <br>
+<form>
+  {{ thin_fac_form.thin_fac.label }}:{{ thin_fac_form.thin_fac }}
+  <input type="button" name="update_thining_factor" value="Opdater" id="thining_factor_button">
+</form>  
+<h2>Vælg undersøgelse</h2> <br>
 
   <table class="table table-hover" id="new_studies"> 
     <thead>
