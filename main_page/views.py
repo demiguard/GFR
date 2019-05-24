@@ -87,6 +87,13 @@ class AjaxLogin(TemplateView):
 
     return resp
 
+class AjaxUpdateThiningFactor(TemplateView):
+  def post(self, request):
+    request.user.department.thining_factor = float(request.POST['thining_factor'])
+    request.user.department.thining_factor_change_date = datetime.date.today()
+    request.user.department.save()
+
+    return JsonResponse({})
 
 class LogoutView(LoginRequiredMixin, TemplateView):
   """
@@ -363,8 +370,8 @@ def fill_study(request, rigs_nr):
   if exam.weight == 0.0:
     exam.weight = None
 
-  if exam.thin_fact == 0.0:
-    exam.thin_fact = None
+  if exam.thin_fact == 0.0 or exam.thin_fact == None:
+    exam.thin_fact = request.user.department.thining_factor
 
   if exam.std_cnt == 0.0:
     exam.std_cnt = None
