@@ -258,12 +258,12 @@ var csv_handler = (function() {
       // Set threshold based on study type
       var lower = 0;
       var upper = 0;
-      if ($('input[name=study_type]:checked').val() == 0) {   // 'Et punkt voksen'
+      if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
         lower = 110 * 60 * 1000;  // 110 min.
         upper = 130 * 60 * 1000;  // 130 min.
       } 
-      
-      if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
+    
+      if ($('input[name=study_type]:checked').val() == 0) {   // 'Et punkt voksen'
         lower = 180 * 60 * 1000;  // 180 min.
         upper = 240 * 60 * 1000;  // 240 min.
       }
