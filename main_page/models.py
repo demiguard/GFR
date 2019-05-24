@@ -43,6 +43,16 @@ class Config(models.Model):
   pacs_port = models.CharField(max_length=200, default='')
   pacs_calling = models.CharField(max_length=200, default='')
 
+# Department class,
+# The purpose of this class is to hold information specific to a department
+class Department(models.Model):
+  department_id = models.AutoField(primary_key=True)
+  thining_factor = models.FloatField(default=0.0, null=True)
+  department = models.CharField(default='', max_length = 200, null=True)
+  hospital_Name = models.CharField(default='', max_length = 200, null=True) 
+  address = models.CharField(default='', max_length = 200, null=True)
+
+
 # User class
 # REMARK / TODO: User creation MUST be done through the command line, see the README for instructions
 class User(AbstractBaseUser):
@@ -55,9 +65,17 @@ class User(AbstractBaseUser):
   # CASCADE, since we want to just delete the config if a user is deleted.
   config = models.OneToOneField(
     Config,
-    on_delete=models.CASCADE,
+    on_delete=models.SET_NULL,
     null=True
   )
+  
+  department = models.ForeignKey(
+    Department,
+    on_delete=models.SET_NULL,
+    null=True
+  )
+  
+
 
   hospitals = [(k,v) for k,v in server_config.hospitals.items()]
   hospital = models.CharField(max_length=3, choices=hospitals)
