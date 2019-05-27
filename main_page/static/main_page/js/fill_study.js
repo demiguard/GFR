@@ -250,10 +250,11 @@ $(function() {
     is_valid = true;
     failed_id = "";
     for (var i = 0; i < ids_to_check.length; i++) {
+      console.log(ids_to_check[i]);
       if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
         is_valid = false;
         failed_id = ids_to_check[i];
-        return False;
+        break;
       }
     };
 
