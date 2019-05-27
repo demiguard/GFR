@@ -87,13 +87,6 @@ class AjaxLogin(TemplateView):
 
     return resp
 
-class AjaxUpdateThiningFactor(TemplateView):
-  def post(self, request):
-    request.user.department.thining_factor = float(request.POST['thining_factor'])
-    request.user.department.thining_factor_change_date = datetime.date.today()
-    request.user.department.save()
-
-    return JsonResponse({})
 
 class AjaxDeleteStudy(TemplateView):
   def post(self, request):
@@ -177,6 +170,63 @@ class AjaxRestoreStudy(TemplateView):
       resp.status_code = 403
 
     return resp
+
+
+class AjaxSearch(LoginRequiredMixin, TemplateView):
+  """
+  Handles ajax search requests
+  """
+  def get(self, request):  
+    # Extract search parameters
+    search_name = request.GET['name']
+    search_cpr = request.GET['cpr']
+    search_rigs_nr = request.GET['rigs_nr']
+    search_date_from = request.GET['date_from']
+    search_date_to = request.GET['date_to']
+
+    print(request.GET)
+
+    search_resp = pacs.search_query_pacs(
+      request.user,
+      name=search_name,
+      cpr=search_cpr,
+      accession_number=search_rigs_nr,
+      date_from=search_date_from,
+      date_to=search_date_to,
+    )
+
+    # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
+    serialized_results = []
+    for res in search_resp:
+      serialized_results.append({
+        'rigs_nr': res.rigs_nr,
+        'name': res.name,
+        'cpr': res.cpr,
+        'date': res.date
+      })
+
+    data = {
+      'search_results': serialized_results
+    }
+
+    return JsonResponse(data) 
+
+
+
+class AjaxUpdateThiningFactor(TemplateView):
+  def post(self, request):
+    """
+      Ajax from list_studies, called from list_studies.js
+
+      Handles and updates thining factor 
+    """
+    logger.info(f"{request.user.username} Updated thining factor to {request.POST['thining_factor']}")
+    request.user.department.thining_factor = float(request.POST['thining_factor'])
+    request.user.department.thining_factor_change_date = datetime.date.today()
+    request.user.department.save()
+
+    return JsonResponse({})
+
 
 class LogoutView(LoginRequiredMixin, TemplateView):
   """
@@ -543,44 +593,7 @@ class SearchView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
-class AjaxSearch(LoginRequiredMixin, TemplateView):
-  """
-  Handles ajax search requests
-  """
-  def get(self, request):  
-    # Extract search parameters
-    search_name = request.GET['name']
-    search_cpr = request.GET['cpr']
-    search_rigs_nr = request.GET['rigs_nr']
-    search_date_from = request.GET['date_from']
-    search_date_to = request.GET['date_to']
 
-    print(request.GET)
-
-    search_resp = pacs.search_query_pacs(
-      request.user,
-      name=search_name,
-      cpr=search_cpr,
-      accession_number=search_rigs_nr,
-      date_from=search_date_from,
-      date_to=search_date_to,
-    )
-
-    # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
-    serialized_results = []
-    for res in search_resp:
-      serialized_results.append({
-        'rigs_nr': res.rigs_nr,
-        'name': res.name,
-        'cpr': res.cpr,
-        'date': res.date
-      })
-
-    data = {
-      'search_results': serialized_results
-    }
-
-    return JsonResponse(data) 
 
 
 @login_required()
