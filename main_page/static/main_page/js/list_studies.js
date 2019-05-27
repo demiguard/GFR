@@ -31,7 +31,7 @@ $(function() {
     let del_accession_number = $('#modal-accession-number').text();
     
     $.post({
-      url: '/list_studies',
+      url: '/ajax/delete_study',
       data: {
         'delete_accession_number': del_accession_number,
       },

@@ -31,7 +31,7 @@ $(function() {
     let recover_accession_number = $('#modal-accession-number').text();
     
     $.post({
-      url: '/deleted_studies',
+      url: '/ajax/restore_study',
       data: {
         'recover_accession_number': recover_accession_number,
       },

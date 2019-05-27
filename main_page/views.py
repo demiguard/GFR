@@ -95,6 +95,89 @@ class AjaxUpdateThiningFactor(TemplateView):
 
     return JsonResponse({})
 
+class AjaxDeleteStudy(TemplateView):
+  def post(self, request):
+    delete_status = True
+
+    user_hosp = request.user.hospital
+
+    delete_accession_number = request.POST['delete_accession_number']
+
+    logger.info(f"Attempting to delete study: {delete_accession_number}")
+
+    # Create deleted studies directory if doesn't exist
+    if not os.path.exists(server_config.DELETED_STUDIES_DIR):
+      os.mkdir(server_config.DELETED_STUDIES_DIR)
+
+    inner_hosp_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}"
+    if not os.path.exists(inner_hosp_dir):
+      os.mkdir(inner_hosp_dir)
+
+    move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{delete_accession_number}.dcm"
+
+    if not os.path.exists(move_src):
+      delete_status = False
+
+    if delete_status:
+      move_dst = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{delete_accession_number}.dcm"
+      
+      # Reset modification time
+      del_time = time.mktime(datetime.datetime.now().timetuple())
+      os.utime(move_src, (del_time, del_time))
+
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully deleted study: {delete_accession_number}")
+
+    data = { }
+    resp = JsonResponse(data)
+
+    if not delete_status:
+      resp.status_code = 403
+
+    return resp
+
+
+class AjaxRestoreStudy(TemplateView):
+  def post(self, request):
+    recover_status = True
+
+    user_hosp = request.user.hospital
+
+    recover_accession_number = request.POST['recover_accession_number']
+
+    logger.info(f"Attempting to recover study: {recover_accession_number}")
+
+    # Create deleted studies directory if doesn't exist
+    if not os.path.exists(server_config.FIND_RESPONS_DIR):
+      os.mkdir(server_config.FIND_RESPONS_DIR)
+
+    inner_hosp_dir = f"{server_config.FIND_RESPONS_DIR}{user_hosp}"
+    if not os.path.exists(inner_hosp_dir):
+      os.mkdir(inner_hosp_dir)
+
+    move_src = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{recover_accession_number}.dcm"
+
+    if not os.path.exists(move_src):
+      recover_status = False
+
+    if recover_status:
+      move_dst = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{recover_accession_number}.dcm"
+      
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully recovered study: {recover_accession_number}")
+
+    data = { }
+    resp = JsonResponse(data)
+
+    if not recover_status:
+      resp.status_code = 403
+
+    return resp
+
 class LogoutView(LoginRequiredMixin, TemplateView):
   """
   Logouts out the current user from the session.
@@ -205,48 +288,6 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     }
 
     return render(request, self.template_name, context)
-
-  def post(self, request):
-    delete_status = True
-
-    user_hosp = request.user.hospital
-
-    delete_accession_number = request.POST['delete_accession_number']
-
-    logger.info(f"Attempting to delete study: {delete_accession_number}")
-
-    # Create deleted studies directory if doesn't exist
-    if not os.path.exists(server_config.DELETED_STUDIES_DIR):
-      os.mkdir(server_config.DELETED_STUDIES_DIR)
-
-    inner_hosp_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}"
-    if not os.path.exists(inner_hosp_dir):
-      os.mkdir(inner_hosp_dir)
-
-    move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{delete_accession_number}.dcm"
-
-    if not os.path.exists(move_src):
-      delete_status = False
-
-    if delete_status:
-      move_dst = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{delete_accession_number}.dcm"
-      
-      # Reset modification time
-      del_time = time.mktime(datetime.datetime.now().timetuple())
-      os.utime(move_src, (del_time, del_time))
-
-      # Move to deletion directory
-      shutil.move(move_src, move_dst)
-
-      logger.info(f"Successfully deleted study: {delete_accession_number}")
-
-    data = { }
-    resp = JsonResponse(data)
-
-    if not delete_status:
-      resp.status_code = 403
-
-    return resp
 
 
 @login_required()
@@ -371,7 +412,10 @@ def fill_study(request, rigs_nr):
     exam.weight = None
 
   if exam.thin_fact == 0.0 or exam.thin_fact == None:
-    exam.thin_fact = request.user.department.thining_factor
+    if request.user.department.thining_factor_change_date == datetime.date.today():
+      exam.thin_fact = request.user.department.thining_factor
+    else:
+      exam.thin_fact = None
 
   if exam.std_cnt == 0.0:
     exam.std_cnt = None
@@ -765,40 +809,4 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, context)
 
-  def post(self, request):
-    recover_status = True
-
-    user_hosp = request.user.hospital
-
-    recover_accession_number = request.POST['recover_accession_number']
-
-    logger.info(f"Attempting to recover study: {recover_accession_number}")
-
-    # Create deleted studies directory if doesn't exist
-    if not os.path.exists(server_config.FIND_RESPONS_DIR):
-      os.mkdir(server_config.FIND_RESPONS_DIR)
-
-    inner_hosp_dir = f"{server_config.FIND_RESPONS_DIR}{user_hosp}"
-    if not os.path.exists(inner_hosp_dir):
-      os.mkdir(inner_hosp_dir)
-
-    move_src = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{recover_accession_number}.dcm"
-
-    if not os.path.exists(move_src):
-      recover_status = False
-
-    if recover_status:
-      move_dst = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{recover_accession_number}.dcm"
-      
-      # Move to deletion directory
-      shutil.move(move_src, move_dst)
-
-      logger.info(f"Successfully recovered study: {recover_accession_number}")
-
-    data = { }
-    resp = JsonResponse(data)
-
-    if not recover_status:
-      resp.status_code = 403
-
-    return resp
+  
