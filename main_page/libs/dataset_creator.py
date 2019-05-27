@@ -106,10 +106,7 @@ def create_search_dataset(name, cpr, date_from, date_to, accession_number):
   #Generate Dataset
   dataset = Dataset()
   #Fill Dataset
-  dataset.StudyDate = '{0}-{1}'.format(
-    date_from.replace('-', ''),
-    date_to.replace('-', '')
-  )
+  dataset.StudyDate = f"{date_from.replace('-', '')}-{date_to.replace('-', '')}"
   dataset.AccessionNumber = accession_number
   dataset.PatientID = cpr
   dataset.PatientName = name

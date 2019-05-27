@@ -410,10 +410,9 @@ def generate_plot_text(
   hosp_dir='',
   history_age = [],
   history_clr_n = [],
+  procedure_description = '',
   image_Height = 10.8,
   image_Width = 19.2,
-  save_fig = True,
-  show_fig = False
   ):
   """
   Generate GFR plot
@@ -435,43 +434,7 @@ def generate_plot_text(
     Generate as one image, with multiple subplots.
   """
 
-  def fig2data ( fig ):
-    """
-    @brief Convert a Matplotlib figure to a 4D numpy array with RGBA channels and return it
-    @param fig a matplotlib figure
-    @return a numpy 3D array of RGBA values
-    """
-    # draw the renderer
-    fig.canvas.draw ( )
- 
-    # Get the RGBA buffer from the figure
-    w,h = fig.canvas.get_width_height()
-    buf = numpy.fromstring ( fig.canvas.tostring_rgb(), dtype=numpy.uint8 )
-    print(f"1. buf: {buf.shape}")
-    buf.shape = ( w, h, 3 )
-    print(f"2. buf: {buf.shape}")
-
-    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
-    #buf = numpy.roll ( buf, 3, axis = 2 )
-    return buf
-
-  def fig2img ( fig ):
-    """
-    @brief Convert a Matplotlib figure to a PIL Image in RGBA format and return it
-    @param fig a matplotlib figure
-    @return a Python Imaging Library ( PIL ) image
-    """
-    # put the figure pixmap into a numpy array
-    buf = fig2data ( fig )
-    w, h, d = buf.shape
-    return Image.frombytes( "RGB", ( w ,h ), buf.tostring( ) )
-
-  # Generate background fill
-  # TODO: These values define changed
-  save_dir = 'main_page/static/main_page/images/{0}'.format(hosp_dir)
-  dirmanager
-
-
+  
   x =           [0, 40, 110]
   zeros =       [0, 0, 0]
   darkred_y =   [25, 25, 10]
@@ -490,15 +453,6 @@ def generate_plot_text(
   xmax = 90
   while age > xmax :
     xmax += 20 
-    
-  #Used to get requested procedure
-  dicom_obj = dicomlib.dcmread_wrapper('{0}{1}{2}{3}{4}'.format(
-    server_config.FIND_RESPONS_DIR,
-    hosp_dir,
-    '/',
-    rigs_nr,
-    '.dcm'
-  ))
 
   fig, ax = plt.subplots(1, 2)
 
@@ -515,36 +469,35 @@ def generate_plot_text(
   labelsize = 18
 
   #Example on a title string: 
-  titlestring = 'Undersøgelsen udført på: ' + server_config.hospitals[hosp_dir] + '\n' + dicom_obj[0x00321060].value 
+  titlestring = f"""Undersøgelsen udført på: {server_config.hospitals[hosp_dir]}
+    {procedure_description}""" 
 
   fig.suptitle(titlestring, fontsize = 28)
   
   ax[0].tick_params(labelsize = 14)
 
   #Text setup for graph 1
-  name_str            = "Navn: {0}\n\n".format(name)
-  cpr_str             = "CPR: {0}\n\n".format(cpr)
-  gender_str          = "Køn: {0}\n\n".format(gender)
-  age_str             = "Alder: {0}\n\n".format(_age_string(day_of_birth))
-  weight_str          = "Vægt: {0} kg\n\n".format(weight)
-  height_str          = "Højde: {0:.0f} cm\n\n".format(height)
-  BSA_str             = "Overflade: {0:.2f} m²\n\n".format(BSA)
-  clearance_str       = "GFR: {0:.0f} ml / min\n\n".format(clearance)
-  clearance_norm_str  = "GFR, normaliseret til 1,73m²: {0:.0f} ml / min\n\n".format(clearance_norm) 
-  kidney_function_str = "Nyrefunktion: {0}\n\n".format(kidney_function)
+  name_str            = f"Navn: {name}\n"
+  cpr_str             = f"CPR: {cpr}\n"
+  gender_str          = f"Køn: {gender}\n"
+  age_str             = f"Alder: {_age_string(day_of_birth)}\n"
+  weight_str          = f"Vægt: {weight:.1f} kg\n"
+  height_str          = f"Højde: {height:.1f} cm\n"
+  BSA_str             = f"Overflade: {BSA:.2f} m²\n"
+  clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
+  clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
+  kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
 
-  print_str = "{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}".format(
-    name_str,
-    cpr_str,
-    gender_str,
-    age_str,
-    weight_str,
-    height_str,
-    BSA_str,
-    clearance_str,
-    clearance_norm_str,
-    kidney_function_str
-  )
+  print_str = f"""    {name_str}
+    {cpr_str}
+    {gender_str}
+    {age_str}
+    {weight_str}
+    {height_str}
+    {BSA_str}
+    {clearance_str}
+    {clearance_norm_str}
+    {kidney_function_str}"""
 
   ax[1].text(0, 0.10, print_str, ha='left', fontsize = 20) 
   ax[1].axis('off')
@@ -557,21 +510,12 @@ def generate_plot_text(
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
   if len(history_age) == len(history_clr_n):
-    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 10, color = 'blue')
+    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 8, color = 'blue')
   ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'black')
     
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
   ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
-  
-  if save_fig:
-    im = fig2img(fig)
-    image_path = "{0}/{1}.bmp".format(save_dir, rigs_nr)
-    if not os.path.exists(save_dir):
-      os.mkdir(save_dir)
-    im.save(image_path)
-  if show_fig:
-    plt.show()
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()

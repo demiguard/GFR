@@ -44,17 +44,17 @@ def fill_study_post(request, rigs_nr, dataset):
 
   #Beregn
   if 'calculate' in request.POST:
-    logger.info('User: {0} calculated GFR on Examination number: {1} from ip: {2}'.format(
-      request.user.username,
-      rigs_nr,
-      request.META['REMOTE_ADDR']
-    ))
-
+    logger.info(f"""
+      User: {request.user.username}
+      calculated GFR on Examination number: {rigs_nr}
+      from ip: {request.META['REMOTE_ADDR']}
+      """
+    )
     dataset = store_form(request, dataset, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
-    inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
+    inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
 
     # Construct datetimes for study times
     # Determine study method
@@ -71,15 +71,15 @@ def fill_study_post(request, rigs_nr, dataset):
 
     sample_times = request.POST.getlist('study_time')[:-1]
     sample_dates = request.POST.getlist('study_date')[:-1]
-    sample_datetimes = numpy.array([date_parser.parse("{0} {1}".format(date, time)) 
+    sample_datetimes = numpy.array([date_parser.parse(f"{date} {time}") 
                           for time, date in zip(sample_times, sample_dates)])
 
     # Measured tec99 counts
     tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
     # Compute surface area
-    weight = float(request.POST['weight'].split('.')[0])
-    height = float(request.POST['height'].split('.')[0])
+    weight = float(request.POST['weight'])
+    height = float(request.POST['height'])
     BSA = clearance_math.surface_area(height, weight)
 
     # Compute dosis
@@ -88,8 +88,8 @@ def fill_study_post(request, rigs_nr, dataset):
     inj_weight = inj_weight_before - inj_weight_after
 
     # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
-    STD_CNT = int(request.POST['std_cnt_text_box'].split('.')[0])
-    FACTOR = int(request.POST['thin_fac'].split('.')[0])
+    STD_CNT = float(request.POST['std_cnt_text_box'])
+    FACTOR = float(request.POST['thin_fac'])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
     # Calculate GFR
@@ -101,18 +101,19 @@ def fill_study_post(request, rigs_nr, dataset):
       dosis,
       method=method
     )
-    logger.debug('{0}\ninjection time: {1}\nSample Times: {2}\nTch99 cnt: {3}\nBody Surface Area: {4}\nDosis: {5}\nMethod: {6}\n{7}\nClearnance: {8}\nClearence Normal: {9}'.format(
-      'Clearance calculation input:',
-      inj_datetime,
-      sample_datetimes,
-      tec_counts,
-      BSA,
-      dosis,
-      method,
-      'Result:', 
-      clearance,
-      clearance_norm,
-      ))
+    #Logging
+    logger.info(f"""
+    Clearance calculation input:
+    injection time: {inj_datetime}
+    Sample Times: {sample_datetimes}
+    Tch99 cnt: {tec_counts}
+    Body Surface Area: {BSA}
+    Dosis: {dosis}
+    Method: {method}
+    Result:
+      Clearnance: {clearance}
+      Clearence Normal: {clearance_norm}"""
+    )
 
     name = request.POST['name']
     cpr = request.POST['cpr']
@@ -134,70 +135,11 @@ def fill_study_post(request, rigs_nr, dataset):
       gender,
       rigs_nr,
       hosp_dir=request.user.hospital,
+      procedure_description=dataset.RequestedProcedureDescription,
       name = name,
       cpr = cpr,
-      #history_age=history_age,
-      #history_clr_n=history_clrN,
-      save_fig=False
     )
-
-    with open('pixel_data.b', 'wb') as f:
-      f.write(pixel_data)
-
-    #print(f"4. pixel data: {pixel_data}")
-
-    base_resp_dir = server_config.FIND_RESPONS_DIR
-    hospital     = request.user.hospital
-    img_path     = 'main_page/static/main_page/images'
-
-    dirmanager.check_combined_and_create(base_resp_dir, hospital)
-    dirmanager.check_combined_and_create('main_page', 'static', 'main_page', 'images', hospital)
-
-    """
-    if not os.path.exists(base_resp_dir):
-      os.mkdir(base_resp_dir)
-
-    if not os.path.exists('{0}/{1}'.format(base_resp_dir, hospital)):
-      os.mkdir('{0}/{1}'.format(base_resp_dir, hospital))
-
-    if not os.path.exists('{0}/{1}'.format(img_path, hospital)):
-      os.mkdir('{0}/{1}'.format(img_path, hospital))
-    """
-
-    dcm_obj_path = '{0}/{1}/{2}.dcm'.format(base_resp_dir, hospital, rigs_nr)
-
-    dcm_img_path = '{0}/{1}/{2}.dcm'.format(img_path, hospital, rigs_nr)
-
-    #img2dcm_query = [
-    #  'img2dcm',                    # Path to img2dcm # TODO: Change this to be an absolute path to the program on the production server (rememeber to set the dcm tool kit system variable path)
-    #  plot_path,                    # Input location of image
-    #  dcm_img_path,                 # Output location
-    #  '-sc',                        # Write as secondary capture SOP class
-    #  '-i',                         # Specify input image format
-    #  'BMP'
-    #]
-
-    # TODO: Check exit-code of query and handle errors
-    #ris.execute_query(img2dcm_query)
-    #img_obj = pydicom.dcmread(dcm_img_path)
-  
-    # Read StudyInstanceUID from main dicom object, to allow storage of image together with it
-    """
-    These are handels by store dicom
-    study_UID = dcm_obj.StudyInstanceUID
-
-    # Store both dicom objects; main dicom object and image object
-    img_obj.StudyInstanceUID = study_UID
-
-    dcm_obj.SeriesInstanceUID = img_obj.SeriesInstanceUID
-    dcm_obj.SOPClassUID = img_obj.SOPClassUID
-    dcm_obj.SOPInstanceUID = img_obj.SOPInstanceUID
-
-    img_obj.save_as(dcm_img_path)
-    dcm_obj.save_as(dcm_obj_path)
-    """
-
-    
+        
     dicomlib.fill_dicom(
       dataset,
       gfr            = gfr,
@@ -205,9 +147,6 @@ def fill_study_post(request, rigs_nr, dataset):
       clearance_norm = clearance_norm,
       pixeldata = pixel_data 
     )
-    #Remove bmp file and dcm file
-    #os.remove(plot_path)
-    #os.remove(dcm_img_path)
     return dataset
 
 
@@ -225,13 +164,9 @@ def store_form(request, dataset, rigs_nr):
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
 
-  if not os.path.exists('{0}{1}'.format(base_resp_dir, hospital)):
-    os.mkdir('{0}{1}'.format(base_resp_dir, hospital))
+  if not os.path.exists(f'{base_resp_dir}{hospital}'):
+    os.mkdir(f'{base_resp_dir}{hospital}')
   
-  DICOM_dirc = '{0}{1}/'.format(base_resp_dir, hospital)
-
-  dicom_path = '{0}{1}.dcm'.format(DICOM_dirc, rigs_nr)  
-
   #All Fields to be stored
   birthdate = None
   injection_time = None
@@ -253,7 +188,7 @@ def store_form(request, dataset, rigs_nr):
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']
     inj_date = request.POST['injection_date']
-    inj_datetime = date_parser.parse("{0} {1}".format(inj_date, inj_time))
+    inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
     injection_time = inj_datetime.strftime('%Y%m%d%H%M')
 
   #Study Always exists
@@ -336,11 +271,8 @@ def present_study_post(request, rigs_nr):
     rigs_nr: the rigs number of the examination to store
   """
   # Send information to PACS
-  obj_path = "{0}{1}/{2}.dcm".format(
-    server_config.FIND_RESPONS_DIR,
-    request.user.hospital,
-    rigs_nr
-  )
+  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.dcm"
+  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.png"
 
   dicom_object = dicomlib.dcmread_wrapper(obj_path)
 
@@ -348,12 +280,18 @@ def present_study_post(request, rigs_nr):
 
   if success_rate:
     # Remove the file
-    os.remove(obj_path)
-
+    try:
+      os.remove(obj_path)
+    except:  
+      logger.warn(f'Could not delete {obj_path}')
+    try:
+      os.remove(image_path)
+    except:
+      logger.warn(f'Could not delete {image_path}')
     # Store the RIGS number in the HandleExaminations table
     HE = models.HandledExaminations(rigs_nr=rigs_nr)
     HE.save()
   else:
     # Try again?
     # Redirect to informative site, telling the user that the connection to PACS is down
-    print("Failed to store in pacs")
+    logger.warn(f'Failed to store {rigs_nr} in pacs, because:{error_message}')

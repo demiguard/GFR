@@ -725,17 +725,16 @@ def present_study(request, rigs_nr):
   exam = pacs.get_examination(request.user, rigs_nr, DICOM_directory)
   
   # Display
-  img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
+  img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
   if not os.path.exists(img_resp_dir):
     os.mkdir(img_resp_dir)
   
   pixel_arr = exam.image
-  print(f"pixel_arr shape 1. :{pixel_arr.shape}")
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
     Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
   
-  plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
+  plot_path = f"main_page/images/{hospital}/{rigs_nr}.png" 
   
   context = {
     'name': exam.name,
