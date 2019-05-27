@@ -87,6 +87,13 @@ class AjaxLogin(TemplateView):
 
     return resp
 
+class AjaxUpdateThiningFactor(TemplateView):
+  def post(self, request):
+    request.user.department.thining_factor = float(request.POST['thining_factor'])
+    request.user.department.thining_factor_change_date = datetime.date.today()
+    request.user.department.save()
+
+    return JsonResponse({})
 
 class LogoutView(LoginRequiredMixin, TemplateView):
   """
@@ -181,8 +188,18 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
     bookings = list(sorted(bookings, key=date_sort, reverse=True))
 
+    department_thin_fact = request.user.department.thining_factor
+    department_changed_date = request.user.department.thining_factor_change_date
+
+    if department_changed_date == datetime.date.today():
+      input_thin_factor = department_thin_fact
+    else:
+      input_thin_factor = 0.0
+
+
     #Note that error message is not implimented yet
     context = {
+      'thin_fac_form' : forms.FillThiningFactor(initial={'thin_fac': input_thin_factor}),
       'bookings': bookings,
       'error_message' : error_message
     }
@@ -353,8 +370,8 @@ def fill_study(request, rigs_nr):
   if exam.weight == 0.0:
     exam.weight = None
 
-  if exam.thin_fact == 0.0:
-    exam.thin_fact = None
+  if exam.thin_fact == 0.0 or exam.thin_fact == None:
+    exam.thin_fact = request.user.department.thining_factor
 
   if exam.std_cnt == 0.0:
     exam.std_cnt = None

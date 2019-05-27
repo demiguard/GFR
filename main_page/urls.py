@@ -22,4 +22,5 @@ urlpatterns = [
   # Async ajax urls
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
+  path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor')
 ]

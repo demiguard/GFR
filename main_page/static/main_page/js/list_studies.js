@@ -55,4 +55,22 @@ $(function() {
     // Show the modal
     $('#deleteModal').modal('toggle');
   });
+
+  $('#thining_factor_button').on('click', function(){
+    
+    var a_thining_factor = $('#id_thin_fac').val()
+    
+    $.post({
+      url:'/ajax/update_thining_factor',
+      data:{
+        'thining_factor': a_thining_factor
+      },
+      success: function(){
+        window.location.href = '/list_studies'
+      },
+      error: function(){
+
+      }
+    });
+  });
 });
