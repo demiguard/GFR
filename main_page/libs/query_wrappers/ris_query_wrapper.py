@@ -85,10 +85,12 @@ def get_patients_from_rigs(user):
   
   """
 
-  def complicated_and_statement(dataset, accession_numbers, accepted_procedures):
+  def complicated_and_statement(dataset, accession_numbers, accepted_procedures): 
     fst_truth_val = not dataset.AccessionNumber in accession_numbers
-    snd_truth_val = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures
+    snd_truth_val = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [''])
     thr_truth_val = not models.HandledExaminations.objects.filter(rigs_nr=dataset.AccessionNumber).exists()
+
+    logger.info(f"\nDoes already exists on the server:{fst_truth_val}\nIs rejected from the handled procedures - {accepted_procedures}:{snd_truth_val}\nHave already been handled:{thr_truth_val}")
 
     return fst_truth_val and snd_truth_val and thr_truth_val
 
@@ -107,7 +109,7 @@ def get_patients_from_rigs(user):
   today = datetime.datetime.now()
   for dcm_file_path in dcm_file_paths:
     dataset = dicomlib.dcmread_wrapper(dcm_file_path)
-    date_string= dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+    date_string = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
     date_of_examination = datetime.datetime.strptime(date_string,'%Y%m%d')
     if (today - date_of_examination).days <= server_config.DAYS_THRESHOLD:
       returnlist.append(dataset)
@@ -150,7 +152,7 @@ def get_patients_from_rigs(user):
         #0x0000 is code for no more files available
         #0xFF00 is code for dataset availble
         #Succes, I have a dataset
-        if complicated_and_statement(dataset,accession_numbers, accepted_procedures):
+        if complicated_and_statement(dataset, accession_numbers, accepted_procedures):
           #Dataset is valid
           dicomlib.save_dicom(f'{server_config.FIND_RESPONS_DIR}{user.hospital}/{dataset.AccessionNumber}.dcm',
             dataset
