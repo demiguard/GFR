@@ -6,7 +6,9 @@
 {% block content %}
 <h2>Indstillinger</h2>
 <br>
-<strong>Vedledning til accepted procedures:</strong> Fjerner alle søgninger fra som ikke har study description, der matcher texten i feltet 'Accepted procedures'. Hvis feltet er tomt så filtreres intet fra. Man kan filtrer over flere procedues ved at adskille dem med et '^'. Filteret er case og space sensitivt. <br><br>
+<strong>Vedledning til accepted procedures:</strong> Fjerner alle søgninger fra som ikke har study description, der matcher texten i feltet 'Accepted procedures'. Hvis feltet er tomt så filtreres intet fra. Man kan filtrer over flere procedues ved at adskille dem med et '^'. Filteret er case og space sensitivt. <br>
+Det specifikke tag, som der bliveret på er (0040,0275)(0032,1060)
+
 <div class="col-md-4">
   <form method="POST">
     {% csrf_token %}
