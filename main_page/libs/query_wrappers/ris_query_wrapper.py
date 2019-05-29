@@ -145,8 +145,8 @@ def get_patients_from_rigs(user):
     response = assocation.send_c_find(query_ds, query_model='S')
 
     for (status, dataset) in response:
-      logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
       if status.Status == 0xFF00 :
+        logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
         #0x0000 is code for no more files available
         #0xFF00 is code for dataset availble
         #Succes, I have a dataset
