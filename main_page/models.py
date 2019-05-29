@@ -35,7 +35,7 @@ class UserManager(BaseUserManager):
 # Configuration for a user
 class Config(models.Model):
   config_id = models.AutoField(primary_key=True)
-  accepted_procedures = models.CharField(max_length=1000, default='') # '^' separated list of procedures
+  accepted_procedures = models.CharField(max_length=1000, default='', blank=True) # '^' separated list of procedures
   rigs_aet = models.CharField(max_length=200, default='')
   rigs_ip = models.CharField(max_length=200, default='')
   rigs_port = models.CharField(max_length=200, default='')

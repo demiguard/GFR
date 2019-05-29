@@ -90,8 +90,6 @@ def get_patients_from_rigs(user):
     snd_truth_val = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [''])
     thr_truth_val = not models.HandledExaminations.objects.filter(rigs_nr=dataset.AccessionNumber).exists()
 
-    logger.info(f"\nDoes already exists on the server:{fst_truth_val}\nIs rejected from the handled procedures - {accepted_procedures}:{snd_truth_val}\nHave already been handled:{thr_truth_val}")
-
     return fst_truth_val and snd_truth_val and thr_truth_val
 
   returnlist = []
