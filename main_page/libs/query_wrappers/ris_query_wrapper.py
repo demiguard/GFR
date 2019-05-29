@@ -164,8 +164,8 @@ def get_patients_from_rigs(user):
         pass
       else:
         logger.warn('Status code:{0}'.format(hex(status.Status)))
-      assocation.release()
     #Clean up after we are done
+    assocation.release()
   else:
     #Error Messages to 
     logger.warn(f'Could not connect to Rigs with:\nIP:{user.config.rigs_ip}\nPort:{user.config.rigs_port}\nMy ae Title:{user.config.rigs_calling}\nCalling AE title:{user.config.rigs_aet}')
