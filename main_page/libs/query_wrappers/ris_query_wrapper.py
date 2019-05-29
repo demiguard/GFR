@@ -141,24 +141,19 @@ def get_patients_from_rigs(user):
     #Create query file
     query_ds = dataset_creator.get_rigs_base(rigs_calling=user.config.rigs_calling)
     accepted_procedures = user.config.accepted_procedures.split('^')
-    logger.warn(query_ds)
+    logger.info(f'User:{user.username} is making a C-FIND')
     response = assocation.send_c_find(query_ds, query_model='S')
 
     for (status, dataset) in response:
-      logger.warn(status)
-      logger.warn(dataset)
+      logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
       if status.Status == 0xFF00 :
         #0x0000 is code for no more files available
         #0xFF00 is code for dataset availble
         #Succes, I have a dataset
         if complicated_and_statement(dataset,accession_numbers, accepted_procedures):
           #Dataset is valid
-          dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
-              server_config.FIND_RESPONS_DIR,
-              user.hospital,
-              dataset.AccessionNumber
-            ),
-            dataset,
+          dicomlib.save_dicom(f'{server_config.FIND_RESPONS_DIR}{user.hospital}/{dataset.AccessionNumber}.dcm',
+            dataset
           )
           returnlist.append(dataset)
           accession_numbers.append(dataset.AccessionNumber)
@@ -166,22 +161,15 @@ def get_patients_from_rigs(user):
           pass #Discard the value
       elif status.Status == 0x0000:
         #Query Complete with no Errors
-        assocation.release()
+        pass
       else:
         logger.warn('Status code:{0}'.format(hex(status.Status)))
-        
-
+      assocation.release()
     #Clean up after we are done
   else:
     #Error Messages to 
-    logger.warn('Could not connect to Rigs with:\nIP:{0}\nPort:{1}\nMy ae Title:{2}\nCalling AE title:{3}'.format(
-      user.config.rigs_ip,
-      user.config.rigs_port, #SIMON DID A BADDY, when he thought port numbers wasn't shorts / ints
-      user.config.rigs_calling,
-      user.config.rigs_aet))
+    logger.warn(f'Could not connect to Rigs with:\nIP:{user.config.rigs_ip}\nPort:{user.config.rigs_port}\nMy ae Title:{user.config.rigs_calling}\nCalling AE title:{user.config.rigs_aet}')
     ErrorMessage += 'Kunne ikke forbinde til Rigs, der mangler måske nye undersøgelser'
-
-
 
   return returnlist, ErrorMessage
 

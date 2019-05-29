@@ -373,7 +373,7 @@ def fill_study(request, rigs_nr):
   exam = pacs.get_examination(
     request.user, 
     rigs_nr, 
-    '{0}{1}'.format(server_config.FIND_RESPONS_DIR, hospital)
+    f'{server_config.FIND_RESPONS_DIR}{hospital}/'
   )
 
   today = datetime.datetime.now()
@@ -619,7 +619,7 @@ def present_old_study(request, rigs_nr):
   series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
   instance_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'SOP'])
 
-  exam = pacs.move_from_pacs(
+  dataset = pacs.move_from_pacs(
     current_user,
     rigs_nr,
     patient_id=patient_id,
@@ -627,6 +627,8 @@ def present_old_study(request, rigs_nr):
     #study_id=study_id,
     instance_id=instance_id
   )
+
+  exam = examination_info.deserialize(dataset)
 
   # Read in previous samples from examination info
   previous_sample_times = []

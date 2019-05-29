@@ -25,10 +25,10 @@ logger = logging.getLogger()
 
 def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id="", instance_id=""):
   """
-
+    Query pacs after a single 
 
     Returns:
-      None or Dataset
+      None or Dataset - The dataset is always single
   """
   # # # Get file from pacs # # #
   #Create Dataset
@@ -69,12 +69,10 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
     return None
 
   file_src = server_config.SEARCH_DIR + accession_number + '.dcm'
-  file_dst = server_config.SEARCH_DIR + user.hospital + '/' + accession_number + '.dcm'
   if successfull_move and os.path.exists(file_src):
-    dirmanager.check_combined_and_create(server_config.SEARCH_DIR, user.hospital) #Ensure The correct file
-    shutil.move(file_src, file_dst)
-    dataset = dicomlib.dcmread_wrapper(file_dst)
-    return examination_info.deserialize(dataset)
+    dataset = dicomlib.dcmread_wrapper(file_src)
+    os.remove(file_src) # Deletes the file, because we are done with it, and if the user want the page again, they have 
+    return dataset
   else:
     logger.warn('Mismatching matching Accession number, Perhaps Pacs doesn\'t have the requested file? Maybe you have incorrect info')
     return None
@@ -187,18 +185,12 @@ def get_examination(user, rigs_nr, resp_dir):
     ExaminationInfo instance containing examination information for the specified
     RIGS nr.
   """
-  # Update Pydicom with our tags
-  DicomDictionary.update(server_config.new_dict_items)
-  new_names_dirc = dict([(val[4], tag) for tag, val in server_config.new_dict_items.items()])
-  keyword_dict.update(new_names_dirc)
-  
   # Read after dictionary update
   try:
-    obj = dicomlib.dcmread_wrapper('{0}/{1}.dcm'.format(resp_dir, rigs_nr))
-
+    obj = dicomlib.dcmread_wrapper(f'{resp_dir}{rigs_nr}.dcm')
   except FileNotFoundError:
     # Get object from DCM4CHEE/PACS Database
-    obj = get_from_pacs(user, rigs_nr, resp_dir)
+    obj = move_from_pacs(user, rigs_nr)
 
   return examination_info.deserialize(obj)
 
@@ -290,21 +282,29 @@ def start_scp_server():
   logger.info('Starting Server')
   def on_store(dataset, context, info):
     """
-    Stores a Files 
+    Stores a Files upon a C-store
 
 
-
+      Returns
+        0x0000 - success code for successful store 
     """
-    logger.info('Recieved C-STORE')
-    filename = '{0}.dcm'.format(
-      dataset.AccessionNumber
-    )
+    logger.info(f"Recieved C-STORE with ID:{info['parameters']['message_id']}")
+    logger.info(f"C-Store Originated from:{info['parameters']['originators_aet']}")
     
-    fullpath = server_config.SEARCH_DIR + filename
+    if 'AccessionNumber' in dataset:
 
-    dicomlib.save_dicom(fullpath, dataset)
+      filename = f'{dataset.AccessionNumber}.dcm'
+      fullpath = server_config.SEARCH_DIR + filename
 
-    return 0x0000
+      dicomlib.save_dicom(fullpath, dataset)
+
+      return 0x0000
+    else:
+      logger.warn('Recieved invalid dicomobject')
+      returndataset = Dataset()
+      returndataset.Status = 0xCAFE
+      returndataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber')
+      return returndataset
 
   def on_move(dataset, move_aet, context, info):
     """
@@ -343,6 +343,17 @@ def start_scp_server():
     logger.info(event.description)
     logger.info(event.assoc)
 
+  def connection_open_handler(event):
+    """
+      Logs Relevant information from a connection open event.
+
+      Args:
+        Event - a evt.EVT_CONN_OPEN
+    """
+    logger.info(f"SCP Opened Connecition with {event.address[0]}")
+
+
+
   event_handlers = [
     (evt.EVT_ASYNC_OPS, log_event_handler),
     (evt.EVT_SOP_COMMON, sop_common_handler),
@@ -350,7 +361,7 @@ def start_scp_server():
     (evt.EVT_USER_ID, log_event_handler), 
     # No Response
     (evt.EVT_ABORTED, log_event_handler),
-    (evt.EVT_CONN_OPEN, log_event_handler),
+    (evt.EVT_CONN_OPEN, connection_open_handler),
     (evt.EVT_REQUESTED, log_event_handler),
   ]
 
@@ -499,3 +510,21 @@ RETIRED FUNCTION
 
   # Return
   return ret
+
+def get_history_from_pacs():
+  """
+    Retrieves information historical data about a user from pacs.
+    This function doesn't save anything
+
+    Args:
+      cpr: string The cpr number without a string 
+
+    Returns:
+      date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
+      Age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
+      Clearence_norm_list:  A float list. The n'th element is float
+    Notes:
+      This function doesn't save anything and cleans up after it-self
+  """
+
+

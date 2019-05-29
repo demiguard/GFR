@@ -290,44 +290,6 @@ def compute_times(inj_time, times):
   """
   return numpy.array([(time - inj_time).seconds / 60 for time in times])
 
-def get_histroy(user, cpr_number):
-  """
-  Gets the result of all former examinations for a specific patient, and returns the conclusion from these tests
-
-  Args:
-    user: request.user - The user making the request 
-    cpr: string on format DDMMYYXXXX -  The ID of the patient, being searched for 
-  Returns: 
-    ages: Int List, containing the age of the patient, when the examination was done 
-    clearance_norm: float list, containing the normalized clearance from the examination
-
-    Remarks:
-      the ages list and the clearance_norm list are of equal lenght 
-  """
-  ages = []
-  clearance_norm = []
-  exam_objs = []
-  
-  #Get all accession numbers from former examinations
-  empty_exam_objs = pacs.search_pacs(user, cpr = cpr_number)
-  
-  dirfolder = str(datetime.datetime.today()).replace(' ','').replace('.','').replace(':','')
-
-  os.mkdir(dirfolder) #I SWEAR IF YOU MANAGE TO BREAK THIS I*M A PROUD BETA TESTER
-
-  for empty_exam_obj in empty_exam_objs:
-    obj = pacs.get_examination(user, empty_exam_obj.rigs_nr, dirfolder)
-    exam_objs.append(obj)
-
-  for obj in exam_objs:
-    ages.append(obj.age)
-    clearance_norm.append(obj.clearance_N)
-
-  #Cleanup
-  shutil.rmtree(dirfolder)
-
-  return ages, clearance_norm
-
 def calculate_birthdate(cpr):
   """
     Calculate birthdate from cpr 
