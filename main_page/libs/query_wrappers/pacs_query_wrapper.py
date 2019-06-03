@@ -448,6 +448,7 @@ def get_history_from_pacs(cpr, user):
   find_dataset.PatientID = cpr.replace('-','')
   find_dataset.Modality  = 'OT'
   find_dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
+  find_dataset.add_new(0x00080052,'CS', 'STUDY')
   #Searching Parameters
   find_dataset.AccessionNumber = ''
   find_dataset.SOPClassUID = ''
@@ -474,7 +475,7 @@ def get_history_from_pacs(cpr, user):
           query_model='S'
         )
         for (move_status, _) in move_response:
-          if move_status.Status:
+          if move_status.Status == 0x0000:
             filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
           #Open the DCM file
             try:
@@ -489,13 +490,18 @@ def get_history_from_pacs(cpr, user):
               #Delete the file
               os.remove(filename)
             except:
-              logger.warn(f'Error handling {accession_number}')
+              logger.warn(f'Error handling {accession_number}')      
+          else:
+            logger.warn(f'Move Response code:{move_status.Status}')
             
+
       elif find_status.Status == 0x0000:
         logger.info(f"""Successfull gathered history to be:
           date_list:{date_list}
           age_list:{age_list}
           clearence_normalized_list:{clearence_norm_list}""")
+      else: 
+        logger.warn(f""" Unexpected Status code:{find_status.Status}""")
     #If statement done
     assoc.release()
   else:
