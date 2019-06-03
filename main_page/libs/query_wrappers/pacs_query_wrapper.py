@@ -437,7 +437,7 @@ def get_history_from_pacs(cpr, user):
   birthday = datetime.datetime.strptime(clearance_math.calculate_birthdate(cpr),'%Y-%m-%d')
 
   #Create Assosiation to pacs
-  ae = pynetdicom.AE(ae_title=user.config.pacs_aet)
+  ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
   ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
   ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
@@ -458,7 +458,7 @@ def get_history_from_pacs(cpr, user):
   assoc = ae.associate(
     user.config.pacs_ip,
     int(user.config.pacs_port),
-    ae_title=user.config.pacs_calling)
+    ae_title=user.config.pacs_aet)
 
   if assoc.is_established:
     find_response = assoc.send_c_find(find_dataset, query_model='S')
