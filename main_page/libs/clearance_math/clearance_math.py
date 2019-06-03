@@ -313,12 +313,7 @@ def calculate_birthdate(cpr):
     first_digits_year_of_birth = 20
   #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
-  returnstring = '{2}{3}-{1}-{0}'.format(
-    day_of_birth,
-    month_of_birth,
-    first_digits_year_of_birth,
-    last_digits_year_of_birth
-  )
+  returnstring = f'{first_digits_year_of_birth}{last_digits_year_of_birth}-{day_of_birth}-{days}'
 
   logger.debug('Returning with string:{0}'.format(returnstring))
   

@@ -99,10 +99,7 @@ def get_patients_from_rigs(user):
 
   dirmanager.check_combined_and_create(server_config.FIND_RESPONS_DIR , user.hospital)
 
-  dcm_file_paths = glob.glob('{0}{1}/*.dcm'.format(
-    server_config.FIND_RESPONS_DIR,
-    user.hospital
-  ))
+  dcm_file_paths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{user.hospital}/*.dcm')
   
   today = datetime.datetime.now()
   for dcm_file_path in dcm_file_paths:

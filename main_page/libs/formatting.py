@@ -40,7 +40,7 @@ def format_date(date):
   year = date[:4]
   month = date[4:6]
   day = date[6:8]
-  return '{0}/{1}-{2}'.format(day, month, year)
+  return f'{day}/{month}-{year}'
 
 
 def check_cpr(cpr):  

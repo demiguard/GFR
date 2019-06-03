@@ -346,11 +346,7 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
-    file_path = '{0}{1}/{2}.dcm'.format(
-      server_config.FIND_RESPONS_DIR,
-      request.user.hospital,
-      rigs_nr
-      )
+    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.dcm"
 
     dataset = dicomlib.dcmread_wrapper(file_path)
     dataset = PRH.fill_study_post(request, rigs_nr, dataset)
@@ -672,7 +668,7 @@ def present_old_study(request, rigs_nr):
   pixel_arr = exam.image
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
-    Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
+    Im.save(f'{img_resp_dir}{rigs_nr}.png')
   
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
@@ -734,7 +730,7 @@ def present_study(request, rigs_nr):
   pixel_arr = exam.image
   if pixel_arr.shape[0] != 0:
     Im = PIL.Image.fromarray(pixel_arr)
-    Im.save('{0}{1}.png'.format(img_resp_dir, rigs_nr))
+    Im.save(f'{img_resp_dir}{rigs_nr}.png')
   
   plot_path = f"main_page/images/{hospital}/{rigs_nr}.png" 
   

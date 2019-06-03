@@ -68,7 +68,7 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
     logger.warn('Move_from_pacs could not connect to pacs')
     return None
 
-  file_src = server_config.SEARCH_DIR + accession_number + '.dcm'
+  file_src = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
   if successfull_move and os.path.exists(file_src):
     dataset = dicomlib.dcmread_wrapper(file_src)
     os.remove(file_src) # Deletes the file, because we are done with it, and if the user want the page again, they have 
@@ -413,105 +413,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   return response_list
 
 
-def search_pacs(user, name="", cpr="", rigs_nr="", date_from="", date_to=""):
-  """
-RETIRED FUNCTION
-
-  Searches PACS for basic examination/patient information
-
-  Args:
-    user: the currently signed in user
-    name: name to search for
-    cpr: cpr number to search for
-    rigs_nr: rigs number to search for
-    date_from: date to search from
-    date_to: date to search until
-
-  Returns:
-    list of ExaminationInfo objects containing information about the search results.
-    returns None if the command failed to execute.
-
-  Remarks:
-    Wildcards: the search parameters, i.e. the keyword args. to this function,
-               can also be passed dicom wildcard, e.g. '*' for the name arg.
-               to search for any name, or '20190101-' in date_from to search
-               for any date from 2019-01-01 until the present day.
-
-    There is no need to use the dcmwrapper function from dicomlib here, since 
-    the search functionality doesn't rely on any private tags.
-  """
-  # Construct new query file - create dirs if necessary
-  base_filename = "search_query"
-
-  if not os.path.exists(server_config.SEARCH_DIR):
-    os.mkdir(server_config.SEARCH_DIR)
-
-  search_file_hash = random.getrandbits(128)
-
-  curr_search_file = "{0}{1}{2}.dcm".format(
-    server_config.SEARCH_DIR,
-    base_filename,
-    search_file_hash
-  )
-
-  curr_resp_dir = "{0}rsp{1}/".format(server_config.SEARCH_DIR, search_file_hash)
-
-  shutil.copyfile(server_config.BASE_SEARCH_FILE, curr_search_file)
-  os.mkdir(curr_resp_dir)
-
-  # Fill out query file
-  query_obj = pydicom.dcmread(curr_search_file)
-  
-  query_obj.PatientName = formatting.name_to_person_name(name)
-  query_obj.PatientID = cpr
-  query_obj.AccessionNumber = rigs_nr
-  query_obj.StudyDate = "{0}-{1}".format(date_from, date_to)
-
-  query_obj.save_as(curr_search_file)
-
-  # Execute query
-  search_query = [
-    server_config.FINDSCU,
-    "-S",
-    "-aet",
-    user.config.pacs_calling,
-    "-aec",
-    user.config.pacs_aet,
-    user.config.pacs_ip,
-    user.config.pacs_port,
-    curr_search_file,
-    '-X',
-    '-od',
-    curr_resp_dir
-  ]
-
-  logger.info(f"Executing search query: {search_query}")
-
-  execute_query(search_query)
-
-  # Get responses
-  ret = []
-
-  for resp_file in glob.glob("{0}/*".format(curr_resp_dir)):
-    resp_obj = pydicom.dcmread(resp_file)
-    
-    tmp_exam = ExaminationInfo()
-
-    tmp_exam.name = formatting.format_name(resp_obj.PatientName)
-    tmp_exam.cpr = formatting.format_cpr(resp_obj.PatientID)
-    tmp_exam.rigs_nr = resp_obj.AccessionNumber
-    tmp_exam.date = formatting.format_date(resp_obj.StudyDate)
-
-    ret.append(tmp_exam)
-
-  # Remove query dirs and files
-  os.remove(curr_search_file)
-  shutil.rmtree(curr_resp_dir)
-
-  # Return
-  return ret
-
-def get_history_from_pacs():
+def get_history_from_pacs(cpr, user):
   """
     Retrieves information historical data about a user from pacs.
     This function doesn't save anything
@@ -521,10 +423,85 @@ def get_history_from_pacs():
 
     Returns:
       date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
-      Age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
-      Clearence_norm_list:  A float list. The n'th element is float
+      age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
+      clearence_norm_list:  A float list. The n'th element is float
     Notes:
       This function doesn't save anything and cleans up after it-self
   """
+  
+  #Init 
+  date_list           = []
+  age_list            = []
+  clearence_norm_list = []
+
+  birthday = datetime.datetime.strptime(clearance_math.calculate_birthdate(cpr),'%Y-%m-%d')
+
+  #Create Assosiation to pacs
+  ae = pynetdicom.AE(ae_title=user.config.pacs_aet)
+  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
+  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
+  
+  #Create the dataset for a C-FIND
+  find_dataset = Dataset()
+  #Known Parameters
+  find_dataset.PatientID = cpr.replace('-','')
+  find_dataset.Modality  = 'OT'
+  find_dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
+  #Searching Parameters
+  find_dataset.AccessionNumber = ''
+  find_dataset.SOPClassUID = ''
+  find_dataset.SOPInstanceUID = ''
+  find_dataset.SOPStudyInstanceUID = ''
+  
+  #Make a C-FIND to pacs
+  assoc = ae.associate(
+    user.config.pacs_ip,
+    int(user.config.pacs_port),
+    ae_title=user.config.pacs_calling)
+
+  if assoc.is_established:
+    find_response = assoc.send_c_find(find_dataset, query_model='S')
+    for (find_status, find_response_dataset) in find_response:
+      if find_status.Status == 0xFF00:
+        #Create Dataset to C-MOVE
+        accession_number = find_response_dataset.AccessionNumber
+
+        #For each response make a C-MOVE to myself
+        move_response = assoc.send_c_move(
+          find_response_dataset,
+          user.config.pacs_calling,
+          query_model='S'
+        )
+        for (move_status, _) in move_response:
+          if move_status.Status:
+            filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
+          #Open the DCM file
+            try:
+              move_response_dataset = dicomlib.dcmread_wrapper(filename)
+              #Read values of Clearence Normalized and date of examination into a return list
+              date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
+              date_list.append(date_of_examination)
+              age_at_examination = (date_of_examination - birthday).days / 365
+              age_list.append(age_at_examination)
+              clearence_norm_list.append(float(move_response_dataset[0x00231014]))
+
+              #Delete the file
+              os.remove(filename)
+            except:
+              logger.warn(f'Error handling {accession_number}')
+            
+      elif find_status.Status == 0x0000:
+        logger.info(f"""Successfull gathered history to be:
+          date_list:{date_list}
+          age_list:{age_list}
+          clearence_normalized_list:{clearence_norm_list}""")
+    #If statement done
+    assoc.release()
+  else:
+    logger.warn('Could not connect to pacs')
+  #Return
+  
+
 
 
