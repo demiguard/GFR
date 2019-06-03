@@ -501,7 +501,7 @@ def get_history_from_pacs(cpr, user):
   else:
     logger.warn('Could not connect to pacs')
   #Return
-  
+  return date_list, age_list, clearence_norm_list
 
 
 
