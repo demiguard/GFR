@@ -46,6 +46,9 @@
             <input type="number" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
           </div>
         </div>
+        {% buttons %}
+          <input type="button" value="Tilføj Standard" id="add-standard">
+        {% endbuttons %}
         <h5>Prøve data</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
@@ -89,9 +92,6 @@
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>
-        {% buttons %}
-          <input type="button" value="Tilføj Standard" id="add-standard">
-        {% endbuttons %}
         {% buttons%}
           <input type="submit" name="calculate" value="Beregn" id="calculate">
           <input type="submit" name="save" value="Gem" id="save">
