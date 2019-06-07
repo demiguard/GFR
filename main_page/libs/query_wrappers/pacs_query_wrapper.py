@@ -350,8 +350,7 @@ def start_scp_server():
       Args:
         Event - a evt.EVT_CONN_OPEN
     """
-    logger.info(f"SCP Opened Connecition with {event.address[0]}")
-
+    logger.info("SCP Opened Connecition with")
 
 
   event_handlers = [
