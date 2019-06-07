@@ -288,8 +288,8 @@ def start_scp_server():
       Returns
         0x0000 - success code for successful store 
     """
-    logger.info(f"Recieved C-STORE with ID:{info['parameters']['message_id']}")
-    logger.info(f"C-Store Originated from:{info['parameters']['originators_aet']}")
+    #logger.info(f"Recieved C-STORE with ID:{info['parameters']}")
+    #logger.info(f"C-Store Originated from:{info['parameters']}")
     
     if 'AccessionNumber' in dataset:
 
