@@ -218,7 +218,6 @@ def store_form(request, dataset, rigs_nr):
   if request.POST['weight']:
     weight = float(request.POST['weight']) 
 
-  logger.info(request.post)
   if 'save_fact' in request.POST.keys():
     logger.info(f"{request.user.username} Updated thining factor to {request.POST['thin_fac']}")
     request.user.department.thining_factor = float(request.POST['thin_fac'])
