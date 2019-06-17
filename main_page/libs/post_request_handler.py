@@ -15,7 +15,7 @@ from .clearance_math import clearance_math
 from . import server_config
 from . import dicomlib
 from . import dirmanager
-frin . import formatting
+from . import formatting
 
 from dateutil import parser as date_parser
 from pydicom import uid
