@@ -20,6 +20,7 @@
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
         <th onclick="sort_table(1, 'new_studies')">Cpr nr.</th>
         <th onclick="sort_table(2, 'new_studies')">Dato</th>
+        <th> Procedure</th>
         <th onclick="sort_table(3, 'new_studies')">Accession nr.</th>
         <th></th> <!-- Empty column for action buttons -->
       </tr>
@@ -31,6 +32,7 @@
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.name }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.cpr }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.date }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.procedure }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.rigs_nr }}</td>
           <td>
             <button type="button" class="trash-btn btn btn-link">

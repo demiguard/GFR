@@ -7,32 +7,32 @@ from .clearance_math import clearance_math
 
 class ExaminationInfo:
   def __init__(self):
-    self.rigs_nr     = ''       # Rigs number of the examination
-    self.name        = ''       # Name of patient
-    self.cpr         = ''       # Cpr number of patient
     self.age         = ''       # Age of patient
     self.birthdate   = None
-    self.date        = ''       # Scheduled data of examination
-    self.sex         = ''       # Sex of patient
-    self.gfr         = ''       # GFR result (e.g. 'normal', 'svært nedsat', etc.)
-    self.height      = None      # Height of patient
-    self.weight      = None      # Weight of patient
     self.BSA         = 0.0      # Body surface area of the patient
     self.clearance   = 0.0      # Computed clearance
+    self.cpr         = ''       # Cpr number of patient
     self.clearance_N = 0.0      # Normalized clearance
-    self.Method      = ''       # Method of the examination (e.g. 'et punkts, 'flere punkts', etc.)
+    self.date        = ''       # Scheduled data of examination
+    self.dosis       = 0        # Derived value from standard count, thinning factor and weight difference between vials
+    self.exam_type   = ''
+    self.gfr         = ''       # GFR result (e.g. 'normal', 'svært nedsat', etc.)
+    self.height      = None      # Height of patient
+    self.image       = np.array([]) # pixeldata, contains the resulting image stored in PACS
+    self.inj_after   = None      # Weight of vial after examination
+    self.inj_before  = None      # Weight of vial before examination
     self.inj_t       = None     # Injection time of examination (Datetime object, default=None)
     self.inj_weight  = 0.0      # Weight difference between vials
-    self.inj_before  = None      # Weight of vial before examination
-    self.inj_after   = None      # Weight of vial after examination
-    self.thin_fact   = None      # Thinning factor
-    self.std_cnt     = None      # Standard count
-    self.exam_type   = ''
-    self.sam_t       = np.array([]) # Datetime list - sample times for the examination
-    self.tch_cnt     = np.array([]) # list of technetium counts
-    self.dosis       = 0        # Derived value from standard count, thinning factor and weight difference between vials
-    self.image       = np.array([]) # pixeldata, contains the resulting image stored in PACS
+    self.Method      = ''       # Method of the examination (e.g. 'et punkts, 'flere punkts', etc.)
+    self.name        = ''       # Name of patient
     self.procedure   = ''       # The procedure of the examination
+    self.rigs_nr     = ''       # Rigs number of the examination
+    self.sam_t       = np.array([]) # Datetime list - sample times for the examination
+    self.sex         = ''       # Sex of patient
+    self.std_cnt     = None      # Standard count
+    self.tch_cnt     = np.array([]) # list of technetium counts
+    self.thin_fact   = None      # Thinning factor
+    self.weight      = None      # Weight of patient
 
 
 def deserialize(dicom_obj):

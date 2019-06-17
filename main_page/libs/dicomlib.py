@@ -165,7 +165,6 @@ def fill_dicom(ds,
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
     ds.add_new(0x00200010, 'SH', '1')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
-    ds.StudyDescription = 'GFR, Tc-99m-DTPA'
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
     #ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
@@ -186,13 +185,21 @@ def fill_dicom(ds,
       ds.SeriesDate = date_string
       ds.StudyTime = time_string
       ds.SeriesTime = time_string
-      ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = date_string
-      ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime = time_string
+      try:
+        ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate = date_string
+        ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime = time_string
+      except:
+        pass #TODO: make ScheduledProcedureStepSequence
     else:
       ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
       ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
       ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
       ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+
+  if 'ScheduledProcedureStepSequence' in ds:  
+    Schedule = ds.ScheduledProcedureStepSequence[0]
+    ds.StudyDescription = Schedule.ScheduledProcedureStepDescription
+    ds.Modality = Schedule.Modality
 
 
   if birthday:
