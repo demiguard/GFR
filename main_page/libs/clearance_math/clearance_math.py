@@ -301,10 +301,10 @@ def calculate_birthdate(cpr):
 
   cpr = cpr.replace('-','')
 
-  day_of_birth = int(cpr[0:2])
-  month_of_birth = int(cpr[2:4])
-  last_digits_year_of_birth = int(cpr[4:6])
-  control = int(cpr[6])
+  day_of_birth = cpr[0:2]
+  month_of_birth = cpr[2:4]
+  last_digits_year_of_birth = cpr[4:6]
+  control = cpr[6]
 
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
   if control in [0,1,2,3] or (control in [4,9] and 37 <= last_digits_year_of_birth ): 
@@ -473,6 +473,43 @@ def generate_plot_text(
   fig.set_figheight(image_Height)
   fig.set_figwidth(image_Width)
   ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
+
+  fig.canvas.draw()
+  return fig.canvas.tostring_rgb()
+
+def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.8, image_width = 19.2):
+  """
+  Generates a picture showing the prediction
+  The picture contains a numeric value of  thining factor
+
+  Args:
+
+  kwArgs:
+    image_height: float, the height in pixels times 100. So 1 = 100 pixels high
+    image_width: float, the width in pixels times 100. So 1 = 100 pixels wide
+
+  Returns:
+    A bytestring forming a RBG pictures of scale 1920x1080 (Default size)
+
+  """
+  #Math
+  log_tch_cnt = [numpy.log(x) for x in tch_cnt]
+
+  slope, intercept, r_value, p_value, standard_error, 
+
+
+  #Plot generation
+  fig, ax = plt.subplot(1,2)
+
+  #Meta information
+  fig.set_figheight(image_height)
+  fig.set_figwidth(image_width)
+  #Text information
+
+  #Picture information
+  fig.plot(log_tch_cnt, delta_times, label = 'Datapoints')
+
+
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()

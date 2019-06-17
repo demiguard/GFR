@@ -200,3 +200,18 @@ def name_to_person_name(name):
 
   return ret
   
+def convert_cpr_to_cpr_number(cpr):
+  """
+  Takes a cpr number on format XXXXXX-XXXX, where X is numbers,
+  and converts it to XXXXXXXXXX. If it's on format, returns the CPR number as is
+
+  Args:
+    cpr
+  Ret:
+    String 
+  """
+
+  if cpr[6] == '-':
+    return cpr.replace('-','') 
+  else:
+    return cpr

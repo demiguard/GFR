@@ -412,13 +412,14 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   return response_list
 
 
-def get_history_from_pacs(cpr, user):
+def get_history_from_pacs(cpr, birthday, user):
   """
     Retrieves information historical data about a user from pacs.
     This function doesn't save anything
 
     Args:
       cpr: string The cpr number without a string 
+      age: Datetime object with day of birth
 
     Returns:
       date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
@@ -433,7 +434,7 @@ def get_history_from_pacs(cpr, user):
   age_list            = []
   clearence_norm_list = []
 
-  birthday = datetime.datetime.strptime(clearance_math.calculate_birthdate(cpr),'%Y-%m-%d')
+
 
   #Create Assosiation to pacs
   ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
@@ -444,7 +445,7 @@ def get_history_from_pacs(cpr, user):
   #Create the dataset for a C-FIND
   find_dataset = Dataset()
   #Known Parameters
-  find_dataset.PatientID = cpr.replace('-','')
+  find_dataset.PatientID = cpr
   find_dataset.Modality  = 'OT'
   find_dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
   find_dataset.add_new(0x00080052,'CS', 'STUDY')

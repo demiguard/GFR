@@ -15,6 +15,7 @@ from .clearance_math import clearance_math
 from . import server_config
 from . import dicomlib
 from . import dirmanager
+frin . import formatting
 
 from dateutil import parser as date_parser
 from pydicom import uid
@@ -116,14 +117,15 @@ def fill_study_post(request, rigs_nr, dataset):
     )
 
     name = request.POST['name']
-    cpr = request.POST['cpr']
+    cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
     birthdate = request.POST['birthdate']
     gender = request.POST['sex']
 
+    age = datetime.datetime.strptime(request.post['birthdate'], '%Y-%m-%d')
+
     gfr = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
-    history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, request.user)
-
+    history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, age, request.user)
     pixel_data = clearance_math.generate_plot_text(
       weight,
       height,
@@ -214,15 +216,25 @@ def store_form(request, dataset, rigs_nr):
     injection_before = float(request.POST['vial_weight_before'])
  
   if request.POST['weight']:
-      weight = float(request.POST['weight']) 
+    weight = float(request.POST['weight']) 
+
+  logger.info(request.post)
+  if 'save_fact' in request.POST.keys():
+    logger.info(f"{request.user.username} Updated thining factor to {request.POST['thin_fac']}")
+    request.user.department.thining_factor = float(request.POST['thin_fac'])
+    request.user.department.thining_factor_change_date = datetime.date.today()
+    request.user.department.save()
 
   if request.POST['height']:
-      height = float(request.POST['height'])
+    height = float(request.POST['height'])
 
   thiningfactor = 0.0
   std_cnt = 0.0
   if request.POST['thin_fac']:
     thiningfactor = float(request.POST['thin_fac'])
+  
+
+
   if request.POST['std_cnt_text_box']:
     std_cnt= float(request.POST['std_cnt_text_box'])
 

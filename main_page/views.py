@@ -458,7 +458,7 @@ def fill_study(request, rigs_nr):
     exam.weight = None
 
   if exam.thin_fact == 0.0 or exam.thin_fact == None:
-    if request.user.department.thining_factor_change_date == datetime.date.today():
+    if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
       exam.thin_fact = request.user.department.thining_factor
     else:
       exam.thin_fact = None
