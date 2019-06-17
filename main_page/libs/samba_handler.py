@@ -20,12 +20,12 @@ def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
   try:
     smbconn.createDirectory(server_config.samba_share, u'/backup')
   except:
-    pass
+    logger.info('Failed to create Directory /backup')
 
   try:
     smbconn.createDirectory(server_config.samba_share, u'backup/{0}'.format(hospital))
   except:
-    pass
+    logger.info('Failed to create Directory')
 
   Stored_bytes = smbconn.storeFileFromOffset(
     server_config.samba_share,
@@ -34,6 +34,8 @@ def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
     truncate=False
   )
   smbconn.deleteFiles(server_config.samba_share, fullpath) 
+
+  logger.info('Moved File to back up')
 
 def smb_get_csv(hospital, timeout = 5):
   """
@@ -59,8 +61,9 @@ def smb_get_csv(hospital, timeout = 5):
 
   hospital_sample_folder = '/{0}/{1}/'.format(server_config.samba_Sample, hospital)
   
-
+  logger.info(f'Searching Share: {server_config.samba_share}, at: {hospital_sample_folder}')
   samba_files = conn.listPath(server_config.samba_share, hospital_sample_folder)
+  logger.info(f'Got Files:{samba_files}')
 
   for samba_file in samba_files:
     if samba_file.filename in ['.', '..']:
@@ -68,7 +71,7 @@ def smb_get_csv(hospital, timeout = 5):
     temp_file = tempfile.NamedTemporaryFile()
 
     fullpath =  hospital_sample_folder + samba_file.filename
-
+    logger.info(f'Opening File:{samba_file.filename}')
     file_attri, file_size = conn.retrieveFile(server_config.samba_share,fullpath, temp_file)
     temp_file.seek(0)
 
@@ -89,6 +92,7 @@ def smb_get_csv(hospital, timeout = 5):
       returnarray.append(pandas_ds)
       
     temp_file.close()
+    logger.info(f'Retrived file:{temp_file.name}')
 
   conn.close()
   #sort return array

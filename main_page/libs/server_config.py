@@ -17,7 +17,7 @@ BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
 DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
 
 STATIC_DIR = "./main_page/static/main_page/"
-IMG_RESPONS_DIR = f"{STATIC_DIR}/images/"
+IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 
 BASE_FIND_QUERY = f"{BASE_QUERY_DIR}base_find_query.dcm"                              # Used for the list studies page
 BASE_IMG_QUERY_PATH = f"{BASE_QUERY_DIR}base_img_query.dcm"                          # Used for retreiving images
@@ -79,3 +79,4 @@ hospitals = {
 }
 
 SERVER_AE_TITLE = 'HVHFBERGHK7' 
+STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7']

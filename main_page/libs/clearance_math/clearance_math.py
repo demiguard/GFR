@@ -498,23 +498,35 @@ def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.
 
   """
   #Math
-  log_tch_cnt = [numpy.log(x) for x in tch_cnt]
+  log_tec99_cnt = [numpy.log(x) for x in tch_cnt]
 
-  slope, intercept, r_value, p_value, standard_error, 
+  slope, intercept, r_value, p_value, standard_error = linregress(delta_times, log_tec99_cnt)
 
+  x = numpy.arange(0.0, max(delta_times), 0.1)
+  y = slope * x + intercept
 
   #Plot generation
-  fig, ax = plt.subplot(1,2)
+  fig, ax = plt.subplots(nrows = 1, ncols=2)
 
   #Meta information
   fig.set_figheight(image_height)
   fig.set_figwidth(image_width)
   #Text information
+  p_value_str         = f"P Værdi: {p_value:.6f}\n" 
+  r_value_str         = f"R Værdi: {r_value:.6f}\n"
+  std_err_str         = f"Standard fejl: {standard_error:.6}\n"
+  thining_factor_str  = f"Fortyndelse Faktor: {thining_factor}\n"
+
+  text_str = f"""
+    {thining_factor_str}
+    {p_value_str}
+    {r_value_str}
+    {std_err_str}
+    """
 
   #Picture information
-  fig.plot(log_tch_cnt, delta_times, label = 'Datapoints')
-
-
+  ax[0].plot(log_tec99_cnt, delta_times,marker = 'x', label = 'Datapoints')
+  ax[0].plot(x, y) #Linear Regression
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()

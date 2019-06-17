@@ -819,4 +819,53 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, context)
 
+@login_required()
+def QA(request, accession_number):
+  """
+  Displays quality Access ment of a multi-sample test
+  """
   
+  try:
+    template = loader.get_template('main_page/QA.html')
+    dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{accession_number}.dcm")
+    sample_times = []
+    tch99_cnt = []
+    #Use a for loop to get tch count from file 
+    for test in dicom_obj.ClearTest:
+      if 'SampleTime' in test:
+        sample_times.append(datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M'))
+      #Use a for loop to get sample_time
+      if 'cpm' in test:
+        tch99_cnt.append(float(test.cpm))
+  except:
+    #Could not load dicom object 'accession_number'.dcm
+    template = loader.get_template('main_page/QA.html')
+    context = {
+      #Nothing to add there
+    }
+
+    return HttpResponse(template.render(context, request))
+
+  print(dicom_obj)
+
+  #Get injection time
+  inj_time = datetime.datetime.strptime(dicom_obj.injTime, '%Y%m%d%H%M') 
+  #Get Thining Factor
+  thin_fact = dicom_obj.thiningfactor
+
+  
+
+  delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_times] #timedelta list from timedate
+  
+  image_bytes = clearance_math.Generate_QA_Picture(delta_times, tch99_cnt, thin_fact)
+  image_path = f"images/{request.user.hospital}/QA-{accession_number}.png"
+
+
+  Im = PIL.Image.frombytes('RGB',(1920,1080),image_bytes)
+  Im.save(f"{server_config.STATIC_DIR}{image_path}")
+
+  context = {
+    'image_path' : image_path
+  }
+
+  return HttpResponse(template.render(context, request))
