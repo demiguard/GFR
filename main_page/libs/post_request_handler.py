@@ -123,7 +123,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     age = datetime.datetime.strptime(request.POST['birthdate'], '%Y-%m-%d')
 
-    gfr = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
+    gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, age, request.user)
     pixel_data = clearance_math.generate_plot_text(
@@ -132,21 +132,22 @@ def fill_study_post(request, rigs_nr, dataset):
       BSA,
       clearance,
       clearance_norm,
-      gfr,
+      gfr_str,
       birthdate,
       gender,
       rigs_nr,
+      cpr = cpr,
+      index_gfr=gfr_index,
       hosp_dir=request.user.hospital,
-      procedure_description=dataset.RequestedProcedureDescription,
       history_age=history_age,
       history_clr_n=history_clrN,
       name = name,
-      cpr = cpr
+      procedure_description=dataset.RequestedProcedureDescription
     )
         
     dicomlib.fill_dicom(
       dataset,
-      gfr            = gfr,
+      gfr            = gfr_str,
       clearance      = clearance,
       clearance_norm = clearance_norm,
       pixeldata = pixel_data 

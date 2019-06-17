@@ -267,13 +267,13 @@ def kidney_function(clearance_norm, cpr, birthdate, gender='Kvinde'):
   index_GFR = 100 * (Mean_GFR - clearance_norm) / Mean_GFR
   #From the index GFR, Conclude on the kidney function
   if index_GFR < 25 : 
-    return "Normal"
+    return "Normal", index_GFR
   elif index_GFR < 48 :
-    return "Moderat nedsat"
+    return "Moderat nedsat", index_GFR
   elif index_GFR < 72:
-    return "Middelsvært nedsat"
+    return "Middelsvært nedsat", index_GFR
   else:
-    return "Svært nedsat"
+    return "Svært nedsat", index_GFR
 
 def compute_times(inj_time, times):
   """
@@ -362,14 +362,15 @@ def generate_plot_text(
   day_of_birth,
   sex,
   rigs_nr,
-  name = '',
   cpr = '',
-  hosp_dir='',
+  name = '',
   history_age = [],
   history_clr_n = [],
-  procedure_description = '',
+  hosp_dir='',
   image_Height = 10.8,
   image_Width = 19.2,
+  index_gfr = 0.0,
+  procedure_description = '',
   ):
   """
   Generate GFR plot
@@ -436,6 +437,7 @@ def generate_plot_text(
   #Text setup for graph 1
   name_str            = f"Navn: {name}\n"
   cpr_str             = f"CPR: {cpr}\n"
+  accession_str       = f"Accession Nummer: {rigs_nr}\n"
   gender_str          = f"Køn: {gender}\n"
   age_str             = f"Alder: {_age_string(day_of_birth)}\n"
   weight_str          = f"Vægt: {weight:.1f} kg\n"
@@ -444,9 +446,11 @@ def generate_plot_text(
   clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
   clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
   kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
+  index_gfr_str       = f"Nyrefunktion ift. Reference Patient: {(100 - index_gfr):.1f}%"
 
   print_str = f"""    {name_str}
     {cpr_str}
+    {accession_str}
     {gender_str}
     {age_str}
     {weight_str}
@@ -454,7 +458,8 @@ def generate_plot_text(
     {BSA_str}
     {clearance_str}
     {clearance_norm_str}
-    {kidney_function_str}"""
+    {kidney_function_str}
+    {index_gfr_str}"""
 
   ax[1].text(0, 0.10, print_str, ha='left', fontsize = 20) 
   ax[1].axis('off')

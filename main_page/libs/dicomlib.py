@@ -85,34 +85,35 @@ def save_dicom(file_path, dataset, default_error_handling = True ):
   dataset.save_as(file_path, write_like_original = False)
 
 def fill_dicom(ds,
-    update_dicom        = False,
-    update_date         = False,
-    cpr                 = None,
-    name                = None,
-    rigs_nr             = None,
-    study_date          = None,
-    birthday            = None,
     age                 = None,
-    height              = None,
-    weight              = None,
-    gender              = None,
-    gfr                 = None,
-    gfr_type            = None,
-    thiningfactor       = None,
-    std_cnt             = None,
-    injection_time      = None,
-    injection_weight    = None,
-    injection_before    = None,
-    injection_after     = None,
+    birthday            = None,
     bsa_method          = None,
     clearance           = None,
     clearance_norm      = None,
+    cpr                 = None,
+    department          = None,
+    gender              = None,
+    gfr                 = None,
+    gfr_type            = None,
+    height              = None,
+    injection_after     = None,
+    injection_before    = None,
+    injection_time      = None,
+    injection_weight    = None,
+    name                = None,
+    pixeldata           = None,
+    rigs_nr             = None,
+    sample_seq          = None,
     series_instance_uid = None,
     series_number       = None,
     sop_instance_uid    = None,
     station_name        = None,
-    sample_seq          = None,
-    pixeldata           = None
+    study_date          = None,
+    std_cnt             = None,
+    thiningfactor       = None,
+    update_date         = False,
+    update_dicom        = False,
+    weight              = None
   ):
   """
   Saves information in dicom object, overwriting previous data, with no checks
@@ -154,14 +155,12 @@ def fill_dicom(ds,
   if rigs_nr:
     ds.AccessionNumber = rigs_nr
   if update_dicom:
-    ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
-    ds.add_new(0x00080080, 'LO', 'Rigshospitalet')
-    ds.add_new(0x00080081, 'ST', 'Blegdamsvej 9, 2100 København')
-    ds.add_new(0x00081040, 'LO', 'Klin. Fys.')
-    ds.add_new(0x00080064, 'CS', 'SYN')
     ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
     #Number twos
+      #Basic Information
+    ds.add_new(0x00080064, 'CS', 'SYN')
+    ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
     ds.add_new(0x00080030, 'TM', '')
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
     ds.add_new(0x00200010, 'SH', '1')  #Study ID
@@ -171,6 +170,11 @@ def fill_dicom(ds,
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
     #ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
+
+  if department:
+    ds.InstitutionName = department.hospital_Name
+    ds.InstitutionAddress = department.address
+    ds.InstitutionalDepartmentName = department.department
 
   # Set StudyDate
   if update_date:
