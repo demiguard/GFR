@@ -121,7 +121,7 @@ def fill_study_post(request, rigs_nr, dataset):
     birthdate = request.POST['birthdate']
     gender = request.POST['sex']
 
-    age = datetime.datetime.strptime(request.post['birthdate'], '%Y-%m-%d')
+    age = datetime.datetime.strptime(request.POST['birthdate'], '%Y-%m-%d')
 
     gfr = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
