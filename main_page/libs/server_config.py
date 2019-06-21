@@ -43,7 +43,8 @@ new_dict_items = {
   0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), # Sequence Items
   0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'),
   0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
-  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor')
+  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor'),
+  0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus')
 }
 
 # --- Logging --- #
