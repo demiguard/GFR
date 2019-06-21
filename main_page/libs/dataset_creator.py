@@ -102,7 +102,7 @@ def get_rigs_base(rigs_calling = None):
   #Done adding tags
   return ds
 
-def create_search_dataset(name, cpr, date_from, date_to, accession_number):
+def create_search_dataset(name, cpr, date_from, date_to, accession_number, stationName):
   #Generate Dataset
   dataset = Dataset()
   #Fill Dataset
@@ -110,12 +110,12 @@ def create_search_dataset(name, cpr, date_from, date_to, accession_number):
   dataset.AccessionNumber = accession_number
   dataset.PatientID = cpr
   dataset.PatientName = name
+  dataset.StationName = stationName
   dataset.QueryRetrieveLevel = 'STUDY'
   dataset.SOPClassUID = ''
   dataset.SOPInstanceUID = ''
   dataset.SeriesInstanceUID = ''
   dataset.StudyInstanceUID = ''
-  dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
   dataset.Modality = 'OT'
 
   return dataset
