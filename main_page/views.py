@@ -392,8 +392,8 @@ def fill_study(request, rigs_nr):
       csv_data.append(curr_data)
 
     csv_data = zip(csv_present_names, csv_data, data_names)
-  except:
-    logger.warning('SMB Connection Failed')
+  except Exception as E:
+    logger.warning(f'SMB Connection Failed:{E}')
     error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
   inj_time = None

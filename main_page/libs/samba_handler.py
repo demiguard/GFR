@@ -57,42 +57,56 @@ def smb_get_csv(hospital, timeout = 5):
 
   is_connected = conn.connect(server_config.samba_ip, timeout = timeout)
 
-  logger.info('Samba Connection was succesful:{0}'.format(is_connected))
+  logger.info(f'Samba Connection was succesful:{is_connected}')
+  logger.debug(f'/{server_config.samba_Sample}/{hospital}/')
 
-  hospital_sample_folder = '/{0}/{1}/'.format(server_config.samba_Sample, hospital)
+  hospital_sample_folder = f'/{server_config.samba_Sample}/{hospital}/'
   
-  logger.info(f'Searching Share: {server_config.samba_share}, at: {hospital_sample_folder}')
+  logger.debug(f'Searching Share: {server_config.samba_share}, at: {hospital_sample_folder}')
   samba_files = conn.listPath(server_config.samba_share, hospital_sample_folder)
-  logger.info(f'Got Files:{samba_files}')
+  logger.debug(f'Got Files:{len(samba_files)}')
 
   for samba_file in samba_files:
     if samba_file.filename in ['.', '..']:
-      continue
+      continue  
     temp_file = tempfile.NamedTemporaryFile()
 
     fullpath =  hospital_sample_folder + samba_file.filename
-    logger.info(f'Opening File:{samba_file.filename}')
-    file_attri, file_size = conn.retrieveFile(server_config.samba_share,fullpath, temp_file)
+    logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
+    file_attri, file_size = conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
     temp_file.seek(0)
-
+    
     pandas_ds = pandas.read_csv(temp_file.name)
     #File Cleanup
+    logger.info(list(pandas_ds))
+    
     datestring = pandas_ds['Measurement date & time'][0]
     protocol = pandas_ds['Protocol name'][0]
+    
+    logger.debug(datestring)
+    logger.debug(protocol)
+
     correct_filename = (datestring + protocol + '.csv').replace(' ', '').replace(':','').replace('-','').replace('+','')
 
     if not samba_file.filename == correct_filename and not samba_file.isReadOnly:
       #Rename
-      conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
+      logger.info(f'Attempting to Rename {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
+      try:
+        conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
+        logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
+      except:
+        logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
+        conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
+
 
     dt_examination = datetime.datetime.strptime(datestring, '%Y-%m-%d %H:%M:%S')
     if not ((now -  dt_examination).days <= 0):
+      logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
     else:
       returnarray.append(pandas_ds)
       
     temp_file.close()
-    logger.info(f'Retrived file:{temp_file.name}')
 
   conn.close()
   #sort return array
