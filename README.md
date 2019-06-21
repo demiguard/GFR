@@ -1,5 +1,10 @@
 # GFR
 
+## How to run tests
+```
+(venv) > python manage.py test main_page.tests -v 2
+```
+
 ---
 ## Install, Deploy, Run
 ### General dependencies
