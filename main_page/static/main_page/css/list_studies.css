@@ -6,7 +6,11 @@
   color: red;
 }
 
-/* Status coloring */
+/* Status styling */
+.exam-status-column {
+  text-align: center;
+}
+
 .exam-status-0 {
   color: lightcoral;
 }
