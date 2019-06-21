@@ -395,7 +395,6 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   if assoc.is_established:
     # Make Search Request
     for search_dataset in search_datasets:
-
       response = assoc.send_c_find(search_dataset, query_model='S')
       for (status, dataset) in response:
         if status.Status == 0xFF00:
@@ -406,13 +405,13 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
           response_list.append(exam_obj)
         elif status.Status == 0x0000:
           # Operation successfull
-          assoc.release()
+          continue
         else:
           logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
-      assoc.release()
-    else:
-      logger.warn('Connection to pacs failed!')
+      else:
+        logger.warn('Connection to pacs failed!')
 
+    assoc.release()
   return response_list
 
 
