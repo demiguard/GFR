@@ -321,18 +321,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
     bookings = list(sorted(bookings, key=date_sort, reverse=True))
 
-    department_thin_fact = request.user.department.thining_factor
-    department_changed_date = request.user.department.thining_factor_change_date
-
-    if department_changed_date == datetime.date.today():
-      input_thin_factor = department_thin_fact
-    else:
-      input_thin_factor = 0.0
-
-
-    #Note that error message is not implimented yet
     context = {
-      'thin_fac_form' : forms.FillThiningFactor(initial={'thin_fac': input_thin_factor}),
       'bookings': bookings,
       'error_message' : error_message
     }
@@ -457,18 +446,17 @@ def fill_study(request, rigs_nr):
   if exam.weight == 0.0:
     exam.weight = None
 
+  thin_fac_save_inital = True
   if exam.thin_fact == 0.0 or exam.thin_fact == None:
     if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
       exam.thin_fact = request.user.department.thining_factor
+      thin_fac_save_inital = False
     else:
       exam.thin_fact = None
 
   if exam.std_cnt == 0.0:
     exam.std_cnt = None
-  # --- ---
 
-  # TODO: Many of these parameters passed to the template can be simplified by
-  # just passing in the exam object
   context = {
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
@@ -482,7 +470,8 @@ def fill_study(request, rigs_nr):
       'weight': exam.weight,
     }),
     'study_dosis_form' : forms.Filldosis( initial={
-      'thin_fac' : exam.thin_fact
+      'thin_fac' : exam.thin_fact,
+      'save_fac' : thin_fac_save_inital
     }),
     'study_examination_form': forms.Fillexamination(initial={
       'vial_weight_before': exam.inj_before,
@@ -502,7 +491,6 @@ def fill_study(request, rigs_nr):
     'error_message' : error_message,
     'standard_count' : exam.std_cnt,
   }
-
 
   return HttpResponse(template.render(context, request))
 
