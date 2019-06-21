@@ -146,6 +146,9 @@ def deserialize(dicom_obj):
   if 'GFRMethod' in dicom_obj:
     exam.Method = dicom_obj.GFRMethod
 
+  if 'ExamStatus' in dicom_obj:
+    exam.exam_status = dicom_obj.ExamStatus
+
   return exam
 
 def mass_deserialize(dicom_objs):

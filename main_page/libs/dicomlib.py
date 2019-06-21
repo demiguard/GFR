@@ -223,7 +223,8 @@ def fill_dicom(ds,
     if 'Examstatus' in ds:
       if ds.ExamStatus < exam_status:
         ds.ExamStatus = exam_status
-
+    else:
+      ds.ExamStatus = exam_status
 
   if age:
     ds.PatientAge = age
