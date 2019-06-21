@@ -149,6 +149,13 @@ $(function() {
   add_date_checking();
 
 
+  // Save fortyndingsfaktor - so it can be reused with 'Hent fortyndingsfaktor'
+  let tmp_thin_fac = $('#id_thin_fac').val();
+  console.log(tmp_thin_fac);
+
+  $('#reset_thin_fac').on('click', function() {
+    $('#id_thin_fac').val(tmp_thin_fac);
+  });
 
   // ### 'beforeunload' handler START ###
   // Set changed parameter when a change event in the form occurs
@@ -327,25 +334,6 @@ $(function() {
     $(window).off("beforeunload");
   
     alerter.clear_alerts();
-
-    // Check that both date and time fields are filled out
-    inj_time = $("#id_injection_time").val();
-    inj_date = $("#id_injection_date").val();
-    if ((inj_time == "" ? 0 : 1) ^ (inj_date == "" ? 0 : 1)) {
-      alerter.add_alert(
-        'Både tid og dato skal være udfyldt før der kan gemmes.',
-        'danger'
-      );
-      
-      if (inj_time = "") {
-        alerter.add_field_alert($("#id_injection_time"), 'danger');
-      } else {
-        alerter.add_field_alert($("#id_injection_date"), 'danger');
-      }
-
-      $(window).on("beforeunload", unload_func);
-      return false;
-    }
 
     // Check that if 'sprøjtevægt efter injektion' is entered then 'sprøjtevægt før injektion' must also be entered
     inj_after = $("#id_vial_weight_after").val();
