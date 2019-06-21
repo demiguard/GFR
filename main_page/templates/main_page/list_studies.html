@@ -27,8 +27,7 @@
       {% for booking in bookings %}
         <tr>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.name }}</td>
-          <!-- <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clock" style="color: #F4D980;"></span></td> -->
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clipboard" style="color: lightcoral;"></span></td>
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clipboard exam-status-{{ booking.exam_status }}"></span></td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.cpr }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.date }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.procedure }}</td>

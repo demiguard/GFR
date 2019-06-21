@@ -5,3 +5,16 @@
 .trash-btn:hover {
   color: red;
 }
+
+/* Status coloring */
+.exam-status-0 {
+  color: lightcoral;
+}
+
+.exam-status-1 {
+  color: #F4D980;
+}
+
+.exam-status-2 {
+  color: lightgreen;
+}

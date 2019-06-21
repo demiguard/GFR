@@ -255,8 +255,9 @@ def store_form(request, dataset, rigs_nr):
 
   # If exam_status is already higher than 1, don't change it
   exam_status = 0
-  if dataset.ExamStatus == 2:
-    exam_status = 2
+  if 'ExamStatus' in dataset:
+    if dataset.ExamStatus == 2:
+      exam_status = 2
   else:
     exam_status = 1
 
