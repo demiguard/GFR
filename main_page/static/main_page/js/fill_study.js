@@ -148,7 +148,6 @@ $(function() {
   add_time_checking();
   add_date_checking();
 
-
   // Save fortyndingsfaktor - so it can be reused with 'Hent fortyndingsfaktor'
   let tmp_thin_fac = $('#id_thin_fac').val();
   console.log(tmp_thin_fac);
