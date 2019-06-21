@@ -150,7 +150,8 @@ def fill_study_post(request, rigs_nr, dataset):
       gfr            = gfr_str,
       clearance      = clearance,
       clearance_norm = clearance_norm,
-      pixeldata = pixel_data 
+      pixeldata = pixel_data,
+      exam_status = 2
     )
     return dataset
 
@@ -252,6 +253,13 @@ def store_form(request, dataset, rigs_nr):
   else:
     seq = []     
 
+  # If exam_status is already higher than 1, don't change it
+  exam_status = 0
+  if dataset.ExamStatus == 2:
+    exam_status = 2
+  else:
+    exam_status = 1
+
   dicomlib.fill_dicom(dataset, 
     update_dicom = True,
     update_date = True,
@@ -269,7 +277,8 @@ def store_form(request, dataset, rigs_nr):
     bsa_method=bsa_method,
     thiningfactor=thiningfactor,
     std_cnt=std_cnt,
-    sample_seq=seq
+    sample_seq=seq,
+    exam_status=exam_status
   )
   return dataset
   

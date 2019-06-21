@@ -33,6 +33,7 @@ class ExaminationInfo:
     self.tch_cnt     = np.array([]) # list of technetium counts
     self.thin_fact   = None      # Thinning factor
     self.weight      = None      # Weight of patient
+    self.exam_status      = 0         # Status of examination: 0 = unedited, 1 = contains saved data, 2 = ready to send to pacs
 
 
 def deserialize(dicom_obj):

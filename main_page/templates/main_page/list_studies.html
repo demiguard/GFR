@@ -14,10 +14,11 @@
     <thead>
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
-        <th onclick="sort_table(1, 'new_studies')">Cpr nr.</th>
-        <th onclick="sort_table(2, 'new_studies')">Dato</th>
-        <th onclick="sort_table(3, 'new_studies')"> Procedure</th>
-        <th onclick="sort_table(4, 'new_studies')">Accession nr.</th>
+        <th onclick="sort_table(1, 'new_studies')">Status</th>
+        <th onclick="sort_table(2, 'new_studies')">Cpr nr.</th>
+        <th onclick="sort_table(3, 'new_studies')">Dato</th>
+        <th onclick="sort_table(4, 'new_studies')"> Procedure</th>
+        <th onclick="sort_table(5, 'new_studies')">Accession nr.</th>
         <th></th> <!-- Empty column for action buttons -->
       </tr>
     </thead>
@@ -26,6 +27,8 @@
       {% for booking in bookings %}
         <tr>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.name }}</td>
+          <!-- <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clock" style="color: #F4D980;"></span></td> -->
+          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clipboard" style="color: lightcoral;"></span></td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.cpr }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.date }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.procedure }}</td>
