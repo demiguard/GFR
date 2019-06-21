@@ -29,6 +29,8 @@
       </div>  
       <div class = "form-group col-md-3">
         {% bootstrap_form study_dosis_form %}
+        <!-- {{ study_dosis_form.thin_fac.label }} -->
+        <small><a href="#">Hent fortyndingsfaktor</a></small>
         {% bootstrap_form study_type_form %}
       </div>
     </div>
@@ -49,6 +51,7 @@
         {% buttons %}
           <input type="button" value="Tilføj Standard" id="add-standard">
         {% endbuttons %}
+        
         <h5>Prøve data</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->

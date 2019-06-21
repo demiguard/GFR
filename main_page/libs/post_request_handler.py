@@ -219,7 +219,7 @@ def store_form(request, dataset, rigs_nr):
   if request.POST['weight']:
     weight = float(request.POST['weight']) 
 
-  if 'save_fact' in request.POST.keys():
+  if 'save_fac' in request.POST: 
     logger.info(f"{request.user.username} Updated thining factor to {request.POST['thin_fac']}")
     request.user.department.thining_factor = float(request.POST['thin_fac'])
     request.user.department.thining_factor_change_date = datetime.date.today()
@@ -233,11 +233,8 @@ def store_form(request, dataset, rigs_nr):
   if request.POST['thin_fac']:
     thiningfactor = float(request.POST['thin_fac'])
   
-
-
   if request.POST['std_cnt_text_box']:
     std_cnt= float(request.POST['std_cnt_text_box'])
-
 
   sample_dates = request.POST.getlist('study_date')[:-1]
   sample_times = request.POST.getlist('study_time')[:-1]  
