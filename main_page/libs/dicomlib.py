@@ -92,6 +92,7 @@ def fill_dicom(ds,
     clearance_norm      = None,
     cpr                 = None,
     department          = None,
+    exam_status         = None,
     gender              = None,
     gfr                 = None,
     gfr_type            = None,
@@ -217,6 +218,12 @@ def fill_dicom(ds,
 
   if station_name:
     ds.StationName = station_name
+
+  if exam_status:
+    if 'Examstatus' in ds:
+      if ds.ExamStatus < exam_status:
+        ds.ExamStatus = exam_status
+
 
   if age:
     ds.PatientAge = age
