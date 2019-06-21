@@ -94,7 +94,7 @@ def smb_get_csv(hospital, timeout = 5):
       try:
         conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
         logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
-      except:
+      except: 
         logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
         conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
 
