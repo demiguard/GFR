@@ -1,6 +1,7 @@
 import calendar
 import pandas
 import re
+from datetime import datetime
 
 
 def format_name(name):
@@ -34,7 +35,7 @@ def format_cpr(cpr: str) -> str:
   Raises:
     ValueError: if the incomming cpr number contains an invalid number of dashes 
   """
-  # Assumed that if cpr contains characts from a to z, it correctly formatted,
+  # Assumed that if cpr contains characters from a to z, it correctly formatted,
   # e.g. for Icelandic cpr numbers
   if re.match(r"[a-zA-Z]", cpr):
     return cpr
@@ -61,15 +62,18 @@ def format_cpr(cpr: str) -> str:
   return cpr[:DASH_IDX] + '-' + cpr[DASH_IDX:]
 
 
-def format_date(date):
+def format_date(date: str) -> str:
   """
-  Formats a date to the format: DD/MM-YYYY
+  Formats a date string of form YYYYMMDD to DD/MM-YYYY
+
+  Args:
+    date: string representing the date
+
+  Returns:
+    Date string in DD/MM-YYYY format
   """
-  date = str(date)
-  year = date[:4]
-  month = date[4:6]
-  day = date[6:8]
-  return f'{day}/{month}-{year}'
+  date = datetime.strptime(date, "%Y%m%d")
+  return date.strftime("%d/%m-%Y")
 
 
 def check_cpr(cpr):  
