@@ -18,7 +18,7 @@ class LibsFormattingTestCase(TestCase):
 
   def test_format_date_short(self):
     with self.assertRaises(ValueError):
-      formatting.format_date("1234")
+      formatting.format_date("")
 
 
   def test_format_date_long(self):
@@ -79,3 +79,12 @@ class LibsFormattingTestCase(TestCase):
   def test_format_cpr_empty(self):
     with self.assertRaises(ValueError):
       formatting.format_cpr("")
+
+
+  def test_format_cpr_special_case1(self):
+    # This case failed in production
+    expected = "2905500HM1"
+
+    out = formatting.format_cpr("2905500HM1")
+
+    self.assertEqual(out, expected)

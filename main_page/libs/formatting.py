@@ -4,9 +4,9 @@ import re
 from datetime import datetime
 
 
-def format_name(name):
+def format_name(name: str) -> str:
   """
-  Formats a name to the format: Firstname Middlename Lastname
+  Formats dicom person names to names of form: Firstname [Middlenames] Lastnames
   """
   name = str(name)
   name_split = name.split('^')
@@ -37,7 +37,7 @@ def format_cpr(cpr: str) -> str:
   """
   # Assumed that if cpr contains characters from a to z, it correctly formatted,
   # e.g. for Icelandic cpr numbers
-  if re.match(r"[a-zA-Z]", cpr):
+  if re.search(r"[a-zA-Z]", cpr):
     return cpr
 
   # Optional dash at 6'th index check
