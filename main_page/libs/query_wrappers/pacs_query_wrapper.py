@@ -500,7 +500,7 @@ def get_history_from_pacs(cpr, birthday, user):
               date_list.append(date_of_examination)
               age_at_examination = (date_of_examination - birthday).days / 365
               age_list.append(age_at_examination)
-              clearence_norm_list.append(float(move_response_dataset[0x00231014]))
+              clearence_norm_list.append(move_response_dataset.normClear)
               #Delete the file
               logger.log(f'Deleteing file {filename}')
               os.remove(filename)
