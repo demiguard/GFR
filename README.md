@@ -1,6 +1,7 @@
 # GFR
 
 ## How to run tests
+The following script will run the tests and generate reports using ```coverage.py```. The reports are ```xml``` files and can be interpreted with e.g. the VS Code extension; Coverage Gutter
 ```
 (venv)> ./run-tests.sh
 ```
