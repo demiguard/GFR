@@ -16,6 +16,21 @@ class LibsFormattingTestCase(TestCase):
     self.assertEqual(out, expected)
 
 
+  def test_format_date_short(self):
+    with self.assertRaises(ValueError):
+      formatting.format_date("1234")
+
+
+  def test_format_date_long(self):
+    with self.assertRaises(ValueError):
+      formatting.format_date("123456789")
+    
+
+  def test_format_characters(self):
+    with self.assertRaises(ValueError):
+      formatting.format_date("something which should throw an exception")
+
+
   """Test formatting of cpr numbers"""
   def test_format_cpr(self):
     expected = "010101-0101"
