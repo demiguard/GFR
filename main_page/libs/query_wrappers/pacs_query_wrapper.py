@@ -477,7 +477,9 @@ def get_history_from_pacs(cpr, birthday, user):
           user.config.pacs_calling,
           query_model='S'
         )
-        for (move_status, _) in move_response:
+        for (move_status, identifyer) in move_response:
+          logger.info(move_status)
+          logger.info(identifyer)
           if move_status.Status == 0x0000:
             filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
           #Open the DCM file

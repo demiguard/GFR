@@ -502,6 +502,8 @@ def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.
 
   slope, intercept, r_value, p_value, standard_error = linregress(delta_times, log_tec99_cnt)
 
+  logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
+
   x = numpy.arange(0.0, max(delta_times), 0.1)
   y = slope * x + intercept
 
@@ -525,8 +527,15 @@ def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.
     """
 
   #Picture information
+  #Ax[0]
   ax[0].plot(log_tec99_cnt, delta_times,marker = 'x', label = 'Datapoints')
-  ax[0].plot(x, y) #Linear Regression
+  ax[0].plot(x, y, label = 'Regression plot') #Linear Regression
+  ax[0].legend()
+  #ax[1]
+  ax[1].axes('off')
+  ax[1].text(0, 0.10, text_str, ha='left', fontsize = 20) 
+
+
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
