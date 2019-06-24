@@ -502,10 +502,10 @@ def get_history_from_pacs(cpr, birthday, user):
               age_list.append(age_at_examination)
               clearence_norm_list.append(move_response_dataset.normClear)
               #Delete the file
-              logger.log(f'Deleteing file {filename}')
+              logger.info(f'Deleteing file {filename}')
               os.remove(filename)
-            except:
-              logger.warn(f'Error handling {accession_number}')      
+            except Exception as E:
+              logger.warn(f'Error handling {accession_number} with {E}')      
           else:
             logger.warn(f'Move Response code:{move_status.Status}')
             
