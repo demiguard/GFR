@@ -440,10 +440,12 @@ def get_history_from_pacs(cpr, birthday, user):
 
 
   #Create Assosiation to pacs
-  ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
+  find_ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
+  move_ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
+  find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
+  MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
+  move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
   
   #Create the dataset for a C-FIND
   find_dataset = Dataset()
@@ -459,38 +461,48 @@ def get_history_from_pacs(cpr, birthday, user):
   find_dataset.SOPStudyInstanceUID = ''
   
   #Make a C-FIND to pacs
-  assoc = ae.associate(
+  find_assoc = find_ae.associate(
     user.config.pacs_ip,
     int(user.config.pacs_port),
     ae_title=user.config.pacs_aet)
 
-  if assoc.is_established:
-    find_response = assoc.send_c_find(find_dataset, query_model='S')
+  move_assoc = move_ae.associate(
+    user.config.pacs_ip,
+    int(user.config.pacs_port),
+    ae_title=user.config.pacs_aet
+  )
+
+  if find_assoc.is_established and move_assoc.is_established:
+    find_response = find_assoc.send_c_find(find_dataset, query_model='S')
     for (find_status, find_response_dataset) in find_response:
       if find_status.Status == 0xFF00:
         #Create Dataset to C-MOVE
         accession_number = find_response_dataset.AccessionNumber
 
         #For each response make a C-MOVE to myself
-        move_response = assoc.send_c_move(
+        move_response = move_assoc.send_c_move(
           find_response_dataset,
           user.config.pacs_calling,
           query_model='S'
         )
-        for (move_status, _) in move_response:
+        for (move_status, identifyer) in move_response:
+          logger.info(move_status)
+          logger.info(identifyer)
           if move_status.Status == 0x0000:
             filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
           #Open the DCM file
+            logger.info(f'Filename: {filename}')
             try:
               move_response_dataset = dicomlib.dcmread_wrapper(filename)
+              logger.info(move_response_dataset)
               #Read values of Clearence Normalized and date of examination into a return list
               date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
               date_list.append(date_of_examination)
               age_at_examination = (date_of_examination - birthday).days / 365
               age_list.append(age_at_examination)
               clearence_norm_list.append(float(move_response_dataset[0x00231014]))
-
               #Delete the file
+              logger.log(f'Deleteing file {filename}')
               os.remove(filename)
             except:
               logger.warn(f'Error handling {accession_number}')      
@@ -506,7 +518,8 @@ def get_history_from_pacs(cpr, birthday, user):
       else: 
         logger.warn(f""" Unexpected Status code:{find_status.Status}""")
     #If statement done
-    assoc.release()
+    find_assoc.release()
+    move_assoc.release()
   else:
     logger.warn('Could not connect to pacs')
   #Return
