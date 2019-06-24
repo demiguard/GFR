@@ -7,7 +7,7 @@ class LibsFormattingTestCase(TestCase):
   def setUp(self):
     pass
 
-  """Test formatting of dicom dates"""
+  """Test formatting of dates"""
   def test_format_date(self):
     expected = "01/01-2019"
     
@@ -33,9 +33,34 @@ class LibsFormattingTestCase(TestCase):
     self.assertEqual(out, expected)
 
 
+  def test_format_cpr_single_dash(self):
+    with self.assertRaises(ValueError):
+      formatting.format_cpr("-")
+
+
   def test_format_cpr_with_dash(self):
     expected = "010101-0101"
 
     out = formatting.format_cpr("010101-0101")
 
     self.assertEqual(out, expected)
+
+
+  def test_format_cpr_with_multiple_dash(self):
+    with self.assertRaises(ValueError):
+      formatting.format_cpr("010101--0101")
+
+
+  def test_format_cpr_with_dash_wrong_idx(self):
+    with self.assertRaises(ValueError):
+      formatting.format_cpr("01-01010101")
+
+
+  def test_format_cpr_special_chars(self):
+    with self.assertRaises(ValueError):
+      formatting.format_cpr("$!?/¤%#¤")
+
+
+  def test_format_cpr_empty(self):
+    with self.assertRaises(ValueError):
+      formatting.format_cpr("")

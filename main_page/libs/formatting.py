@@ -20,16 +20,45 @@ def format_name(name):
   return ' '.join(name_split)
 
 
-def format_cpr(cpr):
+def format_cpr(cpr: str) -> str:
   """
   Formats a cpr nr. to the format: XXXXXX-XXXX
-  """
-  cpr = str(cpr)
 
+  Args:
+    cpr: cpr number in string representation
+
+  Remark:
+    If the cpr string contains non-numeric characters the string is assumed
+    correctly formatted 
+
+  Raises:
+    ValueError: if the incomming cpr number contains an invalid number of dashes 
+  """
+  # Assumed that if cpr contains characts from a to z, it correctly formatted,
+  # e.g. for Icelandic cpr numbers
   if re.match(r"[a-zA-Z]", cpr):
     return cpr
 
-  return cpr[:6] + '-' + cpr[6:]
+  # Optional dash at 6'th index check
+  DASH_CNT = 1
+  DASH_IDX = 6
+  
+  dash_indicies = [match.start(0) for match in re.finditer(r"-", cpr)]
+  dash_idx_len = len(dash_indicies)
+
+  if dash_idx_len == DASH_CNT:
+    if dash_indicies[0] == DASH_IDX:
+      return cpr
+    else:
+      raise ValueError(f"cpr: '{cpr}', contains dash at index: {dash_indicies[0]}, expected: {DASH_IDX}")
+  elif dash_idx_len > DASH_CNT:
+    raise ValueError(f"cpr: '{cpr}', contains more than one dash")
+
+  # danish cpr numbers should contain exactly 10 digits
+  if not re.match(r"[0-9]{10}", cpr):
+    raise ValueError(f"cpr: '{cpr}', doesn't contain exactly 10 digits")
+
+  return cpr[:DASH_IDX] + '-' + cpr[DASH_IDX:]
 
 
 def format_date(date):
@@ -44,8 +73,7 @@ def format_date(date):
 
 
 def check_cpr(cpr):  
-  """Permission denied, please try again.
-
+  """
   Checks whether a given cpr number, as a string, is valid
 
   Args:
