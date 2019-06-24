@@ -50,7 +50,7 @@ new_dict_items = {
 # --- Logging --- #
 
 LOG_DIR = "./log/"
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 
 # --- Samba Share --- #
 
