@@ -2,7 +2,11 @@
 
 ## How to run tests
 ```
-(venv) > python manage.py test main_page.tests -v 2
+(venv)> ./run-tests.sh
+```
+Remember to make the script executable using:
+```
+(venv)> chmod a+x ./run-tests.sh
 ```
 
 ---

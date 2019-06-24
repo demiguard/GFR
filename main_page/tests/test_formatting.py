@@ -23,3 +23,19 @@ class LibsFormattingTestCase(TestCase):
     out = formatting.format_cpr("0101010101")
 
     self.assertEqual(out, expected)
+
+
+  def test_format_cpr_non_numeric(self):
+    expected = "QP-3859995"
+
+    out = formatting.format_cpr("QP-3859995")
+
+    self.assertEqual(out, expected)
+
+
+  def test_format_cpr_with_dash(self):
+    expected = "010101-0101"
+
+    out = formatting.format_cpr("010101-0101")
+
+    self.assertEqual(out, expected)
