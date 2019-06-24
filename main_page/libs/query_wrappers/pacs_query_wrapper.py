@@ -491,16 +491,18 @@ def get_history_from_pacs(cpr, birthday, user):
           if move_status.Status == 0x0000:
             filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
           #Open the DCM file
+            logger.info(f'Filename: {filename}')
             try:
               move_response_dataset = dicomlib.dcmread_wrapper(filename)
+              logger.info(move_response_dataset)
               #Read values of Clearence Normalized and date of examination into a return list
               date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
               date_list.append(date_of_examination)
               age_at_examination = (date_of_examination - birthday).days / 365
               age_list.append(age_at_examination)
               clearence_norm_list.append(float(move_response_dataset[0x00231014]))
-
               #Delete the file
+              logger.log(f'Deleteing file {filename}')
               os.remove(filename)
             except:
               logger.warn(f'Error handling {accession_number}')      
