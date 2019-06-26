@@ -94,7 +94,7 @@ def smb_get_csv(hospital, timeout = 5):
       #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
       pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
 
-      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace.(' ','').replace(':','')
+      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace(' ','').replace(':','')
       # Get protocol
       temp_file.seek(0)
       protocol = temp_file.readline()
