@@ -472,7 +472,7 @@ def generate_plot_text(
   ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
   ax[0].grid(color='black')
   if len(history_age) == len(history_clr_n):
-    ax[0].plot(history_age, history_clr_n, marker = 'x', markersize = 8, color = 'blue')
+    ax[0].scatter(history_age, history_clr_n, marker = 'x', markersize = 8, color = 'blue')
   ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'black')
     
   fig.set_figheight(image_Height)
@@ -482,7 +482,7 @@ def generate_plot_text(
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
 
-def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.8, image_width = 19.2):
+def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.8, image_width = 19.2):
   """
   Generates a picture showing the prediction
   The picture contains a numeric value of  thining factor
@@ -504,7 +504,7 @@ def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.
 
   logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
 
-  x = numpy.arange(0.0, max(delta_times), 0.1)
+  x = numpy.arange(min(delta_times), max(delta_times), 0.1)
   y = slope * x + intercept
 
   #Plot generation
@@ -528,11 +528,20 @@ def Generate_QA_Picture(tch_cnt, delta_times, thining_factor, image_height = 10.
 
   #Picture information
   #Ax[0]
-  ax[0].plot(log_tec99_cnt, delta_times,marker = 'x', label = 'Datapoints')
-  ax[0].plot(x, y, label = 'Regression plot') #Linear Regression
+  for i, val in enumerate(log_tec99_cnt):
+    points              = [val, slope * delta_times[i] + intercept]
+    time_of_examination = [delta_times[i],delta_times[i]]
+    ax[0].plot(time_of_examination, points, color = 'black', linestyle='--', zorder=1)
+    ax[0].scatter(delta_times[i], slope * delta_times[i] + intercept, marker='o', color='red', zorder=2, s=25 )
+  
+  ax[0].plot(x, y, label = 'Regression plot', color='red', zorder=2) #Linear Regression
+  ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label = 'Datapoints', zorder=3)
+
+  
+
   ax[0].legend()
   #ax[1]
-  ax[1].axes('off')
+  ax[1].axis('off')
   ax[1].text(0, 0.10, text_str, ha='left', fontsize = 20) 
 
 

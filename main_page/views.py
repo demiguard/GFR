@@ -834,8 +834,6 @@ def QA(request, accession_number):
 
     return HttpResponse(template.render(context, request))
 
-  print(dicom_obj)
-
   #Get injection time
   inj_time = datetime.datetime.strptime(dicom_obj.injTime, '%Y%m%d%H%M') 
   #Get Thining Factor
@@ -846,11 +844,11 @@ def QA(request, accession_number):
   delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_times] #timedelta list from timedate
   
   image_bytes = clearance_math.Generate_QA_Picture(delta_times, tch99_cnt, thin_fact)
-  image_path = f"images/{request.user.hospital}/QA-{accession_number}.png"
+  image_path = f"main_page/images/{request.user.hospital}/QA-{accession_number}.png"
 
 
   Im = PIL.Image.frombytes('RGB',(1920,1080),image_bytes)
-  Im.save(f"{server_config.STATIC_DIR}{image_path}")
+  Im.save(f"{server_config.IMG_RESPONS_DIR}{request.user.hospital}/QA-{accession_number}.png")
 
   context = {
     'image_path' : image_path
