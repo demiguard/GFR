@@ -850,7 +850,7 @@ class QAView(LoginRequiredMixin, TemplateView):
 
     delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_times] #timedelta list from timedate
     
-    image_bytes = clearance_math.Generate_QA_Picture(delta_times, tch99_cnt, thin_fact)
+    image_bytes = clearance_math.generate_QA_plot(delta_times, tch99_cnt, thin_fact, accession_number)
     image_path = f"main_page/images/{request.user.hospital}/QA-{accession_number}.png"
 
 

@@ -16,10 +16,6 @@ from .. import dirmanager
 
 logger = logging.getLogger()
 
-class UNKNOWNMETHODEXEPTION(Exception):
-  def __init__(self):
-    self.message = 'Unknown Method'
-  
 
 def surface_area(height, weight, method = "Haycock"):
   """Estimate the surface area of a human being, based on height and height
@@ -123,7 +119,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
       return clearance, clearance_normalized
 
   else:
-    raise UNKNOWNMETHODEXEPTION
+    raise ValueError(f"Unknown method: {method}")
 
   #inulin Korrigering 
   magic_number_1 = 3.7
@@ -364,24 +360,24 @@ def _age_string(day_of_birth):
 
 
 def generate_plot_text(
-  weight,
-  height,
-  BSA,
-  clearance,
-  clearance_norm,
-  kidney_function,
-  day_of_birth,
-  sex,
-  rigs_nr,
-  cpr = '',
-  name = '',
-  history_age = [],
-  history_clr_n = [],
+  weight: float,
+  height: float,
+  BSA: float,
+  clearance: float,
+  clearance_norm: float,
+  kidney_function: str,
+  day_of_birth: str,
+  sex: str,
+  rigs_nr: str,
+  cpr='',
+  name='',
+  history_age=[],
+  history_clr_n=[],
   hosp_dir='',
-  image_Height = 10.8,
-  image_Width = 19.2,
-  index_gfr = 0.0,
-  procedure_description = '',
+  image_height=server_config.PLOT_HEIGHT,
+  image_width=server_config.PLOT_WIDTH,
+  index_gfr=0.0,
+  procedure_description='',
   ):
   """
   Generate GFR plot
@@ -402,15 +398,12 @@ def generate_plot_text(
   Remark:
     Generate as one image, with multiple subplots.
   """
-
-  
   x =           [0, 40, 110]
   zeros =       [0, 0, 0]
   darkred_y =   [25, 25, 10]
   light_red_y = [50, 50, 30]
   yellow_y =    [75, 75, 35]
   lightgrey_y = [160, 160, 160]
-  #grey_y =      [130, 130, 130]
 
   gender = sex
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
@@ -423,29 +416,33 @@ def generate_plot_text(
   while age > xmax :
     xmax += 20 
 
+  # Generate plot
   fig, ax = plt.subplots(1, 2)
 
-  # Generate backgroundsage = int(request.POST['age'])second graph
-  ax[0].set_xlim(0, xmax)      
-  ax[0].set_ylim(0, ymax)
-  ax[0].fill_between(x, yellow_y, lightgrey_y, facecolor='#EFEFEF', label='Normal')
-  ax[0].fill_between(x, light_red_y, yellow_y, facecolor='#FFA71A', label='Moderat nedsat')
-  ax[0].fill_between(x, darkred_y, light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
-  ax[0].fill_between(x, zeros, darkred_y, facecolor='#F96564', label='Svært nedsat')
-  #ax[0].fill_between(x, lightgrey_y, grey_y, facecolor='#BEBEBE')
+  # Set meta information
+  fig.set_figheight(image_height)
+  fig.set_figwidth(image_width)
   
-  titlesize = 8
-  labelsize = 18
+  plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
 
-  #Example on a title string: 
   titlestring = f"""Undersøgelsen udført på: {server_config.hospitals[hosp_dir]}
     {procedure_description}""" 
 
-  fig.suptitle(titlestring, fontsize = 28)
+  fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
   
-  ax[0].tick_params(labelsize = 14)
+  # Left side - the actual graph
+  ax[0].set_xlim(0, xmax)      
+  ax[0].set_ylim(0, ymax)
+  ax[0].fill_between(x, yellow_y,    lightgrey_y, facecolor='#EFEFEF', label='Normal')
+  ax[0].fill_between(x, light_red_y, yellow_y,    facecolor='#FFA71A', label='Moderat nedsat')
+  ax[0].fill_between(x, darkred_y,   light_red_y, facecolor='#FBA0A0', label='Middelsvært nedsat')
+  ax[0].fill_between(x, zeros,       darkred_y,   facecolor='#F96564', label='Svært nedsat')
 
-  #Text setup for graph 1
+  ax[0].tick_params(labelsize=14)
+
+  # Right side - text information
+  reference_percentage = 100 - index_gfr
+
   name_str            = f"Navn: {name}\n"
   cpr_str             = f"CPR: {cpr}\n"
   accession_str       = f"Accession Nummer: {rigs_nr}\n"
@@ -457,7 +454,7 @@ def generate_plot_text(
   clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
   clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
   kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
-  index_gfr_str       = f"Nyrefunktion ift. Reference Patient: {(100 - index_gfr):.1f}%"
+  index_gfr_str       = f"Nyrefunktion ift. Reference Patient: {reference_percentage:.1f}%"
 
   print_str = f"""    {name_str}
     {cpr_str}
@@ -472,33 +469,38 @@ def generate_plot_text(
     {kidney_function_str}
     {index_gfr_str}"""
 
-  ax[1].text(0, 0.10, print_str, ha='left', fontsize = 20) 
+  ax[1].text(0, 0.10, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
   ax[1].axis('off')
-  
-  
-  plt.rc('axes', titlesize=titlesize)
-  plt.rc('axes', labelsize=labelsize)
 
-  ax[0].set_xlabel('Alder (år)', fontsize = 18)
-  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize = 18)
+  ax[0].set_xlabel('Alder (år)', fontsize=server_config.AXIS_FONT_SIZE)
+  ax[0].set_ylabel('GFR (ml/min pr. 1.73m²)', fontsize=server_config.AXIS_FONT_SIZE)
   ax[0].grid(color='black')
   if len(history_age) == len(history_clr_n):
-    ax[0].scatter(history_age, history_clr_n, marker = 'x', s = 8, color = 'blue')
-  ax[0].plot(age, clearance_norm, marker = 'o', markersize = 12, color = 'black')
-    
-  fig.set_figheight(image_Height)
-  fig.set_figwidth(image_Width)
-  ax[0].legend(framealpha = 1.0 ,prop = {'size' : 18})
+    ax[0].scatter(history_age, history_clr_n, marker='x', s=8, color='blue')
+  ax[0].plot(age, clearance_norm, marker='o', markersize=12, color='black')
+  
+  ax[0].legend(framealpha=1.0 , prop={'size': server_config.LEGEND_SIZE})
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
 
-def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.8, image_width = 19.2):
+
+def generate_QA_plot(
+  delta_times, 
+  tch_cnt, 
+  thining_factor, 
+  accession_number, 
+  image_height=server_config.PLOT_HEIGHT, 
+  image_width=server_config.PLOT_WIDTH
+  ):
   """
-  Generates a picture showing the prediction
-  The picture contains a numeric value of  thining factor
+  Generates a plot showing the predicted regression line
 
   Args:
+    delta_times:
+    tch_cnt:
+    thining_factor:
+    accession_number:
 
   kwArgs:
     image_height: float, the height in pixels times 100. So 1 = 100 pixels high
@@ -506,11 +508,11 @@ def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.
 
   Returns:
     A bytestring forming a RBG pictures of scale 1920x1080 (Default size)
-
   """
-  #Math
+  # Log of tec-count as the formula calls for
   log_tec99_cnt = [numpy.log(x) for x in tch_cnt]
 
+  # Linear Regression
   slope, intercept, r_value, p_value, standard_error = linregress(delta_times, log_tec99_cnt)
 
   logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
@@ -518,24 +520,33 @@ def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.
   x = numpy.arange(min(delta_times), max(delta_times), 0.1)
   y = slope * x + intercept
 
-  #Plot generation
+  # Plot generation
   fig, ax = plt.subplots(nrows = 1, ncols=2)
 
-  #Meta information
+  # Set meta information
+  plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
+
+  plot_title = f"Regressionsanalyse for {accession_number}"
+  fig.suptitle(plot_title, fontsize=server_config.TITLE_FONT_SIZE)
+
   fig.set_figheight(image_height)
   fig.set_figwidth(image_width)
-  
+
   # Left side - the plot
+  ax[0].tick_params(labelsize=14) # Axis tick size
+  ax[0].set_xlabel('Tid i minutter', fontsize=server_config.AXIS_FONT_SIZE)
+  ax[0].set_ylabel('log(tec99 count)', fontsize=server_config.AXIS_FONT_SIZE)
+  
   for i, val in enumerate(log_tec99_cnt):
     points              = [val, slope * delta_times[i] + intercept]
-    time_of_examination = [delta_times[i],delta_times[i]]
-    ax[0].plot(time_of_examination, points, color = 'black', linestyle='--', zorder=1)
-    ax[0].scatter(delta_times[i], slope * delta_times[i] + intercept, marker='o', color='red', zorder=2, s=25 )
+    time_of_examination = [delta_times[i], delta_times[i]]
+    ax[0].plot(time_of_examination, points, color='black', linestyle='--', zorder=1)
+    ax[0].scatter(delta_times[i], slope * delta_times[i] + intercept, marker='o', color='red', zorder=2, s=25)
   
-  ax[0].plot(x, y, label = 'Regression plot', color='red', zorder=2) #Linear Regression
-  ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label = 'Datapoints', zorder=3)
+  ax[0].plot(x, y, label = 'Regressionslinje', color='red', zorder=2)
+  ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label='Datapunkter', zorder=3)
 
-  ax[0].legend()
+  ax[0].legend(framealpha=1.0, prop={'size': server_config.LEGEND_SIZE})
 
   # Right side - text information
   p_value_str         = f"P Værdi: {p_value:.6f}\n" 
@@ -551,7 +562,7 @@ def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.
   """
   
   ax[1].axis('off')
-  ax[1].text(0, 0.10, text_str, ha='left', fontsize=20)
+  ax[1].text(0, 0.10, text_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE)
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
