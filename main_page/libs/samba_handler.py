@@ -3,6 +3,7 @@ import pandas
 
 from . import server_config
 from smb.SMBConnection import SMBConnection
+from . import formatting
 
 logger = logging.getLogger()
 
@@ -75,13 +76,31 @@ def smb_get_csv(hospital, timeout = 5):
     logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
     file_attri, file_size = conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
     temp_file.seek(0)
-    
-    pandas_ds = pandas.read_csv(temp_file.name)
-    #File Cleanup
-    logger.info(list(pandas_ds))
-    
-    datestring = pandas_ds['Measurement date & time'][0]
-    protocol = pandas_ds['Protocol name'][0]
+    try:
+      pandas_ds = pandas.read_csv(temp_file.name)
+      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace.(' ','').replace(':','')
+      protocol = pandas_ds['Protocol name'][0]
+      
+    except ParserError as identifier:
+      # Hidex file
+      pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
+      pandas_ds = pandas_ds.rename(
+        columns={
+          'Time'          : 'Measurement date & time',
+          'Vial'          : 'Pos',
+          'Tc-99m (CPM)'  : 'Tc-99m CPM'
+        }
+      )
+      #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
+      pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
+
+      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace.(' ','').replace(':','')
+      # Get protocol
+      temp_file.seek(0)
+      protocol = temp_file.readline()
+
+
+    # File Cleanup
     
     logger.debug(datestring)
     logger.debug(protocol)
