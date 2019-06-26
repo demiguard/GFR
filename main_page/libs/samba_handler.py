@@ -78,10 +78,10 @@ def smb_get_csv(hospital, timeout = 5):
     temp_file.seek(0)
     try:
       pandas_ds = pandas.read_csv(temp_file.name)
-      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace.(' ','').replace(':','')
       protocol = pandas_ds['Protocol name'][0]
+      datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
       
-    except ParserError as identifier:
+    except ParserError:
       # Hidex file
       pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
       pandas_ds = pandas_ds.rename(
