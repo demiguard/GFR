@@ -220,7 +220,7 @@ def calculate_sex(cprnr):
   else:
     return 'M'
 
-def kidney_function(clearance_norm, cpr, birthdate, gender='Kvinde'):
+def kidney_function(clearance_norm, cpr, birthdate, gender='K'):
   """expression
     Calculate the Kidney function compared to their age and gender
   Args:
@@ -241,6 +241,10 @@ def kidney_function(clearance_norm, cpr, birthdate, gender='Kvinde'):
     age_in_days = (now - birthdate).days
     age = int((now - birthdate).days / 365)
     gender = gender
+
+  logging.info(f"gender: {gender}")
+  logging.info(f"Age: {age}")
+  logging.info(f"age: {age_in_days}")
 
   #Calculate Mean GFR
   if age < 2 : # Babies
