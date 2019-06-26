@@ -54,7 +54,7 @@ def deserialize(dicom_obj):
 
   exam.rigs_nr = dicom_obj.AccessionNumber
   exam.cpr = formatting.format_cpr(dicom_obj.PatientID)
-  exam.name = formatting.format_name(dicom_obj.PatientName)
+  exam.name = formatting.person_name_to_name(str(dicom_obj.PatientName))
   
   try:
     exam.date = formatting.format_date(dicom_obj.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate)

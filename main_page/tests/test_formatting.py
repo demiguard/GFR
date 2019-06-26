@@ -88,3 +88,70 @@ class LibsFormattingTestCase(TestCase):
     out = formatting.format_cpr("2905500HM1")
 
     self.assertEqual(out, expected)
+
+
+  """
+  Test person name to name
+  
+  The tests are mainly based on the examples at:
+  http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1 
+  """
+  def test_person_name_no_middlename_two_suffix(self):
+    expected = "Rev. John Robert Quincy Adams, B.A. M.Div."
+
+    out = formatting.person_name_to_name("Adams^John Robert Quincy^^Rev.^B.A. M.Div.")
+
+    self.assertEqual(out, expected)
+
+
+  def test_person_name_one_given_name(self):
+    expected = "Susan Morrison-Jones, Ph.D., Chief Executive Officer"
+
+    out = formatting.person_name_to_name("Morrison-Jones^Susan^^^Ph.D., Chief Executive Officer")
+
+    self.assertEqual(out, expected)
+
+
+  def test_person_name_one_given_family(self):
+    expected = "John Doe"
+
+    out = formatting.person_name_to_name("Doe^John")
+
+    self.assertEqual(out, expected)
+
+
+  def test_person_name_full(self):
+    expected = "Rev. John Robert Quincy Someoneson Adams, B.A. M.Div."
+
+    out = formatting.person_name_to_name("Adams^John Robert Quincy^Someoneson^Rev.^B.A. M.Div.")
+
+    self.assertEqual(out, expected)
+    
+
+  def test_person_name_empty(self):
+    expected = ""
+
+    out = formatting.person_name_to_name("^")
+
+    self.assertEqual(out, expected)
+
+
+  def test_person_name_wildcard(self):
+    with self.assertRaises(ValueError):
+      formatting.person_name_to_name('*')
+
+
+  def test_person_name_cat(self):
+    expected = "Fluffy Smith"
+
+    out = formatting.person_name_to_name("Smith^Fluffy")
+
+    self.assertEqual(out, expected)
+    
+  
+  def test_person_name_horse(self):
+    expected = "Running on Water ABC Farms"
+
+    out = formatting.person_name_to_name("ABC Farms^Running on Water")
+
+    self.assertEqual(out, expected)

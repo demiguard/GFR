@@ -4,21 +4,41 @@ import re
 from datetime import datetime
 
 
-def format_name(name: str) -> str:
+def person_name_to_name(name: str) -> str:
   """
   Formats dicom person names to names of form: Firstname [Middlenames] Lastnames
+
+  Args:
+    name: dicom person name
+
+  Returns:
+    the normally formatted name
+
+  Remark:
+    Specification for person names: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
   """
-  name = str(name)
+  if '*' in name:
+    raise ValueError(f"name: '{name}', contains a wildcard character: '*'")
+
+  EXPECTED_LENGTH = 5
+  FIRST_SUFFIX = 3
+  SECOND_SUFFIX = 4
+  FIRST_NAME = 1
+  MIDDLE_NAME = 2
+  LAST_NAME = 0
+
   name_split = name.split('^')
-  
-  fst = name_split[0]
-  
-  del name_split[0]
-  name_split.append(fst)
 
-  name_split = list(filter(None, name_split))
+  # Append empty str, to avoid IndexErrors  
+  for _ in range(len(name_split), EXPECTED_LENGTH):
+    name_split.append('')
 
-  return ' '.join(name_split)
+  if name_split[SECOND_SUFFIX]:
+    ret = f"{name_split[FIRST_SUFFIX]} {name_split[FIRST_NAME]} {name_split[MIDDLE_NAME]} {name_split[LAST_NAME]}, {name_split[SECOND_SUFFIX]}"
+  else:
+    ret = f"{name_split[FIRST_SUFFIX]} {name_split[FIRST_NAME]} {name_split[MIDDLE_NAME]} {name_split[LAST_NAME]}"
+
+  return ret.strip().replace('  ', ' ')
 
 
 def format_cpr(cpr: str) -> str:
