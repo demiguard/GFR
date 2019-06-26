@@ -26,9 +26,14 @@
               {% if user.is_authenticated %}
               <li><a class="menu-item" href="{% url 'main_page:list_studies' %}">Åben undersøgelse</a></li>
               <li><a class="menu-item" href="{% url 'main_page:search' %}">Historisk undersøgelser</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:deleted_studies' %}">Slettede undersøgelser</a></li>
               <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
               <li><a class="menu-item" href="{% url 'main_page:settings' %}">Bruger indstillinger</a></li>
-              <li><a class="menu-item" href="{% url 'main_page:deleted_studies' %}">Slettede undersøgelser</a></li>
+
+              {% if user.user_group.group_name == 'admin' %}
+                <li><a class="menu-item" href="#">Admin panel</a></li>
+              {% endif %}
+
               {% endif %}
             </ul>
             {% if user.is_authenticated %}

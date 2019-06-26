@@ -56,6 +56,13 @@ class Department(models.Model):
   address = models.CharField(default='', max_length = 200, null=True)
 
 
+# Defines user permissions
+# Remark/TODO: This should probably not be used when switching the ldap database
+class UserGroup(models.Model):
+  ug_id = models.AutoField(primary_key=True)
+  group_name = models.CharField(max_length=200)
+
+
 # User class
 # REMARK / TODO: User creation MUST be done through the command line, see the README for instructions
 class User(AbstractBaseUser):
@@ -77,8 +84,8 @@ class User(AbstractBaseUser):
     on_delete=models.SET_NULL,
     null=True
   )
-  
 
+  user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)
 
   hospitals = [(k,v) for k,v in server_config.hospitals.items()]
   hospital = models.CharField(max_length=3, choices=hospitals)
