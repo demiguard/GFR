@@ -94,7 +94,7 @@ class LibsFormattingTestCase(TestCase):
   Test person name to name
   
   The tests are mainly based on the examples at:
-  http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1 
+  http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1
   """
   def test_person_name_no_middlename_two_suffix(self):
     expected = "Rev. John Robert Quincy Adams, B.A. M.Div."
@@ -153,5 +153,30 @@ class LibsFormattingTestCase(TestCase):
     expected = "Running on Water ABC Farms"
 
     out = formatting.person_name_to_name("ABC Farms^Running on Water")
+
+    self.assertEqual(out, expected)
+
+
+  """Test name to person name"""
+  def test_name_empty(self):
+    expected = ''
+
+    out = formatting.name_to_person_name('')
+
+    self.assertEqual(out, expected)
+
+
+  def test_name_no_middlename(self):
+    expected = 'someoneson^someone^^^'
+
+    out = formatting.name_to_person_name('someone someoneson')
+
+    self.assertEqual(out, expected)
+
+
+  def test_name_middlenames(self):
+    expected = 'someoneson^someone^1 2 3^^'
+
+    out = formatting.name_to_person_name('someone 1 2 3 someoneson')
 
     self.assertEqual(out, expected)
