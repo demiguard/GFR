@@ -517,21 +517,8 @@ def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.
   #Meta information
   fig.set_figheight(image_height)
   fig.set_figwidth(image_width)
-  #Text information
-  p_value_str         = f"P Værdi: {p_value:.6f}\n" 
-  r_value_str         = f"R Værdi: {r_value:.6f}\n"
-  std_err_str         = f"Standard fejl: {standard_error:.6}\n"
-  thining_factor_str  = f"Fortyndelse Faktor: {thining_factor}\n"
-
-  text_str = f"""
-    {thining_factor_str}
-    {p_value_str}
-    {r_value_str}
-    {std_err_str}
-    """
-
-  #Picture information
-  #Ax[0]
+  
+  # Left side - the plot
   for i, val in enumerate(log_tec99_cnt):
     points              = [val, slope * delta_times[i] + intercept]
     time_of_examination = [delta_times[i],delta_times[i]]
@@ -541,14 +528,23 @@ def Generate_QA_Picture(delta_times, tch_cnt, thining_factor, image_height = 10.
   ax[0].plot(x, y, label = 'Regression plot', color='red', zorder=2) #Linear Regression
   ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label = 'Datapoints', zorder=3)
 
-  
-
   ax[0].legend()
-  #ax[1]
+
+  # Right side - text information
+  p_value_str         = f"P Værdi: {p_value:.6f}\n" 
+  r_value_str         = f"R Værdi: {r_value:.6f}\n"
+  std_err_str         = f"Standard fejl: {standard_error:.6}\n"
+  thining_factor_str  = f"Fortyndingsfaktor: {thining_factor}\n"
+
+  text_str = f"""
+    {thining_factor_str}
+    {p_value_str}
+    {r_value_str}
+    {std_err_str}
+  """
+  
   ax[1].axis('off')
-  ax[1].text(0, 0.10, text_str, ha='left', fontsize = 20) 
-
-
+  ax[1].text(0, 0.10, text_str, ha='left', fontsize=20)
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
