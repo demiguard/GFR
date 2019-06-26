@@ -7,7 +7,7 @@ var csv_handler = (function() {
   var csv_row_ids = [];
   var test_count = 0;
 
-  const MAX_SELECT_COUNT = 3;
+  const MAX_SELECT_COUNT = 6;
   const COUNT_COLUMN_NUMBER = 2;
   const MAX_DIFFERENCE = 0.25;
 
