@@ -16,6 +16,7 @@ def person_name_to_name(name: str) -> str:
 
   Remark:
     Specification for person names: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
+    Examples at: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1
   """
   if '*' in name:
     raise ValueError(f"name: '{name}', contains a wildcard character: '*'")
@@ -221,24 +222,24 @@ def is_valid_study(cpr, name, study_date, rigs_nr):
   return (True, error_strings)
 
 
-def name_to_person_name(name):
+def name_to_person_name(name: str) -> str:
   """
   Converts a normally formatted name, e.g. "Jens Jensen" to a dicom person name
-  VR formatting. 
   (for more details see: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
   
   Args:
-    name: string to convert
+    name: string with name to convert
 
   Returns:
     The formatted name conforming with the dicom standard.
 
   Remark:
-    This function also accepts and handles dicom wildcards.
+    The function doesn't handle suffixes, only first, middle and last names
   """
-  name = name.strip()
+  if not name:
+    return name
 
-  names = name.split(' ')
+  names = name.strip().split(' ')
 
   firstname = names[0]
   middlenames = names[1:-1]
@@ -248,10 +249,11 @@ def name_to_person_name(name):
   if middlenames:
     ret = lastname + '^' + firstname + '^' + ' '.join(middlenames)
   else:
-    ret = lastname + '^' + firstname
+    ret = lastname + '^' + firstname + '^'
 
-  return ret
+  return ret + '^^'
   
+
 def convert_cpr_to_cpr_number(cpr):
   """
   Takes a cpr number on format XXXXXX-XXXX, where X is numbers,
