@@ -157,10 +157,17 @@ def calculate_age(cprnr):
 
   """
   try:
-    year_of_birth = int(cprnr[4:6])
-    month_of_birth = int(cprnr[2:4])
-    day_of_birth = int(cprnr[0:2])
-    Control = int(cprnr[7]) #SINGLE diget
+    if len(cprnr) == 11:
+      year_of_birth = int(cprnr[4:6])
+      month_of_birth = int(cprnr[2:4])
+      day_of_birth = int(cprnr[0:2])
+      Control = int(cprnr[7]) #SINGLE diget
+    elif len(cprnr) == 10:
+      year_of_birth = int(cprnr[4:6])
+      month_of_birth = int(cprnr[2:4])
+      day_of_birth = int(cprnr[0:2])
+      Control = int(cprnr[6]) #SINGLE diget
+
   except ValueError:
     return 1
 
@@ -244,7 +251,7 @@ def kidney_function(clearance_norm, cpr, birthdate, gender='K'):
 
   logging.info(f"gender: {gender}")
   logging.info(f"Age: {age}")
-  logging.info(f"age: {age_in_days}")
+  logging.info(f"age in days: {age_in_days}")
 
   #Calculate Mean GFR
   if age < 2 : # Babies
