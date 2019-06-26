@@ -20,6 +20,10 @@
     <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
     <input type="submit" value="Send til PACS">
 
+    {% if show_QA_button %}
+      <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" rigs_nr %}'">
+    {% endif %}
+
     </div>
 </form>
 {% endblock %}

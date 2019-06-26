@@ -2,7 +2,7 @@ import logging
 
 # NOTE: All directories MUST end in a '/'
 
-# --- Dicom related configs ---
+# --- Dicom related configs --- #
 FINDSCU = "findscu"                               # Path to findscu application
 STORESCU = "storescu"                             # Path to storescu application
 GETSCU = "getscu"                                 # Path to getscu application
@@ -47,14 +47,23 @@ new_dict_items = {
   0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus')
 }
 
-# --- Logging --- #
 
+# --- Plot specification --- #
+PLOT_WIDTH = 19.2   # 1920
+PLOT_HEIGHT = 10.8  # 1080
+
+TITLE_FONT_SIZE = 28
+AXIS_FONT_SIZE = 18
+TEXT_FONT_SIZE = 20
+LEGEND_SIZE = 18
+
+
+# --- Logging --- #
 LOG_DIR = "./log/"
 LOG_LEVEL = logging.INFO
 
-# --- Samba Share --- #
 
-#PYSMB Connection
+# --- Samba Share --- #
 samba_ip = '10.49.144.2'
 samba_name = 'gfr'
 
@@ -68,7 +77,6 @@ samba_backup = 'backup'
 
 
 # -- Hospital Dictionary -- #
-
 hospitals = {
     'RH': 'Rigshospitalet',
     'HEH': 'Herlev hospital',
