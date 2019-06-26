@@ -184,8 +184,6 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
 
-    print(request.GET)
-
     search_resp = pacs.search_query_pacs(
       request.user,
       name=search_name,
