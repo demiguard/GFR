@@ -693,6 +693,7 @@ def present_study(request, rigs_nr):
 
   if request.method == 'POST':
     PRH.present_study_post(request, rigs_nr)
+    
     return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR

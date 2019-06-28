@@ -86,9 +86,10 @@ def smb_get_csv(hospital, timeout = 5):
       pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
       pandas_ds = pandas_ds.rename(
         columns={
-          'Time'          : 'Measurement date & time',
-          'Vial'          : 'Pos',
-          'Tc-99m (CPM)'  : 'Tc-99m CPM'
+          'Time'                    : 'Measurement date & time',
+          'Vial'                    : 'Pos',
+          'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
+          'Tc-99m (counts)'         : 'Tc-99m Counts'
         }
       )
       #Because Hidex is in american format, we change the data column to the ONLY CORRECT format

@@ -297,10 +297,11 @@ def present_study_post(request, rigs_nr):
 
   dicom_object = dicomlib.dcmread_wrapper(obj_path)
 
+  logger.info(f"User:{request.user.username} has finished examination: {rigs_nr}")
   success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
-
+  logger.info(f"User:{request.user.username} has stored {rigs_nr} in PACS")
   if success_rate:
-    # Remove the file
+    # Remove the file    
     try:
       os.remove(obj_path)
     except:  
