@@ -118,8 +118,8 @@ def smb_get_csv(hospital, timeout = 5):
         conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
 
 
-    dt_examination = datetime.datetime.strptime(datestring, '%Y-%m-%d %H:%M:%S')
-    if not ((now -  dt_examination).days <= 0):
+    dt_examination = datetime.datetime.strptime(datestring, '%Y%m%d%H%M%S')
+    if not ((now - dt_examination).days <= 0):
       logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
     else:
