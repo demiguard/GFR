@@ -8,6 +8,7 @@ from pydicom import uid
 import numpy as np
 
 from .server_config import new_dict_items
+from . import server_config
 from . import formatting
 
 logger = logging.getLogger()
@@ -156,16 +157,19 @@ def fill_dicom(ds,
   if rigs_nr:
     ds.AccessionNumber = rigs_nr
   if update_dicom:
-    ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
+    ds.Modality = 'OT'
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') #Manufactorer 
     #Number twos
-      #Basic Information
+    #Basic Information
     ds.add_new(0x00080064, 'CS', 'SYN')
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
     ds.add_new(0x00080030, 'TM', '')
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
-    ds.add_new(0x00200010, 'SH', '1')  #Study ID
+    ds.add_new(0x00200010, 'SH', 'GFRcalc')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
+    
+    ds.SoftwareVersions = f'{server_config.SERVER_Name} - {server_config.SERVER_VERSION}'
+
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
     #ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])

@@ -592,23 +592,30 @@ def present_old_study(request, rigs_nr):
   hospital = request.user.hospital
 
   # Search to find patient id - pick field response
-  search_resp = pacs.search_query_pacs(current_user, accession_number=rigs_nr)
-  patient_id = search_resp[0].cpr
-
-  logger.info(f"patient id for present old: {patient_id}")
-
-  #study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
-  series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
-  instance_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'SOP'])
-
+  
   dataset = pacs.move_from_pacs(
     current_user,
-    rigs_nr,
-    patient_id=patient_id,
-    series_id=series_id,
-    #study_id=study_id,
-    instance_id=instance_id
+    rigs_nr
   )
+
+  if dataset == None or not('GFRMETHOD' in dataset):
+    #Query Failed!
+    logger.warning(f"""
+    Error handling: {rigs_nr}
+
+    dataset from query:
+    {dataset}
+    """)
+    error_template = loader.get_template('main_page/present_old_study_error.html')
+    error_context  = {
+      'AccessionNumber' : rigs_nr
+    }
+    if dataset != None:
+      error_context['dataset'] = dataset
+
+
+    return HttpResponse(error_template.render(error_context,request))
+
 
   exam = examination_info.deserialize(dataset)
 

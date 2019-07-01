@@ -141,6 +141,8 @@ def fill_study_post(request, rigs_nr, dataset):
       hosp_dir=request.user.hospital,
       history_age=history_age,
       history_clr_n=history_clrN,
+      method = method,
+      injection_date=inj_datetime.strftime('%d-%b-%Y'),
       name = name,
       procedure_description=dataset.RequestedProcedureDescription
     )

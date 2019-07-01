@@ -370,6 +370,7 @@ def generate_plot_text(
   sex: str,
   rigs_nr: str,
   cpr='',
+  method='',
   name='',
   history_age=[],
   history_clr_n=[],
@@ -377,6 +378,7 @@ def generate_plot_text(
   image_height=server_config.PLOT_HEIGHT,
   image_width=server_config.PLOT_WIDTH,
   index_gfr=0.0,
+  injection_date=None,
   procedure_description='',
   ):
   """
@@ -445,12 +447,14 @@ def generate_plot_text(
 
   name_str            = f"Navn: {name}\n"
   cpr_str             = f"CPR: {cpr}\n"
+  injection_str       = f"Undersøgelsedato: {injection_date}\n"
   accession_str       = f"Accession Nummer: {rigs_nr}\n"
   gender_str          = f"Køn: {gender}\n"
   age_str             = f"Alder: {_age_string(day_of_birth)}\n"
   weight_str          = f"Vægt: {weight:.1f} kg\n"
   height_str          = f"Højde: {height:.1f} cm\n"
   BSA_str             = f"Overflade: {BSA:.2f} m²\n"
+  method_str          = f"Metode:  {method}"
   clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
   clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
   kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
@@ -458,12 +462,14 @@ def generate_plot_text(
 
   print_str = f"""    {name_str}
     {cpr_str}
+    {injection_str}
     {accession_str}
     {gender_str}
     {age_str}
     {weight_str}
     {height_str}
     {BSA_str}
+    {method_str}
     {clearance_str}
     {clearance_norm_str}
     {kidney_function_str}

@@ -23,37 +23,92 @@ from .query_executer import execute_query
 
 logger = logging.getLogger()
 
-def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id="", instance_id=""):
+def move_from_pacs(user, accession_number):
   """
-    Query pacs after a single 
+    
 
     Returns:
       None or Dataset - The dataset is always single
   """
   # # # Get file from pacs # # #
-  #Create Dataset
-  ds = Dataset()
-  ds.PatientID = patient_id #0x00100020
-  ds.AccessionNumber = accession_number
-  ds.SOPInstanceUID = instance_id #0x00080018
-  ds.add_new(0x00080052, 'CS', 'STUDY') #Query level
-  ds.StudyInstanceUID = study_id #0x0020000D 
-  ds.SeriesInstanceUID = series_id #0x0020000E
+  find_datasets = []
+  for stationName in server_config.STATION_NAMES:
+    find_dataset = dataset_creator.create_search_dataset(
+      '', #Name
+      '', #CPR
+      '', #Date_from
+      '', #Date_to
+      accession_number,
+      stationName
+    )
+    find_datasets.append(find_dataset)
 
-  logger.info(f"Executing move_from_pacs with dataset: {ds}")
 
-  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
-  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_calling)
+  find_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+  find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
 
-  if assoc.is_established:
+  move_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
+  move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
+
+  find_assoc = find_ae.associate(
+    user.config.pacs_ip,
+    int(user.config.pacs_port),
+    ae_title=user.config.pacs_calling
+  )
+  move_assoc = move_ae.associate(
+    user.config.pacs_ip,
+    int(user.config.pacs_port),
+    ae_title=user.config.pacs_calling
+  )
+  if find_assoc.is_established and move_assoc.is_established:
+    
+    find_dataset_from_response = []
+    for find_dataset in find_datasets:
+      find_response = find_assoc.send_c_find(find_dataset, query_model='S')
+      for (status, dataset_from_find) in find_response:
+        # Error Checking
+        if status.Status == 0xC001:
+          logger.warn(f"""
+            C-FIND failed with dataset: 
+            {find_dataset}
+          """)
+          try:
+            move_assoc.release()          
+            find_assoc.release()
+          except:
+            pass
+          return None
+          # Extract available data 
+        if dataset_from_find != None:
+          find_dataset_from_response.append(dataset_from_find)
+    
+    if len(find_dataset_from_response) > 1:
+      #Soooo somehow we got more than one response to a unique AccessionNumber?
+      logger.warn(f"""
+      Move_from_pacs got multiple responses to AccessionNumber: {rigs_nr}
+
+      The responses was:
+        {find_dataset_from_response} 
+      
+      """)
+    elif len(find_dataset_from_response) == 0:
+      Logger.info(f"Could not find any study under {rigs_nr}")
+      find_assoc.release()
+      move_assoc.release()
+      return None
+
+    #Takes the first dataset. We can do this because len > 0
+    move_query_dataset = find_dataset_from_response[0]
+    
     successfull_move = False
-    response = assoc.send_c_move(
-      ds,
+    move_response = move_assoc.send_c_move(
+      move_query_dataset,
       server_config.SERVER_AE_TITLE,
       query_model='S'
-      )
-    for (status, identifier) in response:
+    )
+    for (status, identifier) in move_response:
       if status.Status == 0x0000:
         # We are successful
         logger.info('C-move successful')
@@ -97,6 +152,9 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   BASE_FIND_QUERY_PATH = resp_path + "base_find_query.dcm"
   BASE_IMG_QUERY_PATH = resp_path + "base_get_image.dcm"
   
+  logger.info('Get from pacs is called')
+
+
   # Insert AccessionNumber into query file
   find_query = dicomlib.dcmread_wrapper(BASE_FIND_QUERY_PATH)
   find_query.AccessionNumber = rigs_nr
@@ -381,7 +439,14 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   # Construct Search Dataset
   search_datasets = []
   for stationName in server_config.STATION_NAMES:
-    search_datasets.append(dataset_creator.create_search_dataset(name, cpr, date_from, date_to, accession_number, stationName))
+    search_datasets.append(dataset_creator.create_search_dataset(
+      name,
+      cpr, 
+      date_from, 
+      date_to, 
+      accession_number, 
+      stationName)
+    )
 
   logger.info(f"Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
 
@@ -448,17 +513,19 @@ def get_history_from_pacs(cpr, birthday, user):
   move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
   
   #Create the dataset for a C-FIND
-  find_dataset = Dataset()
-  #Known Parameters
-  find_dataset.PatientID = cpr
-  find_dataset.Modality  = 'OT'
-  find_dataset.StudyDescription = 'GFR, Tc-99m-DTPA'
-  find_dataset.add_new(0x00080052,'CS', 'STUDY')
-  #Searching Parameters
-  find_dataset.AccessionNumber = ''
-  find_dataset.SOPClassUID = ''
-  find_dataset.SOPInstanceUID = ''
-  find_dataset.SOPStudyInstanceUID = ''
+  find_datasets = []
+  for AET in server_config.STATION_NAMES:
+    find_dataset = Dataset()
+    #Known Parameters
+    find_dataset.PatientID = cpr
+    find_dataset.Modality  = 'OT'
+    find_dataset.add_new(0x00080052,'CS', 'STUDY')
+    find_dataset.StationName = AET
+    #Searching Parameters
+    find_dataset.AccessionNumber = ''
+    find_dataset.SOPClassUID = ''
+    find_dataset.SOPInstanceUID = ''
+    find_dataset.SOPStudyInstanceUID = ''
   
   #Make a C-FIND to pacs
   find_assoc = find_ae.associate(
@@ -473,47 +540,46 @@ def get_history_from_pacs(cpr, birthday, user):
   )
 
   if find_assoc.is_established and move_assoc.is_established:
-    find_response = find_assoc.send_c_find(find_dataset, query_model='S')
-    for (find_status, find_response_dataset) in find_response:
-      if find_status.Status == 0xFF00:
-        #Create Dataset to C-MOVE
-        accession_number = find_response_dataset.AccessionNumber
+    for find_dataset in find_datasets:
+      find_response = find_assoc.send_c_find(find_dataset, query_model='S')
+      for (find_status, find_response_dataset) in find_response:
+        if find_status.Status == 0xFF00:
+          #Create Dataset to C-MOVE
+          accession_number = find_response_dataset.AccessionNumber
 
         #For each response make a C-MOVE to myself
-        move_response = move_assoc.send_c_move(
-          find_response_dataset,
-          user.config.pacs_calling,
-          query_model='S'
-        )
-        for (move_status, identifyer) in move_response:
-          if move_status.Status == 0x0000:
-            filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
-          #Open the DCM file
-            logger.info(f'Search File, Filename: {filename}')
-            try:
-              move_response_dataset = dicomlib.dcmread_wrapper(filename)
-              #Read values of Clearence Normalized and date of examination into a return list
-              date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
-              date_list.append(date_of_examination)
-              age_at_examination = (date_of_examination - birthday).days / 365
-              age_list.append(age_at_examination)
-              clearence_norm_list.append(float(move_response_dataset.normClear))
-              #Delete the file
-              logger.info(f'Deleteing File: {filename}')
-              os.remove(filename)
-            except Exception as E:
-              logger.warn(f'Error handling {accession_number} with {E}')      
-          else:
-            logger.warn(f'Move Response code:{move_status.Status}')
-            
-
-      elif find_status.Status == 0x0000:
-        logger.info(f"""Successfull gathered history to be:
-          date_list:{date_list}
-          age_list:{age_list}
-          clearence_normalized_list:{clearence_norm_list}""")
-      else: 
-        logger.warn(f""" Unexpected Status code:{find_status.Status}""")
+          move_response = move_assoc.send_c_move(
+            find_response_dataset,
+            user.config.pacs_calling,
+            query_model='S'
+          )
+          for (move_status, identifyer) in move_response:
+            if move_status.Status == 0x0000:
+              filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
+            #Open the DCM file
+              logger.info(f'Search File, Filename: {filename}')
+              try:
+                move_response_dataset = dicomlib.dcmread_wrapper(filename)
+                #Read values of Clearence Normalized and date of examination into a return list
+                date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
+                date_list.append(date_of_examination)
+                age_at_examination = (date_of_examination - birthday).days / 365
+                age_list.append(age_at_examination)
+                clearence_norm_list.append(float(move_response_dataset.normClear))
+                #Delete the file
+                logger.info(f'Deleteing File: {filename}')
+                os.remove(filename)
+              except Exception as E:
+                logger.warn(f'Error handling {accession_number} with {E}')      
+            else:
+              logger.warn(f'Move Response code:{move_status.Status}')
+        elif find_status.Status == 0x0000:
+          logger.info(f"""Successfull gathered history to be:
+            date_list:{date_list}
+            age_list:{age_list}
+            clearence_normalized_list:{clearence_norm_list}""")
+        else: 
+          logger.warn(f""" Unexpected Status code:{find_status.Status}""")
     #If statement done
     find_assoc.release()
     move_assoc.release()
