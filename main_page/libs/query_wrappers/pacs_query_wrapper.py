@@ -514,13 +514,14 @@ def get_history_from_pacs(cpr, birthday, user):
   
   #Create the dataset for a C-FIND
   find_datasets = []
-  for AET in server_config.STATION_NAMES:
+  for station_name in server_config.STATION_NAMES:
     dataset_creator.create_search_dataset(
       '', #Name
       cpr, #CPR
-      '',
-      '',
-      stationName
+      '', #Date_from
+      '', #date_to
+      '', #Accession Number
+      station_name #StationName
     )
   
   #Make a C-FIND to pacs
