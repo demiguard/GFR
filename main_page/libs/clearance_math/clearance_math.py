@@ -90,15 +90,13 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
     clearance_normalized = GFR * normalizing_constant / BSA 
 
-  elif method == "Flere blodprøver" :
+  elif method == "Flere blodprøver":
 
     log_tec99_cnt = [numpy.log(x) for x in tec99_cnt]
 
     slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
   
     clearance_1 = (dosis * (-slope)) / numpy.exp(intercept) 
-
-
 
     magic_number_1 = 0.0032
     magic_number_2 = 1.3

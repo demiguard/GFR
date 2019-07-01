@@ -165,7 +165,7 @@ def fill_dicom(ds,
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')
     ds.add_new(0x00080030, 'TM', '')
     ds.add_new(0x00080090, 'PN', '')  #request.user.name or BAMID.name
-    ds.add_new(0x00200010, 'SH', 'GFRcalc')  #Study ID
+    ds.add_new(0x00200010, 'SH', server_config.SERVER_NAME)  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
     
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
