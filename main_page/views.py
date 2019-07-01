@@ -46,6 +46,8 @@ class IndexView(TemplateView):
 
   def get(self, request):
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'login_form': forms.LoginForm()
     }
 
@@ -273,6 +275,8 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     })
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'study_form': new_study_form,
       'error_msg' : ''
     }
@@ -320,6 +324,8 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     bookings = list(sorted(bookings, key=date_sort, reverse=True))
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'bookings': bookings,
       'error_message' : error_message
     }
@@ -456,6 +462,8 @@ def fill_study(request, rigs_nr):
     exam.std_cnt = None
 
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
       'cpr': exam.cpr,
@@ -568,6 +576,8 @@ class SearchView(LoginRequiredMixin, TemplateView):
       item.field.widget.attrs['class'] = 'form-control'
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'getstudy' : get_study_form,
       'responses': search_resp,
     }
@@ -666,6 +676,8 @@ def present_old_study(request, rigs_nr):
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'name': exam.name,
     'date': exam.date,
     'rigs_nr': rigs_nr,
@@ -733,6 +745,8 @@ def present_study(request, rigs_nr):
   plot_path = f"main_page/images/{hospital}/{rigs_nr}.png" 
   
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'name': exam.name,
     'date': exam.date,
     'rigs_nr': rigs_nr,
@@ -768,6 +782,8 @@ class SettingsView(LoginRequiredMixin, TemplateView):
       saved = True
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'settings_form': forms.SettingsForm(instance=request.user.config),
       'saved': saved
     }
@@ -813,6 +829,8 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
       deleted_studies.append(curr_exam)
     
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'deleted_studies': deleted_studies,
     }
 
@@ -864,6 +882,8 @@ class QAView(LoginRequiredMixin, TemplateView):
     Im.save(f"{server_config.IMG_RESPONS_DIR}{request.user.hospital}/QA-{accession_number}.png")
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'image_path' : image_path
     }
 
