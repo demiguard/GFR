@@ -62,11 +62,11 @@ def fill_study_post(request, rigs_nr, dataset):
     # TODO: Possibly make an Enum in the future
     study_type = int(request.POST['study_type'])
     if study_type == 0:
-      method = "EPV"
+      method = "En blodprøve, Voksen"
     elif study_type == 1:
-      method = "EPB"
+      method = "En blodprøve, Barn"
     elif study_type == 2:
-      method = "Multi-4"
+      method = "Flere blodprøver"
     else:
       method="INVALID METHOD"
 
