@@ -168,7 +168,7 @@ def fill_dicom(ds,
     ds.add_new(0x00200010, 'SH', 'GFRcalc')  #Study ID
     ds.add_new(0x00200013, 'IS', '1')
     
-    ds.SoftwareVersions = f'{server_config.SERVER_Name} - {server_config.SERVER_VERSION}'
+    ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
