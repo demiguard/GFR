@@ -138,7 +138,7 @@ def create_search_dataset(
   dataset.SeriesInstanceUID = ''
   dataset.StudyInstanceUID = ''
   dataset.Modality = 'OT'
-  dataset.StudyID = server_config.SERVER_NAME
+  dataset.StudyID = 'GFR*'
 
   logger.debug(f"""
   create_search_dataset returning dataset:
