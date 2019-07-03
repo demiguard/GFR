@@ -80,3 +80,6 @@ class GetStudy(forms.Form):
 
 class FillThiningFactor(forms.Form):
   thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)
+
+class GetBackupDate(forms.Form):
+  dateofmessurement = forms.DateField(label='Backup fra dato (ÅÅÅÅ-MM-DD)', required=False)

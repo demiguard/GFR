@@ -491,6 +491,9 @@ def fill_study(request, rigs_nr):
     'test_context': {
       'test_form': test_form
     },
+    'GetBackupDate' : forms.GetBackupDate(initial={
+      'dateofmessurement' : datetime.date.today()
+    }),
     'previous_samples': previous_samples,
     'csv_data': csv_data,
     'csv_data_len': len(data_names),

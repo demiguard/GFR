@@ -6,3 +6,7 @@
   height: 495px;
   overflow: auto
 }
+
+#id_dateofmessurement {
+  width: 50%;
+}

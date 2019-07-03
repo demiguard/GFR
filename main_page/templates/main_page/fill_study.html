@@ -109,8 +109,8 @@
       </div>
 
       <!-- Right side -->
-      {% if csv_data_len != 0 %}
       <div class="col-md-6" id="right_side">
+      {% if csv_data_len != 0 %}
         <p><strong>Vælg prøve fra fil</strong></p>
         <div class="csvAccordion" id="accordionContainer">
           {% for name, data, id in csv_data %}
@@ -148,11 +148,13 @@
             </div>
             <br>
           {% endfor %}
-        </div>
-        {% else %}
+          {% else %}
           <p>{{ error_message }}</p>
+        </div>
         {% endif %}
       <!-- Right closing-->
+      <!--{% bootstrap_form GetBackupDate %}-->
+      <!--<input type="button" value="Hent måling">-->
       </div>
     </div>
   </form>
