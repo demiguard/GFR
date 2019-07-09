@@ -26,6 +26,7 @@ from .libs import dataset_creator
 from dateutil import parser as date_parser
 import datetime
 import time
+import json
 import logging
 import shutil
 import glob
@@ -132,6 +133,54 @@ class AjaxDeleteStudy(TemplateView):
       resp.status_code = 403
 
     return resp
+
+class AjaxGetbackup(TemplateView):
+  def get(self, request, date):
+    #Get the date from response
+    formated_date = date.replace('-','')
+
+    logger.info(f'Handling Ajax Get backup request with format: {date}')
+    try:
+      backup_data = samba_handler.get_backup_file(formated_date, request.user.hospital)
+    except Exception as e: 
+      logger.warn(e)
+
+      response = JsonResponse({})
+      response.status_code = 500
+      return response
+
+
+    #Sort data from samba share
+    formated_data = {}
+    x = 0
+    for pandas_dataset in backup_data:
+      #Remove Unused columns
+      used_columns = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
+      
+      for label, _ in pandas_dataset.iteritems():
+        #Remove Unused Labels
+        if not(label in used_columns):
+          pandas_dataset = pandas_dataset.drop(columns = [label])
+        
+      #Put in 
+      #Assuming 2 tests cannot be made at the same time. If they are, they will be overwritten
+      _, time_of_messurement = pandas_dataset['Measurement date & time'][0].split(' ')
+      dict_data = pandas_dataset.to_dict()
+      formated_data[time_of_messurement] = dict_data
+      #Endfor
+      
+    response = JsonResponse(formated_data)
+
+    # Creating valid HTTP response see:
+    # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+    if backup_data == []:
+      response.status_code = 204
+    else:
+      response.status_code = 200
+
+    return response
+
 
 
 class AjaxRestoreStudy(TemplateView):

@@ -7,6 +7,45 @@ from . import formatting
 
 logger = logging.getLogger()
 
+def open_csv_file(temp_file):
+  """
+
+    Opens a CSV file 
+  
+    Args:
+      temp_file an already opened file
+
+    Returns
+      pandas File
+
+  """
+  try:
+    pandas_ds = pandas.read_csv(temp_file.name)
+    protocol = pandas_ds['Protocol name'][0]
+    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+      
+  except:
+    # Hidex file
+    pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
+    pandas_ds = pandas_ds.rename(
+      columns={
+        'Time'                    : 'Measurement date & time',
+        'Vial'                    : 'Pos',
+        'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
+        'Tc-99m (counts)'         : 'Tc-99m Counts'
+      }
+    )
+    #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
+    pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
+
+    datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace(' ','').replace(':','')
+    # Get protocol
+    temp_file.seek(0)
+    protocol = temp_file.readline()
+  
+  return pandas_ds, datestring, protocol
+
+
 
 def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
   """
@@ -21,12 +60,12 @@ def move_to_backup(smbconn, temp_file, hospital,fullpath, filename):
   try:
     smbconn.createDirectory(server_config.samba_share, u'/backup')
   except:
-    logger.info('Failed to create Directory /backup')
+    pass
 
   try:
     smbconn.createDirectory(server_config.samba_share, u'backup/{0}'.format(hospital))
   except:
-    logger.info('Failed to create Directory')
+    pass
 
   Stored_bytes = smbconn.storeFileFromOffset(
     server_config.samba_share,
@@ -76,30 +115,7 @@ def smb_get_csv(hospital, timeout = 5):
     logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
     file_attri, file_size = conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
     temp_file.seek(0)
-    try:
-      pandas_ds = pandas.read_csv(temp_file.name)
-      protocol = pandas_ds['Protocol name'][0]
-      datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
-      
-    except ParserError:
-      # Hidex file
-      pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
-      pandas_ds = pandas_ds.rename(
-        columns={
-          'Time'                    : 'Measurement date & time',
-          'Vial'                    : 'Pos',
-          'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
-          'Tc-99m (counts)'         : 'Tc-99m Counts'
-        }
-      )
-      #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
-      pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
-
-      datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace(' ','').replace(':','')
-      # Get protocol
-      temp_file.seek(0)
-      protocol = temp_file.readline()
-
+    pandas_ds, datestring, protocol = open_csv_file(temp_file)
 
     # File Cleanup
     
@@ -120,7 +136,7 @@ def smb_get_csv(hospital, timeout = 5):
 
 
     dt_examination = datetime.datetime.strptime(datestring, '%Y%m%d%H%M%S')
-    if not ((now - dt_examination).days <= 0):
+    if (now - dt_examination).days > 0:
       logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
     else:
@@ -133,6 +149,7 @@ def smb_get_csv(hospital, timeout = 5):
   sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0],reverse=True)
 
   return sorted_array
+
 
 def get_backup_file(date, hospital, timeout = 30):
   """
@@ -160,15 +177,18 @@ def get_backup_file(date, hospital, timeout = 30):
   samba_files = conn.listPath(server_config.samba_share, hospital_backup_folder)
 
   for samba_file in samba_files:
-    temp_file = tempfile.NamedTemporaryFile()
+
 
     if date == samba_file.filename[:8]:
+      temp_file = tempfile.NamedTemporaryFile()
 
       fullpath = hospital_backup_folder + samba_file.filename
       file_attri, file_len = conn.retrieveFile(server_config.samba_share, fullpath, temp_file, timeout= 30)
       temp_file.seek(0)
-      pandas_ds = pandas.read_csv(temp_file.name)
+      pandas_ds, _, _ = open_csv_file(temp_file)
       return_pandas_list.append(pandas_ds)
+
+      temp_file.close()
 
   return return_pandas_list
 

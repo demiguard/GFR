@@ -111,8 +111,8 @@
       <!-- Right side -->
       <div class="col-md-6" id="right_side">
       {% if csv_data_len != 0 %}
-        <p><strong>Vælg prøve fra fil</strong></p>
-        <div class="csvAccordion" id="accordionContainer">
+        <p><strong>Vælg prøve fra fil:</strong></p>
+          <div class="csvAccordion" id="accordionContainer">
           {% for name, data, id in csv_data %}
             <div class="card">
               <div class="card-header" id="heading-{{ id }}">
@@ -121,7 +121,7 @@
                     {{ name }}
                   </button>
                 </h2>
-              </div>
+              </div> <!-- card header closing-->
     
               <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
                 <div class="card-body">
@@ -143,18 +143,26 @@
                       {% endfor %}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            </div>
+                </div> <!-- card-body Closing -->
+              </div> <!--collapse-ID closing -->
+            </div> <!-- card Closing -->
             <br>
           {% endfor %}
+          </div> <!-- AccordingContainer Closing -->
           {% else %}
           <p>{{ error_message }}</p>
         </div>
         {% endif %}
-      <!-- Right closing-->
-      <!--{% bootstrap_form GetBackupDate %}-->
-      <!--<input type="button" value="Hent måling">-->
+        <div id="dynamic_generate_history">
+          <input type="button" value="Tilbage til dagens målinger" onclick="RemoveBackupMessurement()">
+          <br><br>
+          <div id="history_container">
+          </div> <!--history_container Closing-->
+        </div> <!-- dynamic_generate_history Closing-->
+        {% bootstrap_form GetBackupDate %}
+        <input type="button" value="Hent målinger" onclick="GetBackupMessurements()">
+        
+        <!-- Right closing-->
       </div>
     </div>
   </form>

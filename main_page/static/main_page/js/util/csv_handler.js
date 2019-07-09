@@ -476,7 +476,9 @@ var csv_handler = (function() {
     init_add_test: init_add_test,
     init_reset_selected: init_reset_selected,
     init_add_standard: init_add_standard,
-    init_study_method: init_study_method
+    init_study_method: init_study_method,
+    csv_row_ids : csv_row_ids,
+    clear_selected_rows : clear_selected_rows
   }
 
 })();
