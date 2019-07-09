@@ -140,6 +140,11 @@ function initialize_modules() {
 var json_response;
 
 function GetBackupMessurements(){
+  /* 
+    This function is called when the button 'Hent målling'
+  */
+
+
   var date = $('#id_dateofmessurement').val();
   
   fetch('/ajax/get_backup/' + date).then(
@@ -233,24 +238,31 @@ function GetBackupMessurements(){
           card_str +='<br>\n';
 
           history_container.append(card_str);
+          //End of For loop over Json-datasets
         }
+        // Apply js to newly genereated Table
         csv_handler.init_row_selector('.history_csv_row');
 
         // Hide current table
         document.getElementById("accordionContainer").style.display = 'none';
+        // display Newly generated table
         document.getElementById("dynamic_generate_history").style.display = 'block';
-        // display
-
-
       }
     }
   )
 }
 
 function RemoveBackupMessurement(){
+  /* 
+    This Function happens when the button 'Tilbage til Dagens Mållinger' is clicked:
+
+    The purpose of this function is to hide the historical data, and redisplay the old data
+  */
+
   // Reset Selection before we go back
   csv_handler.clear_selected_rows();
 
+  //One could argue that you should remove the generated table here, but instead this is done 
   document.getElementById("accordionContainer").style.display='block';
   document.getElementById("dynamic_generate_history").style.display='none';
 
