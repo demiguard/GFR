@@ -345,6 +345,9 @@ def start_scp_server():
 
       Returns
         0x0000 - success code for successful store 
+
+    
+      Retried due to retried functionality of Pynetdicom v 1.4.0
     """
     #logger.info(f"Recieved C-STORE with ID:{info['parameters']}")
     #logger.info(f"C-Store Originated from:{info['parameters']}")
@@ -368,7 +371,7 @@ def start_scp_server():
     """
       C-Move is unsupported by our Application as we do not have access to the list
 
-
+      Retried due to retried functionality of Pynetdicom v 1.4.0
     """
     logger.info('Recieved C-move')
     logger.info('\n')
@@ -422,6 +425,7 @@ def start_scp_server():
       fullpath = server_config.SEARCH_DIR + filename
       dicomlib.save_dicom(fullpath, retrieved_dataset)
 
+      return 0x0000
 
     else:
       return_dataset = pydicom.Dataset()
@@ -477,7 +481,8 @@ def start_scp_server():
 
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.supported_contexts = StoragePresentationContexts
-  #server_ae.on_c_store = on_store
+  #
+  #server_ae.on_c_store = on_store 
   #server_ae.on_c_move = on_move
 
   server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)

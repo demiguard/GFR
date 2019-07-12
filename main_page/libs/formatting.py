@@ -290,43 +290,43 @@ def reverse_format_date(reverse_Date : str) -> str:
     """
   # Argument checking
   if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
-    date, month, year = reverse_Date.split('-')
+    day, month, year = reverse_Date.split('-')
 
-    if date.isdigit() and month.isdigit() and year.isdigit():
+    if day.isdigit() and month.isdigit() and year.isdigit():
       try:
         #Create datetime object to see if it's a valid date
-        datetime.date(year, month, day) 
+        datetime(int(year), int(month), int(day)) 
       except ValueError as  V:
         raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
     else:
       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
   
   elif reverse_Date.count('/') and len(reverse_Date) == 10:
-    date, month, year = reverse_Date.split('/')
+    day, month, year = reverse_Date.split('/')
 
-    if date.isdigit() and month.isdigit() and year.isdigit():
+    if day.isdigit() and month.isdigit() and year.isdigit():
       try:
         #Create datetime object to see if it's a valid date
-        datetime.date(year, month, day) 
+        datetime(int(year), int(month), int(day))  
       except ValueError as V:
         raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
     else:
       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
   
   elif len(reverse_Date) == 8 and reverse_Date.isdigit():
-    date = int(reverse_Date[:2])
-    month = int(reverse_Date[2:4])
-    year = int(reverse_Date[4:])
+    day = reverse_Date[:2]
+    month = reverse_Date[2:4]
+    year = reverse_Date[4:]
 
     try:
       #Create datetime object to see if it's a valid date
-      datetime.date(year, month, day) 
+      datetime(int(year), int(month), int(day)) 
     except ValueError as V:
       raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
   else:
     raise ValueError('Reverse_format_date: String is not on correct format')
 # Converting format
-  returnstring = str(year) + str(month) + str(date)
+  returnstring = str(year) + str(month) + str(day)
   # Returning
   return returnstring
 
