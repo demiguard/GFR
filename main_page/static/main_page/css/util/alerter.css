@@ -9,3 +9,8 @@
   border: 2px solid lightcoral;
   background-color: #F7A9A9;
 }
+
+/* Success fields */
+.success-field {
+  border: 2px solid greenyellow;
+}

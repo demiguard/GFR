@@ -111,6 +111,7 @@ function initialize_date_fields() {
   $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
   $('#id_birthdate').datepicker({format:'yyyy-mm-dd'});
+  $('#id_dateofmessurement').datepicker({format:'yyyy-mm-dd'});
 }
 
 /*

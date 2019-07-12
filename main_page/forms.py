@@ -2,6 +2,8 @@ from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 import main_page.models as models
+import main_page.libs.server_config as server_config
+
 
 # User settings form
 class SettingsForm(ModelForm):
@@ -88,6 +90,87 @@ class AddUserForm(ModelForm):
       'username',
       'password',
     ]
+
+    labels = {
+      'username': 'Brugernavn'
+    }
+
+  confirm_pass = forms.CharField(max_length=120, label="Gentag password", widget=forms.PasswordInput())
+
+  # List available hospital choices from the database
+  hosp_depart_choices = [ ]
+
+  for department in models.Department.objects.all():
+    choice_str = f"{department.hospital.name} - {department.name}"
+    hosp_depart_choices.append((department.id, choice_str))
+
+  hosp_depart = forms.ChoiceField(choices=hosp_depart_choices, label="Afdeling")
+
+  # List available user groups
+  group_choices = [(group.id, group.name) for group in reversed(models.UserGroup.objects.all())]
+
+  group = forms.ChoiceField(choices=group_choices, label="Bruger gruppe")
+
+
+class AddHospitalForm(ModelForm):
+  class Meta:
+    model = models.Hospital
+    fields = [
+      'name',
+      'short_name',
+      'address'
+    ]
+
+    labels = {
+      'name': 'Navn',
+      'short_name': 'Forkortelse',
+      'address': 'Addresse',
+    }
+
+
+class AddDepartmentForm(ModelForm):
+  class Meta:
+    model = models.Department
+    fields = [
+      'name',
+    ]
+
+    labels =  {
+      'name': 'Navn',
+    }
+
+  # List available hospitals
+  hosp_choices = [(hospital.id, hospital.name) for hospital in models.Hospital.objects.all()]
+
+  hospital = forms.ChoiceField(choices=hosp_choices)
+
+
+class AddConfigForm(ModelForm):
+  class Meta:
+    model = models.Config
+    fields = [
+      'ris_aet',
+      'ris_ip',
+      'ris_port',
+      'ris_calling',
+      'pacs_aet',
+      'pacs_ip',
+      'pacs_port',
+      'pacs_calling'
+    ]
+
+
+class SearchHandledExaminationsForm(ModelForm):
+  class Meta:
+    model = models.HandledExaminations
+    fields = [
+      'accession_number'
+    ]
+
+    labels = {
+      'accession_number': 'Accession nummer'
+    }
+
 
 class GetBackupDate(forms.Form):
   dateofmessurement = forms.DateField(label='Backup fra dato (ÅÅÅÅ-MM-DD)', required=False)
