@@ -78,6 +78,7 @@ samba_backup = 'backup'
 
 # --- Hospital Dictionary --- #
 HOSPITALS = {
+  'TEST': 'Test Hospital',
   'RH': 'Rigshospitalet',
   'HEH': 'Herlev hospital',
   'HI': 'Hillerød hospital',

@@ -53,14 +53,14 @@ def move_from_pacs(user, accession_number):
   move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
 
   find_assoc = find_ae.associate(
-    user.config.pacs_ip,
-    int(user.config.pacs_port),
-    ae_title=user.config.pacs_calling
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_calling
   )
   move_assoc = move_ae.associate(
-    user.config.pacs_ip,
-    int(user.config.pacs_port),
-    ae_title=user.config.pacs_calling
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_calling
   )
   if find_assoc.is_established and move_assoc.is_established:
     

@@ -138,7 +138,7 @@ def fill_study_post(request, rigs_nr, dataset):
       rigs_nr,
       cpr = cpr,
       index_gfr=gfr_index,
-      hosp_dir=request.user.department.hospital,
+      hosp_dir=request.user.department.hospital.short_name,
       history_age=history_age,
       history_clr_n=history_clrN,
       method = method,
@@ -167,7 +167,7 @@ def store_form(request, dataset, rigs_nr):
     rigs_nr: rigs number of the examination to store in
   """
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  hospital = request.user.department.hospital
+  hospital = request.user.department.hospital.short_name
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
@@ -294,8 +294,8 @@ def present_study_post(request, rigs_nr):
     rigs_nr: the rigs number of the examination to store
   """
   # Send information to PACS
-  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.dcm"
-  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.png"
+  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.dcm"
+  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.png"
 
   dicom_object = dicomlib.dcmread_wrapper(obj_path)
 
@@ -313,7 +313,7 @@ def present_study_post(request, rigs_nr):
     except:
       logger.warn(f'Could not delete {image_path}')
     # Store the RIGS number in the HandleExaminations table
-    HE = models.HandledExaminations(rigs_nr=rigs_nr)
+    HE = models.HandledExaminations(accession_number=rigs_nr)
     HE.save()
   else:
     # Try again?

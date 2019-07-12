@@ -388,7 +388,7 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
-    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.dcm"
+    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.dcm"
 
     dataset = dicomlib.dcmread_wrapper(file_path)
     dataset = PRH.fill_study_post(request, rigs_nr, dataset)
@@ -768,7 +768,7 @@ def present_study(request, rigs_nr):
     return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  hospital = request.user.department.hospital
+  hospital = request.user.department.hospital.short_name
   
   DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
 

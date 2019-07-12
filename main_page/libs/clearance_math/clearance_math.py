@@ -425,8 +425,8 @@ def generate_plot_text(
   
   plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
 
-  titlestring = f"""Undersøgelsen udført på: {server_config.hospitals[hosp_dir]}
-    {procedure_description}""" 
+  titlestring = f"""Undersøgelsen udført på: {server_config.HOSPITALS[hosp_dir]}
+    {procedure_description}"""
 
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
   
