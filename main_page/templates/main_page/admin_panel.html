@@ -1,0 +1,27 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+  <h2>Admin panel</h2>
+  <h3>Tilføj bruger:</h3>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <form method="POST">
+        {% bootstrap_form add_user_form %}
+
+        {% bootstrap_form add_config_form %}
+
+        <input type="submit" value="Opret">
+      </form>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block javascript %}
+  
+{% endblock %}

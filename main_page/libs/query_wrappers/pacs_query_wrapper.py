@@ -44,7 +44,7 @@ def move_from_pacs(user, accession_number, patient_id="", series_id="", study_id
 
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
-  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_calling)
+  assoc = ae.associate(user.department.config.pacs_ip, int(user.department.config.pacs_port), ae_title=user.department.config.pacs_calling)
 
   if assoc.is_established:
     successfull_move = False
@@ -106,12 +106,12 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   find_query = [
     server_config.FINDSCU,
     '-S',
-    user.config.pacs_ip,
-    user.config.pacs_port,
+    user.department.config.pacs_ip,
+    user.department.config.pacs_port,
     '-aet',
-    user.config.pacs_calling,
+    user.department.config.pacs_calling,
     '-aec',
-    user.config.pacs_aet,
+    user.department.config.pacs_aet,
     BASE_FIND_QUERY_PATH,
     '-X',
     '-od',
@@ -145,13 +145,13 @@ def get_from_pacs(user, rigs_nr, cache_dir, resp_path="./rsp/"):
   img_query = [
     server_config.GETSCU,
     '-P',
-    user.config.pacs_ip,
-    user.config.pacs_port,
+    user.department.config.pacs_ip,
+    user.department.config.pacs_port,
     BASE_IMG_QUERY_PATH,
     '-aet',
-    user.config.pacs_calling,
+    user.department.config.pacs_calling,
     '-aec',
-    user.config.pacs_aet,
+    user.department.config.pacs_aet,
     '-od',
     resp_path
   ]
@@ -209,11 +209,11 @@ def store_in_pacs(user, obj_path):
   store_query = [
     server_config.STORESCU,
     '-aet',
-    user.config.pacs_calling,
+    user.department.config.pacs_calling,
     '-aec',
-    user.config.pacs_aet,
-    user.config.pacs_ip,
-    user.config.pacs_port,
+    user.department.config.pacs_aet,
+    user.department.config.pacs_ip,
+    user.department.config.pacs_port,
     obj_path
   ]
   
@@ -223,7 +223,7 @@ def store_in_pacs(user, obj_path):
 
 def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   """
-    Stores a dicom object in the user defined pacs (user.config)
+    Stores a dicom object in the user defined pacs (user.department.config)
     It uses a C-store message
 
     Args:
@@ -242,9 +242,9 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
   assoc = ae.associate(
-    user.config.pacs_ip,
-    int(user.config.pacs_port),
-    ae_title=user.config.pacs_aet
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_aet
   )
 
   if assoc.is_established:
@@ -390,7 +390,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
 
   # Connect with AE
-  assoc = ae.associate(user.config.pacs_ip, int(user.config.pacs_port), ae_title=user.config.pacs_aet)
+  assoc = ae.associate(user.department.config.pacs_ip, int(user.department.config.pacs_port), ae_title=user.department.config.pacs_aet)
   
   if assoc.is_established:
     # Make Search Request
@@ -440,8 +440,8 @@ def get_history_from_pacs(cpr, birthday, user):
 
 
   #Create Assosiation to pacs
-  find_ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
-  move_ae = pynetdicom.AE(ae_title=user.config.pacs_calling)
+  find_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
+  move_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
   find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
   MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
@@ -462,14 +462,14 @@ def get_history_from_pacs(cpr, birthday, user):
   
   #Make a C-FIND to pacs
   find_assoc = find_ae.associate(
-    user.config.pacs_ip,
-    int(user.config.pacs_port),
-    ae_title=user.config.pacs_aet)
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_aet)
 
   move_assoc = move_ae.associate(
-    user.config.pacs_ip,
-    int(user.config.pacs_port),
-    ae_title=user.config.pacs_aet
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_aet
   )
 
   if find_assoc.is_established and move_assoc.is_established:
@@ -482,7 +482,7 @@ def get_history_from_pacs(cpr, birthday, user):
         #For each response make a C-MOVE to myself
         move_response = move_assoc.send_c_move(
           find_response_dataset,
-          user.config.pacs_calling,
+          user.department.config.pacs_calling,
           query_model='S'
         )
         for (move_status, identifyer) in move_response:

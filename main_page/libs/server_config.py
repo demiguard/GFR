@@ -76,16 +76,18 @@ samba_Sample = 'Samples'
 samba_backup = 'backup'
 
 
-# -- Hospital Dictionary -- #
-hospitals = {
-    'RH': 'Rigshospitalet',
-    'HEH': 'Herlev hospital',
-    'HI': 'Hillerød hospital',
-    'FH': 'Frederiksberg hospital',
-    'BH': 'Bispebjerg hospital',
-    'GLO': 'Glostrup hospital',
-    'HVH': 'Hvidovre hospital',
+# --- Hospital Dictionary --- #
+HOSPITALS = {
+  'RH': 'Rigshospitalet',
+  'HEH': 'Herlev hospital',
+  'HI': 'Hillerød hospital',
+  'FH': 'Frederiksberg hospital',
+  'BH': 'Bispebjerg hospital',
+  'GLO': 'Glostrup hospital',
+  'HVH': 'Hvidovre hospital',
 }
 
+
+# --- SCP Server --- #
 SERVER_AE_TITLE = 'HVHFBERGHK7' 
 STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7']

@@ -138,7 +138,7 @@ def fill_study_post(request, rigs_nr, dataset):
       rigs_nr,
       cpr = cpr,
       index_gfr=gfr_index,
-      hosp_dir=request.user.hospital,
+      hosp_dir=request.user.department.hospital,
       history_age=history_age,
       history_clr_n=history_clrN,
       name = name,
@@ -165,7 +165,7 @@ def store_form(request, dataset, rigs_nr):
     rigs_nr: rigs number of the examination to store in
   """
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  hospital = request.user.hospital
+  hospital = request.user.department.hospital
 
   if not os.path.exists(base_resp_dir):
     os.mkdir(base_resp_dir)
@@ -268,7 +268,7 @@ def store_form(request, dataset, rigs_nr):
     injection_time=injection_time,
     gfr_type=gfr_type,
     series_number = rigs_nr[4:],
-    station_name = request.user.config.rigs_calling,
+    station_name = request.user.department.config.ris_calling,
     gender=gender,
     injection_before = injection_before,
     injection_after  = injection_after,
@@ -292,8 +292,8 @@ def present_study_post(request, rigs_nr):
     rigs_nr: the rigs number of the examination to store
   """
   # Send information to PACS
-  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.dcm"
-  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.png"
+  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.dcm"
+  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.png"
 
   dicom_object = dicomlib.dcmread_wrapper(obj_path)
 

@@ -1,18 +1,18 @@
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
-from main_page.models import Config
+import main_page.models as models
 
 # User settings form
 class SettingsForm(ModelForm):
   class Meta:
-    model = Config
+    model = models.Config
     fields = [
       'accepted_procedures',
-      'rigs_aet',
-      'rigs_ip',
-      'rigs_port',
-      'rigs_calling',
+      'ris_aet',
+      'ris_ip',
+      'ris_port',
+      'ris_calling',
       'pacs_aet',
       'pacs_ip',
       'pacs_port',
@@ -80,3 +80,11 @@ class GetStudy(forms.Form):
 
 class FillThiningFactor(forms.Form):
   thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)
+
+class AddUserForm(ModelForm):
+  class Meta:
+    model = models.User
+    fields = [
+      'username',
+      'password',
+    ]

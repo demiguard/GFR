@@ -21,6 +21,7 @@ urlpatterns = [
   path('present_study/<str:rigs_nr>', views.present_study, name='present_study'),
   path('present_old_study/<str:rigs_nr>', views.present_old_study, name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
+  path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),
   # Async ajax urls
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),

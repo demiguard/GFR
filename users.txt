@@ -1,0 +1,38 @@
+Hospitaler w/ addressse:
+Rigshospitalet		Blegdamsvej 9, 2100 København
+Herlev Hospital		Borgmester Ib Juuls Vej 1, 2730 Herlev
+Glostrup Hospital	Valdemar Hansens Vej 1-23, 2600 Glostrup
+Hvidovre Hospital	Kettegård Alle 30, 2650 Hvidovre
+
+
+hospitaler:
+ RH	Rigshospitalet
+ HEH	Herlev hospital
+ GLO 	Glostrup hospital
+ HVH 	Hvidovre hospital
+
+missing calling aet, department name, address
+HI	Hillerød hospital
+FH	Frederiksberg hospital
+BH 	Bispebjerg hospital
+
+users:
+sauron
+test_user
+test_admin
+
+rh_test
+glo_test
+heh_test
+pacs_test
+hvh_test
+
+hil_test
+frb_test
+bis_test
+
+
+User groups:
+admin
+user
+

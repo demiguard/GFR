@@ -31,7 +31,7 @@
               <li><a class="menu-item" href="{% url 'main_page:settings' %}">Bruger indstillinger</a></li>
 
               {% if user.user_group.group_name == 'admin' %}
-                <li><a class="menu-item" href="#">Admin panel</a></li>
+                <li><a class="menu-item" href="{% url 'main_page:admin_panel' %}">Admin panel</a></li>
               {% endif %}
 
               {% endif %}

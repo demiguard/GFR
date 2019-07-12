@@ -2,93 +2,74 @@ import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+
 from .libs import server_config
 
 
-# Manager class of Sser class
-class UserManager(BaseUserManager):
-  def create_user(self, username, password, hosp):
-    # Args checking
-    if not username:
-      raise ValueError('Users must have a username')
+class Hospital(models.Model):
+  id = models.AutoField(primary_key=True)
+  name = models.CharField(default='', max_length=200, null=True)
 
-    if not password:
-      raise ValueError('Users must have a password')
+  shot_name_choices = [(k, v) for k, v in server_config.HOSPITALS.items()]
 
-    if not hosp:
-      raise ValueError('Users must be assigned a hospital')
+  short_name = models.CharField(max_length=8, choices=shot_name_choices, null=True)
+  address = models.CharField(default='', max_length = 200, null=True)
 
-    # User construction
-    user = self.model(
-      username,
-      hosp
-    )
 
-    user.set_password(password)
-    user.save(using=self._db)
+# Used to filter reveiced dicom objects from PACS
+class ProcedureType(models.Model):
+  id = models.AutoField(primary_key=True)
+  type_name = models.CharField(max_length=200, default='', blank=True)
 
-    return user
 
-  def create_superuser(self, username, password, hosp):
-    return self.create_user(username, password, hosp)
-
-# Configuration for a user
+# Configuration for a department
 class Config(models.Model):
-  config_id = models.AutoField(primary_key=True)
-  accepted_procedures = models.CharField(max_length=1000, default='', blank=True) # '^' separated list of procedures
-  rigs_aet = models.CharField(max_length=200, default='')
-  rigs_ip = models.CharField(max_length=200, default='')
-  rigs_port = models.CharField(max_length=200, default='')
-  rigs_calling = models.CharField(max_length=200, default='')
+  id = models.AutoField(primary_key=True)
+
+  # List of procedure types related to GFR examinations
+  accepted_procedures = models.ManyToManyField(ProcedureType)
+
+  # Configuration to ris server
+  ris_aet = models.CharField(max_length=200, default='')
+  ris_ip = models.CharField(max_length=200, default='')
+  ris_port = models.CharField(max_length=200, default='')
+  ris_calling = models.CharField(max_length=200, default='')
+
+  # Configuration to PACS server
   pacs_aet = models.CharField(max_length=200, default='')
   pacs_ip = models.CharField(max_length=200, default='')
   pacs_port = models.CharField(max_length=200, default='')
   pacs_calling = models.CharField(max_length=200, default='')
 
-# Department class,
-# The purpose of this class is to hold information specific to a department
+
 class Department(models.Model):
-  department_id = models.AutoField(primary_key=True)
+  id = models.AutoField(primary_key=True)
+  name = models.CharField(default='', max_length = 200, null=True)
+
+  # Associated hospital for this department
+  hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True)
+
+  config = models.OneToOneField(Config, on_delete=models.SET_NULL, null=True)
+
+  # Temporarily store daily thinning factors
   thining_factor = models.FloatField(default=0.0, null=True)
   thining_factor_change_date = models.DateField(default=datetime.date(1,1,1))
-  department = models.CharField(default='', max_length = 200, null=True)
-  hospital_Name = models.CharField(default='', max_length = 200, null=True) 
-  address = models.CharField(default='', max_length = 200, null=True)
 
 
 # Defines user permissions
-# Remark/TODO: This should probably not be used when switching the ldap database
 class UserGroup(models.Model):
-  ug_id = models.AutoField(primary_key=True)
-  group_name = models.CharField(max_length=200)
+  id = models.AutoField(primary_key=True)
+  name = models.CharField(max_length=200)
 
 
-# User class
-# REMARK / TODO: User creation MUST be done through the command line, see the README for instructions
 class User(AbstractBaseUser):
   id = models.AutoField(primary_key=True)
   username = models.CharField(max_length=120, unique=True)
   password = models.CharField(max_length=120)
   
-  # TODO: Put some of the below text and argumentation into the README or a documentation doc.
-  # OneToOne field, since we don't want QuerySets when retreiving the objects, see: https://stackoverflow.com/questions/5870537/whats-the-difference-between-django-onetoonefield-and-foreignkey
-  # CASCADE, since we want to just delete the config if a user is deleted.
-  config = models.OneToOneField(
-    Config,
-    on_delete=models.SET_NULL,
-    null=True
-  )
-  
-  department = models.ForeignKey(
-    Department,
-    on_delete=models.SET_NULL,
-    null=True
-  )
+  department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
   user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)
-
-  hospitals = [(k,v) for k,v in server_config.hospitals.items()]
-  hospital = models.CharField(max_length=3, choices=hospitals)
 
   USERNAME_FIELD = 'username'
   REQUIRED_FIELDS = ['password', 'hospital']
@@ -97,6 +78,7 @@ class User(AbstractBaseUser):
     return self.username
 
 
-# Maintains a list of all patients which have been sent to PACS
+# Maintains a list of examinations sent to PACS
+# This means we don't have to query PACS for all previous examinations
 class HandledExaminations(models.Model):
-  rigs_nr = models.CharField(primary_key=True, max_length=20)
+  accession_number = models.CharField(primary_key=True, max_length=20)

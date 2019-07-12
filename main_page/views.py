@@ -92,7 +92,7 @@ class AjaxDeleteStudy(TemplateView):
   def post(self, request):
     delete_status = True
 
-    user_hosp = request.user.hospital
+    user_hosp = request.user.department.hospital
 
     delete_accession_number = request.POST['delete_accession_number']
 
@@ -136,7 +136,7 @@ class AjaxRestoreStudy(TemplateView):
   def post(self, request):
     recover_status = True
 
-    user_hosp = request.user.hospital
+    user_hosp = request.user.department.hospital
 
     recover_accession_number = request.POST['recover_accession_number']
 
@@ -280,7 +280,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-      #new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.hospital, rigs_nr)
+      #new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.department.hospital, rigs_nr)
       #shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
       
       dataset = dataset_creator.get_blank(
@@ -288,11 +288,11 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         name,
         study_date,
         rigs_nr,
-        request.user.hospital
+        request.user.department.hospital
       )
       dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
           server_config.FIND_RESPONS_DIR,
-          request.user.hospital,
+          request.user.department.hospital,
           rigs_nr
         ), 
         dataset
@@ -333,7 +333,7 @@ def fill_study(request, rigs_nr):
   template = loader.get_template('main_page/fill_study.html')
 
   if request.method == 'POST':
-    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{rigs_nr}.dcm"
+    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital}/{rigs_nr}.dcm"
 
     dataset = dicomlib.dcmread_wrapper(file_path)
     dataset = PRH.fill_study_post(request, rigs_nr, dataset)
@@ -343,7 +343,7 @@ def fill_study(request, rigs_nr):
     if 'calculate' in request.POST:  
       return redirect('main_page:present_study', rigs_nr=rigs_nr) 
 
-  hospital = request.user.hospital # Hospital of current user
+  hospital = request.user.department.hospital.short_name # Hospital of current user
 
   # Create the directory if not existing
   if not os.path.exists(server_config.FIND_RESPONS_DIR):
@@ -372,7 +372,7 @@ def fill_study(request, rigs_nr):
   error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
   
   try: 
-    data_files = samba_handler.smb_get_csv(request.user.hospital, timeout=10)
+    data_files = samba_handler.smb_get_csv(request.user.department.hospital.short_name, timeout=10)
     
     # Read required data from each csv file  
     for data_file in data_files:
@@ -589,7 +589,7 @@ def present_old_study(request, rigs_nr):
   template = loader.get_template('main_page/present_old_study.html')
 
   current_user = request.user
-  hospital = request.user.hospital
+  hospital = request.user.department.hospital
 
   # Search to find patient id - pick field response
   search_resp = pacs.search_query_pacs(current_user, accession_number=rigs_nr)
@@ -696,7 +696,7 @@ def present_study(request, rigs_nr):
     return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
-  hospital = request.user.hospital
+  hospital = request.user.department.hospital
   
   DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
 
@@ -742,25 +742,29 @@ class SettingsView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/settings.html'
 
   def get(self, request):
+    curr_user = request.user
+
     context = {
-      'settings_form': forms.SettingsForm(instance=request.user.config)
+      'settings_form': forms.SettingsForm(instance=curr_user.department.config)
     }
 
     return render(request, self.template_name, context)
 
   def post(self, request):
+    curr_user = request.user
+    
     saved = False
 
-    instance = models.Config.objects.get(pk=request.user.config.config_id)
+    instance = models.Config.objects.get(pk=curr_user.department.config.id)
     form = forms.SettingsForm(request.POST, instance=instance)
     if form.is_valid():
       form.save()
-      request.user.config = instance
+      curr_user.department.config=instance
 
       saved = True
 
     context = {
-      'settings_form': forms.SettingsForm(instance=request.user.config),
+      'settings_form': forms.SettingsForm(instance=curr_user.department.config),
       'saved': saved
     }
 
@@ -787,7 +791,7 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
 
   def get(self, request):
     # Get list of all deleted studies
-    user_hosp = request.user.hospital
+    user_hosp = request.user.department.hospital
 
     deleted_studies = [] # Contains ExaminationInfo objects
 
@@ -811,6 +815,38 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
+class AdminPanelView(LoginRequiredMixin, TemplateView):
+  """
+  Administrator panel for e.g. user creation, user deletion, etc...
+  """
+  template_name = "main_page/admin_panel.html"
+
+
+  def admin_required(self, user):
+    """
+    Returns true if the current user belongs to the admin UserGroup
+    """
+    if user.user_group:
+      return (user.user_group.group_name == 'admin')
+    else:
+      return False
+
+
+  def get(self, request):
+    curr_user = request.user
+    
+    # Admin user check
+    if not self.admin_required(curr_user):
+      return HttpResponse(status=403)
+
+    context = {
+      'add_user_form': forms.AddUserForm(),
+      'add_config_form': forms.SettingsForm()
+    }
+
+    return render(request, self.template_name, context)
+
+
 class QAView(LoginRequiredMixin, TemplateView):
   """
   Displays quality Access ment of a multi-sample test
@@ -820,7 +856,7 @@ class QAView(LoginRequiredMixin, TemplateView):
   def get(self, request, accession_number):
     try:
       template = loader.get_template('main_page/QA.html')
-      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.hospital}/{accession_number}.dcm")
+      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital}/{accession_number}.dcm")
       sample_times = []
       tch99_cnt = []
       #Use a for loop to get tch count from file 
@@ -844,16 +880,14 @@ class QAView(LoginRequiredMixin, TemplateView):
     #Get Thining Factor
     thin_fact = dicom_obj.thiningfactor
 
-    
-
     delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_times] #timedelta list from timedate
     
     image_bytes = clearance_math.generate_QA_plot(delta_times, tch99_cnt, thin_fact, accession_number)
-    image_path = f"main_page/images/{request.user.hospital}/QA-{accession_number}.png"
+    image_path = f"main_page/images/{request.user.department.hospital}/QA-{accession_number}.png"
 
 
     Im = PIL.Image.frombytes('RGB',(1920,1080),image_bytes)
-    Im.save(f"{server_config.IMG_RESPONS_DIR}{request.user.hospital}/QA-{accession_number}.png")
+    Im.save(f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital}/QA-{accession_number}.png")
 
     context = {
       'image_path' : image_path
