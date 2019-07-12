@@ -345,6 +345,9 @@ def start_scp_server():
 
       Returns
         0x0000 - success code for successful store 
+
+    
+      Retried due to retried functionality of Pynetdicom v 1.4.0
     """
     #logger.info(f"Recieved C-STORE with ID:{info['parameters']}")
     #logger.info(f"C-Store Originated from:{info['parameters']}")
@@ -368,7 +371,7 @@ def start_scp_server():
     """
       C-Move is unsupported by our Application as we do not have access to the list
 
-
+      Retried due to retried functionality of Pynetdicom v 1.4.0
     """
     logger.info('Recieved C-move')
     logger.info('\n')
@@ -382,6 +385,54 @@ def start_scp_server():
     logger.info('\n')
 
     return 0xA801
+
+  def on_c_move_event(event):
+    """
+      C-Move is not supportted by our service, since it's not connected any dicom network
+
+      This function is where you need to update, if this is changing.
+    """
+    logger.info('Recieved C-Move event')
+    try:
+      logger.info(f'Move Data Recieved:\n{event.dataset}')
+      logger.info(f'destination is:{event.move_destination}')
+    except:
+      logger.info(f'Could not log dataset or move_destination')
+    response_dataset = pydicom.Dataset()
+
+    response_dataset.Status = 0xA801
+    response_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber')
+
+    return response_dataset
+
+  def on_c_store_event(event):
+    logger.info('Recieved C-Store Event')
+    try:
+      retrieved_dataset           = event.dataset
+      retrieved_dataset.file_meta = event.file_meta
+    
+    except:
+      return_dataset = pydicom.Dataset()
+      return_dataset.Status = 0xC123
+      returndataset.add_new(0x00000902, 'LO', 'Could not load retrieve Dataset')
+
+      return return_dataset
+    # Infomation Retrieved
+    # Availble vars retrieved_dataset, retrieved_meta_info
+    
+    if 'AccessionNumber' in retrieved_dataset:
+      filename = f'{retrieved_dataset.AccessionNumber}.dcm'
+      fullpath = server_config.SEARCH_DIR + filename
+      dicomlib.save_dicom(fullpath, retrieved_dataset)
+
+      return 0x0000
+
+    else:
+      return_dataset = pydicom.Dataset()
+      return_dataset.Status = 0xCAFE
+      return_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber') 
+      return response_dataset
+
 
   def sop_common_handler(event):
     logger.info(event.name)
@@ -408,14 +459,18 @@ def start_scp_server():
       Args:
         Event - a evt.EVT_CONN_OPEN
     """
-    logger.info("SCP Opened Connecition with")
-
+    try:
+      logger.info(f"SCP Opened Connecition with {event.address[0]}")
+    except:
+      logger.info(f"Could Not log Ip address of event over")
 
   event_handlers = [
-    (evt.EVT_ASYNC_OPS, log_event_handler),
-    (evt.EVT_SOP_COMMON, sop_common_handler),
-    (evt.EVT_SOP_EXTENDED, sop_extended_handler),
+    #(evt.EVT_ASYNC_OPS, log_event_handler),
+    #(evt.EVT_SOP_COMMON, sop_common_handler),
+    #(evt.EVT_SOP_EXTENDED, sop_extended_handler),
     (evt.EVT_USER_ID, log_event_handler), 
+    (evt.EVT_C_STORE, on_c_store_event),
+    (evt.EVT_C_MOVE, on_c_move_event), 
     # No Response
     (evt.EVT_ABORTED, log_event_handler),
     (evt.EVT_CONN_OPEN, connection_open_handler),
@@ -426,8 +481,9 @@ def start_scp_server():
 
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.supported_contexts = StoragePresentationContexts
-  server_ae.on_c_store = on_store
-  server_ae.on_c_move = on_move
+  #
+  #server_ae.on_c_store = on_store 
+  #server_ae.on_c_move = on_move
 
   server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
 

@@ -144,9 +144,13 @@ function GetBackupMessurements(){
   /* 
     This function is called when the button 'Hent målling'
   */
-
-
   var date = $('#id_dateofmessurement').val();
+  
+  if (!valid_date_format(date)) {
+    console.log('Not a valid date format');
+    return;
+  }
+
   
   fetch('/ajax/get_backup/' + date).then(
     function(response){
