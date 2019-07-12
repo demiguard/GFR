@@ -1,0 +1,19 @@
+{% extends 'main_page/base.html' %}
+
+{% load bootstrap4 %}
+{% load static %}
+
+{% block content %}
+
+  {% if dataset %}
+    <strong>Filen som GFRcalc fandt, er ikke kendt af GFRcalc</strong>
+
+  {% else %}
+    <strong>GFRcalc kunne ikke find den ønskede fil fra PACS</strong>
+
+    Filen som blev søgt efter: {{ AccessionNumber }}
+  {% endif %}
+
+
+
+{% endblock content %}

@@ -27,5 +27,6 @@ urlpatterns = [
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
   path('ajax/delete_study', views.AjaxDeleteStudy.as_view(), name='ajax_delete_study'),
-  path('ajax/restore_study', views.AjaxRestoreStudy.as_view(), name='ajax_restore_study')
+  path('ajax/restore_study', views.AjaxRestoreStudy.as_view(), name='ajax_restore_study'),
+  path('ajax/get_backup/<str:date>', views.AjaxGetbackup.as_view(), name='ajax_getbackup')
 ]

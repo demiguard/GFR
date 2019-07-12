@@ -137,6 +137,139 @@ function initialize_modules() {
   csv_handler.init_study_method();
 }
 
+var json_response;
+
+function GetBackupMessurements(){
+  /* 
+    This function is called when the button 'Hent målling'
+  */
+
+
+  var date = $('#id_dateofmessurement').val();
+  
+  fetch('/ajax/get_backup/' + date).then(
+    function(response){
+      if (response.status == 200){
+        return response.json();
+      } else {
+        return null
+      }
+    }
+  ).then(
+    function(json) {
+      if (json == null) {
+        //There's no data, we can't really tell why because you know, js
+        //Perhaps display an error message? Ooh well sounds like a simon problem
+      } else {
+        //There's data
+        var history_container = $('#history_container');
+        json_response = json;
+        // Clear Selected csv
+        csv_handler.clear_selected_rows();
+        // Empty current history Container
+        history_container.empty();
+        // Generate New table
+        for (json_dataset in json_response) {
+          //Initialzation
+          var timestamp = json_dataset;
+          var dataset_id = timestamp.split(':').join('');
+          var dataset = json_response[timestamp];
+          //Generate Card
+          // To anyone asking why js is crap, Look no further than below, for here rests a monster so faul no coder should ever look at it!
+          // But to those unsung heroes, that despite this dire warning, deside to attempt to maintain or boldy try expand on it
+          // The idea is as following:
+          // div card  
+          // div header
+          // h2
+          // button
+          // button text
+          // end button
+          // end h2
+          // end header
+          // Target
+          // Cardbody
+          // Table
+          // end cardbody
+          // end target
+          // div end card
+          // To those Wondering why the code endend up THIS cancerous, it's mainly due to when you append a div, it closes it for you
+
+          var card_str = '<div class="card">\n';
+          card_str += '<div id="heading-' + dataset_id + '" class="card-header">\n';
+          card_str += '<h2 class="mb-0">\n';
+          card_str += '<button class="btn btn-link" type ="button" data-toggle="collapse" data-target="#collapse-'+ dataset_id + '" aria-expanded="true" aria-controls="collapse-'+dataset_id +'">\n';
+          card_str += timestamp + '\n';
+          card_str += '</button>\n';
+          card_str += '</h2>\n';
+          card_str += '<!-- end div card-header -->\n';
+          card_str += '</div>\n';
+          //Header done, Generate body
+          card_str += '<div id="collapse-' + dataset_id + '" class="collapse" aria-labelledby="heading-'+ dataset_id +'" data-parent="#accordionContainer">\n';
+          card_str += '<div class ="card-body">\n';
+          //Generate Table 
+          card_str += '<table class="table table-bordered table-hover">\n';
+          card_str += '<thead>\n';
+          card_str += '<tr>\n';
+          card_str += '<th>Rack</th>\n';
+          card_str += '<th>Position</th>\n';
+          card_str += '<th>Tc-99 CPM</th>\n';
+          card_str += '</tr>\n';
+          card_str += '</thead>\n';
+          card_str += '<tbody>\n';
+          //Generate Data for Table
+          for (datapoint in dataset['Tc-99m CPM']) {
+            if (datapoint != undefined) {
+              card_str += '<tr id="' + dataset_id + '-' + datapoint + '" class="history_csv_row">\n';
+              card_str += '<td>' + dataset['Rack'][datapoint] + '</th>\n';
+              card_str += '<td>' + dataset['Pos'][datapoint] + '</th>\n';
+              card_str += '<td>' + dataset['Tc-99m CPM'][datapoint] + '</th>\n';
+              card_str += '</tr>\n';
+            }
+          }
+          card_str += '</tbody>\n';
+          card_str += '</table>\n';
+          card_str += '<!-- End of card body -->\n';
+          card_str += '</div>\n';
+          card_str += '<!-- End of collapse target -->\n';
+          card_str += '</div>\n';
+          //Generate Card Closing 
+          card_str += '<!-- end div card -->\n';
+          card_str +='</div>\n';
+          card_str +='<br>\n';
+
+          history_container.append(card_str);
+          //End of For loop over Json-datasets
+        }
+        // Apply js to newly genereated Table
+        csv_handler.init_row_selector('.history_csv_row');
+
+        // Hide current table
+        document.getElementById("accordionContainer").style.display = 'none';
+        // display Newly generated table
+        document.getElementById("dynamic_generate_history").style.display = 'block';
+      }
+    }
+  )
+}
+
+function RemoveBackupMessurement(){
+  /* 
+    This Function happens when the button 'Tilbage til Dagens Mållinger' is clicked:
+
+    The purpose of this function is to hide the historical data, and redisplay the old data
+  */
+
+  // Reset Selection before we go back
+  csv_handler.clear_selected_rows();
+
+  //One could argue that you should remove the generated table here, but instead this is done 
+  document.getElementById("accordionContainer").style.display='block';
+  document.getElementById("dynamic_generate_history").style.display='none';
+
+
+}
+
+
 // Wait until document ready
 $(function() {
   initialize_modules();
@@ -150,8 +283,7 @@ $(function() {
 
   // Save fortyndingsfaktor - so it can be reused with 'Hent fortyndingsfaktor'
   let tmp_thin_fac = $('#id_thin_fac').val();
-  console.log(tmp_thin_fac);
-
+  
   $('#reset_thin_fac').on('click', function() {
     $('#id_thin_fac').val(tmp_thin_fac);
   });
@@ -256,7 +388,6 @@ $(function() {
     is_valid = true;
     failed_id = "";
     for (var i = 0; i < ids_to_check.length; i++) {
-      console.log(ids_to_check[i]);
       if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
         is_valid = false;
         failed_id = ids_to_check[i];

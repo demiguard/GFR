@@ -144,7 +144,7 @@ def check_date(date):
   Checks whether a given study date is valid
 
   Args:
-    date: study date to check
+    date: study date to check, format (YYYYMMDD) or (YYYY-MM-DD)
 
   Returns
     None if valid, otherwise returns a string containing an error message
@@ -274,3 +274,61 @@ def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   month, day, yearandtimestamp = unreasonable_time_format.split('/')
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
+
+def reverse_format_date(reverse_Date : str) -> str:
+  """
+    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYYMMDD 
+
+    Args:
+      reverse_Date : String on format DD-MM-YYYY or DD/MM/YYYY
+
+    Returns
+      dateformat : String on format YYYYMMDD
+
+    Raises:
+      ValueError : On invalid String
+    """
+  # Argument checking
+  if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
+    date, month, year = reverse_Date.split('-')
+
+    if date.isdigit() and month.isdigit() and year.isdigit():
+      try:
+        #Create datetime object to see if it's a valid date
+        datetime.date(year, month, day) 
+      except ValueError as  V:
+        raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
+    else:
+      raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
+  
+  elif reverse_Date.count('/') and len(reverse_Date) == 10:
+    date, month, year = reverse_Date.split('/')
+
+    if date.isdigit() and month.isdigit() and year.isdigit():
+      try:
+        #Create datetime object to see if it's a valid date
+        datetime.date(year, month, day) 
+      except ValueError as V:
+        raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
+    else:
+      raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
+  
+  elif len(reverse_Date) == 8 and reverse_Date.isdigit():
+    date = int(reverse_Date[:2])
+    month = int(reverse_Date[2:4])
+    year = int(reverse_Date[4:])
+
+    try:
+      #Create datetime object to see if it's a valid date
+      datetime.date(year, month, day) 
+    except ValueError as V:
+      raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
+  else:
+    raise ValueError('Reverse_format_date: String is not on correct format')
+# Converting format
+  returnstring = str(year) + str(month) + str(date)
+  # Returning
+  return returnstring
+
+
+

@@ -42,14 +42,14 @@
       <!-- Left side-->
       <div class="col-md-6">
         <!-- Display test info -->
-        <strong>Stardard tælle tal</strong>
+        <strong>Stardardtælletal</strong>
         <div class="form-row">
           <div class="form-group col-md-6">
             <input type="number" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
           </div>
         </div>
         {% buttons %}
-          <input type="button" value="Tilføj Standard" id="add-standard">
+          <input type="button" value="Tilføj standard" id="add-standard">
         {% endbuttons %}
         
         <h5>Prøve data</h5>
@@ -91,7 +91,7 @@
             </div>
           </div>
           {% buttons %}
-            <input type="button" value="Tilføj Prøve" id="add-test">
+            <input type="button" value="Tilføj prøve" id="add-test">
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>
@@ -109,10 +109,10 @@
       </div>
 
       <!-- Right side -->
-      {% if csv_data_len != 0 %}
       <div class="col-md-6" id="right_side">
-        <p><strong>Vælg prøve fra fil</strong></p>
-        <div class="csvAccordion" id="accordionContainer">
+      {% if csv_data_len != 0 %}
+        <p><strong>Vælg prøve fra fil:</strong></p>
+          <div class="csvAccordion" id="accordionContainer">
           {% for name, data, id in csv_data %}
             <div class="card">
               <div class="card-header" id="heading-{{ id }}">
@@ -121,7 +121,7 @@
                     {{ name }}
                   </button>
                 </h2>
-              </div>
+              </div> <!-- card header closing-->
     
               <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
                 <div class="card-body">
@@ -143,16 +143,26 @@
                       {% endfor %}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            </div>
+                </div> <!-- card-body Closing -->
+              </div> <!--collapse-ID closing -->
+            </div> <!-- card Closing -->
             <br>
           {% endfor %}
-        </div>
-        {% else %}
+          </div> <!-- AccordingContainer Closing -->
+          {% else %}
           <p>{{ error_message }}</p>
+        </div>
         {% endif %}
-      <!-- Right closing-->
+        <div id="dynamic_generate_history">
+          <input type="button" value="Tilbage til dagens målinger" onclick="RemoveBackupMessurement()">
+          <br><br>
+          <div id="history_container">
+          </div> <!--history_container Closing-->
+        </div> <!-- dynamic_generate_history Closing-->
+        {% bootstrap_form GetBackupDate %}
+        <input type="button" value="Hent målinger" onclick="GetBackupMessurements()">
+        
+        <!-- Right closing-->
       </div>
     </div>
   </form>

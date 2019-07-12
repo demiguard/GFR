@@ -1,6 +1,8 @@
 import logging
 from pydicom import Dataset, Sequence, uid
 from . import dicomlib
+from . import server_config
+
 
 logger = logging.getLogger()
 
@@ -102,7 +104,26 @@ def get_rigs_base(rigs_calling = None):
   #Done adding tags
   return ds
 
-def create_search_dataset(name, cpr, date_from, date_to, accession_number, stationName):
+def create_search_dataset(
+    name,
+    cpr,
+    date_from,
+    date_to,
+    accession_number,
+    stationName
+  ):
+  """
+    Creates a dataset for querying Pacs
+
+    Args
+      name
+      cpr
+      date_from
+      date_to
+      accession_number
+      stationName
+
+  """
   #Generate Dataset
   dataset = Dataset()
   #Fill Dataset
@@ -117,5 +138,11 @@ def create_search_dataset(name, cpr, date_from, date_to, accession_number, stati
   dataset.SeriesInstanceUID = ''
   dataset.StudyInstanceUID = ''
   dataset.Modality = 'OT'
+  dataset.StudyID = 'GFR*'
+
+  logger.debug(f"""
+  create_search_dataset returning dataset:
+  {dataset}
+  """)
 
   return dataset

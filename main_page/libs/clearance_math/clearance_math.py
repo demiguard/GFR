@@ -60,7 +60,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
   #   #Compute how many minutes between injection and 
   #   delta_times.append((time-inj_time).seconds / 60)
 
-  if method == "EPV":
+  if method == "En blodprøve, Voksen":
     #In this method deltatimes and tec99_cnt lenght is equal to one
     #Magical number a credible doctor once found, See documentation
     magic_number_1 = 0.213
@@ -71,7 +71,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * numpy.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
     
  
-  elif method == "EPB":
+  elif method == "En blodprøve, Barn":
     #
     #Magical Numbers
     magic_number_1 = 0.008
@@ -90,15 +90,13 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
     clearance_normalized = GFR * normalizing_constant / BSA 
 
-  elif method == "Multi-4" :
+  elif method == "Flere blodprøver":
 
     log_tec99_cnt = [numpy.log(x) for x in tec99_cnt]
 
     slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
   
     clearance_1 = (dosis * (-slope)) / numpy.exp(intercept) 
-
-
 
     magic_number_1 = 0.0032
     magic_number_2 = 1.3
@@ -370,6 +368,7 @@ def generate_plot_text(
   sex: str,
   rigs_nr: str,
   cpr='',
+  method='',
   name='',
   history_age=[],
   history_clr_n=[],
@@ -377,6 +376,7 @@ def generate_plot_text(
   image_height=server_config.PLOT_HEIGHT,
   image_width=server_config.PLOT_WIDTH,
   index_gfr=0.0,
+  injection_date=None,
   procedure_description='',
   ):
   """
@@ -445,12 +445,14 @@ def generate_plot_text(
 
   name_str            = f"Navn: {name}\n"
   cpr_str             = f"CPR: {cpr}\n"
+  injection_str       = f"Undersøgelsedato: {injection_date}\n"
   accession_str       = f"Accession Nummer: {rigs_nr}\n"
   gender_str          = f"Køn: {gender}\n"
   age_str             = f"Alder: {_age_string(day_of_birth)}\n"
   weight_str          = f"Vægt: {weight:.1f} kg\n"
   height_str          = f"Højde: {height:.1f} cm\n"
   BSA_str             = f"Overflade: {BSA:.2f} m²\n"
+  method_str          = f"Metode:  {method}\n"
   clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
   clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
   kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
@@ -458,18 +460,20 @@ def generate_plot_text(
 
   print_str = f"""    {name_str}
     {cpr_str}
+    {injection_str}
     {accession_str}
     {gender_str}
     {age_str}
     {weight_str}
     {height_str}
     {BSA_str}
+    {method_str}
     {clearance_str}
     {clearance_norm_str}
     {kidney_function_str}
     {index_gfr_str}"""
 
-  ax[1].text(0, 0.10, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
+  ax[1].text(0, 0.00, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
   ax[1].axis('off')
 
   ax[0].set_xlabel('Alder (år)', fontsize=server_config.AXIS_FONT_SIZE)

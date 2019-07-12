@@ -26,6 +26,7 @@ from .libs import dataset_creator
 from dateutil import parser as date_parser
 import datetime
 import time
+import json
 import logging
 import shutil
 import glob
@@ -46,6 +47,8 @@ class IndexView(TemplateView):
 
   def get(self, request):
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'login_form': forms.LoginForm()
     }
 
@@ -130,6 +133,54 @@ class AjaxDeleteStudy(TemplateView):
       resp.status_code = 403
 
     return resp
+
+class AjaxGetbackup(TemplateView):
+  def get(self, request, date):
+    #Get the date from response
+    formated_date = date.replace('-','')
+
+    logger.info(f'Handling Ajax Get backup request with format: {date}')
+    try:
+      backup_data = samba_handler.get_backup_file(formated_date, request.user.hospital)
+    except Exception as e: 
+      logger.warn(e)
+
+      response = JsonResponse({})
+      response.status_code = 500
+      return response
+
+
+    #Sort data from samba share
+    formated_data = {}
+    x = 0
+    for pandas_dataset in backup_data:
+      #Remove Unused columns
+      used_columns = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
+      
+      for label, _ in pandas_dataset.iteritems():
+        #Remove Unused Labels
+        if not(label in used_columns):
+          pandas_dataset = pandas_dataset.drop(columns = [label])
+        
+      #Put in 
+      #Assuming 2 tests cannot be made at the same time. If they are, they will be overwritten
+      _, time_of_messurement = pandas_dataset['Measurement date & time'][0].split(' ')
+      dict_data = pandas_dataset.to_dict()
+      formated_data[time_of_messurement] = dict_data
+      #Endfor
+      
+    response = JsonResponse(formated_data)
+
+    # Creating valid HTTP response see:
+    # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+    if backup_data == []:
+      response.status_code = 204
+    else:
+      response.status_code = 200
+
+    return response
+
 
 
 class AjaxRestoreStudy(TemplateView):
@@ -273,6 +324,8 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     })
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'study_form': new_study_form,
       'error_msg' : ''
     }
@@ -320,6 +373,8 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     bookings = list(sorted(bookings, key=date_sort, reverse=True))
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'bookings': bookings,
       'error_message' : error_message
     }
@@ -456,6 +511,8 @@ def fill_study(request, rigs_nr):
     exam.std_cnt = None
 
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'rigsnr': rigs_nr,
     'study_patient_form': forms.Fillpatient_1(initial={
       'cpr': exam.cpr,
@@ -483,6 +540,9 @@ def fill_study(request, rigs_nr):
     'test_context': {
       'test_form': test_form
     },
+    'GetBackupDate' : forms.GetBackupDate(initial={
+      'dateofmessurement' : datetime.date.today()
+    }),
     'previous_samples': previous_samples,
     'csv_data': csv_data,
     'csv_data_len': len(data_names),
@@ -568,6 +628,8 @@ class SearchView(LoginRequiredMixin, TemplateView):
       item.field.widget.attrs['class'] = 'form-control'
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'getstudy' : get_study_form,
       'responses': search_resp,
     }
@@ -592,23 +654,30 @@ def present_old_study(request, rigs_nr):
   hospital = request.user.department.hospital
 
   # Search to find patient id - pick field response
-  search_resp = pacs.search_query_pacs(current_user, accession_number=rigs_nr)
-  patient_id = search_resp[0].cpr
-
-  logger.info(f"patient id for present old: {patient_id}")
-
-  #study_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Study'])
-  series_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'Series'])
-  instance_id = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[rigs_nr, 'SOP'])
-
+  
   dataset = pacs.move_from_pacs(
     current_user,
-    rigs_nr,
-    patient_id=patient_id,
-    series_id=series_id,
-    #study_id=study_id,
-    instance_id=instance_id
+    rigs_nr
   )
+
+  if dataset == None or not('GFRMETHOD' in dataset):
+    #Query Failed!
+    logger.warning(f"""
+    Error handling: {rigs_nr}
+
+    dataset from query:
+    {dataset}
+    """)
+    error_template = loader.get_template('main_page/present_old_study_error.html')
+    error_context  = {
+      'AccessionNumber' : rigs_nr
+    }
+    if dataset != None:
+      error_context['dataset'] = dataset
+
+
+    return HttpResponse(error_template.render(error_context,request))
+
 
   exam = examination_info.deserialize(dataset)
 
@@ -659,6 +728,8 @@ def present_old_study(request, rigs_nr):
   plot_path = 'main_page/images/{0}/{1}.png'.format(hospital,rigs_nr) 
   
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'name': exam.name,
     'date': exam.date,
     'rigs_nr': rigs_nr,
@@ -693,6 +764,7 @@ def present_study(request, rigs_nr):
 
   if request.method == 'POST':
     PRH.present_study_post(request, rigs_nr)
+    
     return redirect('main_page:list_studies')
 
   base_resp_dir = server_config.FIND_RESPONS_DIR
@@ -725,6 +797,8 @@ def present_study(request, rigs_nr):
   plot_path = f"main_page/images/{hospital}/{rigs_nr}.png" 
   
   context = {
+    'title'     : server_config.SERVER_NAME,
+    'version'   : server_config.SERVER_VERSION,
     'name': exam.name,
     'date': exam.date,
     'rigs_nr': rigs_nr,
@@ -764,7 +838,9 @@ class SettingsView(LoginRequiredMixin, TemplateView):
       saved = True
 
     context = {
-      'settings_form': forms.SettingsForm(instance=curr_user.department.config),
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'settings_form': forms.SettingsForm(instance=request.user.department.config),
       'saved': saved
     }
 
@@ -809,6 +885,8 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
       deleted_studies.append(curr_exam)
     
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'deleted_studies': deleted_studies,
     }
 
@@ -890,6 +968,8 @@ class QAView(LoginRequiredMixin, TemplateView):
     Im.save(f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital}/QA-{accession_number}.png")
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'image_path' : image_path
     }
 

@@ -62,11 +62,11 @@ def fill_study_post(request, rigs_nr, dataset):
     # TODO: Possibly make an Enum in the future
     study_type = int(request.POST['study_type'])
     if study_type == 0:
-      method = "EPV"
+      method = "En blodprøve, Voksen"
     elif study_type == 1:
-      method = "EPB"
+      method = "En blodprøve, Barn"
     elif study_type == 2:
-      method = "Multi-4"
+      method = "Flere blodprøver"
     else:
       method="INVALID METHOD"
 
@@ -141,6 +141,8 @@ def fill_study_post(request, rigs_nr, dataset):
       hosp_dir=request.user.department.hospital,
       history_age=history_age,
       history_clr_n=history_clrN,
+      method = method,
+      injection_date=inj_datetime.strftime('%d-%b-%Y'),
       name = name,
       procedure_description=dataset.RequestedProcedureDescription
     )
@@ -297,10 +299,11 @@ def present_study_post(request, rigs_nr):
 
   dicom_object = dicomlib.dcmread_wrapper(obj_path)
 
+  logger.info(f"User:{request.user.username} has finished examination: {rigs_nr}")
   success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
-
+  logger.info(f"User:{request.user.username} has stored {rigs_nr} in PACS")
   if success_rate:
-    # Remove the file
+    # Remove the file    
     try:
       os.remove(obj_path)
     except:  
