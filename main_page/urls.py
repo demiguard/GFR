@@ -1,8 +1,9 @@
 from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
-from . import views
-from . import Startup
+from main_page.views import views
+from main_page.views.api import user, hospital
+from main_page import Startup
 
 Startup.start_up()
 
@@ -14,7 +15,7 @@ urlpatterns = [
   path('fill_study/<str:rigs_nr>', views.fill_study, name='fill_study'),
   path('search', views.SearchView.as_view(), name='search'),
   path('logout', views.LogoutView.as_view(), name='logout'),
-  path('documentation', views.documentation, name='documentation'),
+  path('documentation', views.DocumentationView.as_view(), name='documentation'),
   path('settings', views.SettingsView.as_view(), name='settings'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   #Images
@@ -29,5 +30,11 @@ urlpatterns = [
   path('ajax/delete_study', views.AjaxDeleteStudy.as_view(), name='ajax_delete_study'),
   path('ajax/restore_study', views.AjaxRestoreStudy.as_view(), name='ajax_restore_study'),
   path('ajax/get_backup/<str:date>', views.AjaxGetbackup.as_view(), name='ajax_getbackup'),
-  path('ajax/handled_examination', views.AjaxHandledExaminationView.as_view(), name='ajax_handled_examination')
+  path('ajax/handled_examination', views.AjaxHandledExaminationView.as_view(), name='ajax_handled_examination'),
+  
+  # New RESTful api design
+  path('api/user', user.UserEndpoint.as_view(), name='user'),
+  path('api/user/<int:user_id>', user.UserEndpoint.as_view(), name='user'),
+  path('api/hospital', hospital.HospitalEndpoint.as_view(), name='hospital'),
+  path('api/hospital/<int:hospital_id>', hospital.HospitalEndpoint.as_view(), name='hospital'),
 ]

@@ -2,27 +2,29 @@ from django.shortcuts import render
 from django.http import HttpResponse, FileResponse, JsonResponse, Http404, QueryDict
 from django.template import loader
 from django.shortcuts import redirect, render
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.log import DEFAULT_LOGGING
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
-from . import forms
-from . import models
+from main_page import forms
+from main_page import models
 
-from .libs.query_wrappers import ris_query_wrapper as ris
-from .libs.query_wrappers import pacs_query_wrapper as pacs
-from .libs.clearance_math import clearance_math
-from .libs.examination_info import ExaminationInfo
-from .libs import examination_info
-from .libs import formatting
-from .libs import post_request_handler as PRH
-from .libs import server_config
-from .libs import samba_handler
-from .libs import dicomlib
-from .libs import dataset_creator
+from main_page.libs.query_wrappers import ris_query_wrapper as ris
+from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
+from main_page.libs.clearance_math import clearance_math
+from main_page.libs.examination_info import ExaminationInfo
+from main_page.libs import examination_info
+from main_page.libs import formatting
+from main_page.libs import post_request_handler as PRH
+from main_page.libs import server_config
+from main_page.libs import samba_handler
+from main_page.libs import dicomlib
+from main_page.libs import dataset_creator
+
+from main_page.views.mixins import *
 
 from dateutil import parser as date_parser
 import datetime
@@ -37,6 +39,10 @@ import numpy
 import pydicom
 import PIL
 import glob
+
+
+from django.db import models as md
+
 
 logger = logging.getLogger()
 
@@ -848,14 +854,16 @@ class SettingsView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
-def documentation(request):
-  """
-  Generates the file response for the documentation page
-  """
-  return FileResponse(
-    open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
-    content_type='application/pdf'
-  )
+class DocumentationView(View):
+  def get(self, request):
+    """
+    Generates the file response for the documentation page
+    """
+    return FileResponse(
+      open('main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf', 'rb'),
+      content_type='application/pdf'
+    )
+
 
 class DeletedStudiesView(LoginRequiredMixin, TemplateView):
   """
@@ -894,36 +902,20 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
-def admin_required(user):
-  """
-  Returns true if the current user belongs to the admin UserGroup
-  """
-  if user.user_group:
-    return (user.user_group.name == 'admin')
-  else:
-    return False
-
-
-class AdminPanelView(LoginRequiredMixin, TemplateView):
+class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   """
   Administrator panel for e.g. user creation, user deletion, etc...
   """
   template_name = "main_page/admin_panel.html"
 
   def get(self, request):
-    curr_user = request.user
-    
-    # Admin user check
-    if not admin_required(curr_user):
-      return HttpResponse(status=403)
-
     context = {
       'add_user_form': forms.AddUserForm(),
       'add_config_form': forms.SettingsForm(),
       'add_hospital_form': forms.AddHospitalForm(),
       'add_department_form': forms.AddDepartmentForm(),
       'add_config_form': forms.AddConfigForm(),
-      'search_handled_form': forms.SearchHandledExaminationsForm(),
+      'search_handled_form': forms.DeleteHandledExaminationsForm(),
     }
 
     return render(request, self.template_name, context)
@@ -935,9 +927,9 @@ class AjaxHandledExaminationView(LoginRequiredMixin, TemplateView):
   """
   def delete(self, request):
     # Admin user check
-    if not admin_required(request.user):
-      logger.info("Non-admin user tried to delete handled examination")
-      return HttpResponse(status=403)
+    # if not admin_required(request.user):
+    #   logger.info("Non-admin user tried to delete handled examination")
+    #   return HttpResponse(status=403)
 
     # Extract accession number to delete
     delete = QueryDict(request.body)
