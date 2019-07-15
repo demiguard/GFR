@@ -80,7 +80,7 @@ def deserialize(dicom_obj):
     exam.weight = dicom_obj.PatientWeight
   
   if 'PatientSize' in dicom_obj:
-    exam.height = dicom_obj.PatientSize
+    exam.height = dicom_obj.PatientSize * 100
   
   if 'PatientAge' in dicom_obj:
     exam.age = dicom_obj.PatientAge
@@ -135,7 +135,7 @@ def deserialize(dicom_obj):
     exam.inj_t = datetime.datetime.strptime(dicom_obj.injTime, '%Y%m%d%H%M')
     
   if 'PatientSize' in dicom_obj and 'PatientWeight' in dicom_obj:
-    exam.BSA = clearance_math.surface_area(dicom_obj.PatientSize, dicom_obj.PatientWeight)
+    exam.BSA = clearance_math.surface_area(dicom_obj.PatientSize * 100.0, dicom_obj.PatientWeight)
 
   if 'PixelData' in dicom_obj:
     # Reads DICOM conformant image to PIL displayable image

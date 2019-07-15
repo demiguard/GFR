@@ -191,6 +191,9 @@ def store_form(request, dataset, rigs_nr):
   # Store age
   if request.POST['birthdate']:    
     birthdate = request.POST['birthdate']
+    logger.info(birthdate)
+    birthdate_datetime = datetime.datetime.strptime(birthdate,'%Y-%m-%d').date()
+    age = int((datetime.datetime.now() - birthdate_datetime) / 365) 
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
@@ -229,7 +232,7 @@ def store_form(request, dataset, rigs_nr):
     request.user.department.save()
 
   if request.POST['height']:
-    height = float(request.POST['height'])
+    height = float(request.POST['height'])/100.0
 
   thiningfactor = 0.0
   std_cnt = 0.0
@@ -263,10 +266,11 @@ def store_form(request, dataset, rigs_nr):
   else:
     exam_status = 1
 
-  dicomlib.fill_dicom(dataset, 
+  dicomlib.fill_dicom(dataset,
+    age=age, 
+    birthday=birthdate,
     update_dicom = True,
     update_date = True,
-    birthday=birthdate,
     injection_time=injection_time,
     gfr_type=gfr_type,
     series_number = rigs_nr[4:],

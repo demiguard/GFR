@@ -118,7 +118,8 @@ def move_from_pacs(user, accession_number):
         pass
       else:
         logger.warn('C-Move move opration failed with Status code:{0}'.format(hex(status.Status)))
-    assoc.release()
+    find_assoc.release()
+    move_assoc.release()
   else:
     logger.warn('Move_from_pacs could not connect to pacs')
     return None
@@ -640,3 +641,87 @@ def get_history_from_pacs(cpr, birthday, user):
     logger.warn('Could not connect to pacs')
   #Return
   return date_list, age_list, clearence_norm_list
+
+def get_history_for_csv(
+  date_bounds                 = (datetime.date(2019,7,1), datetime.date(2100,1,1)),
+  clearance_bounds            = (0.,200.),
+  clearance_normalized_bounds = (0.,200.),
+  thin_fact_bounds            = (0.,25000.),
+  standard_bounds             = (0.,100000.),
+  injection_weight_bounds     = (0.,2.),
+  height_bounds               = (0., 250.),
+  weight_bounds               = (0., 250.),
+  age_bounds                  = (0., 125),
+  cpr_bounds                  = '',
+  method_bounds               = [],
+  gender_bounds               = ['M','F','O']
+  ):
+  """
+  Retrives all studies and processes them to match up with the following filters
+
+  KWargs:
+    date_bounds                 : tuple of date datetime objects, if none, then no filtering will be done on the object
+    clearance_bounds            : tuple of floats, removes all studies where tag 0x00231012 not in range of the tuple. First argument is smaller than the secound argument
+    clearance_normalized_bounds : tuple of floats, removes all studies where tag 0x00231014 not in range of the tuple. First argument is smaller than the secound argument
+    thin_fact_bounds            : tuple of floats, removes all studies where tag 0x00231028 not in range of the tuple. First argument is smaller than the secound argument
+    standard_bounds             : tuple of floats, removes all studies where tag 0x00231024 not in range of the tuple. First argument is smaller than the secound argument
+    injection_weight_bounds     : tuple of floats, removes all studies where tag 0x0023101A not in range of the tuple. First argument is smaller than the secound argument
+    height_bounds               : tuple of floats, removes all studies where tag 0x0023101A not in range of the tuple. First argument is smaller than the secound argument
+    weight_bounds               : tuple of floats, removes all studies where tag 0x0023101A not in range of the tuple. First argument is smaller than the secound argument
+    age_bounds                  : tuple of floats, removes all studies where tag 0x0023101A not in range of the tuple. First argument is smaller than the secound argument
+    cpr_bounds                  : string, filters only a after a specific person, if empty removes test patients
+    method_bounds               : string list, removes all studies where tag 0x0008103E is 
+    gender_bounds               : char list, removes all studies, where the gender is not on the list. Valid Characters are M and F
+
+  Raises: 
+    ArgumentError : Whenever a keyword tuple first argument is greater than the secound argument 
+  """
+  #Check bounds
+  def check_bounds(a_tuple):
+    if a_tuple[0] > a_tuple[1]:
+      raise ArgumentError('Invalid bounds, secound argument of each tuple must be greater than the first.')
+
+  def in_bounds(a_tuple, a_value):
+    return a_tuple[0] <= a_value and a_value <= a_tuple[1]  
+
+  def check_study(study): 
+    #
+    birthdate = datetime.datetime.strptime(study.PatientBirthDate, '%Y%m%d')
+    age_in_years = int((datetime.datetime.now() - birthdate).days / 365)
+    study_date = datetime.datetime.strptime(study.StudyDate,'%Y%m%d').date()
+    #bounds checking
+    valid_study = in_bounds(date_bounds, study_date)
+    valid_study &= in_bounds(clearance_bounds, study.clearance)
+    valid_study &= in_bounds(clearance_normalized_bounds, study.normClear)
+    valid_study &= in_bounds(thin_fact_bounds, study.thiningfactor)
+    valid_study &= in_bounds(standard_bounds, study.stdcnt)
+    valid_study &= in_bounds(injection_weight_bounds, study.injWeight)
+    valid_study &= in_bounds(height_bounds, study.PatientSize * 100.0)
+    valid_study &= in_bounds(weight_bounds, study.PatientWeight)
+    valid_study &= in_bounds(age_bounds, age_in_years)
+    #End Bounds checking
+    valid_study &= cpr_bounds.replace('-','') == study.PatientID
+    valid_study &= study.PatientSex in gender_bounds
+    if method_bounds != []:
+      valid_study &= study.StudyDescription in method_bounds
+
+    return valid_study
+
+  check_bounds(date_bounds)
+  check_bounds(clearance_bounds)
+  check_bounds(thin_fact_bounds)
+  check_bounds(standard_bounds)
+  check_bounds(injection_weight_bounds)
+  check_bounds(height_bounds)
+  check_bounds(weight_bounds)
+  check_bounds(age_bounds)
+
+  if None != formatting.check_cpr(cpr_bounds):
+    raise ArgumentError('Invalid Cpr number')
+
+  if not(gender_bounds in [['M'], ['F'], ['O'], ['M','F'], ['M','O'], ['F','O'] ,['M','F','O'] ]):
+    raise ArgumentError('Invalids Genders')
+  #End checking bounds
+
+  find_ae = pynetdicom.AE(ae_title='')
+

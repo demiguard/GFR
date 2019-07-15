@@ -231,7 +231,15 @@ def fill_dicom(ds,
       ds.ExamStatus = exam_status
 
   if age:
-    ds.PatientAge = age
+
+    if age >= 100:
+      prefix_string = ''
+    elif age >= 10 = '':
+      prefix_string = '0'
+    else:
+      prefix_string = '00'
+
+    ds.PatientAge = prefix_string + str(age) + 'Y'
 
   if height:
     ds.PatientSize = height
