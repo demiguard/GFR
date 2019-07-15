@@ -8,6 +8,10 @@ from main_page.views.mixins import AdminRequiredMixin
 from main_page.views.api.serializers import JSONSerializer
 
 
+class GetEndpoint(View):
+  pass
+
+
 class HospitalEndpoint(AdminRequiredMixin, LoginRequiredMixin, View):
   def get(self, request, hospital_id=None):
     context = { }
