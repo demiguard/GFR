@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, FileResponse, JsonResponse, Http404
+from django.http import HttpResponse, FileResponse, JsonResponse, Http404, QueryDict
 from django.template import loader
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.log import DEFAULT_LOGGING
+from django.core.exceptions import ObjectDoesNotExist
 
 from . import forms
 from . import models
@@ -893,36 +894,72 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
+def admin_required(user):
+  """
+  Returns true if the current user belongs to the admin UserGroup
+  """
+  if user.user_group:
+    return (user.user_group.name == 'admin')
+  else:
+    return False
+
+
 class AdminPanelView(LoginRequiredMixin, TemplateView):
   """
   Administrator panel for e.g. user creation, user deletion, etc...
   """
   template_name = "main_page/admin_panel.html"
 
-
-  def admin_required(self, user):
-    """
-    Returns true if the current user belongs to the admin UserGroup
-    """
-    if user.user_group:
-      return (user.user_group.group_name == 'admin')
-    else:
-      return False
-
-
   def get(self, request):
     curr_user = request.user
     
     # Admin user check
-    if not self.admin_required(curr_user):
+    if not admin_required(curr_user):
       return HttpResponse(status=403)
 
     context = {
       'add_user_form': forms.AddUserForm(),
-      'add_config_form': forms.SettingsForm()
+      'add_config_form': forms.SettingsForm(),
+      'add_hospital_form': forms.AddHospitalForm(),
+      'add_department_form': forms.AddDepartmentForm(),
+      'add_config_form': forms.AddConfigForm(),
+      'search_handled_form': forms.SearchHandledExaminationsForm(),
     }
 
     return render(request, self.template_name, context)
+
+
+class AjaxHandledExaminationView(LoginRequiredMixin, TemplateView):
+  """
+  Handled ajax requests related to the HandledExamination model
+  """
+  def delete(self, request):
+    # Admin user check
+    if not admin_required(request.user):
+      logger.info("Non-admin user tried to delete handled examination")
+      return HttpResponse(status=403)
+
+    # Extract accession number to delete
+    delete = QueryDict(request.body)
+    accession_number = delete.get('accession_number')
+
+    # Construct response
+    response = JsonResponse({
+      'resp_accession_number': accession_number
+    })
+
+    # Attempt deletion
+    logger.info(f"Attempting to delete handled examination: '{accession_number}'")
+
+    try:
+      handled_examination = models.HandledExaminations.objects.get(pk=accession_number)
+      handled_examination.delete()
+      logger.info(f"Successfully deleted handled examination: '{accession_number}'")
+    except ObjectDoesNotExist:
+      logger.info(f"Failed to delete handled examination: '{accession_number}'")
+      response.status_code = 500
+      
+    return response
 
 
 class QAView(LoginRequiredMixin, TemplateView):

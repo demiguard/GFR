@@ -3,17 +3,20 @@ var alerter = (function() {
   var alert_container = null;
   var is_initialied = false;
 
-  var warn_ids = [];
-  var danger_ids = [];
+  var warn_ids = [ ];
+  var danger_ids = [ ];
+  var success_ids = [ ];
 
   const VALID_TYPES = [
     'warning',
-    'danger'
+    'danger',
+    'success'
   ]
 
   const ALERT_CLASS_MAPPINGS = {
     'warning': 'warn-field',
-    'danger': 'danger-field'
+    'danger': 'danger-field',
+    'success': 'success-field',
   }
 
   /*
@@ -74,6 +77,8 @@ var alerter = (function() {
       indicator_msg = 'Advarsel: ';
     } else if (type == VALID_TYPES[1]) {  // Danger
       indicator_msg = 'Fejl: ';
+    } else if (type == VALID_TYPES[2]) {  // Success
+      indicator_msg = 'Success: ';
     }
     alert_indicator.innerHTML = indicator_msg;
 
@@ -106,6 +111,8 @@ var alerter = (function() {
       warn_ids.push(field_id);
     } else if (type_str === VALID_TYPES[1]) { // Danger
       danger_ids.push(field_id);
+    } else if (type_str == VALID_TYPES[2]) {  // Success
+      success_ids.push(field_id);
     }
     
     field.addClass(alert_class);
@@ -127,6 +134,11 @@ var alerter = (function() {
       let idx = danger_ids.indexOf(field_id);
       if (idx >= 0) {
         danger_ids.splice(idx, 1);
+      }
+    } else if (type_str === VALID_TYPES[2]) { // Success
+      let idx = success_ids.indexOf(field_id);
+      if (idx >= 0) {
+        success_ids.splice(idx, 1);
       }
     }
 
@@ -150,6 +162,8 @@ var alerter = (function() {
       return warn_ids.includes(check_id);
     } else if (type_str === VALID_TYPES[1]) { // Danger
       return danger_ids.includes(check_id);
+    } else if (type_str === VALID_TYPES[2]) { // Success
+      return success_ids.includes(check_id);
     }
   };
 

@@ -10,9 +10,7 @@ class Hospital(models.Model):
   id = models.AutoField(primary_key=True)
   name = models.CharField(default='', max_length=200, null=True)
 
-  shot_name_choices = [(k, v) for k, v in server_config.HOSPITALS.items()]
-
-  short_name = models.CharField(max_length=8, choices=shot_name_choices, null=True)
+  short_name = models.CharField(max_length=8, null=True)
   address = models.CharField(default='', max_length = 200, null=True)
 
 
