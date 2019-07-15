@@ -109,8 +109,7 @@ def create_search_dataset(
     cpr,
     date_from,
     date_to,
-    accession_number,
-    stationName
+    accession_number
   ):
   """
     Creates a dataset for querying Pacs

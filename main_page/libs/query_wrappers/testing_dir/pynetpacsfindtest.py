@@ -22,12 +22,13 @@ ds.add_new(0x00080016,'UI','')
 ds.add_new(0x00080018,'UI','')
 ds.add_new(0x0020000D,'UI','')
 ds.add_new(0x0020000E,'UI','')
+ds.StudyID = 'GFR*'
 ds.add_new(0x00080020, 'DA', '') #Study date
 ds.add_new(0x00080050, 'SH', '') #Accession Number
 ds.add_new(0x00080060, 'CS' ,'OT')
 ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
 ds.add_new(0x00100010, 'PN', '') #Patitent name
-ds.add_new(0x00100020, 'LO', 'QP-3849977') #PatientID / CPR NUMBER
+ds.add_new(0x00100020, 'LO', 'QP-3849995') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
 #Create Sequences
@@ -49,10 +50,10 @@ if assoc.is_established:
     if status.Status == 0xFF00:
       #Save dataset
       print(dataset_from_rigs)  
-      mov_response = assoc.send_c_move(dataset_from_rigs, rigs_calling, query_model='S')
+      #mov_response = assoc.send_c_move(dataset_from_rigs, rigs_calling, query_model='S')
 
-      for (mov_status, mov_identifyer) in mov_response:
-        print(mov_status)
+      #for (mov_status, mov_identifyer) in mov_response:
+      #  print(mov_status)
   assoc.release()
 else:
   print(assoc.is_established)
