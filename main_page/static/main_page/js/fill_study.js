@@ -181,7 +181,7 @@ function GetBackupMessurements(){
           var dataset = json_response[timestamp];
           //Generate Card
           // To anyone asking why js is crap, Look no further than below, for here rests a monster so faul no coder should ever look at it!
-          // But to those unsung heroes, that despite this dire warning, deside to attempt to maintain or boldy try expand on it
+          // But to those unsong heroes, that despite this dire warning, deside to attempt to maintain or boldy try expand on it
           // The idea is as following:
           // div card  
           // div header
