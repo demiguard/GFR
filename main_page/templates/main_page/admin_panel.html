@@ -8,98 +8,30 @@
   <h2>Admin panel</h2>
   
   <div class="row">
-    <div class="col-md-6">
-      
-      <div class="accordion" id="adminAccordion">
-        <div class="card">
-          <div class="card-header" id="headingOne">
-            <h2 class="mb-0">
-              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                Opret ny bruger
-              </button>
-            </h2>
-          </div>
-      
-          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#adminAccordion">
-            <div class="card-body">
-              <h5>Opret ny bruger</h5>
+    <div class="col-md-3">
+      <form>
+        <select class="form-control" id="model-selector">
+          <option value="users">Brugere</option>
+          <option value="hospitals">Hospitaler</option>
+          <option value="departments">Afdelinger</option>
+          <option value="handled_examinations">Behandlede undersøgelser</option>
+        </select>
+      </form>
+    </div>
+  </div>
 
-              <form>
-                {% bootstrap_form add_user_form %}
-                <input type="button" value="Opret" id="create-user-btn">
-              </form>
-            </div>
-          </div>
-        </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-hover"> 
+        <thead>
+          <tr id="admin-table-head">
 
-        <div class="card">
-          <div class="card-header" id="headingTwo">
-            <h2 class="mb-0">
-              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                Opret ny afdeling
-              </button>
-            </h2>
-          </div>
-          <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#adminAccordion">
-            <div class="card-body">
-              <h5>Opret ny afdeling</h5>
+          </tr>
+        </thead>
+        <tbody id="admin-table-body">
 
-              <form>
-                {% bootstrap_form add_department_form %}
-                {% bootstrap_form add_config_form %}
-                <input type="button" value="Opret" id="create-department-btn">
-              </form>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header" id="headingThree">
-            <h2 class="mb-0">
-              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                Opret nyt hospital
-              </button>
-            </h2>
-          </div>
-          <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#adminAccordion">
-            <div class="card-body">
-              <h5>Opret nyt hospital</h5>
-
-              <form>
-                {% bootstrap_form add_hospital_form %}
-                <input type="button" value="Opret" id="create-hospital-btn">
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header" id="headingFour">
-            <h2 class="mb-0">
-              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                Slet behandlede undersøgelse
-              </button>
-            </h2>
-          </div>
-          <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#adminAccordion">
-            <div class="card-body">
-              <h5>Slet behandlede undersøgelse</h5>
-              <small style="color: grey;">'Behandlede undersøgelse': </small>
-              <br><br>
-
-              <form>
-                {% bootstrap_form search_handled_form %}
-                <input type="button" value="Slet" id="delete-handled-btn">
-
-                <br><br>
-                <div id="handled-examination-errors"></div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
+        </tbody>
+      </table>    
     </div>
   </div>
 

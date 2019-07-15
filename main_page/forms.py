@@ -127,6 +127,14 @@ class AddHospitalForm(ModelForm):
       'address': 'Addresse',
     }
 
+  def __init__(self, *args, **kwargs):
+    # Change the id attribute of the HTML field element, as to avoid naming
+    # conflict with the AddDepartmentForm, which also contains a name field.
+    super(AddHospitalForm, self).__init__(*args, **kwargs)
+    self.fields['name'].widget = forms.TextInput(attrs={
+      'id': 'id_hospital_name',
+    })
+
 
 class AddDepartmentForm(ModelForm):
   class Meta:
@@ -160,7 +168,7 @@ class AddConfigForm(ModelForm):
     ]
 
 
-class SearchHandledExaminationsForm(ModelForm):
+class DeleteHandledExaminationsForm(ModelForm):
   class Meta:
     model = models.HandledExaminations
     fields = [
