@@ -234,7 +234,7 @@ def fill_dicom(ds,
 
     if age >= 100:
       prefix_string = ''
-    elif age >= 10 = '':
+    elif age >= 10:
       prefix_string = '0'
     else:
       prefix_string = '00'
