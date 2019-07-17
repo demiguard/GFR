@@ -1,0 +1,18 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+  <h2>Admin panel - edit</h2>
+  
+  <div class="row">
+    <div class="col-md-3">
+      <form>
+        {% bootstrap_form edit_form %}
+      </form>
+    </div>
+  </div>
+  
+{% endblock %}

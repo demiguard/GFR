@@ -921,6 +921,24 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
+# TODO: Make this generic for all the different models which can be editted, not just the users
+class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
+  template_name = "main_page/admin_panel_edit.html"
+
+  def get(self, request, obj_id):
+    obj = models.User.objects.get(pk=obj_id)
+    
+    edit_obj_form = forms.EditUserForm(initial={
+      'username': obj.username,
+    })
+
+    context = {
+      'edit_form': edit_obj_form,
+    }
+
+    return render(request, self.template_name, context)
+
+
 class AjaxHandledExaminationView(LoginRequiredMixin, TemplateView):
   """
   Handled ajax requests related to the HandledExamination model

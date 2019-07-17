@@ -1,3 +1,19 @@
+MODEL_URL_MAPPINGS = {
+  'users': '/api/user',
+  'hospitals': '/api/hospital',
+  'departments': '/api/department',
+  'handled_examinations': '/api/handled_examination',
+  'configs': '/api/config'
+};
+
+MODEL_NAME_MAPPINGS = {
+  'users': 'bruger',
+  'hospitals': 'hospital',
+  'departments': 'afdeling',
+  'handled_examinations': 'behandlede undersøgelse',
+  'configs': 'konfiguration'
+};
+
 function clear_table_headers() {
   $('#admin-table-head').empty();
 }
@@ -47,6 +63,32 @@ function create_button(iconic_class_name, btn_class) {
   return edit_button;
 }
 
+function init_action_button_event_handlers() {
+  $('.delete-btn').each(function() {
+    $(this).on('click', function() {
+      let selected_model = $('#model-selector').val();
+
+      let entry_id = $(this).parent().parent().children()[0].innerText;
+      let api_url = MODEL_URL_MAPPINGS[selected_model] + "/" + entry_id;
+
+      if (confirm('Er du sikker på du ønsker at slette ' + MODEL_NAME_MAPPINGS[selected_model] + ' med id: ' + entry_id)) { 
+        $.ajax({
+          url: api_url,
+          type: 'DELETE',
+          success: function(data) {
+            console.log(data);
+            
+            show_model();
+          },
+          error: function(data) {
+            console.log(data);
+          }
+        });
+      }
+    });
+  });
+}
+
 // TODO: Just make a function for creating a single button, given a iconic button class.
 // Then use this to implement an edit and remove, button
 function init_action_buttons() {
@@ -72,16 +114,10 @@ function init_action_buttons() {
   });
 }
 
-function show_model() {
-  MODEL_URL_MAPPINGS = {
-    'users': '/api/user',
-    'hospitals': '/api/hospital',
-    'departments': 'api/department',
-    'handled_examinations': 'api/handled_examinations'
-  };
- 
+function show_model() { 
   clear_table_headers();
   clear_table_entries();
+  alerter.clear_alerts();
 
   let selected_model = $('#model-selector').val();
 
@@ -89,12 +125,19 @@ function show_model() {
     url: MODEL_URL_MAPPINGS[selected_model],
     type: 'GET',
     success: function(data) {
-      let headers = Object.keys(data.users[0]);
-      init_table_headers(headers);
-
-      init_table_entries(data.users);
-
-      init_action_buttons();
+      console.log(data);
+      let vals = Object.values(data)[0];
+      if (vals.length != 0) {
+        let headers = Object.keys(vals[0]);
+        init_table_headers(headers);
+  
+        init_table_entries(Object.values(data)[0]);
+  
+        init_action_buttons();
+        init_action_button_event_handlers();
+      } else {
+        alerter.add_alert('Ingen indgang fundet.', 'warning');
+      }
     },
     error: function(data) {
       console.log(data);
@@ -135,47 +178,9 @@ $(function() {
 
   // Site loaded
   console.log("Admin panel loaded");
-  alerter.init_alerter($('#handled-examination-errors'));
+  alerter.init_alerter($('#error-container'));
 
   show_model();
 
   $('#model-selector').on('change', show_model);
-
-  // // Button click handlers for the various forms
-  // $('#create-user-btn').on('click', function() {
-  //   console.log("CREATE USER");
-  // });
-
-
-  // $('#delete-handled-btn').on('click', function() {
-  //   // Attempts to delete the requested examination
-  //   alerter.clear_alerts();
-
-  //   let accession_number = $('#id_accession_number').val();
-
-  //   if (accession_number == '') {
-  //     alerter.add_alert("Intet accession nummer givet.", 'danger');
-  //     return;
-  //   }
-
-  //   // Tell backend to delete it
-  //   $('#id_accession_number').attr('readonly', true);
-
-  //   $.ajax({
-  //     url: 'ajax/handled_examination',
-  //     type: 'DELETE',
-  //     data: {
-  //       'accession_number': accession_number
-  //     },
-  //     success: function(data) {
-  //       $('#id_accession_number').attr('readonly', false);
-  //       alerter.add_alert("Slettede behandlede undersøgelse: '" + data.resp_accession_number + "'", 'success');
-  //     },
-  //     error: function(data) {
-  //       $('#id_accession_number').attr('readonly', false);
-  //       let resp_accession_number = data.responseJSON.resp_accession_number;
-  //       alerter.add_alert("Kunne ikke slette behandlede undersøgelse med accession nummer: '" + resp_accession_number + "'", 'danger');
-  //     }
-  //   });
-  // });
 });
