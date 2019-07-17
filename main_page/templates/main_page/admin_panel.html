@@ -4,6 +4,10 @@
 
 {% load bootstrap4 %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/admin_panel.css' %}">
+{% endblock head %}
+
 {% block content %}
   <h2>Admin panel</h2>
   
@@ -18,7 +22,17 @@
         </select>
       </form>
     </div>
+
+    <div class="col-md-3">
+      <form>
+        <button type="button" class="add-btn btn btn-primary">
+          <span title="Tilføj" class="oi oi-plus" aria-hidden="true"></span>
+        </button>
+      </form>
+    </div>
   </div>
+  
+  <br>
 
   <div class="row">
     <div class="col-md-12">

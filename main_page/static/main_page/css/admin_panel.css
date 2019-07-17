@@ -1,0 +1,18 @@
+.delete-btn {
+  color: lightcoral;
+}
+
+.delete-btn:hover {
+  color: red;
+}
+
+.divider {
+  width: 5px;
+  height: auto;
+  display: inline-block;
+}
+
+/* Align action buttons to the right */
+#admin-table-body tr td:last-child {
+  text-align: right;
+}

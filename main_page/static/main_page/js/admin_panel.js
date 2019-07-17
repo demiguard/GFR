@@ -31,8 +31,45 @@ function init_table_entries(entries) {
   }
 }
 
-function init_action_buttons() {
+function create_button(iconic_class_name, btn_class) {
+  var edit_button = document.createElement('button');
+  edit_button.classList.add('btn');
+  edit_button.classList.add('btn-link');
+  edit_button.classList.add(btn_class);
   
+  var edit_span = document.createElement('span');
+  edit_span.title = 'Slet';
+  edit_span.classList.add('oi');
+  edit_span.classList.add('oi-' + iconic_class_name);
+  
+  edit_button.appendChild(edit_span);
+
+  return edit_button;
+}
+
+// TODO: Just make a function for creating a single button, given a iconic button class.
+// Then use this to implement an edit and remove, button
+function init_action_buttons() {
+  // Create additional spacing in header
+  var action_header = document.createElement('th');
+  $('#admin-table-head').append(action_header);
+  
+  // Create the action buttons
+  
+  $('#admin-table-body tr').each(function() {
+    var edit_td = document.createElement('td');
+    var edit_button = create_button('pencil', 'edit-btn');
+    var delete_button = create_button('trash', 'delete-btn');
+
+    var divider_div = document.createElement('div');
+    divider_div.classList.add('divider');
+
+    edit_td.appendChild(edit_button);
+    edit_td.appendChild(divider_div);
+    edit_td.appendChild(delete_button);
+
+    $(this).append(edit_td);
+  });
 }
 
 function show_model() {
@@ -47,18 +84,17 @@ function show_model() {
   clear_table_entries();
 
   let selected_model = $('#model-selector').val();
-  console.log(selected_model);
-  console.log(MODEL_URL_MAPPINGS[selected_model]);
+
   $.ajax({
     url: MODEL_URL_MAPPINGS[selected_model],
     type: 'GET',
     success: function(data) {
-      console.log(data);
-
       let headers = Object.keys(data.users[0]);
       init_table_headers(headers);
 
       init_table_entries(data.users);
+
+      init_action_buttons();
     },
     error: function(data) {
       console.log(data);
