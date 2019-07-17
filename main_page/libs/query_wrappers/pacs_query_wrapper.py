@@ -391,7 +391,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   response_list = []
 
   # Construct Search Dataset
-  find_dataset dataset_creator.create_search_dataset(
+  find_dataset = dataset_creator.create_search_dataset(
       name,
       cpr, 
       date_from, 
