@@ -667,11 +667,11 @@ def present_old_study(request, rigs_nr):
     rigs_nr
   )
 
-  if dataset == None or not('GFRMETHOD' in dataset):
+  if dataset == None or not('GFR' in dataset):
     #Query Failed!
     logger.warning(f"""
-    Error handling: {rigs_nr}
-
+    Examination unknown to GFR Calc
+    
     dataset from query:
     {dataset}
     """)

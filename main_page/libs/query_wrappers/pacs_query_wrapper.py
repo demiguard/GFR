@@ -456,8 +456,6 @@ def get_history_from_pacs(cpr, birthday, user):
   age_list            = []
   clearence_norm_list = []
 
-
-
   #Create Assosiation to pacs
   find_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
   move_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
