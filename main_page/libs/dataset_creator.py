@@ -130,7 +130,6 @@ def create_search_dataset(
   dataset.AccessionNumber = accession_number
   dataset.PatientID = cpr
   dataset.PatientName = name
-  dataset.StationName = stationName
   dataset.QueryRetrieveLevel = 'STUDY'
   dataset.SOPClassUID = ''
   dataset.SOPInstanceUID = ''
