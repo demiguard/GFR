@@ -4,25 +4,39 @@ from typing import Type, Dict
 
 
 class JSONSerializer:
-  def __init__(self):
+  def __init__(self) -> None:
     self._SERIALIZER_MAPPINGS = {
       models.ForeignKey: self.__serialize_ForeignKey,
+      models.OneToOneField: self.__serialize_OneToOneField,
       models.AutoField: self.__serialize_AutoField,
       models.CharField: self.__serialize_CharField,
-      models.DateTimeField: self.__serialze_DateTimeField,
+      models.FloatField: self.__serialize_FloatField,
+      models.DateTimeField: self.__serialize_DateTimeField,
+      models.DateField: self.__serialize_DateField,
     }
 
+  # TODO: Make the below serializer functions more generic
   def __serialize_ForeignKey(self, obj: Type[models.Model], field: Type[models.ForeignKey]) -> str:    
     foreign_obj = getattr(obj, field.name)
     return foreign_obj.pk
 
-  def __serialize_CharField(self, obj: Type[models.Model], field: Type[models.CharField]) -> str:
-    return getattr(obj, field.name)
+  def __serialize_OneToOneField(self, obj: Type[models.Model], field: Type[models.OneToOneField]) -> str:    
+    oto_obj = getattr(obj, field.name)
+    return oto_obj.pk
 
   def __serialize_AutoField(self, obj: Type[models.Model], field: Type[models.AutoField]) -> str:
     return getattr(obj, field.name)
 
-  def __serialze_DateTimeField(self, obj: Type[models.Model], field: Type[models.DateTimeField]) -> str:
+  def __serialize_CharField(self, obj: Type[models.Model], field: Type[models.CharField]) -> str:
+    return getattr(obj, field.name)
+  
+  def __serialize_FloatField(self, obj: Type[models.Model], field: Type[models.FloatField]) -> str:
+    return getattr(obj, field.name)
+
+  def __serialize_DateTimeField(self, obj: Type[models.Model], field: Type[models.DateTimeField]) -> str:
+    return getattr(obj, field.name)
+
+  def __serialize_DateField(self, obj: Type[models.Model], field: Type[models.DateField]) -> str:
     return getattr(obj, field.name)
 
   def serialize(self, obj: Type[models.Model], fields=None) -> Dict:
@@ -31,7 +45,9 @@ class JSONSerializer:
 
     Args:
       obj: model object to serialize
-      fields: dict of fields contian in the model object
+
+    Kwargs:  
+      fields: list of fields to serialize, if None all fields are serialized
 
     Returns:
       dict containing the serialize fields
@@ -56,18 +72,18 @@ class JSONSerializer:
         continue
     
     if fields:
-      if not isinstance(fields, set):
-        raise ValueError(f"Invalid object type for 'fields'. Expected: '{set}', Got: {type(fields)}")
+      if not isinstance(fields, list):
+        raise ValueError(f"Invalid object type for 'fields'. Expected: '{list}', Got: {type(fields)}")
 
       for field in fields:
         if field not in obj_fields:
           raise ValueError(f"Unable to find field: '{field}', in the objects actual fields.")
     else:
-      fields = set(obj_fields)
+      fields = list(obj_fields)
 
     # Serialize each field
     ret = { }
-    for field in fields:      
+    for field in fields:
       curr_field = obj._meta.get_field(field)
       curr_field_type = type(curr_field)
       serialze_func = None
@@ -75,8 +91,11 @@ class JSONSerializer:
       if curr_field_type in self._SERIALIZER_MAPPINGS:
         serialze_func = self._SERIALIZER_MAPPINGS[curr_field_type]
       else:
-        raise NotImplementedError(f"Unsupported field type in object. Got: {type(curr_field_type)}")
+        raise NotImplementedError(f"Unsupported field type in object. Got: {curr_field_type}")
 
-      ret[field] = serialze_func(obj, curr_field)
+      try:
+        ret[field] = serialze_func(obj, curr_field)
+      except AttributeError: # Serialization failed in internal function
+        ret[field] = None
 
     return ret

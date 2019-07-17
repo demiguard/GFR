@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 from main_page.views import views
-from main_page.views.api import user, hospital
+from main_page.views.api import user, hospital, department, handled_examinations, config
 from main_page import Startup
 
 Startup.start_up()
@@ -22,8 +22,13 @@ urlpatterns = [
   path('present_study/<str:rigs_nr>', views.present_study, name='present_study'),
   path('present_old_study/<str:rigs_nr>', views.present_old_study, name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
+
+  # Admin panel
   path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),
+  path('admin_panel/edit/user/<int:obj_id>', views.AdminPanelEditView.as_view(), name='admin_panel_edit'),
+  
   # Async ajax urls
+  # TODO: Make all these conform to the new RESTful api design
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
@@ -37,4 +42,10 @@ urlpatterns = [
   path('api/user/<int:user_id>', user.UserEndpoint.as_view(), name='user'),
   path('api/hospital', hospital.HospitalEndpoint.as_view(), name='hospital'),
   path('api/hospital/<int:hospital_id>', hospital.HospitalEndpoint.as_view(), name='hospital'),
+  path('api/department', department.DepartmentEndpoint.as_view(), name='department'),
+  path('api/department/<int:department_id>', department.DepartmentEndpoint.as_view(), name='department'),
+  path('api/handled_examination', handled_examinations.HandledExaminationsEndpoint.as_view(), name='handled_examination'),
+  path('api/handled_examination/<str:handled_id>', handled_examinations.HandledExaminationsEndpoint.as_view(), name='handled_examination'),
+  path('api/config', config.ConfigEndpoint.as_view(), name='config'),
+  path('api/config/<int:config_id>', config.ConfigEndpoint.as_view(), name='config'),
 ]

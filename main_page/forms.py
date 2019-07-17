@@ -83,6 +83,15 @@ class GetStudy(forms.Form):
 class FillThiningFactor(forms.Form):
   thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)
 
+
+class EditUserForm(ModelForm):
+  class Meta:
+    model = models.User
+    fields = [
+      'username',
+    ]
+
+
 class AddUserForm(ModelForm):
   class Meta:
     model = models.User

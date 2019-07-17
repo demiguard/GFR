@@ -6,13 +6,14 @@ from main_page import models
 
 
 class HospitalEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEndpoint):
-  def __init__(self):
-    super().__init__(models.Hospital, fields={
-      'id',
-      'name',
-      'short_name',
-      'address'
-    })
+  model = models.Hospital
 
+  fields = [
+    'id',
+    'name',
+    'short_name',
+    'address'
+  ]
+  
   def get(self, request, hospital_id=None):
     return super().get(request, obj_id=hospital_id)
