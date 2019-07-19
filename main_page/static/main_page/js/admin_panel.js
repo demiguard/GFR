@@ -200,4 +200,14 @@ $(function() {
   show_model();
 
   $('#model-selector').on('change', show_model);
+
+  $('#add-btn').on('click', function() {
+    console.log("clicked add-btn");
+    // Which model is being added
+    var selected_model = $('#model-selector').val();
+    selected_model = selected_model.substring(0, selected_model.length - 1); // Remove last 's'
+
+    let add_url = "/admin_panel/add/" + selected_model;
+    window.location.href = add_url;
+  });
 });

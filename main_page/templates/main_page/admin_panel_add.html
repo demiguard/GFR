@@ -1,0 +1,25 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+  <h2>Admin panel - add {{ model_name }}</h2>
+  
+  <div class="row">
+    <div class="col-md-3">
+      <form>
+        {% bootstrap_form add_form %}
+
+        <input type="button" id="create-btn" value="Tilføj">
+      </form>
+    </div>
+  </div>
+  
+{% endblock %}
+
+{% block javascript %}
+  <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
+  <script src="{% static 'main_page/js/admin_panel_add.js' %}"></script>
+{% endblock %}

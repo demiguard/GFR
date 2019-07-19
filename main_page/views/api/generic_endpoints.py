@@ -65,13 +65,46 @@ class DeleteEndpoint(View):
   
     return JsonResponse({'action': 'success'})
 
+
 # REPLACES STUFF
 class PutEndpoint(View):
   pass
 
+
 # CREATES STUFF
 class PostEndpoint(View):
-  pass
+  def post(self, request: Type[WSGIRequest]) -> HttpResponse:
+    # Create the new instance
+    obj = self.model()
+
+    # Find next id available, if the model has an 'id' field
+    if getattr(self.model, 'id', False):
+      obj_id = self.model.objects.all().order_by("-id")[0].id
+      obj.id = obj_id + 1
+
+    # Set additional fields
+    request_body = QueryDict(request.body)
+
+    for key, value in request_body.items():
+      # If key is a password, set it
+      if key == 'password':
+        obj.set_password(value)
+        continue
+
+      # Retreive foreign object if model specifies it
+      if 'foreign_fields' in dir(self):
+        if key in self.foreign_fields:
+          foreign_model = self.foreign_fields[key]
+          value = foreign_model.objects.get(pk=int(value))
+
+      setattr(obj, key, value)
+    
+    obj.save()
+
+    resp = JsonResponse({'action': 'success'})
+    resp.status_code = 201
+    return resp
+
 
 # UPDATES STUFF
 class PatchEndpoint(View):
@@ -85,14 +118,16 @@ class PatchEndpoint(View):
     # Update model instance
     patch = QueryDict(request.body)
     
-    for key, value in patch.items():
-      curr_field = getattr(obj, key)
-      
+    for key, value in patch.items():      
       # Retreive foreign object if model specifies it
-      if isinstance(curr_field, models.Model):
-        foreign_model = type(curr_field)
-        value = foreign_model.objects.get(pk=value)
-      
+      if value != '':
+        if 'foreign_fields' in dir(self):
+          if key in self.foreign_fields:
+            foreign_model = self.foreign_fields[key]
+            value = foreign_model.objects.get(pk=int(value)) 
+      else:
+        value = None
+        
       setattr(obj, key, value)
 
     obj.save()
@@ -119,6 +154,6 @@ class RESTEndpoint(GetEndpoint, DeleteEndpoint, PatchEndpoint, PutEndpoint, Post
   def put(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
     raise NotImplementedError()
 
-  def post(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
-    raise NotImplementedError()
+  def post(self, request: Type[WSGIRequest]) -> HttpResponse:
+    return super().post(request)
   

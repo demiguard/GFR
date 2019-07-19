@@ -954,18 +954,53 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     # Construct corresponding edit form for the model, initialized with
     # parameters from the retreived instance
     try:
-      form = self.EDIT_FORM_MAPPINGS[model_name]
+      edit_form = self.EDIT_FORM_MAPPINGS[model_name]
     except KeyError:
       return HttpResponseNotFound(f"Unable to find corresponding form for model with key: '{model_name}'")
 
-    form = form(instance=obj_instance)
+    edit_form = edit_form(instance=obj_instance)
 
     context = {
       'model_name': model_name,
-      'edit_form': form,
+      'edit_form': edit_form,
     }
 
     return render(request, self.template_name, context)
+
+
+class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
+  template_name = "main_page/admin_panel_add.html"
+
+  MODEL_NAME_MAPPINGS = {
+    'user': models.User,
+    'department': models.Department,
+    'config': models.Config,
+    'hospital': models.Hospital,
+    'handled_examination': models.HandledExaminations,
+  }
+
+  ADD_FORM_MAPPINGS = {
+    'user': forms.AddUserForm,
+    'department': forms.AddDepartmentForm,
+    'config': forms.AddConfigForm,
+    'hospital': forms.AddHospitalForm,
+    'handled_examination': forms.AddHandledExaminationsForm,
+  }
+
+  def get(self, request, model_name):
+    # Construct corresponding add form for the model
+    try:
+      add_form = self.ADD_FORM_MAPPINGS[model_name]()
+    except KeyError:
+      return HttpResponseNotFound(f"Unable to find corresponding form for model with key: '{model_name}'")
+
+    context = {
+      'model_name': model_name,
+      'add_form': add_form,
+    }
+
+    return render(request, self.template_name, context)
+
 
 
 class AjaxHandledExaminationView(LoginRequiredMixin, TemplateView):

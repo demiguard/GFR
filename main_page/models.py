@@ -45,9 +45,9 @@ class Department(models.Model):
   name = models.CharField(default='', max_length = 200, null=True)
 
   # Associated hospital for this department
-  hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True)
+  hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True, blank=True)
 
-  config = models.OneToOneField(Config, on_delete=models.SET_NULL, null=True)
+  config = models.OneToOneField(Config, on_delete=models.SET_NULL, null=True, blank=True)
 
   # Temporarily store daily thinning factors
   thining_factor = models.FloatField(default=0.0, null=True)

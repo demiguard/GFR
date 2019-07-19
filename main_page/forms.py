@@ -198,6 +198,10 @@ class AddUserForm(ModelForm):
       'username': 'Brugernavn'
     }
 
+    widgets = {
+      'password': forms.PasswordInput(),
+    }
+
   confirm_pass = forms.CharField(max_length=120, label="Gentag password", widget=forms.PasswordInput())
 
   # List available hospital choices from the database
@@ -212,7 +216,7 @@ class AddUserForm(ModelForm):
   # List available user groups
   group_choices = [(group.id, group.name) for group in reversed(models.UserGroup.objects.all())]
 
-  group = forms.ChoiceField(choices=group_choices, label="Bruger gruppe")
+  user_group = forms.ChoiceField(choices=group_choices, label="Bruger gruppe")
 
 
 class AddHospitalForm(ModelForm):
@@ -268,6 +272,14 @@ class AddConfigForm(ModelForm):
       'pacs_ip',
       'pacs_port',
       'pacs_calling'
+    ]
+
+
+class AddHandledExaminationsForm(ModelForm):
+  class Meta:
+    model = models.HandledExaminations
+    fields = [
+      'accession_number'
     ]
 
 
