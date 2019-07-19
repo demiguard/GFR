@@ -84,12 +84,106 @@ class FillThiningFactor(forms.Form):
   thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)
 
 
+
+# --- EDIT FORMS START --- #
 class EditUserForm(ModelForm):
   class Meta:
     model = models.User
     fields = [
       'username',
     ]
+
+    labels = {
+      'username': 'Brugernavn'
+    }
+
+  def __init__(self, *args, **kwargs):
+    # Call the base class to allow the form to be constructed using templating
+    # This allows for access to self.fields
+    super(EditUserForm, self).__init__(*args, **kwargs)
+
+    # Get object instance this form is instantiated with
+    obj_instance = kwargs['instance']
+
+    obj_choice = f"{obj_instance.department.hospital.name} - {obj_instance.department.name}"
+
+    for choice_id, choice_str in self.fields['hosp_depart'].choices:
+      if choice_str == obj_choice:
+        self.initial['hosp_depart'] = choice_id
+        break
+
+  # List available hospital choices from the database
+  hosp_depart_choices = [ ]
+
+  for choice_id, department in enumerate(models.Department.objects.all()):
+    choice_str = f"{department.hospital.name} - {department.name}"
+    hosp_depart_choices.append((choice_id, choice_str))
+
+  hosp_depart = forms.ChoiceField(choices=hosp_depart_choices, label="Afdeling")
+
+
+# Custom choice field to change the displayed labels for the hospitals
+class HospitalChoiceField(forms.ModelChoiceField):
+  def label_from_instance(self, hospital_obj):
+    return hospital_obj.name
+
+
+# Custom choice field to change the displayed labels for the configs
+class ConfigChoiceField(forms.ModelChoiceField):
+  def label_from_instance(self, config_obj):
+    return config_obj.id
+
+
+class EditDepartmentForm(ModelForm):
+  class Meta:
+    model = models.Department
+    fields = [
+      'name',
+      'hospital',
+      'config',
+    ]
+
+    labels = {
+      'name': 'Navn',
+    }
+
+  hospital = HospitalChoiceField(queryset=models.Hospital.objects.all(), label="Hospital")
+  config = ConfigChoiceField(queryset=models.Config.objects.all(), label="Konfiguration")
+
+
+class EditConfigForm(ModelForm):
+  class Meta:
+    model = models.Config
+    fields = [
+      'ris_aet',
+      'ris_ip',
+      'ris_port',
+      'ris_calling',
+      'pacs_aet',
+      'pacs_ip',
+      'pacs_port',
+      'pacs_calling',
+    ]
+
+
+class EditHospitalForm(ModelForm):
+  class Meta:
+    model = models.Hospital
+    fields = [
+      'name',
+      'short_name',
+      'address',
+    ]
+
+
+class EditHandledExaminationsForm(ModelForm):
+  class Meta:
+    model = models.HandledExaminations
+    fields =[
+      'accession_number'
+    ]
+# --- EDIT FORMS END --- #
+
 
 
 class AddUserForm(ModelForm):

@@ -64,6 +64,23 @@ function create_button(iconic_class_name, btn_class) {
 }
 
 function init_action_button_event_handlers() {
+  // Edit button event handlers
+  $('.edit-btn').each(function() {
+    $(this).on('click', function() {
+      // Which model is being editted
+      var selected_model = $('#model-selector').val();
+      selected_model = selected_model.substring(0, selected_model.length - 1); // Remove last 's'
+
+      // Which specific model instance is being editted
+      let obj_id = $(this).parent().parent().children()[0].innerText;
+      
+      // Redirect
+      let redirect_url = "/admin_panel/edit/" + selected_model + "/" + obj_id;
+      window.location.href = redirect_url;
+    });
+  });
+
+  // Delete button event handlers
   $('.delete-btn').each(function() {
     $(this).on('click', function() {
       let selected_model = $('#model-selector').val();

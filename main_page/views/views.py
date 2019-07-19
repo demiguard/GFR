@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, FileResponse, JsonResponse, Http404, QueryDict
+from django.http import HttpResponse, FileResponse, JsonResponse, Http404, QueryDict, HttpResponseNotFound
 from django.template import loader
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView, View
@@ -45,6 +45,7 @@ from django.db import models as md
 
 
 logger = logging.getLogger()
+
 
 class IndexView(TemplateView):
   """
@@ -910,30 +911,58 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
 
   def get(self, request):
     context = {
-      'add_user_form': forms.AddUserForm(),
-      'add_config_form': forms.SettingsForm(),
-      'add_hospital_form': forms.AddHospitalForm(),
-      'add_department_form': forms.AddDepartmentForm(),
-      'add_config_form': forms.AddConfigForm(),
-      'search_handled_form': forms.DeleteHandledExaminationsForm(),
+
     }
 
     return render(request, self.template_name, context)
 
 
-# TODO: Make this generic for all the different models which can be editted, not just the users
+# TODO: Change the HttpResponseNotFound to display danish messages
+# TODO: Change the HttpResponseNotFound to display our 404 site with the message
 class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   template_name = "main_page/admin_panel_edit.html"
 
-  def get(self, request, obj_id):
-    obj = models.User.objects.get(pk=obj_id)
-    
-    edit_obj_form = forms.EditUserForm(initial={
-      'username': obj.username,
-    })
+  MODEL_NAME_MAPPINGS = {
+    'user': models.User,
+    'department': models.Department,
+    'config': models.Config,
+    'hospital': models.Hospital,
+    'handled_examination': models.HandledExaminations,
+  }
+
+  EDIT_FORM_MAPPINGS = {
+    'user': forms.EditUserForm,
+    'department': forms.EditDepartmentForm,
+    'config': forms.EditConfigForm,
+    'hospital': forms.EditHospitalForm,
+    'handled_examination': forms.EditHandledExaminationsForm,
+  }
+
+  def get(self, request, model_name, obj_id):
+    # Attempt to get the corresponding model for the requets name
+    try:
+      model = self.MODEL_NAME_MAPPINGS[model_name]
+    except KeyError:
+      return HttpResponseNotFound(f"Unable to find corresponding model with key: '{model_name}'")
+
+    # Attempt to get specific model instance
+    try:
+      obj_instance = model.objects.get(pk=obj_id)
+    except ObjectDoesNotExist:
+      return HttpResponseNotFound(f"Unable to find model instance for object id: '{obj_id}'")
+
+    # Construct corresponding edit form for the model, initialized with
+    # parameters from the retreived instance
+    try:
+      form = self.EDIT_FORM_MAPPINGS[model_name]
+    except KeyError:
+      return HttpResponseNotFound(f"Unable to find corresponding form for model with key: '{model_name}'")
+
+    form = form(instance=obj_instance)
 
     context = {
-      'edit_form': edit_obj_form,
+      'model_name': model_name,
+      'edit_form': form,
     }
 
     return render(request, self.template_name, context)

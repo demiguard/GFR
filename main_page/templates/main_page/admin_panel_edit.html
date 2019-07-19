@@ -5,14 +5,21 @@
 {% load bootstrap4 %}
 
 {% block content %}
-  <h2>Admin panel - edit</h2>
+  <h2>Admin panel - edit {{ model_name }}</h2>
   
   <div class="row">
     <div class="col-md-3">
       <form>
         {% bootstrap_form edit_form %}
+
+        <input type="button" id="save-btn" value="Gem">
       </form>
     </div>
   </div>
   
+{% endblock %}
+
+{% block javascript %}
+  <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
+  <script src="{% static 'main_page/js/admin_panel_edit.js' %}"></script>
 {% endblock %}

@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 from main_page.views import views
-from main_page.views.api import user, hospital, department, handled_examinations, config
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint
 from main_page import Startup
 
 Startup.start_up()
@@ -25,7 +25,7 @@ urlpatterns = [
 
   # Admin panel
   path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),
-  path('admin_panel/edit/user/<int:obj_id>', views.AdminPanelEditView.as_view(), name='admin_panel_edit'),
+  path('admin_panel/edit/<str:model_name>/<int:obj_id>', views.AdminPanelEditView.as_view(), name='admin_panel_edit'),
   
   # Async ajax urls
   # TODO: Make all these conform to the new RESTful api design
@@ -38,14 +38,14 @@ urlpatterns = [
   path('ajax/handled_examination', views.AjaxHandledExaminationView.as_view(), name='ajax_handled_examination'),
   
   # New RESTful api design
-  path('api/user', user.UserEndpoint.as_view(), name='user'),
-  path('api/user/<int:user_id>', user.UserEndpoint.as_view(), name='user'),
-  path('api/hospital', hospital.HospitalEndpoint.as_view(), name='hospital'),
-  path('api/hospital/<int:hospital_id>', hospital.HospitalEndpoint.as_view(), name='hospital'),
-  path('api/department', department.DepartmentEndpoint.as_view(), name='department'),
-  path('api/department/<int:department_id>', department.DepartmentEndpoint.as_view(), name='department'),
-  path('api/handled_examination', handled_examinations.HandledExaminationsEndpoint.as_view(), name='handled_examination'),
-  path('api/handled_examination/<str:handled_id>', handled_examinations.HandledExaminationsEndpoint.as_view(), name='handled_examination'),
-  path('api/config', config.ConfigEndpoint.as_view(), name='config'),
-  path('api/config/<int:config_id>', config.ConfigEndpoint.as_view(), name='config'),
+  path('api/user', UserEndpoint.as_view(), name='user'),
+  path('api/user/<int:obj_id>', UserEndpoint.as_view(), name='user'),
+  path('api/hospital', HospitalEndpoint.as_view(), name='hospital'),
+  path('api/hospital/<int:obj_id>', HospitalEndpoint.as_view(), name='hospital'),
+  path('api/department', DepartmentEndpoint.as_view(), name='department'),
+  path('api/department/<int:obj_id>', DepartmentEndpoint.as_view(), name='department'),
+  path('api/handled_examination', HandledExaminationsEndpoint.as_view(), name='handled_examination'),
+  path('api/handled_examination/<str:obj_id>', HandledExaminationsEndpoint.as_view(), name='handled_examination'),
+  path('api/config', ConfigEndpoint.as_view(), name='config'),
+  path('api/config/<int:obj_id>', ConfigEndpoint.as_view(), name='config'),
 ]
