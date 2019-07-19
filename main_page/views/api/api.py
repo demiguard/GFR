@@ -13,7 +13,11 @@ class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'id',
     'username',
     'department',
-    'user_group'
+    'department.name',
+    'department.hospital.id',
+    'department.hospital.name',
+    'user_group',
+    'user_group.name',
   ]
 
   foreign_fields = {
@@ -81,6 +85,7 @@ class DepartmentEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'id',
     'name',
     'hospital',
+    'hospital.name',
     'config',
     'thining_factor',
     'thining_factor_change_date'

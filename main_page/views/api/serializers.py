@@ -4,6 +4,11 @@ from typing import Type, Dict
 
 
 class JSONSerializer:
+  CONTINUATION_FIELDS = {
+    models.ForeignKey,
+    models.OneToOneField,
+  }
+
   def __init__(self) -> None:
     self._SERIALIZER_MAPPINGS = {
       models.ForeignKey: self.__serialize_ForeignKey,
@@ -75,16 +80,40 @@ class JSONSerializer:
       if not isinstance(fields, list):
         raise ValueError(f"Invalid object type for 'fields'. Expected: '{list}', Got: {type(fields)}")
 
-      for field in fields:
-        if field not in obj_fields:
-          raise ValueError(f"Unable to find field: '{field}', in the objects actual fields.")
+      # TODO: Extend this to handle the new dot notation
+      # for field in fields:
+      #   if field not in obj_fields:
+      #     raise ValueError(f"Unable to find field: '{field}', in the objects actual fields.")
     else:
       fields = list(obj_fields)
 
     # Serialize each field
     ret = { }
     for field in fields:
-      curr_field = obj._meta.get_field(field)
+      curr_obj = obj
+      curr_field_name = field
+      
+      if '.' in field:
+        field_split = field.split('.')
+
+        # Continuously update curr_obj
+        for field_component in field_split:
+          inner_field = curr_obj._meta.get_field(field_component)
+          inner_field_type = type(inner_field)
+
+          if inner_field_type not in self.CONTINUATION_FIELDS:
+            curr_field_name = field_component
+            break
+
+          inner_pk = getattr(curr_obj, inner_field.name).pk
+
+          # NOTE: This is kinda hacky, for details see function specifications at: 
+          # https://github.com/django/django/blob/7f612eda80db1c1c8e502aced54c2062080eae46/django/db/models/fields/related.py#L444
+          to_model = inner_field.related_model
+
+          curr_obj = to_model.objects.get(pk=inner_pk)
+      
+      curr_field = curr_obj._meta.get_field(curr_field_name)
       curr_field_type = type(curr_field)
       serialze_func = None
 
@@ -94,7 +123,7 @@ class JSONSerializer:
         raise NotImplementedError(f"Unsupported field type in object. Got: {curr_field_type}")
 
       try:
-        ret[field] = serialze_func(obj, curr_field)
+        ret[field] = serialze_func(curr_obj, curr_field)
       except AttributeError: # Serialization failed in internal function
         ret[field] = None
 
