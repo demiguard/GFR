@@ -391,16 +391,13 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   response_list = []
 
   # Construct Search Dataset
-  search_datasets = []
-  for stationName in server_config.STATION_NAMES:
-    search_datasets.append(dataset_creator.create_search_dataset(
+  find_dataset = dataset_creator.create_search_dataset(
       name,
       cpr, 
       date_from, 
       date_to, 
-      accession_number, 
-      stationName)
-    )
+      accession_number
+    )  
 
   logger.info(f"Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
 
@@ -413,20 +410,17 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   
   if assoc.is_established:
     # Make Search Request
-    for search_dataset in search_datasets:
-      response = assoc.send_c_find(search_dataset, query_model='S')
-      for (status, dataset) in response:
-        if status.Status == 0xFF00:
-          logger.info(dataset)
+    response = assoc.send_c_find(find_dataset, query_model='S')
+    for (status, dataset_from_response) in response:
+      if status.Status == 0xFF00:
+        exam_obj = examination_info.deserialize(dataset_from_response)
 
-          exam_obj = examination_info.deserialize(dataset)
-
-          response_list.append(exam_obj)
-        elif status.Status == 0x0000:
-          # Operation successfull
-          continue
-        else:
-          logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
+        response_list.append(exam_obj)
+      elif status.Status == 0x0000:
+        # Operation successfull
+        continue
+      else:
+        logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
     assoc.release()
   else:
     logger.warn('Connection to pacs failed!')
