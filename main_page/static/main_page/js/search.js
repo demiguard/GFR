@@ -3,32 +3,6 @@ $(function() {
   $('#id_Dato_start').datepicker({format: 'yyyy-mm-dd'});
   $('#id_Dato_finish').datepicker({format: 'yyyy-mm-dd'});
 
-
-  // Send csrf token with on ajax requests 
-  $.ajaxSetup({ 
-    beforeSend: function(xhr, settings) {
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-            // Only send the token to relative URLs i.e. locally.
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-        }
-    } 
-  });
-
   // Make search fields readonly 
   let disable_search_fields = function() {
     $('#id_name').attr('readonly', true);

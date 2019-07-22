@@ -1,33 +1,8 @@
 
 
 $(function() {
-  // Send csrf token with on ajax requests 
-  $.ajaxSetup({ 
-    beforeSend: function(xhr, settings) {
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-            // Only send the token to relative URLs i.e. locally.
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-        }
-    } 
-  });
-  
   // Add tooltips to status icons
-  $('.oi-clipboard').each(function(elem) {
+  $('.oi-clipboard').each(function() {
     if ($(this).hasClass('exam-status-0')) {
       $(this).attr('title', 'Ingen ændringer');
     } else if ($(this).hasClass('exam-status-1')) {
