@@ -287,38 +287,3 @@ def store_form(request, dataset, rigs_nr):
     exam_status=exam_status
   )
   return dataset
-  
-def present_study_post(request, rigs_nr):
-  """
-  Handles the Post request, when there's a complete study, and it needs to be send back to pacs 
-
-  Args:
-    request: the Request
-    rigs_nr: the rigs number of the examination to store
-  """
-  # Send information to PACS
-  obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.dcm"
-  image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.png"
-
-  dicom_object = dicomlib.dcmread_wrapper(obj_path)
-
-  logger.info(f"User:{request.user.username} has finished examination: {rigs_nr}")
-  success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
-  logger.info(f"User:{request.user.username} has stored {rigs_nr} in PACS")
-  if success_rate:
-    # Remove the file    
-    try:
-      os.remove(obj_path)
-    except:  
-      logger.warn(f'Could not delete {obj_path}')
-    try:
-      os.remove(image_path)
-    except:
-      logger.warn(f'Could not delete {image_path}')
-    # Store the RIGS number in the HandleExaminations table
-    HE = models.HandledExaminations(accession_number=rigs_nr)
-    HE.save()
-  else:
-    # Try again?
-    # Redirect to informative site, telling the user that the connection to PACS is down
-    logger.warn(f'Failed to store {rigs_nr} in pacs, because:{error_message}')
