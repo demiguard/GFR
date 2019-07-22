@@ -1,30 +1,14 @@
 from django import forms
-from django.forms import ModelForm
-from django.utils.safestring import mark_safe
+
 import main_page.models as models
 import main_page.libs.server_config as server_config
 
-
-# User settings form
-class SettingsForm(ModelForm):
-  class Meta:
-    model = models.Config
-    fields = [
-      'accepted_procedures',
-      'ris_aet',
-      'ris_ip',
-      'ris_port',
-      'ris_calling',
-      'pacs_aet',
-      'pacs_ip',
-      'pacs_port',
-      'pacs_calling'
-    ]
 
 # Login form
 class LoginForm(forms.Form):
   username = forms.CharField()
   password = forms.CharField(widget=forms.PasswordInput())
+
 
 # Ny undersøgelse
 class NewStudy(forms.Form):
@@ -33,11 +17,6 @@ class NewStudy(forms.Form):
   study_date = forms.DateField(label='Dato (ÅÅÅÅ-MM-DD)')
   rigs_nr = forms.CharField(label='Accessionnummer.')
 
-# Udfyld undersøgelse
-class FillStudyDaily(forms.Form):
-  factor = forms.IntegerField(label='Fortyndingsfaktor')
-  batch = forms.IntegerField(label='Batch')
-  standard = forms.IntegerField(label='Standard tælletal')
 
 class Fillpatient_1(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.', required=False)
@@ -45,9 +24,11 @@ class Fillpatient_1(forms.Form):
   sex = forms.CharField(label='Køn', required=False)
   birthdate = forms.DateField(label='Fødselsdato (ÅÅÅÅ-MM-DD)', required=False)
   
+
 class Fillpatient_2(forms.Form):
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)
   weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0)
+
 
 class Fillexamination(forms.Form):
   vial_weight_before = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, min_value=0)
@@ -55,10 +36,12 @@ class Fillexamination(forms.Form):
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
   injection_date = forms.DateField(label='Injektionsdato (ÅÅÅÅ-MM-DD)', required=False)  
 
+
 class Filldosis(forms.Form):
   #std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
   thin_fac = forms.IntegerField(label='Fortyndingsfaktor', required=False, min_value = 0)
   save_fac = forms.BooleanField(required=False, label='Gem')
+
 
 class FillStudyType(forms.Form):
   types = [
@@ -69,9 +52,11 @@ class FillStudyType(forms.Form):
 
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
 
+
 class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
   study_date = forms.DateField(label='Dato (ÅÅÅÅ-MM-DD)', required=False)
+
 
 class GetStudy(forms.Form):
   name = forms.CharField(label='Navn', required=False)
@@ -80,13 +65,9 @@ class GetStudy(forms.Form):
   Dato_start = forms.DateField(label='Fra dato (ÅÅÅÅ-MM-DD)', required=False)
   Dato_finish = forms.DateField(label='Til dato (ÅÅÅÅ-MM-DD)', required=False)
 
-class FillThiningFactor(forms.Form):
-  thin_fac = forms.FloatField(label='Fortydnings Faktor', min_value=0.0, required=True)
-
-
 
 # --- EDIT FORMS START --- #
-class EditUserForm(ModelForm):
+class EditUserForm(forms.ModelForm):
   class Meta:
     model = models.User
     fields = [
@@ -134,7 +115,7 @@ class ConfigChoiceField(forms.ModelChoiceField):
     return config_obj.id
 
 
-class EditDepartmentForm(ModelForm):
+class EditDepartmentForm(forms.ModelForm):
   class Meta:
     model = models.Department
     fields = [
@@ -151,7 +132,7 @@ class EditDepartmentForm(ModelForm):
   config = ConfigChoiceField(queryset=models.Config.objects.all(), label="Konfiguration")
 
 
-class EditConfigForm(ModelForm):
+class EditConfigForm(forms.ModelForm):
   class Meta:
     model = models.Config
     fields = [
@@ -166,7 +147,7 @@ class EditConfigForm(ModelForm):
     ]
 
 
-class EditHospitalForm(ModelForm):
+class EditHospitalForm(forms.ModelForm):
   class Meta:
     model = models.Hospital
     fields = [
@@ -176,7 +157,7 @@ class EditHospitalForm(ModelForm):
     ]
 
 
-class EditHandledExaminationsForm(ModelForm):
+class EditHandledExaminationsForm(forms.ModelForm):
   class Meta:
     model = models.HandledExaminations
     fields =[
@@ -185,8 +166,8 @@ class EditHandledExaminationsForm(ModelForm):
 # --- EDIT FORMS END --- #
 
 
-
-class AddUserForm(ModelForm):
+# --- ADD FORMS START --- #
+class AddUserForm(forms.ModelForm):
   class Meta:
     model = models.User
     fields = [
@@ -219,7 +200,7 @@ class AddUserForm(ModelForm):
   user_group = forms.ChoiceField(choices=group_choices, label="Bruger gruppe")
 
 
-class AddHospitalForm(ModelForm):
+class AddHospitalForm(forms.ModelForm):
   class Meta:
     model = models.Hospital
     fields = [
@@ -243,7 +224,7 @@ class AddHospitalForm(ModelForm):
     })
 
 
-class AddDepartmentForm(ModelForm):
+class AddDepartmentForm(forms.ModelForm):
   class Meta:
     model = models.Department
     fields = [
@@ -260,7 +241,7 @@ class AddDepartmentForm(ModelForm):
   hospital = forms.ChoiceField(choices=hosp_choices)
 
 
-class AddConfigForm(ModelForm):
+class AddConfigForm(forms.ModelForm):
   class Meta:
     model = models.Config
     fields = [
@@ -275,24 +256,13 @@ class AddConfigForm(ModelForm):
     ]
 
 
-class AddHandledExaminationsForm(ModelForm):
+class AddHandledExaminationsForm(forms.ModelForm):
   class Meta:
     model = models.HandledExaminations
     fields = [
       'accession_number'
     ]
-
-
-class DeleteHandledExaminationsForm(ModelForm):
-  class Meta:
-    model = models.HandledExaminations
-    fields = [
-      'accession_number'
-    ]
-
-    labels = {
-      'accession_number': 'Accession nummer'
-    }
+# --- ADD FORMS END --- #
 
 
 class GetBackupDate(forms.Form):
