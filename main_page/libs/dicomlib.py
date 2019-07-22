@@ -40,7 +40,7 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
         ds_sq = convert_SQ(ds.value, is_implicit_VR , is_little_endian)
         seq_list = []
         for sq in ds_sq:
-          sq = update_tags(sq,is_little_endian=is_little_endian, is_implicit_VR=is_implicit_VR)
+          sq = update_tags(sq, is_little_endian=is_little_endian, is_implicit_VR=is_implicit_VR)
           seq_list.append(sq)
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], Sequence(seq_list)) 
       elif new_dict_items[ds.tag][0] == 'LO':
@@ -54,7 +54,8 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
 
   return obj
 
-def save_dicom(file_path, dataset, default_error_handling = True ):
+
+def save_dicom(file_path, dataset, default_error_handling=True ):
   """
   Saves a dicom file to a selected file path
 
@@ -84,6 +85,7 @@ def save_dicom(file_path, dataset, default_error_handling = True ):
   dataset.fix_meta_info()
   logger.info('Saving Dicom file at:{0}'.format(file_path))
   dataset.save_as(file_path, write_like_original = False)
+
 
 def fill_dicom(ds,
     age                 = None,

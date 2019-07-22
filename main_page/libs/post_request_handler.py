@@ -255,7 +255,7 @@ def store_form(request, dataset, rigs_nr):
     zip_obj_seq = zip(sample_datetimes, sample_tec99)
     seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
   else:
-    seq = []     
+    seq = []
 
   # If exam_status is already higher than 1, don't change it
   exam_status = 0
@@ -286,4 +286,5 @@ def store_form(request, dataset, rigs_nr):
     sample_seq=seq,
     exam_status=exam_status
   )
+
   return dataset
