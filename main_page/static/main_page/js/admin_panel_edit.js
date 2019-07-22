@@ -1,5 +1,9 @@
 // TODO: Only send keys and values for the fields which have actually been changed
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 $(function() {
   $.ajaxSetup({ 
     beforeSend: function(xhr, settings) {
@@ -28,6 +32,16 @@ $(function() {
 
   console.log("admin panel edit loaded");
 
+  alerter.init_alerter($('#error-msg-container'));
+
+  MODEL_TRANSLATION_MAPPINGS = {
+    'user': 'bruger',
+    'department': 'afdeling',
+    'config': 'konfiguration',
+    'hospital': 'hospital',
+    'handled_examination': 'behandlede undersøgelse',
+  };
+
   // Save button on click - update model using backend REST api
   $('#save-btn').on('click', function() {
     // Extraction object information from all available fields
@@ -54,9 +68,12 @@ $(function() {
       data: save_data,
       success: function(data) {
         console.log(data);
+        let display_name = capitalizeFirstLetter(MODEL_TRANSLATION_MAPPINGS[model_name]);
+        alerter.add_alert(display_name + ' blev redigeret', 'success');
       },
       error: function(data) {
         console.log(data);
+        alerter.add_alert('Kunne ikke redigere ' + MODEL_TRANSLATION_MAPPINGS[model_name], 'danger');
       }
     });
   });

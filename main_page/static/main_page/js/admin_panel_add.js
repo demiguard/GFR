@@ -26,6 +26,16 @@ $(function() {
 
   console.log("Loaded admin panel add site");
 
+  MODEL_TRANSLATION_MAPPINGS = {
+    'user': 'bruger',
+    'department': 'afdeling',
+    'config': 'konfiguration',
+    'hospital': 'hospital',
+    'handled_examination': 'behandlede undersøgelse',
+  };
+
+  alerter.init_alerter($('#error-msg-container'));
+
   $('#create-btn').on('click', function() {
     // Extraction object information from all available fields
     var obj_data = { };
@@ -49,10 +59,11 @@ $(function() {
       type: 'POST',
       data: obj_data,
       success: function(data) {
-        console.log(data);
+        alerter.add_alert('Tilføjede ' + MODEL_TRANSLATION_MAPPINGS[model_name], 'success');
+
       },
       error: function(data) {
-        console.log(data);
+        alerter.add_alert('Kunne ikke oprette ' + MODEL_TRANSLATION_MAPPINGS[model_name], 'danger');
       }
     });
   });
