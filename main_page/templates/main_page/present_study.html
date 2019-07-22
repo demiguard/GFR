@@ -7,23 +7,20 @@
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/fill_study.css' %}">
 {% endblock head %}
 
-
 {% block content %}
-<!--<h2>Resultat af {{ name }}'s undersøgelse den {{ date }}</h2>-->
+  <img class="PresentationImage" width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
+  <form method="POST">
+    {% csrf_token %}
+    <div>
+      <input type="button" value="Tilbage til redigering" onclick="document.location='{% url "main_page:fill_study" ris_nr %}'">
+      <input type="button" value="Tilbage til hovedmenu" onclick="document.location='{% url "main_page:list_studies" %}'">
+      <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
+      <input type="submit" value="Send til PACS">
 
-<img class="PresentationImage" width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
-<form method="POST">
-  {% csrf_token %}
-  <div>
-    <input type="button" value="Tilbage til redigering" onclick="document.location='{% url "main_page:fill_study" rigs_nr %}'">
-    <input type="button" value="Tilbage til hovedmenu" onclick="document.location='{% url "main_page:list_studies" %}'">
-    <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
-    <input type="submit" value="Send til PACS">
+      {% if show_QA_button %}
+        <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" ris_nr %}'">
+      {% endif %}
 
-    {% if show_QA_button %}
-      <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" rigs_nr %}'">
-    {% endif %}
-
-    </div>
-</form>
+      </div>
+  </form>
 {% endblock %}

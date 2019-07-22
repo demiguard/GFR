@@ -8,16 +8,12 @@
 {% endblock head %}
 
 {% block content %}
-<!--<h2>Resultat af {{ name }}'s undersøgelse den {{ date }}</h2>-->
-
 <img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
 
 <div class="col-md-4">
   <h3>Prøve data:</h3>
   {% for previous_test in previous_samples %}
     <h5>Prøve nr. {{ forloop.counter }}</h5>
-    <!-- <p>Standard tælletal: {{ std_cnt }}</p>
-    <p>Faktor: {{ thin_fac }}</p> -->
 
     <table class="table table-bordered">
       <thead>
