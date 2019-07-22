@@ -14,7 +14,7 @@ class GetEndpoint(View):
   Defines an api endpoint which allows for retreival of object information
   through GET requests for either all objects or a specific object given an id.
   """
-  def get(self, request: Type[WSGIRequest], obj_id=None) -> HttpResponse:
+  def get(self, request: Type[WSGIRequest], obj_id: Union[int, str]=None) -> HttpResponse:
     """
     Handles incoming GET requests to the endpoint
 
@@ -142,7 +142,7 @@ class RESTEndpoint(GetEndpoint, DeleteEndpoint, PatchEndpoint, PutEndpoint, Post
   Remark:
     When specifying the url the instance id MUST be called 'obj_id'
   """
-  def get(self, request: Type[WSGIRequest], obj_id=None) -> HttpResponse:
+  def get(self, request: Type[WSGIRequest], obj_id: Union[int, str]=None) -> HttpResponse:
     return super().get(request, obj_id=obj_id)
 
   def delete(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:

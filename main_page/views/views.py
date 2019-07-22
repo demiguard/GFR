@@ -4,4 +4,4 @@ from main_page.views.admin_panel import AdminPanelView, AdminPanelAddView, Admin
 from main_page.views.qa import QAView
 from main_page.views.search import SearchView
 from main_page.views.documentation import DocumentationView
-from main_page.views.study_views import NewStudyView, fill_study, present_study, present_old_study, ListStudiesView, DeletedStudiesView
+from main_page.views.study_views import NewStudyView, FillStudyView, present_study, present_old_study, ListStudiesView, DeletedStudiesView

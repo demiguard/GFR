@@ -4,12 +4,14 @@ from django.template import loader
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.core.handlers.wsgi import WSGIRequest
 
 import os
 import datetime
 import logging
 import PIL
 import glob
+from typing import Type
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
@@ -29,15 +31,14 @@ logger = logging.getLogger()
 class NewStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/new_study.html'
 
-  def get(self, request):
+  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     context = {
       'study_form': forms.NewStudy(initial={'study_date': datetime.date.today})
     }
 
     return render(request, self.template_name, context)
 
-  def post(self, request):
-
+  def post(self, request: Type[WSGIRequest]) -> HttpResponse:
     # Create and store dicom object for new study
     cpr = request.POST['cpr']
     name = request.POST['name']
@@ -89,7 +90,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 class ListStudiesView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/list_studies.html'
 
-  def get(self, request):
+  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
     
     bookings = examination_info.mass_deserialize(dicom_objs)
@@ -110,175 +111,345 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context)
 
 
-@login_required()
-def fill_study(request, rigs_nr):
-  # Specify page template
-  template = loader.get_template('main_page/fill_study.html')
+class FillStudyView(LoginRequiredMixin, TemplateView):
+  template_name = 'main_page/fill_study.html'
 
-  if request.method == 'POST':
-    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.dcm"
+  def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+    hospital = request.user.department.hospital.short_name # Hospital of current user
+
+    # Create the directory if not existing
+    if not os.path.exists(server_config.FIND_RESPONS_DIR):
+      os.mkdir(server_config.FIND_RESPONS_DIR)
+
+    if not os.path.exists('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)):
+      os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
+
+    # Get previous information for the study
+    exam = pacs.get_examination(
+      request.user, 
+      ris_nr, 
+      f'{server_config.FIND_RESPONS_DIR}{hospital}/'
+    )
+
+    today = datetime.datetime.now()
+    date, _ = str(today).split(' ')
+    test_form = forms.FillStudyTest(initial = {'study_date' : date})
+
+    # Return a list of Panda objects
+    csv_data = []
+    csv_present_names = []
+    data_names = []
+    error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
+    
+    try: 
+      data_files = samba_handler.smb_get_csv(request.user.department.hospital.short_name, timeout=10)
+      
+      # Read required data from each csv file  
+      for data_file in data_files:
+        prestring = ""
+
+        curr_data = [[] for _ in range(data_file.shape[0])]
+
+        csv_present_names.append(prestring + data_file['Measurement date & time'][0])
+        for i, row in data_file.iterrows():
+          curr_data[i].append(row['Rack'])
+          curr_data[i].append(row['Pos'])
+          curr_data[i].append(row['Tc-99m CPM'])
+          data_names.append(i)
+
+        csv_data.append(curr_data)
+
+      csv_data = zip(csv_present_names, csv_data, data_names)
+    except Exception as E:
+      logger.warning(f'SMB Connection Failed:{E}')
+      error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
+
+    inj_time = None
+    inj_date = today.strftime('%Y-%m-%d')
+    if exam.inj_t:
+      inj_date = exam.inj_t.strftime('%Y-%m-%d')
+      inj_time = exam.inj_t.strftime('%H:%M')
+
+    # Read in previous samples from examination info
+    previous_sample_times = []
+    previous_sample_dates = []
+    previous_sample_counts = exam.tch_cnt
+
+    for st in exam.sam_t:
+      previous_sample_dates.append(st.strftime('%Y-%m-%d'))
+      previous_sample_times.append(st.strftime('%H:%M'))
+    
+    previous_samples = zip(
+      previous_sample_dates,
+      previous_sample_times,
+      previous_sample_counts
+    )
+
+    study_type = 0
+    if exam.Method:
+      # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
+      # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
+      if exam.Method == 'Et punkt voksen':
+        study_type = 0
+      elif exam.Method == 'Et punkt Barn':
+        study_type = 1
+      elif exam.Method == 'Flere prøve Voksen':
+        study_type = 2
+
+    if exam.sex == 'M':
+      present_sex = 'Mand'
+    else:
+      present_sex = 'Kvinde'
+
+    #This Code is not approve of the pretty police
+    if exam.inj_before == 0.0:
+      exam.inj_before = None
+
+    if exam.inj_after == 0.0:
+      exam.inj_after = None
+
+    if exam.height == 0.0:
+      exam.height = None
+
+    if exam.weight == 0.0:
+      exam.weight = None
+
+    thin_fac_save_inital = True
+    if exam.thin_fact == 0.0 or exam.thin_fact == None:
+      if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
+        exam.thin_fact = request.user.department.thining_factor
+        thin_fac_save_inital = False
+      else:
+        exam.thin_fact = None
+
+    if exam.std_cnt == 0.0:
+      exam.std_cnt = None
+
+    context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'rigsnr': ris_nr,
+      'study_patient_form': forms.Fillpatient_1(initial={
+        'cpr': exam.cpr,
+        'name': exam.name,
+        'sex': present_sex,
+        'birthdate': exam.birthdate
+      }),
+      'study_patient_form_2': forms.Fillpatient_2(initial={
+        'height': exam.height,
+        'weight': exam.weight,
+      }),
+      'study_dosis_form' : forms.Filldosis( initial={
+        'thin_fac' : exam.thin_fact,
+        'save_fac' : thin_fac_save_inital
+      }),
+      'study_examination_form': forms.Fillexamination(initial={
+        'vial_weight_before': exam.inj_before,
+        'vial_weight_after': exam.inj_after,
+        'injection_time': inj_time,
+        'injection_date': inj_date
+      }),
+      'study_type_form': forms.FillStudyType(initial={
+        'study_type': study_type # Default: 'Et punkt voksen'
+      }),
+      'test_context': {
+        'test_form': test_form
+      },
+      'GetBackupDate' : forms.GetBackupDate(initial={
+        'dateofmessurement' : datetime.date.today()
+      }),
+      'previous_samples': previous_samples,
+      'csv_data': csv_data,
+      'csv_data_len': len(data_names),
+      'error_message' : error_message,
+      'standard_count' : exam.std_cnt,
+    }
+
+    return render(request, self.template_name, context=context)
+
+  def post(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}.dcm"
 
     dataset = dicomlib.dcmread_wrapper(file_path)
-    dataset = PRH.fill_study_post(request, rigs_nr, dataset)
+    dataset = PRH.fill_study_post(request, ris_nr, dataset)
     
     dicomlib.save_dicom(file_path, dataset)
-
-    if 'calculate' in request.POST:  
-      return redirect('main_page:present_study', rigs_nr=rigs_nr) 
-
-  hospital = request.user.department.hospital.short_name # Hospital of current user
-
-  # Create the directory if not existing
-  if not os.path.exists(server_config.FIND_RESPONS_DIR):
-    os.mkdir(server_config.FIND_RESPONS_DIR)
-
-  if not os.path.exists('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)):
-    os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
-
-  # Get previous information for the study
-  exam = pacs.get_examination(
-    request.user, 
-    rigs_nr, 
-    f'{server_config.FIND_RESPONS_DIR}{hospital}/'
-  )
-
-  today = datetime.datetime.now()
-  date, _ = str(today).split(' ')
-  test_form = forms.FillStudyTest(initial = {'study_date' : date})
-  for f in test_form:
-    f.field.widget.attrs['class'] = 'form-control'
-
-  # Return a list of Panda objects
-  csv_data = []
-  csv_present_names = []
-  data_names = []
-  error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
-  
-  try: 
-    data_files = samba_handler.smb_get_csv(request.user.department.hospital.short_name, timeout=10)
     
-    # Read required data from each csv file  
-    for data_file in data_files:
-      prestring = ""
+    if 'calculate' in request.POST:
+      return redirect('main_page:present_study', rigs_nr=ris_nr) 
 
-      curr_data = [[] for _ in range(data_file.shape[0])]
+    return self.get(request, ris_nr)
 
-      csv_present_names.append(prestring + data_file['Measurement date & time'][0])
-      for i, row in data_file.iterrows():
-        curr_data[i].append(row['Rack'])
-        curr_data[i].append(row['Pos'])
-        curr_data[i].append(row['Tc-99m CPM'])
-        data_names.append(i)
 
-      csv_data.append(curr_data)
+# @login_required()
+# def fill_study(request, rigs_nr):
+  # # Specify page template
+  # template = loader.get_template('main_page/fill_study.html')
 
-    csv_data = zip(csv_present_names, csv_data, data_names)
-  except Exception as E:
-    logger.warning(f'SMB Connection Failed:{E}')
-    error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
+  # if request.method == 'POST':
+    # file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{rigs_nr}.dcm"
 
-  inj_time = None
-  inj_date = today.strftime('%Y-%m-%d')
-  if exam.inj_t:
-    inj_date = exam.inj_t.strftime('%Y-%m-%d')
-    inj_time = exam.inj_t.strftime('%H:%M')
+    # dataset = dicomlib.dcmread_wrapper(file_path)
+    # dataset = PRH.fill_study_post(request, rigs_nr, dataset)
+    
+    # dicomlib.save_dicom(file_path, dataset)
 
-  # Read in previous samples from examination info
-  previous_sample_times = []
-  previous_sample_dates = []
-  previous_sample_counts = exam.tch_cnt
+    # if 'calculate' in request.POST:  
+    #   return redirect('main_page:present_study', rigs_nr=rigs_nr) 
 
-  for st in exam.sam_t:
-    previous_sample_dates.append(st.strftime('%Y-%m-%d'))
-    previous_sample_times.append(st.strftime('%H:%M'))
+  # hospital = request.user.department.hospital.short_name # Hospital of current user
+
+  # # Create the directory if not existing
+  # if not os.path.exists(server_config.FIND_RESPONS_DIR):
+  #   os.mkdir(server_config.FIND_RESPONS_DIR)
+
+  # if not os.path.exists('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)):
+  #   os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
+
+  # # Get previous information for the study
+  # exam = pacs.get_examination(
+  #   request.user, 
+  #   rigs_nr, 
+  #   f'{server_config.FIND_RESPONS_DIR}{hospital}/'
+  # )
+
+  # today = datetime.datetime.now()
+  # date, _ = str(today).split(' ')
+  # test_form = forms.FillStudyTest(initial = {'study_date' : date})
+  # for f in test_form:
+  #   f.field.widget.attrs['class'] = 'form-control'
+
+  # # Return a list of Panda objects
+  # csv_data = []
+  # csv_present_names = []
+  # data_names = []
+  # error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
   
-  previous_samples = zip(
-    previous_sample_dates,
-    previous_sample_times,
-    previous_sample_counts
-  )
+  # try: 
+  #   data_files = samba_handler.smb_get_csv(request.user.department.hospital.short_name, timeout=10)
+    
+  #   # Read required data from each csv file  
+  #   for data_file in data_files:
+  #     prestring = ""
 
-  study_type = 0
-  if exam.Method:
-    # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
-    # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
-    if exam.Method == 'Et punkt voksen':
-      study_type = 0
-    elif exam.Method == 'Et punkt Barn':
-      study_type = 1
-    elif exam.Method == 'Flere prøve Voksen':
-      study_type = 2
+  #     curr_data = [[] for _ in range(data_file.shape[0])]
 
-  if exam.sex == 'M':
-    present_sex = 'Mand'
-  else:
-    present_sex = 'Kvinde'
+  #     csv_present_names.append(prestring + data_file['Measurement date & time'][0])
+  #     for i, row in data_file.iterrows():
+  #       curr_data[i].append(row['Rack'])
+  #       curr_data[i].append(row['Pos'])
+  #       curr_data[i].append(row['Tc-99m CPM'])
+  #       data_names.append(i)
 
-  #This Code is not approve of the pretty police
-  if exam.inj_before == 0.0:
-    exam.inj_before = None
+  #     csv_data.append(curr_data)
 
-  if exam.inj_after == 0.0:
-    exam.inj_after = None
+  #   csv_data = zip(csv_present_names, csv_data, data_names)
+  # except Exception as E:
+  #   logger.warning(f'SMB Connection Failed:{E}')
+  #   error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
-  if exam.height == 0.0:
-    exam.height = None
+  # inj_time = None
+  # inj_date = today.strftime('%Y-%m-%d')
+  # if exam.inj_t:
+  #   inj_date = exam.inj_t.strftime('%Y-%m-%d')
+  #   inj_time = exam.inj_t.strftime('%H:%M')
 
-  if exam.weight == 0.0:
-    exam.weight = None
+  # # Read in previous samples from examination info
+  # previous_sample_times = []
+  # previous_sample_dates = []
+  # previous_sample_counts = exam.tch_cnt
 
-  thin_fac_save_inital = True
-  if exam.thin_fact == 0.0 or exam.thin_fact == None:
-    if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
-      exam.thin_fact = request.user.department.thining_factor
-      thin_fac_save_inital = False
-    else:
-      exam.thin_fact = None
+  # for st in exam.sam_t:
+  #   previous_sample_dates.append(st.strftime('%Y-%m-%d'))
+  #   previous_sample_times.append(st.strftime('%H:%M'))
+  
+  # previous_samples = zip(
+  #   previous_sample_dates,
+  #   previous_sample_times,
+  #   previous_sample_counts
+  # )
 
-  if exam.std_cnt == 0.0:
-    exam.std_cnt = None
+  # study_type = 0
+  # if exam.Method:
+  #   # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
+  #   # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
+  #   if exam.Method == 'Et punkt voksen':
+  #     study_type = 0
+  #   elif exam.Method == 'Et punkt Barn':
+  #     study_type = 1
+  #   elif exam.Method == 'Flere prøve Voksen':
+  #     study_type = 2
 
-  context = {
-    'title'     : server_config.SERVER_NAME,
-    'version'   : server_config.SERVER_VERSION,
-    'rigsnr': rigs_nr,
-    'study_patient_form': forms.Fillpatient_1(initial={
-      'cpr': exam.cpr,
-      'name': exam.name,
-      'sex': present_sex,
-      'birthdate': exam.birthdate
-    }),
-    'study_patient_form_2': forms.Fillpatient_2(initial={
-      'height': exam.height,
-      'weight': exam.weight,
-    }),
-    'study_dosis_form' : forms.Filldosis( initial={
-      'thin_fac' : exam.thin_fact,
-      'save_fac' : thin_fac_save_inital
-    }),
-    'study_examination_form': forms.Fillexamination(initial={
-      'vial_weight_before': exam.inj_before,
-      'vial_weight_after': exam.inj_after,
-      'injection_time': inj_time,
-      'injection_date': inj_date
-    }),
-    'study_type_form': forms.FillStudyType(initial={
-      'study_type': study_type # Default: 'Et punkt voksen'
-    }),
-    'test_context': {
-      'test_form': test_form
-    },
-    'GetBackupDate' : forms.GetBackupDate(initial={
-      'dateofmessurement' : datetime.date.today()
-    }),
-    'previous_samples': previous_samples,
-    'csv_data': csv_data,
-    'csv_data_len': len(data_names),
-    'error_message' : error_message,
-    'standard_count' : exam.std_cnt,
-  }
+  # if exam.sex == 'M':
+  #   present_sex = 'Mand'
+  # else:
+  #   present_sex = 'Kvinde'
 
-  return HttpResponse(template.render(context, request))
+  # #This Code is not approve of the pretty police
+  # if exam.inj_before == 0.0:
+  #   exam.inj_before = None
+
+  # if exam.inj_after == 0.0:
+  #   exam.inj_after = None
+
+  # if exam.height == 0.0:
+  #   exam.height = None
+
+  # if exam.weight == 0.0:
+  #   exam.weight = None
+
+  # thin_fac_save_inital = True
+  # if exam.thin_fact == 0.0 or exam.thin_fact == None:
+  #   if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
+  #     exam.thin_fact = request.user.department.thining_factor
+  #     thin_fac_save_inital = False
+  #   else:
+  #     exam.thin_fact = None
+
+  # if exam.std_cnt == 0.0:
+  #   exam.std_cnt = None
+
+  # context = {
+  #   'title'     : server_config.SERVER_NAME,
+  #   'version'   : server_config.SERVER_VERSION,
+  #   'rigsnr': rigs_nr,
+  #   'study_patient_form': forms.Fillpatient_1(initial={
+  #     'cpr': exam.cpr,
+  #     'name': exam.name,
+  #     'sex': present_sex,
+  #     'birthdate': exam.birthdate
+  #   }),
+  #   'study_patient_form_2': forms.Fillpatient_2(initial={
+  #     'height': exam.height,
+  #     'weight': exam.weight,
+  #   }),
+  #   'study_dosis_form' : forms.Filldosis( initial={
+  #     'thin_fac' : exam.thin_fact,
+  #     'save_fac' : thin_fac_save_inital
+  #   }),
+  #   'study_examination_form': forms.Fillexamination(initial={
+  #     'vial_weight_before': exam.inj_before,
+  #     'vial_weight_after': exam.inj_after,
+  #     'injection_time': inj_time,
+  #     'injection_date': inj_date
+  #   }),
+  #   'study_type_form': forms.FillStudyType(initial={
+  #     'study_type': study_type # Default: 'Et punkt voksen'
+  #   }),
+  #   'test_context': {
+  #     'test_form': test_form
+  #   },
+  #   'GetBackupDate' : forms.GetBackupDate(initial={
+  #     'dateofmessurement' : datetime.date.today()
+  #   }),
+  #   'previous_samples': previous_samples,
+  #   'csv_data': csv_data,
+  #   'csv_data_len': len(data_names),
+  #   'error_message' : error_message,
+  #   'standard_count' : exam.std_cnt,
+  # }
+
+  # return HttpResponse(template.render(context, request))
 
 
 @login_required()

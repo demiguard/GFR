@@ -57,6 +57,13 @@ class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
   study_date = forms.DateField(label='Dato (ÅÅÅÅ-MM-DD)', required=False)
 
+  def __init__(self, *args, **kwargs):
+    super(FillStudyTest, self).__init__(*args, **kwargs)
+
+    # Add bootstrap class to fields
+    for _, field in self.fields.items():
+      field.widget.attrs['class'] = 'form-control'
+
 
 class GetStudy(forms.Form):
   name = forms.CharField(label='Navn', required=False)
