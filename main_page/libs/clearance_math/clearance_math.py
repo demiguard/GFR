@@ -12,7 +12,6 @@ from scipy.stats import linregress
 from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
 from .. import dicomlib
-from .. import dirmanager
 
 logger = logging.getLogger()
 

@@ -14,7 +14,6 @@ from .query_wrappers import pacs_query_wrapper as pacs
 from .clearance_math import clearance_math
 from . import server_config
 from . import dicomlib
-from . import dirmanager
 from . import formatting
 
 from dateutil import parser as date_parser
