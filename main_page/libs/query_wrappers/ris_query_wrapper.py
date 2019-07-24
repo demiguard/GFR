@@ -16,7 +16,6 @@ from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
 from ..examination_info import ExaminationInfo
-from .query_executer import execute_query
 
 logger = logging.getLogger()
 
