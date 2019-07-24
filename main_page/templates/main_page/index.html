@@ -22,6 +22,12 @@
           <input type="button" value="Log ud" onclick="window.location='/logout';">
         {% endbuttons %}
       {% endif %}
+
+      {% if not browser_supported %}
+        <div class="alert alert-warning">
+          <strong>Advarsel:</strong> Den anvendte browser er ikke understyttet af denne hjemmeside. Visse funktioner fungere muligvis ikke som ønsket. Det anbefales at man anvender en understøttet browser: Google Chrome eller Mozilla Firefox, som kan hentes i Software shoppen.
+        </div>
+      {% endif %}
     </div>
   </form>
 {% endblock %}
