@@ -279,7 +279,7 @@ function get_backup_measurements(){
 }
 
 
-function RemoveBackupMessurement(){
+function remove_backup_measurement(){
   /* 
     This Function happens when the button 'Tilbage til Dagens Mållinger' is clicked:
 
