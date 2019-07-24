@@ -16,7 +16,7 @@ def is_browser_supported(user_agent: str) -> bool:
     True if the browser is supported, False otherwise
   """
   SUPPORTED_BROWSERS = [
-    #'chrome',
+    'chrome',
     'firefox'
   ]
 
