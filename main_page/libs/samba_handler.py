@@ -1,32 +1,39 @@
-import glob, os, datetime, tempfile, logging
-import pandas
+import glob
+import os
+from datetime import datetime, date
+import tempfile
+from tempfile import NamedTemporaryFile
+import logging
+import pandas as pd
+from typing import List, Union
 
 from . import server_config
 from smb.SMBConnection import SMBConnection
+from smb.base import OperationFailure
 from . import formatting
+
 
 logger = logging.getLogger()
 
-def open_csv_file(temp_file):
+
+def open_csv_file(temp_file: NamedTemporaryFile):
   """
+  Opens a CSV file 
 
-    Opens a CSV file 
-  
-    Args:
-      temp_file an already opened file
+  Args:
+    temp_file an already opened file
 
-    Returns
-      pandas File
-
+  Returns
+    pandas File
   """
   try:
-    pandas_ds = pandas.read_csv(temp_file.name)
+    pandas_ds = pd.read_csv(temp_file.name)
     protocol = pandas_ds['Protocol name'][0]
     datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
       
   except:
     # Hidex file
-    pandas_ds = pandas.read_csv(temp_file.name, skiprows=[0,1,2,3])
+    pandas_ds = pd.read_csv(temp_file.name, skiprows=[0,1,2,3])
     pandas_ds = pandas_ds.rename(
       columns={
         'Time'                    : 'Measurement date & time',
@@ -38,7 +45,7 @@ def open_csv_file(temp_file):
     #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
     pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
 
-    datestring = (pandas_ds['Measurement date & time'][0]).replace('-','').replace(' ','').replace(':','')
+    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
     # Get protocol
     temp_file.seek(0)
     protocol = temp_file.readline()
@@ -77,13 +84,19 @@ def move_to_backup(smbconn, temp_file, hospital, fullpath, filename):
 
   logger.info('Moved File to back up')
 
-def smb_get_csv(hospital, timeout = 5):
+
+def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
   """
+  DOES SOMETHING.....
+
+  Args:
     hospital: string 
 
+  Returns:
+    .............
   """
 
-  now = datetime.datetime.now()
+  now = datetime.now()
 
   returnarray = []
 
@@ -93,11 +106,11 @@ def smb_get_csv(hospital, timeout = 5):
     server_config.samba_pc, 
     server_config.samba_name,
     use_ntlm_v2=True
-    )
+  )
 
-  is_connected = conn.connect(server_config.samba_ip, timeout = timeout)
+  is_connected = conn.connect(server_config.samba_ip, timeout=timeout)
 
-  logger.info(f'Samba Connection was succesful:{is_connected}')
+  logger.info(f'Samba Connection was succesful: {is_connected}')
   logger.debug(f'/{server_config.samba_Sample}/{hospital}/')
 
   hospital_sample_folder = f'/{server_config.samba_Sample}/{hospital}/'
@@ -135,7 +148,7 @@ def smb_get_csv(hospital, timeout = 5):
         conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
 
 
-    dt_examination = datetime.datetime.strptime(datestring, '%Y%m%d%H%M%S')
+    dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
     if (now - dt_examination).days > 0:
       logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
       move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
@@ -145,52 +158,75 @@ def smb_get_csv(hospital, timeout = 5):
     temp_file.close()
 
   conn.close()
-  #sort return array
-  sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0],reverse=True)
+  
+  # Sort based on date and time
+  sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0], reverse=True)
 
   return sorted_array
 
 
-def get_backup_file(date, hospital, timeout = 30):
+def get_backup_file(
+    date: Union[datetime, date], 
+    hospital: str, 
+    timeout: int=30
+  ) -> List[pd.DataFrame]:
   """
+  Retreives a backup file from the Samba Share
 
-    input:
-      date: a datetime object, a date object
+  Args:
+    date: datetime or date object, used to query for backup files with
+    hospital: short_name of hospital to specify which directory to get files from
+  
+  Kwargs:
+    timeout: how long the connection can be kept alive
 
+  Returns:
+    list of pandas.DataFrame objects, containing file contents
   """
-  return_pandas_list = []
+  # Format date
+  date_str = date.strftime('%Y%m%d')
+  date_str_len = len(date_str)
 
-  if isinstance(date, datetime.datetime) or isinstance(date, datetime.date):
-    date = str(date)[:10].replace('-','')
-
+  # Establish Samba Share connection
   conn = SMBConnection(
     server_config.samba_user, 
     server_config.samba_pass, 
     server_config.samba_pc, 
     server_config.samba_name
-    )
+  )
 
   conn.connect(server_config.samba_ip)
 
-  hospital_backup_folder = '/{0}/{1}/'.format(server_config.samba_backup, hospital)
+  # Check if each file in hospital sub directory has the specified date
+  # if it does append the file contents as a pandas.DataFrame to the return list
+  share_name = server_config.samba_share
+  backup_folder = f"/{server_config.samba_backup}/{hospital}"
+  samba_files = conn.listPath(share_name, backup_folder)
 
-  samba_files = conn.listPath(server_config.samba_share, hospital_backup_folder)
+  file_contents = [ ]
 
   for samba_file in samba_files:
+    curr_filename = samba_file.filename
 
-
-    if date == samba_file.filename[:8]:
+    if date_str == curr_filename[:date_str_len]:
       temp_file = tempfile.NamedTemporaryFile()
 
-      fullpath = hospital_backup_folder + samba_file.filename
-      file_attri, file_len = conn.retrieveFile(server_config.samba_share, fullpath, temp_file, timeout= 30)
+      fullpath = f"{backup_folder}/{curr_filename}"
+      
+      try:
+        conn.retrieveFile(share_name, fullpath, temp_file, timeout=timeout)
+      except OperationFailure: # File couldn't be found, skip it
+        temp_file.close()
+        continue
+
       temp_file.seek(0)
-      pandas_ds, _, _ = open_csv_file(temp_file)
-      return_pandas_list.append(pandas_ds)
+
+      df, _, _ = open_csv_file(temp_file)
+      file_contents.append(df)
 
       temp_file.close()
 
-  return return_pandas_list
+  conn.close()
 
-
+  return file_contents
   

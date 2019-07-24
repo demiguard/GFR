@@ -11,6 +11,7 @@ import datetime
 import logging
 import PIL
 import glob
+from pandas import DataFrame
 from typing import Type
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
@@ -141,9 +142,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     data_names = []
     error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
     
-    try: 
-      data_files = samba_handler.smb_get_csv(request.user.department.hospital.short_name, timeout=10)
-      
+    try:
+      data_files = samba_handler.smb_get_csv(hospital, timeout=10)
+      print(type(data_files))
+      print(type(data_files[0]))
+
       # Read required data from each csv file  
       for data_file in data_files:
         prestring = ""
@@ -161,6 +164,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       csv_data = zip(csv_present_names, csv_data, data_names)
     except Exception as E:
+      print(type(E))
+      print(E)
       logger.warning(f'SMB Connection Failed:{E}')
       error_message = 'Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.'
 
@@ -255,7 +260,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'test_context': {
         'test_form': test_form
       },
-      'GetBackupDate' : forms.GetBackupDate(initial={
+      'get_backup_date_form' : forms.GetBackupDateForm(initial={
         'dateofmessurement' : datetime.date.today()
       }),
       'previous_samples': previous_samples,

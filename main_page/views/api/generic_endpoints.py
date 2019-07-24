@@ -14,6 +14,7 @@ class GetEndpoint(View):
   Defines an api endpoint which allows for retreival of object information
   through GET requests for either all objects or a specific object given an id.
   """
+  
   def get(self, request: Type[WSGIRequest], obj_id: Union[int, str]=None) -> HttpResponse:
     """
     Handles incoming GET requests to the endpoint
@@ -26,7 +27,7 @@ class GetEndpoint(View):
               objects id.
     
     Returns:
-      JSONResponse containing the requeted information about the model,
+      JSONResponse containing the requested information about the model,
       otherwise 404 on failure (e.g. if a requested field is not contained 
       within the model).
     """
@@ -55,7 +56,23 @@ class GetEndpoint(View):
 
 
 class DeleteEndpoint(View):
+  """
+  Defines an api endpoint which allows for deletion of object instances,
+  by a given object id.
+  """
+  
   def delete(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
+    """
+    Handles incoming DELETE requests to the endpoint
+
+    Args:
+      request: incoming HTTP request
+      obj_id: id of object to delete
+
+    Returns:
+      JSONResponse containing information regarding the status of the action,
+      otherwise 404 on failure.
+    """
     try:
       obj = self.model.objects.get(pk=obj_id)
     except ObjectDoesNotExist:
@@ -71,9 +88,23 @@ class PutEndpoint(View):
   pass
 
 
-# CREATES STUFF
 class PostEndpoint(View):
+  """
+  Defines an api endpoint which allows for creation of object instances,
+  using information from the incoming request.
+  """
+
   def post(self, request: Type[WSGIRequest]) -> HttpResponse:
+    """
+    Handles incoming POST requests to the endpoint
+
+    Args:
+      request: incoming HTTP request
+
+    Returns:
+      JSONResponse containing information regarding the status of the action.
+    """
+    
     # Create the new instance
     obj = self.model()
 
@@ -106,9 +137,25 @@ class PostEndpoint(View):
     return resp
 
 
-# UPDATES STUFF
 class PatchEndpoint(View):
+  """
+  Defines an api endpoint which allows for updating the information within
+  a specified object instance, using information from the request.
+  """
+
   def patch(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
+    """
+    Handles incoming PATCH requests to the endpoint
+
+    Args:
+      request: incoming HTTP request
+      obj_id: id of object to update
+
+    Returns:
+      JSONResponse containing information regarding the status of the action,
+      otherwise 404 on failure.
+    """
+    
     # Retreive object instance
     try:
       obj = self.model.objects.get(pk=obj_id)
@@ -137,10 +184,10 @@ class PatchEndpoint(View):
 
 class RESTEndpoint(GetEndpoint, DeleteEndpoint, PatchEndpoint, PutEndpoint, PostEndpoint):
   """
-  Endpoint encapsulating all the basic REST endpoints into on for simplicity
+  Endpoint encapsulating all the basic REST endpoints into one for simplicity
 
   Remark:
-    When specifying the url the instance id MUST be called 'obj_id'
+    When specifying the url the instance id MUST be named 'obj_id'
   """
   def get(self, request: Type[WSGIRequest], obj_id: Union[int, str]=None) -> HttpResponse:
     return super().get(request, obj_id=obj_id)

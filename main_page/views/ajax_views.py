@@ -1,5 +1,5 @@
 from django.views.generic import TemplateView
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
@@ -9,10 +9,12 @@ import shutil
 import time
 import datetime
 import logging
+from smb.base import NotConnectedError
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import samba_handler
 from main_page.libs import server_config
+from main_page.libs.status_codes import *
 from main_page import forms
 
 
@@ -118,54 +120,6 @@ class AjaxDeleteStudy(TemplateView):
       resp.status_code = 403
 
     return resp
-
-class AjaxGetbackup(TemplateView):
-  def get(self, request, date):
-    #Get the date from response
-    formated_date = date.replace('-','')
-
-    logger.info(f'Handling Ajax Get backup request with format: {date}')
-    try:
-      backup_data = samba_handler.get_backup_file(formated_date, request.user.hospital)
-    except Exception as e: 
-      logger.warn(e)
-
-      response = JsonResponse({})
-      response.status_code = 500
-      return response
-
-
-    #Sort data from samba share
-    formated_data = {}
-    
-    for pandas_dataset in backup_data:
-      #Remove Unused columns
-      used_columns = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
-      
-      for label, _ in pandas_dataset.iteritems():
-        #Remove Unused Labels
-        if not(label in used_columns):
-          pandas_dataset = pandas_dataset.drop(columns = [label])
-        
-      #Put in 
-      #Assuming 2 tests cannot be made at the same time. If they are, they will be overwritten
-      _, time_of_messurement = pandas_dataset['Measurement date & time'][0].split(' ')
-      dict_data = pandas_dataset.to_dict()
-      formated_data[time_of_messurement] = dict_data
-      #Endfor
-      
-    response = JsonResponse(formated_data)
-
-    # Creating valid HTTP response see:
-    # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-
-    if backup_data == []:
-      response.status_code = 204
-    else:
-      response.status_code = 200
-
-    return response
-
 
 
 class AjaxRestoreStudy(TemplateView):

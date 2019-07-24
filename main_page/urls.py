@@ -1,7 +1,7 @@
 from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint
 from main_page import Startup
 import main_page.views.views as views
 
@@ -37,7 +37,6 @@ urlpatterns = [
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
   path('ajax/delete_study', views.AjaxDeleteStudy.as_view(), name='ajax_delete_study'),
   path('ajax/restore_study', views.AjaxRestoreStudy.as_view(), name='ajax_restore_study'),
-  path('ajax/get_backup/<str:date>', views.AjaxGetbackup.as_view(), name='ajax_getbackup'),
   
   # New RESTful api design
   path('api/user', UserEndpoint.as_view(), name='user'),
@@ -50,4 +49,5 @@ urlpatterns = [
   path('api/handled_examination/<str:obj_id>', HandledExaminationsEndpoint.as_view(), name='handled_examination'),
   path('api/config', ConfigEndpoint.as_view(), name='config'),
   path('api/config/<int:obj_id>', ConfigEndpoint.as_view(), name='config'),
+  path('api/get_backup/<str:date>', SambaBackupEndpoint.as_view(), name='get_backup'),
 ]

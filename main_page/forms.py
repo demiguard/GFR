@@ -272,5 +272,5 @@ class AddHandledExaminationsForm(forms.ModelForm):
 # --- ADD FORMS END --- #
 
 
-class GetBackupDate(forms.Form):
+class GetBackupDateForm(forms.Form):
   dateofmessurement = forms.DateField(label='Backup fra dato (ÅÅÅÅ-MM-DD)', required=False)

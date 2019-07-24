@@ -3,7 +3,8 @@ from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pynetdicom import AE, StoragePresentationContexts, evt
-import os, logging
+import os
+import logging
 import sys
 import shutil
 import glob
@@ -20,25 +21,23 @@ from .. import examination_info
 from ..examination_info import ExaminationInfo
 from .. import formatting
 
+
 logger = logging.getLogger()
+
 
 def move_from_pacs(user, accession_number):
   """
-    
-
     Returns:
       None or Dataset - The dataset is always single
   """
   # # # Get file from pacs # # #
   find_dataset = dataset_creator.create_search_dataset(
-      '', #Name
-      '', #CPR
-      '', #Date_from
-      '', #Date_to
-      accession_number
-    )
-    
-    
+    '', #Name
+    '', #CPR
+    '', #Date_from
+    '', #Date_to
+    accession_number
+  )    
 
   find_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
@@ -81,15 +80,9 @@ def move_from_pacs(user, accession_number):
     
     if len(find_dataset_from_response) > 1:
       #Soooo somehow we got more than one response to a unique AccessionNumber?
-      logger.warn(f"""
-      Move_from_pacs got multiple responses to AccessionNumber: {rigs_nr}
-
-      The responses was:
-        {find_dataset_from_response} 
-      
-      """)
+      logger.warn(f"Move_from_pacs got multiple responses to AccessionNumber: {rigs_nr}. The responses was: {find_dataset_from_response}")
     elif len(find_dataset_from_response) == 0:
-      Logger.info(f"Could not find any study under {rigs_nr}")
+      logger.info(f"Could not find any study under {rigs_nr}")
       find_assoc.release()
       move_assoc.release()
       return None
@@ -149,32 +142,6 @@ def get_examination(user, rigs_nr, resp_dir):
 
   return examination_info.deserialize(obj)
 
-
-def store_in_pacs(user, obj_path):
-  """
-  Stores a given study in the PACS database
-
-  Retired function use store_dicom_pacs instead
-
-  Args:
-    user: currently logged in user
-    obj_path: path to object to store
-  """  
-  # Construct query and store
-  store_query = [
-    server_config.STORESCU,
-    '-aet',
-    user.department.config.pacs_calling,
-    '-aec',
-    user.department.config.pacs_aet,
-    user.department.config.pacs_ip,
-    user.department.config.pacs_port,
-    obj_path
-  ]
-  
-  out = execute_query(store_query)
-
-  return (out != None)
 
 def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   """
@@ -429,19 +396,19 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
 
 def get_history_from_pacs(cpr, birthday, user):
   """
-    Retrieves information historical data about a user from pacs.
-    This function doesn't save anything
+  Retrieves information historical data about a user from pacs.
+  This function doesn't save anything
 
-    Args:
-      cpr: string The cpr number without a string 
-      age: Datetime object with day of birth
+  Args:
+    cpr: string The cpr number without a string 
+    age: Datetime object with day of birth
 
-    Returns:
-      date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
-      age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
-      clearence_norm_list:  A float list. The n'th element is float
-    Notes:
-      This function doesn't save anything and cleans up after it-self
+  Returns:
+    date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
+    age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
+    clearence_norm_list:  A float list. The n'th element is float
+  Notes:
+    This function doesn't save anything and cleans up after it-self
   """
   
   #Init 
@@ -491,7 +458,7 @@ def get_history_from_pacs(cpr, birthday, user):
           user.department.config.pacs_calling,
           query_model='S'
         )
-        for (move_status, identifyer) in move_response:
+        for move_status, _ in move_response:
           if move_status.Status == 0x0000:
             filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
             #Open the DCM file
@@ -558,12 +525,12 @@ def get_history_for_csv(
     gender_bounds               : char list, removes all studies, where the gender is not on the list. Valid Characters are M and F
 
   Raises: 
-    ArgumentError : Whenever a keyword tuple first argument is greater than the secound argument 
+    ValueError : Whenever a keyword tuple first argument is greater than the secound argument 
   """
   #Check bounds
   def check_bounds(a_tuple):
     if a_tuple[0] > a_tuple[1]:
-      raise ArgumentError('Invalid bounds, secound argument of each tuple must be greater than the first.')
+      raise ValueError('Invalid bounds, secound argument of each tuple must be greater than the first.')
 
   def in_bounds(a_tuple, a_value):
     return a_tuple[0] <= a_value and a_value <= a_tuple[1]  
@@ -601,10 +568,10 @@ def get_history_for_csv(
   check_bounds(age_bounds)
 
   if None != formatting.check_cpr(cpr_bounds):
-    raise ArgumentError('Invalid Cpr number')
+    raise ValueError('Invalid Cpr number')
 
   if not(gender_bounds in [['M'], ['F'], ['O'], ['M','F'], ['M','O'], ['F','O'] ,['M','F','O'] ]):
-    raise ArgumentError('Invalids Genders')
+    raise ValueError('Invalids Genders')
   #End checking bounds
 
   find_ae = pynetdicom.AE(ae_title='')

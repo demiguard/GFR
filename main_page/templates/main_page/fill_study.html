@@ -110,56 +110,57 @@
 
       <!-- Right side -->
       <div class="col-md-6" id="right_side">
-      {% if csv_data_len != 0 %}
-        <p><strong>Vælg prøve fra fil:</strong></p>
-          <div class="csvAccordion" id="accordionContainer">
-          {% for name, data, id in csv_data %}
-            <div class="card">
-              <div class="card-header" id="heading-{{ id }}">
-                <h2 class="mb-0">
-                  <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ id }}" aria-expanded="true" aria-controls="collapse-{{ id }}">
-                    {{ name }}
-                  </button>
-                </h2>
-              </div> <!-- card header closing-->
-    
-              <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
-                <div class="card-body">
-                  <table class="table table-bordered table-hover">
-                    <thead>
-                      <tr>
-                        <th>Rack</th>
-                        <th>Position</th>
-                        <th>Tc-99 CPM</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for data_row in data %}
-                        <tr class="csv_row" id="{{ id }}-{{ forloop.counter }}">
-                          <td>{{ data_row.0 }}</td>
-                          <td>{{ data_row.1 }}</td>
-                          <td>{{ data_row.2 }}</td>
-                        </tr>  
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div> <!-- card-body Closing -->
-              </div> <!--collapse-ID closing -->
-            </div> <!-- card Closing -->
-            <br>
-          {% endfor %}
-          </div> <!-- AccordingContainer Closing -->
-          {% else %}
-          <p>{{ error_message }}</p>
-        </div>
+        {% if csv_data_len != 0 %}
+          <p><strong>Vælg prøve fra fil:</strong></p>
+            <div class="csvAccordion" id="accordionContainer">
+            {% for name, data, id in csv_data %}
+              <div class="card">
+                <div class="card-header" id="heading-{{ id }}">
+                  <h2 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ id }}" aria-expanded="true" aria-controls="collapse-{{ id }}">
+                      {{ name }}
+                    </button>
+                  </h2>
+                </div> <!-- card header closing-->
+      
+                <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
+                  <div class="card-body">
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>Rack</th>
+                          <th>Position</th>
+                          <th>Tc-99 CPM</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for data_row in data %}
+                          <tr class="csv_row" id="{{ id }}-{{ forloop.counter }}">
+                            <td>{{ data_row.0 }}</td>
+                            <td>{{ data_row.1 }}</td>
+                            <td>{{ data_row.2 }}</td>
+                          </tr>  
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div> <!-- card-body Closing -->
+                </div> <!--collapse-ID closing -->
+              </div> <!-- card Closing -->
+              <br>
+            {% endfor %}
+            </div> <!-- AccordingContainer Closing -->
+            {% else %}
+            <p>{{ error_message }}</p>
+          </div>
         {% endif %}
+
         <div id="dynamic_generate_history">
           <input type="button" value="Tilbage til dagens målinger" onclick="RemoveBackupMessurement()">
           <br><br>
           <div id="history_container">
           </div> <!--history_container Closing-->
         </div> <!-- dynamic_generate_history Closing-->
-        {% bootstrap_form GetBackupDate %}
+        {% bootstrap_form get_backup_date_form %}
         <input type="button" value="Hent målinger" onclick="GetBackupMessurements()">
         
         <!-- Right closing-->
@@ -170,6 +171,7 @@
 {% endblock %}
 
 {% block javascript %}
+<script src="{% static 'main_page/js/util/csrf.js' %}"></script>
   <script src="{% static 'main_page/js/util/helpers.js' %}"></script>
   <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
   <script src="{% static 'main_page/js/util/csv_handler.js' %}"></script>

@@ -1,9 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import QueryDict, HttpResponseNotFound
+from django.http import QueryDict, HttpResponseNotFound, JsonResponse, HttpResponse, HttpResponseServerError
+from django.views.generic import View
 
+from smb.base import NotConnectedError
+from datetime import datetime
+import logging
+
+from main_page.libs import samba_handler
+from main_page.libs import server_config
+from main_page.libs.status_codes import *
 from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, PostEndpoint, DeleteEndpoint
 from main_page.views.mixins import AdminRequiredMixin
 from main_page import models
+
+
+logger = logging.getLogger()
 
 
 class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
@@ -119,3 +130,43 @@ class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEnd
   fields = [
     'accession_number'
   ]
+
+
+class SambaBackupEndpoint(View):
+  def get(self, request, date):
+    # Extract search parameters
+    date = datetime.strptime(date, '%Y-%m-%d')
+    hospital = request.user.department.hospital.short_name
+
+    # Attempt to get backup data
+    logger.info(f'Handling Ajax Get backup request with format: {date}')
+
+    try:
+      backup_data = samba_handler.get_backup_file(date, hospital)
+    except NotConnectedError as e: 
+      logger.warn(e)
+
+      return HttpResponseServerError()
+
+    # No data was found
+    if not backup_data:
+      # NOTE: Transform response to base class, HttpResponse, since 204 status 
+      # code on a JsonResponse will reset the underlying connecting in
+      # the Django request preprocessing step
+      resp = HttpResponse()
+      resp.status_code = HTTP_STATUS_NO_CONTENT
+      return resp
+
+    # Reformat data and present in Json for response
+    context = { }
+    
+    USED_COLUMNS = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
+    for df in backup_data:
+      # Remove unused columns  
+      df = df[USED_COLUMNS]
+ 
+      # Put in dict. Assuming 2 tests cannot be made at the exact same time. If they are, they will be overwritten
+      _, time_of_messurement = df['Measurement date & time'][0].split(' ')
+      context[time_of_messurement] = df.to_dict()
+    
+    return JsonResponse(context)
