@@ -139,7 +139,7 @@ function initialize_modules() {
 }
 
 
-function GetBackupMessurements(){
+function get_backup_measurements(){
   /* 
   This function is called when the button 'Hent målling'
   */
@@ -159,102 +159,125 @@ function GetBackupMessurements(){
     type: 'GET',
     data: { },
     success: function(data) {
-      console.log(data);
+      // Container to insert historical accordion into
+      let history_container = $('#history_container');
 
+      // Clear previous data
+      csv_handler.clear_selected_rows();
+      history_container.empty();
 
+      // Generate New table
+      for (timestamp in data) {
+        
+        // Initialzation
+        let dataset_id = timestamp.split(':').join('');
+        let dataset = data[timestamp];
+      
+        // Generate div containers for accordion
+        var card_div = document.createElement('div');
+        card_div.classList.add('card');
+        
+        var card_header_div = document.createElement('div');
+        card_header_div.classList.add('card-header');
+        card_header_div.id = 'heading-' + dataset_id;
+        card_div.appendChild(card_header_div);
 
-      // //There's data
-      // var history_container = $('#history_container');
-      // json_response = json;
-      // // Clear Selected csv
-      // csv_handler.clear_selected_rows();
-      // // Empty current history Container
-      // history_container.empty();
-      // // Generate New table
-      // for (json_dataset in json_response) {
-      //   //Initialzation
-      //   var timestamp = json_dataset;
-      //   var dataset_id = timestamp.split(':').join('');
-      //   var dataset = json_response[timestamp];
-      //   //Generate Card
-      //   // To anyone asking why js is crap, Look no further than below, for here rests a monster so faul no coder should ever look at it!
-      //   // But to those unsong heroes, that despite this dire warning, deside to attempt to maintain or boldy try expand on it
-      //   // The idea is as following:
-      //   // div card  
-      //   // div header
-      //   // h2
-      //   // button
-      //   // button text
-      //   // end button
-      //   // end h2
-      //   // end header
-      //   // Target
-      //   // Cardbody
-      //   // Table
-      //   // end cardbody
-      //   // end target
-      //   // div end card
-      //   // To those Wondering why the code endend up THIS cancerous, it's mainly due to when you append a div, it closes it for you
+        var card_header = document.createElement('h2');
+        card_header.classList.add('mb-0');
+        card_header_div.appendChild(card_header);
 
-      //   var card_str = '<div class="card">\n';
-      //   card_str += '<div id="heading-' + dataset_id + '" class="card-header">\n';
-      //   card_str += '<h2 class="mb-0">\n';
-      //   card_str += '<button class="btn btn-link" type ="button" data-toggle="collapse" data-target="#collapse-'+ dataset_id + '" aria-expanded="true" aria-controls="collapse-'+dataset_id +'">\n';
-      //   card_str += timestamp + '\n';
-      //   card_str += '</button>\n';
-      //   card_str += '</h2>\n';
-      //   card_str += '<!-- end div card-header -->\n';
-      //   card_str += '</div>\n';
-      //   //Header done, Generate body
-      //   card_str += '<div id="collapse-' + dataset_id + '" class="collapse" aria-labelledby="heading-'+ dataset_id +'" data-parent="#accordionContainer">\n';
-      //   card_str += '<div class ="card-body">\n';
-      //   //Generate Table 
-      //   card_str += '<table class="table table-bordered table-hover">\n';
-      //   card_str += '<thead>\n';
-      //   card_str += '<tr>\n';
-      //   card_str += '<th>Rack</th>\n';
-      //   card_str += '<th>Position</th>\n';
-      //   card_str += '<th>Tc-99 CPM</th>\n';
-      //   card_str += '</tr>\n';
-      //   card_str += '</thead>\n';
-      //   card_str += '<tbody>\n';
-      //   //Generate Data for Table
-      //   for (datapoint in dataset['Tc-99m CPM']) {
-      //     if (datapoint != undefined) {
-      //       card_str += '<tr id="' + dataset_id + '-' + datapoint + '" class="history_csv_row">\n';
-      //       card_str += '<td>' + dataset['Rack'][datapoint] + '</th>\n';
-      //       card_str += '<td>' + dataset['Pos'][datapoint] + '</th>\n';
-      //       card_str += '<td>' + dataset['Tc-99m CPM'][datapoint] + '</th>\n';
-      //       card_str += '</tr>\n';
-      //     }
-      //   }
-      //   card_str += '</tbody>\n';
-      //   card_str += '</table>\n';
-      //   card_str += '<!-- End of card body -->\n';
-      //   card_str += '</div>\n';
-      //   card_str += '<!-- End of collapse target -->\n';
-      //   card_str += '</div>\n';
-      //   //Generate Card Closing 
-      //   card_str += '<!-- end div card -->\n';
-      //   card_str +='</div>\n';
-      //   card_str +='<br>\n';
+        var card_button = document.createElement('button');
+        card_button.classList.add('btn');
+        card_button.classList.add('btn-link');
+        card_button.type = 'button';
+        card_button.innerText = timestamp;
+        card_button.setAttribute('data-toggle', 'collapse');
+        card_button.setAttribute('data-target', '#collapse-' + dataset_id);
+        card_button.setAttribute('aria-expanded', 'true');
+        card_button.setAttribute('aria-controls', 'collapse-' + dataset_id);
+        card_header.appendChild(card_button);
 
-      //   history_container.append(card_str);
-      //   //End of For loop over Json-datasets
-      // }
-      // // Apply js to newly genereated Table
-      // csv_handler.init_row_selector('.history_csv_row');
+        var card_body_container = document.createElement('div');
+        card_body_container.classList.add('collapse');
+        card_body_container.id = 'collapse-' + dataset_id;
+        card_body_container.setAttribute('aria-labelledby', 'heading-' + dataset_id);
+        card_body_container.setAttribute('data-parent', '#history_container');
+        card_div.appendChild(card_body_container);
 
-      // // Hide current table
-      // document.getElementById("accordionContainer").style.display = 'none';
-      // // display Newly generated table
-      // document.getElementById("dynamic_generate_history").style.display = 'block';
+        var card_body = document.createElement('div');
+        card_body.classList.add('card-body');
+        card_body_container.appendChild(card_body);
+
+        // Generate: table head
+        var card_table = document.createElement('table');
+        card_table.classList.add('table');
+        card_table.classList.add('table-bordered');
+        card_table.classList.add('table-hover');
+        card_body.appendChild(card_table);
+
+        var table_head = document.createElement('thead');
+        card_table.appendChild(table_head);
+        
+        var table_head_row = document.createElement('tr');
+        let TABLE_HEADERS = ['Rack', 'Position', 'Tc-99m CPM'];
+        let DATASET_NAMES = ['Rack', 'Pos', 'Tc-99m CPM'];
+        for (var i = 0; i < TABLE_HEADERS.length; i++) {
+          var th = document.createElement('th');
+          th.innerText = TABLE_HEADERS[i];
+
+          table_head_row.appendChild(th);
+        }
+        table_head.appendChild(table_head_row);
+        
+        // Generate: table body
+        var table_body = document.createElement('tbody');
+        card_table.appendChild(table_body);
+
+        for (datapoint in dataset['Tc-99m CPM']) {
+          var tr = document.createElement('tr');
+          tr.classList.add('history_csv_row');
+          tr.id = dataset_id + '-' + datapoint
+
+          // Generate entries for each corresponding table head
+          for (i in DATASET_NAMES) {
+            var td = document.createElement('td');
+            td.innerText = dataset[DATASET_NAMES[i]][datapoint];
+            
+            tr.appendChild(td);
+          }
+
+          table_body.appendChild(tr);
+        }
+
+        // Append to history container
+        history_container.append(card_div);
+
+        // Append break between each card
+        var br = document.createElement('br');
+        history_container.append(br);
+      }
+
+      // Apply js to newly genereated Table
+      csv_handler.init_row_selector('.history_csv_row');
+
+      // Hide current table - if it was created
+      let oldAccordion = document.getElementById("accordionContainer");
+      if (oldAccordion) {
+        oldAccordion.style.display = 'none';
+      } else {
+        // Else hide the error message generated by the server
+        $('#server-error-msg').hide();
+      }
+
+      // display newly generated table
+      document.getElementById("dynamic_generate_history").style.display = 'block';
     },
-    error: function(data) {
-
+    error: function() {
+      alerter.add_alert('Kunne ikke forbinde til serveren', 'warning');
     }
   });
 }
+
 
 function RemoveBackupMessurement(){
   /* 
@@ -266,11 +289,15 @@ function RemoveBackupMessurement(){
   // Reset Selection before we go back
   csv_handler.clear_selected_rows();
 
-  //One could argue that you should remove the generated table here, but instead this is done 
-  document.getElementById("accordionContainer").style.display='block';
+  // Display either the old accordion or the server generated error message
+  let old_accordion = document.getElementById("accordionContainer");
+  if (old_accordion) {
+    old_accordion.style.display='block';
+  } else {
+    $('#server-error-msg').show();
+  }
+  
   document.getElementById("dynamic_generate_history").style.display='none';
-
-
 }
 
 

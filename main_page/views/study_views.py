@@ -145,7 +145,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     try:
       data_files = samba_handler.smb_get_csv(hospital, timeout=10)
       print(type(data_files))
-      print(type(data_files[0]))
+      #print(type(data_files[0]))
 
       # Read required data from each csv file  
       for data_file in data_files:
