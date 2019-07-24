@@ -9,7 +9,7 @@ from typing import List, Union
 
 from . import server_config
 from smb.SMBConnection import SMBConnection
-from smb.base import OperationFailure
+from smb.base import OperationFailure, NotConnectedError
 from . import formatting
 
 
@@ -54,35 +54,44 @@ def open_csv_file(temp_file: NamedTemporaryFile):
 
 
 
-def move_to_backup(smbconn, temp_file, hospital, fullpath, filename):
+def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: str) -> None:
   """
-    smbconn : An Active SMBConnection
-    temp_file : A File object with a write method
+  DOES SOMETHING....
 
+  Args:
+    smb_conn: An Active SMBConnection
+    temp_file: A File object with a write method
+    hospital:
+    fullpath:
+    filename:
 
+  Returns:
+    .............
   """
-  hospital_backup_folder = '{0}/{1}/'.format(server_config.samba_backup, hospital)
-  store_path = hospital_backup_folder + filename 
+  backup_folder = f"{server_config.samba_backup}/{hospital}"
+  store_path = f"{backup_folder}/{filename}"
+  share_name = server_config.samba_share
 
   try:
-    smbconn.createDirectory(server_config.samba_share, u'/backup')
+    smb_conn.createDirectory(share_name, u'/backup')
   except:
-    pass
+    logger.debug("Samba Error: Failed to create directory '/backup'")
 
   try:
-    smbconn.createDirectory(server_config.samba_share, u'backup/{0}'.format(hospital))
+    smb_conn.createDirectory(share_name, f'backup/{hospital}'.encode())
   except:
-    pass
+    logger.debug(f"Samba Error: Failed to create directory '/backup/{hospital}'")
 
-  Stored_bytes = smbconn.storeFileFromOffset(
-    server_config.samba_share,
+  smb_conn.storeFileFromOffset(
+    share_name,
     store_path,
     temp_file,
     truncate=False
   )
-  smbconn.deleteFiles(server_config.samba_share, fullpath) 
 
-  logger.info('Moved File to back up')
+  smb_conn.deleteFiles(share_name, fullpath) 
+
+  logger.info(f"Moved file; '{fullpath}' , to back up")
 
 
 def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
@@ -90,7 +99,10 @@ def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
   DOES SOMETHING.....
 
   Args:
-    hospital: string 
+    hospital: 
+    
+  Kwargs:
+    timeout: 
 
   Returns:
     .............
@@ -105,7 +117,6 @@ def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
     server_config.samba_pass, 
     server_config.samba_pc, 
     server_config.samba_name,
-    use_ntlm_v2=True
   )
 
   is_connected = conn.connect(server_config.samba_ip, timeout=timeout)
