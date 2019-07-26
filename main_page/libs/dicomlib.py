@@ -87,6 +87,65 @@ def save_dicom(file_path, dataset, default_error_handling=True ):
   dataset.save_as(file_path, write_like_original = False)
 
 
+# TODO: Add documentation to the class
+class DicomWrapper:
+  ACCEPTED_ARGUMENTS = (
+    'age',
+    'birthday',
+    'bsa_method',
+    'clearance',
+    'clearance_norm',
+    'cpr',
+    'department',
+    'exam_status',
+    'gender',
+    'gfr',
+    'gfr_type',
+    'height',
+    'injection_after',
+    'injection_before',
+    'injection_time',
+    'injection_weight',
+    'name',
+    'pixeldata',
+    'rigs_nr',
+    'sample_seq',
+    'series_instance_uid',
+    'series_number',
+    'sop_instance_uid',
+    'station_name',
+    'study_date',
+    'std_cnt',
+    'thiningfactor',
+    'update_date',  # NOTE: Possibly make these two 'update_' not kwargs
+    'update_dicom',
+    'weight',
+  )
+
+  @staticmethod
+  def __validate_args(**kwargs):
+    for arg, _ in kwargs.items():
+      if arg not in DicomWrapper.ACCEPTED_ARGUMENTS:
+        raise ValueError(f"Got unexpected keyword argument: {arg}")
+
+  @staticmethod
+  def __try_add_new(ds, tag: int, VR: str, value) -> None:
+    if value:
+      ds.add_new(tag, VR, value)
+
+  @staticmethod
+  def fill_dicom(ds, **kwargs):
+    DicomWrapper.__validate_args(**kwargs)
+    
+    pass
+
+
+
+# TODO: Split this into a class with static methods (use the @staticmethod decorator)
+#       and have a private method for handling each of the different if-statements
+#       and a generic one for the value that just get set.
+# NOTE: See the above defined class for a beginning example of this
+
 def fill_dicom(ds,
     age                 = None,
     birthday            = None,

@@ -1,5 +1,5 @@
 """
-Handles incoming post requests from views.py
+Handles incoming post requests from views
 """
 
 from django.shortcuts import render
