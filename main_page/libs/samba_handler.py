@@ -139,12 +139,11 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
     logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
 
     conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
-    
+
     temp_file.seek(0)
     pandas_ds, datestring, protocol = open_csv_file(temp_file)
 
     # File Cleanup
-    
     logger.debug(datestring)
     logger.debug(protocol)
 
@@ -157,9 +156,8 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
         conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
         logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
       except: 
-        logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
         conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
-
+        logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
 
     dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
     if (now - dt_examination).days > 0:

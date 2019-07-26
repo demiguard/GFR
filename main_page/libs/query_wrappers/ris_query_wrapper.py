@@ -82,6 +82,7 @@ def get_patients_from_rigs(user):
   NOTE: This function is not thread safe
   """
 
+  # TODO: Describe what the hell is happening here
   def complicated_and_statement(dataset, accession_numbers, accepted_procedures): 
     fst_truth_val = not dataset.AccessionNumber in accession_numbers
     snd_truth_val = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [])

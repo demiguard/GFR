@@ -541,32 +541,45 @@ def get_history_for_csv(
     birthdate = datetime.datetime.strptime(study.PatientBirthDate, '%Y%m%d')
     age_in_years = int((datetime.datetime.now() - birthdate).days / 365)
     study_date = datetime.datetime.strptime(study.StudyDate,'%Y%m%d').date()
-    #bounds checking
-    valid_study = in_bounds(date_bounds, study_date)
-    valid_study &= in_bounds(clearance_bounds, study.clearance)
-    valid_study &= in_bounds(clearance_normalized_bounds, study.normClear)
-    valid_study &= in_bounds(thin_fact_bounds, study.thiningfactor)
-    valid_study &= in_bounds(standard_bounds, study.stdcnt)
-    valid_study &= in_bounds(injection_weight_bounds, study.injWeight)
-    valid_study &= in_bounds(height_bounds, study.PatientSize * 100.0)
-    valid_study &= in_bounds(weight_bounds, study.PatientWeight)
-    valid_study &= in_bounds(age_bounds, age_in_years)
-    #End Bounds checking
+
+    bounds = (
+      (date_bounds, study_date),
+      (clearance_bounds, study.clearance),
+      (clearance_normalized_bounds, study.normClear),
+      (thin_fact_bounds, study.thiningfactor),
+      (standard_bounds, study.stdcnt),
+      (injection_weight_bounds, study.injWeight),
+      (height_bounds, study.PatientSize * 100.0),
+      (weight_bounds, study.PatientWeight),
+      (age_bounds, age_in_years),
+    )
+    
+    # bounds checking
+    valid_study = True
+    for bound, val in bounds:
+      valid_study &= in_bounds(bound, val)
+
+    # Additional bounds checking
     valid_study &= cpr_bounds.replace('-','') == study.PatientID
     valid_study &= study.PatientSex in gender_bounds
-    if method_bounds != []:
+    if not method_bounds:
       valid_study &= study.StudyDescription in method_bounds
 
     return valid_study
 
-  check_bounds(date_bounds)
-  check_bounds(clearance_bounds)
-  check_bounds(thin_fact_bounds)
-  check_bounds(standard_bounds)
-  check_bounds(injection_weight_bounds)
-  check_bounds(height_bounds)
-  check_bounds(weight_bounds)
-  check_bounds(age_bounds)
+  bounds = (
+    date_bounds,
+    clearance_bounds,
+    thin_fact_bounds,
+    standard_bounds,
+    injection_weight_bounds,
+    height_bounds,
+    weight_bounds,
+    age_bounds,
+  )
+  
+  for bound in bounds:
+    check_bounds(bound)
 
   if None != formatting.check_cpr(cpr_bounds):
     raise ValueError('Invalid Cpr number')

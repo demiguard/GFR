@@ -12,7 +12,7 @@ import logging
 import PIL
 import glob
 from pandas import DataFrame
-from typing import Type, List, Tuple, Union, Generator
+from typing import Type, List, Tuple, Union, Generator, Dict
 
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
@@ -160,56 +160,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     return zip(csv_present_names, csv_data, data_indicies), len(data_indicies)
 
-  def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+  def initialize_forms(self, request, exam: Type[examination_info.ExaminationInfo]) -> Dict:
     """
-    Handles GET requests to the view, i.e. the presentation side
+    Initializes all the required forms for this view
 
-    Args:
-      request: the incoming HTTP request
-      ris_nr: RIS (accession) number for the study
-    """
-    hospital = request.user.department.hospital.short_name
-    hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
-
-    # Create dicom file cache directory
-    try_mkdir(hospital_dir, mk_parents=True)
-
-    # Get previous information for the study
-    exam = pacs.get_examination(request.user, ris_nr, hospital_dir)
-
-    today = datetime.datetime.now()
-    date, _ = str(today).split(' ')
-    test_form = forms.FillStudyTest(initial={'study_date' : date})
-
-    # Retrieve counter data to display from Samba Share
-    error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
-    try:
-      csv_data, csv_data_len = self.get_counter_data(hospital)
-    except ConnectionError as conn_err:
-      csv_data, csv_data_len = [], 0
-      error_message = conn_err
-
-    inj_time = None
-    inj_date = today.strftime('%Y-%m-%d')
-    if exam.inj_t:
-      inj_date = exam.inj_t.strftime('%Y-%m-%d')
-      inj_time = exam.inj_t.strftime('%H:%M')
-
-    # Read in previous samples from examination info
-    previous_sample_times = []
-    previous_sample_dates = []
-    previous_sample_counts = exam.tch_cnt
-
-    for st in exam.sam_t:
-      previous_sample_dates.append(st.strftime('%Y-%m-%d'))
-      previous_sample_times.append(st.strftime('%H:%M'))
-    
-    previous_samples = zip(
-      previous_sample_dates,
-      previous_sample_times,
-      previous_sample_counts
-    )
-
+    Returns:
+      Dict containing the initialized forms
+    """    
     study_type = 0
     if exam.Method:
       # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
@@ -221,74 +178,161 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       elif exam.Method == 'Flere prøve Voksen':
         study_type = 2
 
+    study_type_form = forms.FillStudyType(initial={
+      'study_type': study_type # Default: 'Et punkt voksen'
+    })
+
     if exam.sex == 'M':
       present_sex = 'Mand'
     else:
       present_sex = 'Kvinde'
 
-    #This Code is not approve of the pretty police
-    if exam.inj_before == 0.0:
-      exam.inj_before = None
+    study_patient_form = forms.Fillpatient_1(initial={
+      'cpr': exam.cpr,
+      'name': exam.name,
+      'sex': present_sex,
+      'birthdate': exam.birthdate
+    })
 
-    if exam.inj_after == 0.0:
-      exam.inj_after = None
+    today = datetime.date.today()
 
-    if exam.height == 0.0:
-      exam.height = None
+    inj_time = None
+    inj_date = today
+    if exam.inj_t:
+      inj_date = exam.inj_t.strftime('%Y-%m-%d')
+      inj_time = exam.inj_t.strftime('%H:%M')
 
-    if exam.weight == 0.0:
-      exam.weight = None
+    study_examination_form = forms.Fillexamination(initial={
+      'vial_weight_before': exam.inj_before,
+      'vial_weight_after': exam.inj_after,
+      'injection_time': inj_time,
+      'injection_date': inj_date
+    })
+
+    get_backup_date_form = forms.GetBackupDateForm(initial={
+      'dateofmessurement' : today
+    })
+
+    study_patient_form_2 = forms.Fillpatient_2(initial={
+      'height': exam.height,
+      'weight': exam.weight,
+    })
 
     thin_fac_save_inital = True
     if exam.thin_fact == 0.0 or exam.thin_fact == None:
-      if request.user.department.thining_factor_change_date == datetime.date.today() and request.user.department.thining_factor != 0:
+      if request.user.department.thining_factor_change_date == today and request.user.department.thining_factor != 0:
         exam.thin_fact = request.user.department.thining_factor
         thin_fac_save_inital = False
       else:
         exam.thin_fact = None
 
-    if exam.std_cnt == 0.0:
-      exam.std_cnt = None
+    study_dosis_form = forms.Filldosis(initial={
+      'thin_fac' : exam.thin_fact,
+      'save_fac' : thin_fac_save_inital
+    })
+
+    test_form = forms.FillStudyTest(initial={'study_date' : today})
+
+    return {
+      'study_patient_form': study_patient_form,
+      'study_type_form': study_type_form,
+      'study_examination_form': study_examination_form,
+      'get_backup_date_form': get_backup_date_form,
+      'study_patient_form_2': study_patient_form_2,
+      'study_dosis_form': study_dosis_form,
+      'test_form': test_form
+    }
+
+  def get_previous_samples(self, exam: Type[examination_info.ExaminationInfo]):
+    """
+    Retrieves the previous entered samples for study
+
+    Args:
+      exam: Examination info object for the study
+    
+    Returns:
+      zip of the previous sample data
+    """
+    previous_sample_times = [st.strftime('%H:%M') for st in exam.sam_t]
+    previous_sample_dates = [st.strftime('%Y-%m-%d') for st in exam.sam_t]
+    previous_sample_counts = exam.tch_cnt
+    
+    return zip(
+      previous_sample_dates,
+      previous_sample_times,
+      previous_sample_counts
+    )
+
+  def resolve_zero_fields(self, exam):
+    """
+    Resolve presentation issue for 0.0 values.
+
+    Args:
+      exam: Examination info object for the study
+
+    Remarks:
+      This is done by setting the value to None, so the field doesn't contain
+      any value once the page is displayed to the user.
+    """
+    FIELDS_TO_RESOLVE = (
+      'inj_before',
+      'inj_after',
+      'height',
+      'weight',
+      'std_cnt'
+    )
+
+    for field in FIELDS_TO_RESOLVE:
+      attr_val = getattr(exam, field)
+
+      if attr_val == 0.0:
+        setattr(exam, field, None)
+
+  def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+    """
+    Handles GET requests to the view, i.e. the presentation side
+
+    Args:
+      request: the incoming HTTP request
+      ris_nr: RIS number for the study
+    """
+    hospital = request.user.department.hospital.short_name
+    hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
+
+    # Create dicom file cache directory
+    try_mkdir(hospital_dir, mk_parents=True)
+
+    # Retrieve counter data to display from Samba Share
+    error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
+    try:
+      csv_data, csv_data_len = self.get_counter_data(hospital)
+    except ConnectionError as conn_err:
+      csv_data, csv_data_len = [], 0
+      error_message = conn_err
+
+    # Get previous information for the study
+    exam = pacs.get_examination(request.user, ris_nr, hospital_dir)
+
+    # Read previously entered samples
+    previous_samples = self.get_previous_samples(exam)
+
+    # Resolve field display issues
+    self.resolve_zero_fields(exam)
 
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'rigsnr': ris_nr,
-      'study_patient_form': forms.Fillpatient_1(initial={
-        'cpr': exam.cpr,
-        'name': exam.name,
-        'sex': present_sex,
-        'birthdate': exam.birthdate
-      }),
-      'study_patient_form_2': forms.Fillpatient_2(initial={
-        'height': exam.height,
-        'weight': exam.weight,
-      }),
-      'study_dosis_form' : forms.Filldosis( initial={
-        'thin_fac' : exam.thin_fact,
-        'save_fac' : thin_fac_save_inital
-      }),
-      'study_examination_form': forms.Fillexamination(initial={
-        'vial_weight_before': exam.inj_before,
-        'vial_weight_after': exam.inj_after,
-        'injection_time': inj_time,
-        'injection_date': inj_date
-      }),
-      'study_type_form': forms.FillStudyType(initial={
-        'study_type': study_type # Default: 'Et punkt voksen'
-      }),
-      'test_context': {
-        'test_form': test_form
-      },
-      'get_backup_date_form' : forms.GetBackupDateForm(initial={
-        'dateofmessurement' : datetime.date.today()
-      }),
       'previous_samples': previous_samples,
       'csv_data': csv_data,
       'csv_data_len': csv_data_len,
       'error_message' : error_message,
       'standard_count' : exam.std_cnt,
     }
+
+    # Initialize forms - concat forms into the context
+    view_forms = self.initialize_forms(request, exam)
+    context.update(view_forms)
 
     return render(request, self.template_name, context=context)
 
