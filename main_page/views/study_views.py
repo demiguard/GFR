@@ -14,6 +14,7 @@ import glob
 from pandas import DataFrame
 from typing import Type
 
+from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
 from main_page.libs import post_request_handler as PRH
@@ -119,11 +120,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     hospital = request.user.department.hospital.short_name # Hospital of current user
 
     # Create the directory if not existing
-    if not os.path.exists(server_config.FIND_RESPONS_DIR):
-      os.mkdir(server_config.FIND_RESPONS_DIR)
-
-    if not os.path.exists('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital)):
-      os.mkdir('{0}/{1}'.format(server_config.FIND_RESPONS_DIR, hospital))
+    try_mkdir(f"{server_config.FIND_RESPONS_DIR}{hospital}", mk_parents=True)
 
     # Get previous information for the study
     exam = pacs.get_examination(
@@ -360,9 +357,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
         study_type = 2
 
     # Extract the image
-    img_resp_dir = "{0}{1}/".format(server_config.IMG_RESPONS_DIR, hospital)
-    if not os.path.exists(img_resp_dir):
-      os.mkdir(img_resp_dir)
+    img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
+    try_mkdir(img_resp_dir)
     
     pixel_arr = exam.image
     if pixel_arr.shape[0] != 0:
@@ -408,13 +404,8 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
     base_resp_dir = server_config.FIND_RESPONS_DIR
     hospital = request.user.department.hospital.short_name
     
-    DICOM_directory = '{0}{1}/'.format(base_resp_dir, hospital)
-
-    if not os.path.exists(base_resp_dir):
-      os.mkdir(base_resp_dir)
-
-    if not os.path.exists(DICOM_directory):
-      os.mkdir(DICOM_directory)
+    DICOM_directory = f"{base_resp_dir}{hospital}/"
+    try_mkdir(DICOM_directory, mk_parents=True)
 
     exam = pacs.get_examination(request.user, ris_nr, DICOM_directory)
     
@@ -424,8 +415,7 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
 
     # Display
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
-    if not os.path.exists(img_resp_dir):
-      os.mkdir(img_resp_dir)
+    try_mkdir(img_resp_dir)
     
     pixel_arr = exam.image
     if pixel_arr.shape[0] != 0:

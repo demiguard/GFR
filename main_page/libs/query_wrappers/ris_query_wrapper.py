@@ -9,7 +9,7 @@ import logging
 
 from ... import models
 
-from .. import dirmanager
+from main_page.libs.dirmanager import try_mkdir
 from .. import dataset_creator
 from .. import dicomlib
 from .. import server_config
@@ -94,7 +94,7 @@ def get_patients_from_rigs(user):
   ErrorMessage = ''
   #First Find all Dicom Objects
 
-  dirmanager.check_combined_and_create(server_config.FIND_RESPONS_DIR , user.department.hospital.short_name)
+  try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user.department.hospital.short_name}", mk_parents=True)
 
   dcm_file_paths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{user.department.hospital.short_name}/*.dcm')
 

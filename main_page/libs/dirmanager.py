@@ -1,27 +1,35 @@
 import os
 
-def check_and_create(dirname):
-  """
-  checks if a directory exists, if not it creates it
 
-
+def __try_mkdir(dirpath: str) -> None:
   """
-  if not os.path.exists(dirname):
-    os.mkdir(dirname) 
-
-def check_combined_and_create(*argv):
-  """
-  Recursivly Checks if a directory exists, if it doesn't it creates directory s.t.
-  after the function call you have a structure:
-  '.arg1/arg2/arg3/../argN/'
+  Checks if a directory exists, if not it creates it
 
   Args:
-    argv : String - None empty
-
-  Note: if string is empty it will simply skip over the arg
-
+    dirpath: path of directory to try and create
   """
-  basestring = ''
-  for arg in argv:
-    basestring += arg + '/'
-    check_and_create(basestring)
+  if not os.path.exists(dirpath):
+    os.mkdir(dirpath)
+
+
+def try_mkdir(dirpath: str, mk_parents: bool=False) -> None:
+  """
+  Checks if a directory exists, if not it creates it
+
+  Args:
+    dirpath: path of directory to try and create
+
+  Kwargs:
+    mk_parents: if True will create all parent directories of the dirpath,
+                before trying to create the dirpath directory
+  """
+  if mk_parents:
+    # Remove any empty directories and dots
+    dir_split = list(filter(lambda x: x, dirpath.split('/')))
+
+    base_path = ''
+    for parent_dir in dir_split:
+      base_path += f"{parent_dir}/"
+      __try_mkdir(base_path)
+  else:
+    __try_mkdir(dirpath)

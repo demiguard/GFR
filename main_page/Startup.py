@@ -1,6 +1,7 @@
 import datetime, logging, os 
 import platform
 
+from main_page.libs.dirmanager import try_mkdir
 from .libs import server_config
 from .libs.query_wrappers import pacs_query_wrapper as pacs
 
@@ -8,8 +9,7 @@ from .libs.query_wrappers import pacs_query_wrapper as pacs
 def init_logger():  
   logfile = server_config.LOG_DIR + 'logging_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
 
-  if not os.path.exists(server_config.LOG_DIR):
-    os.mkdir(server_config.LOG_DIR)
+  try_mkdir(server_config.LOG_DIR)
 
   logging.basicConfig(filename=logfile, level=server_config.LOG_LEVEL, format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s')
 

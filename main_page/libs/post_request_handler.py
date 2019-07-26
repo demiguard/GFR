@@ -7,15 +7,6 @@ from django.http import HttpResponse, Http404
 from django.template import loader
 from django.shortcuts import redirect
 
-from .. import forms
-from .. import models
-from .query_wrappers import ris_query_wrapper as ris
-from .query_wrappers import pacs_query_wrapper as pacs
-from .clearance_math import clearance_math
-from . import server_config
-from . import dicomlib
-from . import formatting
-
 from dateutil import parser as date_parser
 from pydicom import uid
 import datetime, logging
@@ -25,6 +16,17 @@ import pandas
 import numpy
 import pydicom
 import PIL
+
+from .. import forms
+from .. import models
+from .query_wrappers import ris_query_wrapper as ris
+from .query_wrappers import pacs_query_wrapper as pacs
+from .clearance_math import clearance_math
+from . import server_config
+from . import dicomlib
+from . import formatting
+from main_page.libs.dirmanager import try_mkdir
+
 
 logger = logging.getLogger()
 
@@ -168,12 +170,8 @@ def store_form(request, dataset, rigs_nr):
   base_resp_dir = server_config.FIND_RESPONS_DIR
   hospital = request.user.department.hospital.short_name
 
-  if not os.path.exists(base_resp_dir):
-    os.mkdir(base_resp_dir)
+  try_mkdir(f"{base_resp_dir}{hospital}", mk_parents=True)
 
-  if not os.path.exists(f'{base_resp_dir}{hospital}'):
-    os.mkdir(f'{base_resp_dir}{hospital}')
-  
   #All Fields to be stored
   birthdate = None
   injection_time = None

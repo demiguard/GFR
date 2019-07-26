@@ -14,7 +14,8 @@ import numpy
 import pandas
 import random
 
-from .. import dicomlib, dirmanager, dataset_creator
+from main_page.libs.dirmanager import try_mkdir
+from .. import dicomlib, dataset_creator
 from .. import server_config
 from ..clearance_math import clearance_math
 from .. import examination_info
@@ -341,7 +342,7 @@ def start_scp_server():
     (evt.EVT_REQUESTED, log_event_handler),
   ]
 
-  dirmanager.check_combined_and_create(server_config.SEARCH_DIR)
+  try_mkdir(server_config.SEARCH_DIR)
 
   server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
   server_ae.supported_contexts = StoragePresentationContexts

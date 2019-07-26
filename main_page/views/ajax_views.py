@@ -15,6 +15,7 @@ from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import samba_handler
 from main_page.libs import server_config
 from main_page.libs.status_codes import *
+from main_page.libs.dirmanager import try_mkdir
 from main_page import forms
 
 
@@ -89,12 +90,7 @@ class AjaxDeleteStudy(TemplateView):
     logger.info(f"Attempting to delete study: {delete_accession_number}")
 
     # Create deleted studies directory if doesn't exist
-    if not os.path.exists(server_config.DELETED_STUDIES_DIR):
-      os.mkdir(server_config.DELETED_STUDIES_DIR)
-
-    inner_hosp_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}"
-    if not os.path.exists(inner_hosp_dir):
-      os.mkdir(inner_hosp_dir)
+    try_mkdir(f"{server_config.DELETED_STUDIES_DIR}{user_hosp}", mk_parents=True)
 
     move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{delete_accession_number}.dcm"
 
@@ -133,12 +129,7 @@ class AjaxRestoreStudy(TemplateView):
     logger.info(f"Attempting to recover study: {recover_accession_number}")
 
     # Create deleted studies directory if doesn't exist
-    if not os.path.exists(server_config.FIND_RESPONS_DIR):
-      os.mkdir(server_config.FIND_RESPONS_DIR)
-
-    inner_hosp_dir = f"{server_config.FIND_RESPONS_DIR}{user_hosp}"
-    if not os.path.exists(inner_hosp_dir):
-      os.mkdir(inner_hosp_dir)
+    try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user_hosp}", mk_parents=True)
 
     move_src = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{recover_accession_number}.dcm"
 
