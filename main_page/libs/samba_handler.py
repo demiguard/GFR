@@ -94,20 +94,20 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   logger.info(f"Moved file; '{fullpath}' , to back up")
 
 
-def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
+def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
   """
-  DOES SOMETHING.....
+  Retrieves file contents of all files presented as pandas DataFrames, for each
+  file in a specific hospitals directory on the Samba Share
 
   Args:
-    hospital: 
+    hospital: short name for the hospital
     
   Kwargs:
-    timeout: 
+    timeout: how long the connection can be kept alive
 
   Returns:
-    .............
+    list of pandas.DataFrame objects, containing file contents
   """
-
   now = datetime.now()
 
   returnarray = []
@@ -137,7 +137,9 @@ def smb_get_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
 
     fullpath =  hospital_sample_folder + samba_file.filename
     logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
-    file_attri, file_size = conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
+
+    conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
+    
     temp_file.seek(0)
     pandas_ds, datestring, protocol = open_csv_file(temp_file)
 
