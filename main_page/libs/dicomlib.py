@@ -8,6 +8,7 @@ from pydicom import uid
 from typing import Type
 import numpy as np
 
+from main_page import models
 from .server_config import new_dict_items
 from . import server_config
 from . import formatting
@@ -88,7 +89,7 @@ def save_dicom(file_path, dataset, default_error_handling=True ):
   dataset.save_as(file_path, write_like_original = False)
 
 
-def __try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
+def try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
   """
   Attempts to add a new value by tag, if the value is not None or empty
 
@@ -102,18 +103,20 @@ def __try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
     ds.add_new(tag, VR, value)
 
 
-def __try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
+def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
   """
   Attempts to update meta data for the examination
 
   Args:
     ds: dataset to update meta data for
     update_dicom: whether or not to update the meta data
+  
+  Remark:
+    This function assumes the AccessionNumber is already set in the dataset
+    and that it's atleast 4 characters long
   """
   if update_dicom:
     ds.Modality = 'OT'
-    
-    # Basic Information
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') # Manufacturer                  # ds.Manufacturer
     ds.add_new(0x00080064, 'CS', 'SYN')                                       # ds.ConversionType
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # TODO: Figure out what this tag is...
@@ -130,7 +133,7 @@ def __try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
 
-def __try_add_department(ds: Type[Dataset], department):
+def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -> None:
   """
   Attempts to add department information to the dataset
 
@@ -139,12 +142,12 @@ def __try_add_department(ds: Type[Dataset], department):
     department: if present adds the required information
   """
   if department:
-    ds.InstitutionName = department.hospital_Name
-    ds.InstitutionAddress = department.address
-    ds.InstitutionalDepartmentName = department.department
+    ds.InstitutionName = department.hospital.name
+    ds.InstitutionAddress = department.hospital.address
+    ds.InstitutionalDepartmentName = department.name
 
 
-def __try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str) -> None:
+def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str) -> None:
   """
   Attempts to update the study date for the dataset
 
@@ -176,7 +179,7 @@ def __try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: st
       ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
 
 
-def __try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
+def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
   """
   Attempts to update the scheduled procedure step sequence for the dataset
 
@@ -189,7 +192,7 @@ def __try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
     ds.Modality = Schedule.Modality
 
 
-def __try_add_exam_status(ds: Type[Dataset], exam_status: int) -> None:
+def try_add_exam_status(ds: Type[Dataset], exam_status: int) -> None:
   """
   Attempts to add the exam status to the dataset
 
@@ -205,7 +208,7 @@ def __try_add_exam_status(ds: Type[Dataset], exam_status: int) -> None:
       ds.ExamStatus = exam_status
 
 
-def __try_add_age(ds: Type[Dataset], age: int) -> None:
+def try_add_age(ds: Type[Dataset], age: int) -> None:
   """
   Attempts to add the age to the dataset
 
@@ -217,7 +220,7 @@ def __try_add_age(ds: Type[Dataset], age: int) -> None:
     ds.PatientAge = f"{age:03d}"
 
 
-def __try_add_gender(ds: Type[Dataset], gender: str) -> None:
+def try_add_gender(ds: Type[Dataset], gender: str) -> None:
   """
   Attempts to add the gender to the dataset
 
@@ -233,7 +236,7 @@ def __try_add_gender(ds: Type[Dataset], gender: str) -> None:
       ds.PatientSex = 'F'
 
 
-def __try_add_sample_sequence(ds: Type[Dataset], sample_seq) -> None:
+def try_add_sample_sequence(ds: Type[Dataset], sample_seq) -> None:
   """
   Attempts to add the sample sequence to the dataset
 
@@ -258,7 +261,7 @@ def __try_add_sample_sequence(ds: Type[Dataset], sample_seq) -> None:
     del ds[0x00231020]
 
 
-def __try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
+def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
   """
   Attempts to add the pixeldata to the dataset
 
@@ -415,22 +418,22 @@ def fill_dicom(ds,
   
   for tag, value_tuple in try_adds_dict.items():
     VR, value = value_tuple
-    __try_add_new(ds, tag, VR, value)
+    try_add_new(ds, tag, VR, value)
 
   # Dictionary defining custom functions and corresponding arguments for more
   # complicated values to set on the dataset
   custom_try_adds = (
-    (__try_update_exam_meta_data, update_dicom),
-    (__try_update_exam_meta_data, update_dicom),
-    (__try_add_department, department),
-    (__try_update_study_date, update_date, study_date),
-    (__try_update_scheduled_procedure_step_sequence),
-    (__try_add_exam_status, exam_status),
-    (__try_add_age, age),
-    (__try_add_gender, gender),
-    (__try_add_pixeldata, pixeldata),
+    (try_update_exam_meta_data, update_dicom),
+    (try_update_exam_meta_data, update_dicom),
+    (try_add_department, department),
+    (try_update_study_date, update_date, study_date),
+    (try_update_scheduled_procedure_step_sequence),
+    (try_add_exam_status, exam_status),
+    (try_add_age, age),
+    (try_add_gender, gender),
+    (try_add_pixeldata, pixeldata),
     # ### PRIVATE TAGS START ###
-    (__try_add_sample_sequence, sample_seq)
+    (try_add_sample_sequence, sample_seq)
   )
 
   for item in custom_try_adds:

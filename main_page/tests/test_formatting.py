@@ -244,7 +244,7 @@ class LibsFormattingTestCase(TestCase):
     with self.assertRaises(ValueError):
       formatting.reverse_format_date(function_input)
 
-  def test_reverse_format_date_invalid_date_dash_characters(self):
+  def test_reverse_format_date_invalid_date_backslash_characters(self):
     function_input = '32/11/2000'
 
     with self.assertRaises(ValueError):
@@ -301,7 +301,7 @@ class LibsFormattingTestCase(TestCase):
     with self.assertRaises(ValueError):
       formatting.reverse_format_date(function_input)
 
-  def test_reverse_format_date_backslash_format(self):
+  def test_reverse_format_date_dot_format(self):
     function_input = '31.12.2000'
 
     with self.assertRaises(ValueError):
