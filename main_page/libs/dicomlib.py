@@ -401,8 +401,8 @@ def fill_dicom(ds,
   # Dictionary defining which arguments to run through __try_add_new
   try_adds_dict = {
     0x00080050 : ('SH', ris_nr),                                  # ds.AccessionNumber
-    0x00100030 : ('DA', birthday.replace('-', '')),               # ds.PatientBirthDate
-    0x00100020 : ('LO', cpr.replace('-', '')),                    # ds.PatientId
+    0x00100030 : ('DA', birthday),                                # ds.PatientBirthDate
+    0x00100020 : ('LO', cpr),                                     # ds.PatientId
     0x00100010 : ('PM', formatting.name_to_person_name(name)),    # ds.PatientName
     0x00200011 : ('IS', series_number),                           # ds.SeriesNumber
     0x00081010 : ('SH', station_name),                            # ds.StationName
