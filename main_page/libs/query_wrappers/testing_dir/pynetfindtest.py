@@ -3,7 +3,7 @@ import pydicom
 from pydicom import uid
 datasets = []
 
-rigs_calling = 'EDTA_GLO'
+rigs_calling = 'HVHFBERGHK7'
 rigs_aet     = 'VICIM'
 rigs_ip      = '10.143.128.247'
 rigs_port    = 3320
@@ -17,16 +17,17 @@ ds.add_new(0x00080020, 'DA', '') #Study date
 ds.add_new(0x00080050, 'SH', '') #Accession Number
 ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
 ds.add_new(0x00100010, 'PN', '') #Patitent name
-ds.add_new(0x00100020, 'LO', '') #PatientID / CPR NUMBER
+ds.add_new(0x00100020, 'LO', 'QP-3503763') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
 #Create Sequences
 Sequenceset = pydicom.Dataset() # ScheduledProcedureStepSequence
 #Add Sequence Tags
 Sequenceset.add_new(0x00080060, 'CS', '')
-Sequenceset.add_new(0x00400001, 'AE', rigs_calling)
+Sequenceset.add_new(0x00400001, 'AE', '')
 Sequenceset.add_new(0x00400002, 'DA', '')
 Sequenceset.add_new(0x00401005, 'LO', '')
+Sequenceset.add_new(0x00400011, 'SH','')
 
 #Done adding Sequence Tags
 ds.add_new(0x00400100, 'SQ', pydicom.Sequence([Sequenceset]))
@@ -38,7 +39,7 @@ assoc = ae.associate(rigs_ip,rigs_port, ae_title=rigs_aet)
 if assoc.is_established:
   #NOTE: Response is a generator, not a interator
   response = assoc.send_c_find(ds, query_model='S')
-  
+  print('Connection Successful')
   for (status, dataset_from_rigs) in response:
     #Show Status
     if dataset_from_rigs != None:

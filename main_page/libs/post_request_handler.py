@@ -190,7 +190,7 @@ def store_form(request, dataset, rigs_nr):
     birthdate = request.POST['birthdate']
     logger.info(birthdate)
     birthdate_datetime = datetime.datetime.strptime(birthdate,'%Y-%m-%d').date()
-    age = int((datetime.datetime.now() - birthdate_datetime) / 365) 
+    age = int((datetime.datetime.now().date() - birthdate_datetime).days / 365) 
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:

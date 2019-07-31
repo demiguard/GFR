@@ -96,6 +96,7 @@ def get_rigs_base(rigs_calling = None):
   Sequenceset.add_new(0x00400007, 'LO', '')
   Sequenceset.add_new(0x00400009, 'SH', '')
   Sequenceset.add_new(0x00400010, 'SH', '')
+  Sequenceset.add_new(0x00400011, 'SH', '')
 
 
   #Done adding Sequence Tags
