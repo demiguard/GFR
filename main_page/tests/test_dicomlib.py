@@ -1,5 +1,7 @@
 from django.test import TestCase
-from pydicom import Dataset, uid
+
+from pydicom import Dataset, Sequence, uid
+from datetime import datetime
 
 from main_page.libs import dicomlib
 from main_page.libs import server_config
@@ -18,13 +20,12 @@ class LibsDicomlibTestCase(TestCase):
     self.hospital = models.Hospital(id=1, name='test_name', short_name='tn', address='test_address')
     self.department = models.Department(id=1, name='test_department', hospital=self.hospital)
 
-
   def __validate_tags(self, tags):
     """
     Checks if a given set of tags is present with the corret values in the dataset
 
     Args:
-      tags: set of tuples with tag first followed by its value
+      tags: set of tuples with tag first followed by its correct value
 
     Returns:
       True if all tags are present with their correct value, False otherwise.
@@ -158,7 +159,137 @@ class LibsDicomlibTestCase(TestCase):
 
 
   # --- try_update_study_date tests ---
+  def test_try_update_study_date(self):
+    # Construct the ScheduledProcedureStepSequence
+    init_date = '00000000'
+    init_time = '0000'
+    
+    test_seq_data = Dataset()
 
+    test_seq_data.add_new(0x00400002, 'DA', init_date) # ScheduledProcedureStepStartDate
+    test_seq_data.add_new(0x00400003, 'TM', init_time)     # ScheduledProcedureStepStartTime
+
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    self.ds.StudyDate = init_date
+    self.ds.SeriesDate = init_date
+    self.ds.StudyTime = init_time
+    self.ds.SeriesTime = init_time
+
+    # Attempt update
+    study_date = '1111-11-11'
+    dicomlib.try_update_study_date(self.ds, True, study_date)
+
+    # Assert that everything was set correctly
+    expected_study_date = '11111111'
+    expected_study_time = datetime.now().strftime('%H%M')
+
+    validation_tags = (
+      (0x00080020, expected_study_date), # StudyDate
+      (0x00080021, expected_study_date), # SeriesDate
+      (0x00080030, expected_study_time), # StudyTime
+      (0x00080031, expected_study_time), # SeriesTime
+    )
+
+    self.assertEqual(self.__validate_tags(validation_tags), True)
+
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate, expected_study_date)
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime, expected_study_time)
+
+  def test_try_update_study_date_false(self):
+    # Sets update_date to False
+    
+    # Construct the ScheduledProcedureStepSequence
+    init_date = '00000000'
+    init_time = '0000'
+    
+    test_seq_data = Dataset()
+
+    test_seq_data.add_new(0x00400002, 'DA', init_date) # ScheduledProcedureStepStartDate
+    test_seq_data.add_new(0x00400003, 'TM', init_time) # ScheduledProcedureStepStartTime
+
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    # Don't perform any update
+    dicomlib.try_update_study_date(self.ds, False, '')
+    dicomlib.try_update_study_date(self.ds, False, '1111-11-11')
+
+    # Assert that everything was set correctly
+    expected_study_date = '00000000'
+    expected_study_time = '0000'
+
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate, expected_study_date)
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime, expected_study_time)
+
+  def test_try_update_study_date_empty(self):
+    # Sets study_date to an empty string to attempt to get the date and times
+    # from the ScheduledProcedureStepSequence
+    
+    # Construct the ScheduledProcedureStepSequence
+    init_date = '00000000'
+    init_time = '0000'
+    
+    test_seq_data = Dataset()
+
+    test_seq_data.add_new(0x00400002, 'DA', init_date) # ScheduledProcedureStepStartDate
+    test_seq_data.add_new(0x00400003, 'TM', init_time) # ScheduledProcedureStepStartTime
+
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    # Attempt to set StudyDate, StudyTime, SeriesDate and SeriesTime through the ScheduledProcedureStepSequence
+    dicomlib.try_update_study_date(self.ds, True, '')
+
+    # Assert that everything was set correctly
+    expected_study_date = '00000000'
+    expected_study_time = '0000'
+
+    validation_tags = (
+      (0x00080020, expected_study_date), # StudyDate
+      (0x00080021, expected_study_date), # SeriesDate
+      (0x00080030, expected_study_time), # StudyTime
+      (0x00080031, expected_study_time), # SeriesTime
+    )
+
+    self.assertEqual(self.__validate_tags(validation_tags), True)
+
+  def test_try_update_study_date_no_step_sequence(self):
+    # Fail the try exception when setting the ScheduledProcedureStepStartDate
+    # and ScheduledProcedureStepStartTime
+    
+    # Construct the ScheduledProcedureStepSequence
+    init_date = '00000000'
+    init_time = '0000'
+
+    self.ds.StudyDate = init_date
+    self.ds.SeriesDate = init_date
+    self.ds.StudyTime = init_time
+    self.ds.SeriesTime = init_time
+
+    # Attempt update
+    study_date = '1111-11-11'
+    dicomlib.try_update_study_date(self.ds, True, study_date)
+
+    # Assert that everything was set correctly
+    expected_study_date = '11111111'
+    expected_study_time = datetime.now().strftime('%H%M')
+
+    validation_tags = (
+      (0x00080020, expected_study_date), # StudyDate
+      (0x00080021, expected_study_date), # SeriesDate
+      (0x00080030, expected_study_time), # StudyTime
+      (0x00080031, expected_study_time), # SeriesTime
+    )
+
+    self.assertEqual(self.__validate_tags(validation_tags), True)
+
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate, expected_study_date)
+    self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime, expected_study_time)
 
 
   # --- try_update_scheduled_procedure_step_sequence tests ---

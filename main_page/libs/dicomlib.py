@@ -154,7 +154,7 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str)
   Args:
     ds: dataset to update study date for
     update_date: whether or not to update the study date
-    study_date: the new study date
+    study_date: the new study date (YYYY-MM-DD), if empty will be gotten from the scheduled procedure step sequence
   """
   if update_date:
     if study_date:
@@ -171,7 +171,10 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str)
         ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime = time_string
       except AttributeError:
         # The ScheduledProcedureStepSequence was not present in the dataset
-        pass # TODO: make ScheduledProcedureStepSequence
+        seq_data = Dataset()
+        seq_data.add_new(0x00400002, 'DA', date_string) # ScheduledProcedureStepStartDate
+        seq_data.add_new(0x00400003, 'TM', time_string) # ScheduledProcedureStepStartTime
+        ds.add_new(0x00400100, 'SQ', Sequence([seq_data]))
     else:
       ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
       ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
