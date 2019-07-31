@@ -151,7 +151,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       csv_present_names.append(data_file['Measurement date & time'][0])
       
       # Cast to int, as to remove dots when presenting on the site
-      csv_data.append([[int(rack), int(rack), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
+      csv_data.append([[int(rack), int(pos), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
       
       data_indicies.append(selected.index.tolist())
 

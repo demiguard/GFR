@@ -293,15 +293,102 @@ class LibsDicomlibTestCase(TestCase):
 
 
   # --- try_update_scheduled_procedure_step_sequence tests ---
+  def test_try_update_scheduled_procedure_step_sequence(self):
+    # Construct required ScheduledProcedureStepSequence
+    test_seq_data = Dataset()
 
+    modality = 'OT'
+    sch_descp = 'some description of the study'
+
+    test_seq_data.add_new(0x00080060, 'CS', modality)  # ScheduledProcedureSteSequence[0].modality
+    test_seq_data.add_new(0x00400007, 'LO', sch_descp) # ScheduledProcedureSteSequence[0].ScheduledProcedureStepDescription
+
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    # Attempt to update scheduled procedure step sequence
+    dicomlib.try_update_scheduled_procedure_step_sequence(self.ds)
+
+    # Assertion
+    self.assertEqual(self.ds.Modality, modality)
+    self.assertEqual(self.ds.StudyDescription, sch_descp)
+
+  def test_try_update_scheduled_procedure_step_sequence_no_sequence(self):
+    dicomlib.try_update_scheduled_procedure_step_sequence(self.ds)
+
+    with self.assertRaises(AttributeError):
+      self.ds.StudyDescription
+
+    with self.assertRaises(AttributeError):
+      self.ds.Modality
 
 
   # --- try_add_exam_status tests ---
+  def test_add_exam_status(self):
+    dicomlib.update_private_tags()
 
+    self.ds.ExamStatus = 1
+
+    dicomlib.try_add_exam_status(self.ds, 2)
+
+    self.assertEqual(self.ds.ExamStatus, 2)
+
+  def test_add_exam_status_no_exam_status(self):
+    dicomlib.try_add_exam_status(self.ds, 0)
+
+    with self.assertRaises(AttributeError):
+      self.ds.ExamStatus
+
+  def test_add_exam_status_equal(self):
+    dicomlib.update_private_tags()
+
+    self.ds.ExamStatus = 2
+
+    dicomlib.try_add_exam_status(self.ds, 2)
+
+    self.assertEqual(self.ds.ExamStatus, 2)
+
+  def test_add_exam_status_lower(self):
+    dicomlib.update_private_tags()
+
+    self.ds.ExamStatus = 3
+
+    dicomlib.try_add_exam_status(self.ds, 1)
+
+    self.assertEqual(self.ds.ExamStatus, 3)
+
+  def test_add_exam_status_none(self):
+    dicomlib.update_private_tags()
+
+    self.ds.ExamStatus = 3
+
+    dicomlib.try_add_exam_status(self.ds, None)
+
+    self.assertEqual(self.ds.ExamStatus, 3)
 
 
   # --- try_add_age tests ---
+  def test_tr_add_age_one(self):
+    dicomlib.try_add_age(self.ds, 1)
 
+    self.assertEqual(self.ds.PatientAge, '001')
+
+  def test_tr_add_age_two(self):
+    dicomlib.try_add_age(self.ds, 11)
+
+    self.assertEqual(self.ds.PatientAge, '011')
+
+  def test_tr_add_age_three(self):
+    dicomlib.try_add_age(self.ds, 111)
+
+    self.assertEqual(self.ds.PatientAge, '111')
+
+  def test_tr_add_age_none(self):
+    dicomlib.try_add_age(self.ds, None)
+
+    with self.assertRaises(AttributeError):
+      self.ds.PatientAge
 
 
   # --- try_add_gender tests ---
@@ -309,7 +396,24 @@ class LibsDicomlibTestCase(TestCase):
 
 
   # --- try_add_sample_sequence tests ---
+  def test_add_samples(self):
+    now = datetime.now()
+    samples = [(now, x * 0.1) for x in range(1, 6)]
 
+    dicomlib.try_add_sample_sequence(self.ds, samples)
+
+    for i, sample in enumerate(self.ds[0x00231020]):
+      sample_date = sample[0x00231021].value
+      sample_cnt = sample[0x00231022].value
+
+      self.assertEqual(sample_date, now)
+      self.assertAlmostEqual(sample_cnt, samples[i][1])
+
+  def test_add_samples_cleartest(self):
+    pass
+
+  def test_add_samples_none(self):
+    pass
 
 
   # --- try_add_pixeldata tests ---
