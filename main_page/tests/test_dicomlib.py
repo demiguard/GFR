@@ -152,7 +152,9 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual(self.__validate_department_tags(), True)
 
   def test_try_add_department_none(self):
-    pass
+    dicomlib.try_add_department(self.ds, None)
+
+    self.assertEqual(self.__validate_department_tags(), False)
 
 
   # --- try_update_study_date tests ---
