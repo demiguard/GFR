@@ -1,13 +1,6 @@
 import logging
 
 # NOTE: All directories MUST end in a '/'
-
-# --- Dicom related configs --- #
-FINDSCU = "findscu"                               # Path to findscu application
-STORESCU = "storescu"                             # Path to storescu application
-GETSCU = "getscu"                                 # Path to getscu application
-DCMCONV = "dcmconv"
-
 DAYS_THRESHOLD = 30                                # How long dicom files should be kept stored on the server
 
 BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
@@ -23,9 +16,6 @@ BASE_FIND_QUERY = f"{BASE_QUERY_DIR}base_find_query.dcm"                        
 BASE_IMG_QUERY_PATH = f"{BASE_QUERY_DIR}base_img_query.dcm"                          # Used for retreiving images
 BASE_SEARCH_FILE = f"{BASE_QUERY_DIR}base_search_query.dcm"                            # Used for the searching page
 BASE_RIGS_QUERY = f"{BASE_QUERY_DIR}base_rigs_query.dcm"                             # Used for retreiving examinations from rigs booking system
-
-DICOMDICT_UBUNTU = "/usr/share/libdcmtk12/dicom.dic"
-DICOMDICT_CENTOS = "/usr/local/share/dcmtk/dicom.dic"
 
 # Private Dicom tag definitions
 new_dict_items = {

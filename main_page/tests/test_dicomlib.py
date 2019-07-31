@@ -15,8 +15,9 @@ class LibsDicomlibTestCase(TestCase):
   @classmethod
   def setUpTestData(self):
     # Set up data for the whole TestCase
-    self.hospital = models.Hospital.objects.create(1, 'test_name', 'tn', 'test_address')
-    self.department = models.Department.objects.create(1, 'test_department', self.hospital)
+    self.hospital = models.Hospital(id=1, name='test_name', short_name='tn', address='test_address')
+    self.department = models.Department(id=1, name='test_department', hospital=self.hospital)
+
 
   def __validate_tags(self, tags):
     """
@@ -138,9 +139,9 @@ class LibsDicomlibTestCase(TestCase):
   # --- try_add_department tests ---
   def __validate_department_tags(self):
     validation_tags = (
-      (0x00080080, self.department.hospital.name),
-      (0x00080081, self.department.hospital.address),
-      (0x00081040, self.department.name),
+     (0x00080080, self.department.hospital.name),
+     (0x00080081, self.department.hospital.address),
+     (0x00081040, self.department.name),
     )
 
     return self.__validate_tags(validation_tags)
@@ -149,7 +150,6 @@ class LibsDicomlibTestCase(TestCase):
     dicomlib.try_add_department(self.ds, self.department)
 
     self.assertEqual(self.__validate_department_tags(), True)
-
 
   def test_try_add_department_none(self):
     pass

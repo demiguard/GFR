@@ -2,11 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint
-from main_page import Startup
 import main_page.views.views as views
-
-
-Startup.start_up()
 
 
 app_name = 'main_page'
