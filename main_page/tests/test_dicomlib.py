@@ -323,6 +323,7 @@ class LibsDicomlibTestCase(TestCase):
     with self.assertRaises(AttributeError):
       self.ds.Modality
 
+
   # --- try_add_exam_status tests ---
   def test_add_exam_status(self):
     dicomlib.update_private_tags()
@@ -366,8 +367,28 @@ class LibsDicomlibTestCase(TestCase):
 
     self.assertEqual(self.ds.ExamStatus, 3)
 
-  # --- try_add_age tests ---
 
+  # --- try_add_age tests ---
+  def test_tr_add_age_one(self):
+    dicomlib.try_add_age(self.ds, 1)
+
+    self.assertEqual(self.ds.PatientAge, '001')
+
+  def test_tr_add_age_two(self):
+    dicomlib.try_add_age(self.ds, 11)
+
+    self.assertEqual(self.ds.PatientAge, '011')
+
+  def test_tr_add_age_three(self):
+    dicomlib.try_add_age(self.ds, 111)
+
+    self.assertEqual(self.ds.PatientAge, '111')
+
+  def test_tr_add_age_none(self):
+    dicomlib.try_add_age(self.ds, None)
+
+    with self.assertRaises(AttributeError):
+      self.ds.PatientAge
 
 
   # --- try_add_gender tests ---
@@ -375,7 +396,24 @@ class LibsDicomlibTestCase(TestCase):
 
 
   # --- try_add_sample_sequence tests ---
+  def test_add_samples(self):
+    now = datetime.now()
+    samples = [(now, x * 0.1) for x in range(1, 6)]
 
+    dicomlib.try_add_sample_sequence(self.ds, samples)
+
+    for i, sample in enumerate(self.ds[0x00231020]):
+      sample_date = sample[0x00231021].value
+      sample_cnt = sample[0x00231022].value
+
+      self.assertEqual(sample_date, now)
+      self.assertAlmostEqual(sample_cnt, samples[i][1])
+
+  def test_add_samples_cleartest(self):
+    pass
+
+  def test_add_samples_none(self):
+    pass
 
 
   # --- try_add_pixeldata tests ---

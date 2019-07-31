@@ -5,7 +5,7 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pydicom import uid
 
-from typing import Type
+from typing import Type, Tuple, List
 import numpy as np
 
 from main_page import models
@@ -231,6 +231,7 @@ def try_add_gender(ds: Type[Dataset], gender: str) -> None:
     ds: dataset to add to
     gender: gender to add if present
   """
+  # TODO: Change this to use an enum instead
   if gender:
     gender = gender.lower()
     if gender in ['male', 'm', 'mand', 'dreng']:
@@ -239,7 +240,7 @@ def try_add_gender(ds: Type[Dataset], gender: str) -> None:
       ds.PatientSex = 'F'
 
 
-def try_add_sample_sequence(ds: Type[Dataset], sample_seq) -> None:
+def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:
   """
   Attempts to add the sample sequence to the dataset
 
