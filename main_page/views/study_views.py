@@ -345,7 +345,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dicomlib.save_dicom(file_path, dataset)
     
     if 'calculate' in request.POST:
-      return redirect('main_page:present_study', rigs_nr=ris_nr) 
+      return redirect('main_page:present_study', ris_nr=ris_nr) 
 
     return self.get(request, ris_nr)
 

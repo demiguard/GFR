@@ -320,7 +320,7 @@ def fill_dicom(ds,
     exam_status         = None,
     gender              = None,
     gfr                 = None,
-    gfr_type            = None,
+    gfr_type            = '', #Stechy
     height              = None,
     injection_after     = None,
     injection_before    = None,
@@ -431,8 +431,8 @@ def fill_dicom(ds,
   # Dictionary defining custom functions and corresponding arguments for more
   # complicated values to set on the dataset
   custom_try_adds = (
-    (try_update_exam_meta_data, update_dicom),
-    (try_update_exam_meta_data, update_dicom),
+    (try_update_exam_meta_data, update_dicom), 
+    (try_update_exam_meta_data, update_dicom), #simon: Why is this called again?
     (try_add_department, department),
     (try_update_study_date, update_date, study_date),
     (try_update_scheduled_procedure_step_sequence),
@@ -445,10 +445,12 @@ def fill_dicom(ds,
   )
 
   for item in custom_try_adds:
+    #Simon this code is about as stechy as the pharmacy indistry
     try:
       try_func = item[0]
       args = item[1:]
     except TypeError: # i.e. no args supplied
       try_func = item
-
+      args = [] # Remember to reset this else try_func will be called with previous arguments
+    
     try_func(ds, *args)
