@@ -213,11 +213,15 @@ def get_backup_file(
   share_name = server_config.samba_share
   backup_folder = f"/{server_config.samba_backup}/{hospital}"
   samba_files = conn.listPath(share_name, backup_folder)
+  
+  logger.debug(f'Looking for files in samba share folder: {backup_folder}')
+  logger.debug(f'Found samba_files: f{samba_files}')
 
   file_contents = [ ]
 
   for samba_file in samba_files:
     curr_filename = samba_file.filename
+    logger.debug(f'Processing samba file: {curr_filename}')
 
     if date_str == curr_filename[:date_str_len]:
       temp_file = tempfile.NamedTemporaryFile()
@@ -226,7 +230,9 @@ def get_backup_file(
       
       try:
         conn.retrieveFile(share_name, fullpath, temp_file, timeout=timeout)
+        logger.debug(f'Successfully retrieved file')
       except OperationFailure: # File couldn't be found, skip it
+        logger.debug(f'Failed to find file: {curr_filename}, skipping file.')
         temp_file.close()
         continue
 
@@ -236,6 +242,8 @@ def get_backup_file(
       file_contents.append(df)
 
       temp_file.close()
+
+    logger.debug(f'Done processing samba file: {curr_filename}')
 
   conn.close()
 

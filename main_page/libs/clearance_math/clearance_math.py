@@ -366,17 +366,17 @@ def generate_plot_text(
   day_of_birth: str,
   sex: str,
   rigs_nr: str,
-  cpr='',
-  method='',
-  name='',
+  cpr: str='',
+  method: str='',
+  name: str='',
   history_age=[],
   history_clr_n=[],
-  hosp_dir='',
-  image_height=server_config.PLOT_HEIGHT,
-  image_width=server_config.PLOT_WIDTH,
-  index_gfr=0.0,
+  hosp_dir: str='',
+  image_height: float=server_config.PLOT_HEIGHT,
+  image_width: float=server_config.PLOT_WIDTH,
+  index_gfr: float=0.0,
   injection_date=None,
-  procedure_description='',
+  procedure_description: str='',
   ):
   """
   Generate GFR plot
@@ -397,11 +397,11 @@ def generate_plot_text(
   Remark:
     Generate as one image, with multiple subplots.
   """
-  x =           [0, 40, 110]
-  zeros =       [0, 0, 0]
-  darkred_y =   [25, 25, 10]
-  light_red_y = [50, 50, 30]
-  yellow_y =    [75, 75, 35]
+  x =           [ 0,   40, 110]
+  zeros =       [ 0,    0,   0]
+  darkred_y =   [ 25,  25,  10]
+  light_red_y = [ 50,  50,  30]
+  yellow_y =    [ 75,  75,  35]
   lightgrey_y = [160, 160, 160]
 
   gender = sex

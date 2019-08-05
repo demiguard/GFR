@@ -89,7 +89,6 @@ def fill_study_post(request, rigs_nr, dataset):
     inj_weight_after = float(request.POST['vial_weight_after'])
     inj_weight = inj_weight_before - inj_weight_after
 
-    # TODO: CHANGE THE FACTOR AND STANDARD COUNT TO BE ON THE PAGE AS WELL
     STD_CNT = float(request.POST['std_cnt_text_box'])
     FACTOR = float(request.POST['thin_fac'])
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
@@ -156,6 +155,7 @@ def fill_study_post(request, rigs_nr, dataset):
       pixeldata = pixel_data,
       exam_status = 2
     )
+
     return dataset
 
 
@@ -264,7 +264,7 @@ def store_form(request, dataset, rigs_nr):
     exam_status = 1
 
   dicomlib.fill_dicom(dataset,
-    age=age, 
+    age=age,
     birthday=birthdate,
     update_dicom = True,
     update_date = True,

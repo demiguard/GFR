@@ -274,6 +274,9 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
     pixeldata: pixeldata to add if present
 
   Remark:
+    This function assumes the pixeldata was generated through generate_plot_text
+    function from clearance_math.py
+
     The dicom dataset should have TransferSyntax to Little Endian Explicit
     to avoid any corruption of the pixeldata.
     
