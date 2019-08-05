@@ -2,6 +2,7 @@ from django import forms
 
 import main_page.models as models
 import main_page.libs.server_config as server_config
+from main_page.libs.enums import GENDER_NAMINGS
 
 
 # Login form
@@ -21,9 +22,11 @@ class NewStudy(forms.Form):
 class Fillpatient_1(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.', required=False)
   name = forms.CharField(label='Navn', required=False)
-  sex = forms.CharField(label='Køn', required=False)
-  birthdate = forms.DateField(label='Fødselsdato (ÅÅÅÅ-MM-DD)', required=False)
   
+  sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
+  sex = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
+  
+  birthdate = forms.DateField(label='Fødselsdato (ÅÅÅÅ-MM-DD)', required=False)
 
 class Fillpatient_2(forms.Form):
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)

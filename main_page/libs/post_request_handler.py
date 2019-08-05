@@ -26,6 +26,7 @@ from . import server_config
 from . import dicomlib
 from . import formatting
 from main_page.libs.dirmanager import try_mkdir
+from main_page.libs import enums
 
 
 logger = logging.getLogger()
@@ -210,7 +211,9 @@ def store_form(request, dataset, rigs_nr):
     gfr_type = 'Flere prøve Voksen'
 
   if request.POST['sex']:
-    gender = request.POST['sex']
+    gender_num = request.POST['sex']
+    gender = enums.Gender(gender_num)
+    print(gender)
 
   if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
     injection_before = float(request.POST['vial_weight_before'])

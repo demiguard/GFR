@@ -9,6 +9,7 @@ from typing import Type, Tuple, List
 import numpy as np
 
 from main_page import models
+from main_page.libs import enums
 from .server_config import new_dict_items
 from . import server_config
 from . import formatting
@@ -223,7 +224,7 @@ def try_add_age(ds: Type[Dataset], age: int) -> None:
     ds.PatientAge = f"{age:03d}"
 
 
-def try_add_gender(ds: Type[Dataset], gender: str) -> None:
+def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
   """
   Attempts to add the gender to the dataset
 
@@ -231,13 +232,9 @@ def try_add_gender(ds: Type[Dataset], gender: str) -> None:
     ds: dataset to add to
     gender: gender to add if present
   """
-  # TODO: Change this to use an enum instead
   if gender:
-    gender = gender.lower()
-    if gender in ['male', 'm', 'mand', 'dreng']:
-      ds.PatientSex = 'M'
-    if gender in ['kvinde', 'd', 'k', 'pige', 'woman', 'dame', 'female' ]:
-      ds.PatientSex = 'F'
+    # Save first character (either 'M' or 'F')
+    ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value][0]
 
 
 def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:

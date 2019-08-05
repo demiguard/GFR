@@ -5,6 +5,9 @@ class Gender(Enum):
   MALE = 0    # 'Mand'
   FEMALE = 1  # 'Kvinde'
 
+GENDER_NAMINGS = ['Mand', 'Kvinde']
+GENDER_SHORT_NAMES = ['M', 'F']
+
 
 class StudyType(Enum):
   ONE_SAMPLE_ADULT = 0  # 'En blodprøve, Voken'

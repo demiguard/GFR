@@ -1,47 +1,43 @@
 from django.test import TestCase
+import unittest
 
 from pydicom import Dataset, Sequence, uid
 from datetime import datetime
 import numpy as np
 
+from main_page.libs import enums 
 from main_page.libs import dicomlib
 from main_page.libs import server_config
 from main_page.libs.clearance_math import clearance_math
 from main_page import models
 
 
-# TODO: Split each function into it's own TestCase class. Not just the entire module...
+def validate_tags(ds, tags):
+  """
+  Checks if a given set of tags is present with the corret values in the dataset
 
-class LibsDicomlibTestCase(TestCase):
+  Args:
+    ds: dataset to check tags for
+    tags: set of tuples with tag first followed by its correct value
+
+  Returns:
+    True if all tags are present with their correct value, False otherwise.
+  """
+  for tag, value in tags:
+    try:
+      if not str(ds[tag].value) == str(value):
+        return False
+    except KeyError:
+      return False
+
+  return True
+
+
+# --- try_add_new tests ---
+class TryAddTestCase(unittest.TestCase):
   def setUp(self):
     self.ds = Dataset()
 
-  @classmethod
-  def setUpTestData(self):
-    # Set up data for the whole TestCase
-    self.hospital = models.Hospital(id=1, name='test_name', short_name='tn', address='test_address')
-    self.department = models.Department(id=1, name='test_department', hospital=self.hospital)
-
-  def __validate_tags(self, tags):
-    """
-    Checks if a given set of tags is present with the corret values in the dataset
-
-    Args:
-      tags: set of tuples with tag first followed by its correct value
-
-    Returns:
-      True if all tags are present with their correct value, False otherwise.
-    """
-    for tag, value in tags:
-      try:
-        if not str(self.ds[tag].value) == str(value):
-          return False
-      except KeyError:
-        return False
-  
-    return True
-
-  # --- try_add_new tests ---
   def test_try_add_new(self):
     study_id_tag = 0x00200010
     study_id = 'REGH12345678'
@@ -80,7 +76,17 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual(self.ds.StudyID, new_study_id)
 
 
-  # --- try_update_exam_meta_data tests ---
+# --- try_update_exam_meta_data tests ---
+class ExamMetaDataTests(TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
+  @classmethod
+  def setUpTestData(self):
+    # Set up data for the whole TestCase
+    self.hospital = models.Hospital(id=1, name='test_name', short_name='tn', address='test_address')
+    self.department = models.Department(id=1, name='test_department', hospital=self.hospital)
+
   def __validate_meta_data_tags(self):
     validation_tags = (
       (0x00080060, 'OT'),
@@ -96,7 +102,7 @@ class LibsDicomlibTestCase(TestCase):
       (0x0020000E, uid.generate_uid(prefix='1.3.', entropy_srcs=[self.ds.AccessionNumber, 'Series'])),
     )
 
-    return self.__validate_tags(validation_tags)
+    return validate_tags(self.ds, validation_tags)
 
   def test_try_update_exam_meta_data(self):
     self.ds.AccessionNumber = "REGH12345678"
@@ -147,7 +153,7 @@ class LibsDicomlibTestCase(TestCase):
      (0x00081040, self.department.name),
     )
 
-    return self.__validate_tags(validation_tags)
+    return validate_tags(self.ds, validation_tags)
 
   def test_try_add_department(self):
     dicomlib.try_add_department(self.ds, self.department)
@@ -160,7 +166,11 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual(self.__validate_department_tags(), False)
 
 
-  # --- try_update_study_date tests ---
+# --- try_update_study_date tests ---
+class StudyDateTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
   def test_try_update_study_date(self):
     # Construct the ScheduledProcedureStepSequence
     init_date = '00000000'
@@ -195,7 +205,7 @@ class LibsDicomlibTestCase(TestCase):
       (0x00080031, expected_study_time), # SeriesTime
     )
 
-    self.assertEqual(self.__validate_tags(validation_tags), True)
+    self.assertEqual(validate_tags(self.ds, validation_tags), True)
 
     self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate, expected_study_date)
     self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime, expected_study_time)
@@ -258,7 +268,7 @@ class LibsDicomlibTestCase(TestCase):
       (0x00080031, expected_study_time), # SeriesTime
     )
 
-    self.assertEqual(self.__validate_tags(validation_tags), True)
+    self.assertEqual(validate_tags(self.ds, validation_tags), True)
 
   def test_try_update_study_date_no_step_sequence(self):
     # Fail the try exception when setting the ScheduledProcedureStepStartDate
@@ -288,7 +298,7 @@ class LibsDicomlibTestCase(TestCase):
       (0x00080031, expected_study_time), # SeriesTime
     )
 
-    self.assertEqual(self.__validate_tags(validation_tags), True)
+    self.assertEqual(validate_tags(self.ds, validation_tags), True)
 
     self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate, expected_study_date)
     self.assertEqual(self.ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime, expected_study_time)
@@ -326,7 +336,11 @@ class LibsDicomlibTestCase(TestCase):
       self.ds.Modality
 
 
-  # --- try_add_exam_status tests ---
+# --- try_add_exam_status tests ---
+class ExamStatusTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
   def test_add_exam_status(self):
     dicomlib.update_private_tags()
 
@@ -370,7 +384,11 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual(self.ds.ExamStatus, 3)
 
 
-  # --- try_add_age tests ---
+# --- try_add_age tests ---
+class AgeTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
   def test_tr_add_age_one(self):
     dicomlib.try_add_age(self.ds, 1)
 
@@ -393,11 +411,32 @@ class LibsDicomlibTestCase(TestCase):
       self.ds.PatientAge
 
 
-  # --- try_add_gender tests ---
+# --- try_add_gender tests ---
+class GenderTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
+  def test_try_add_gender_male(self):
+    dicomlib.try_add_gender(self.ds, enums.Gender(0))
+
+    self.assertEqual(self.ds.PatientSex, 'M')
+
+  def test_try_add_gender_female(self):
+    dicomlib.try_add_gender(self.ds, enums.Gender(1))
+
+    self.assertEqual(self.ds.PatientSex, 'F')
+
+  def test_try_add_gender_none(self):
+    dicomlib.try_add_gender(self.ds, None)
+
+    self.assertEqual('PatientSex' in self.ds, False)
 
 
+# --- try_add_sample_sequence tests ---
+class SampleTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
 
-  # --- try_add_sample_sequence tests ---
   def test_add_samples(self):
     now = datetime.now()
     samples = [(now, x * 0.1) for x in range(1, 6)]
@@ -443,7 +482,11 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual('ClearTest' in self.ds, False)
 
 
-  # --- try_add_pixeldata tests ---
+# --- try_add_pixeldata tests ---
+class PixelDataTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
   def test_add_pixeldata(self):
     pixeldata = clearance_math.generate_plot_text(
       weight = 90.0,
@@ -494,6 +537,51 @@ class LibsDicomlibTestCase(TestCase):
     self.assertEqual('PixelData' in self.ds, False)
 
 
-  # --- fill_dicom tests ---
+# --- fill_dicom tests ---
+# I.e. integration test of all the above unit tests
+class FillDicomTests(TestCase):
+  def setUp(self):
+    self.ds = Dataset()
 
+  @classmethod
+  def setUpTestData(self):
+    # Set up data for the whole TestCase
+    self.hospital = models.Hospital(id=1, name='test_name', short_name='tn', address='test_address')
+    self.department = models.Department(id=1, name='test_department', hospital=self.hospital)
 
+  def test_fill_dicom(self):
+    # Everything is filled out or True
+    pass
+
+  def test_fill_dicom_none(self):
+    # Everything is either None or False
+    tags_to_check = [
+      # try_add_new tags
+      0x00080050, 0x00100030, 0x00100020, 0x00100010, 0x00200011, 0x00081010,
+      0x00101020, 0x00101030, 0x0008103E, 0x00231001, 0x00231002, 0x00231010,
+      0x00231018, 0x0023101A, 0x0023101B, 0x0023101C, 0x00231011, 0x00231012,
+      0x00231014, 0x00231024, 0x00231028,
+      # Pixel data tags
+      0x00280002, 0x00280004, 0x00280006, 0x00280010, 0x00280011, 0x00280100,
+      0x00280101, 0x00280102, 0x00280103, 0x7FE00010, 0x00204000,
+      # Sample sequence tags
+      0x00231020,
+      # Gender tags
+      0x00100040,
+      # Age tags,
+      0x00101010,
+      # Exam status tags
+      0x00231032,
+      # Schedule procedure tags
+      0x00400100,
+      # Study date tags
+      0x00080020, 0x00080021, 0x00080030, 0x00080031,
+      # Department tags
+      0x00080080, 0x00080081, 0x00081040,
+      # Exam meta data tags
+      0x00080064, 0x00230010, 0x00080030, 0x00080090, 0x00200010, 0x00200013,
+    ]
+
+    for tag in tags_to_check:
+      with self.assertRaises(KeyError):
+        self.ds[tag]
