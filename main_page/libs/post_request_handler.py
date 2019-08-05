@@ -186,10 +186,11 @@ def store_form(request, dataset, rigs_nr):
   seq = None
 
   # Store age
-  if request.POST['birthdate']:    
-    birthdate = request.POST['birthdate'].replace('-','')
-    birthdate_datetime = datetime.datetime.strptime(birthdate,'%Y%m%d').date()
-    age = int((datetime.datetime.now().date() - birthdate_datetime).days / 365) 
+  birthdate_str = request.POST['birthdate']
+  
+  if birthdate_str:    
+    birthdate = datetime.datetime.strptime(birthdate_str, '%Y-%m-%d').date()
+    age = (datetime.date.today() - birthdate).days // 365 
 
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
