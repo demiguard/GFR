@@ -331,4 +331,24 @@ def reverse_format_date(reverse_Date : str) -> str:
   return returnstring
 
 
+def xstr(s: str) -> str:
+  """
+  Args:
+    s: string to transform
 
+  Returns:
+    s if s is not None, otherwise return an empty string
+
+  Remark:
+    This function exists since str will return 'None' for None objects, e.g.:
+
+    >>> x = None
+    >>> str(x)
+    'None'
+    >>> xstr(x)
+    ''
+  """
+  if not s:
+    return ''
+
+  return str(s)

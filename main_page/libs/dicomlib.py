@@ -320,7 +320,7 @@ def fill_dicom(ds,
     exam_status         = None,
     gender              = None,
     gfr                 = None,
-    gfr_type            = '', #Stechy
+    gfr_type            = None,
     height              = None,
     injection_after     = None,
     injection_before    = None,
@@ -408,7 +408,7 @@ def fill_dicom(ds,
     0x00081010 : ('SH', station_name),                            # ds.StationName
     0x00101020 : ('DS', height),                                  # ds.PatientSize
     0x00101030 : ('DS', weight),                                  # ds.PatientWeight
-    0x0008103E : ('LO', 'Clearance ' + gfr_type),                 # ds.SeriesDescription
+    0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type)),# ds.SeriesDescription
                                                                   # ### PRIVATE TAGS START ###
     0x00231001 : ('LO', gfr),                                     # ds.GFR
     0x00231002 : ('LO', 'Version 1.0'),                           # ds.GFRVersion
