@@ -1,8 +1,10 @@
 import calendar
 import pandas
 import re
+import logging
 from datetime import datetime
 
+logger = logging.getLogger()
 
 def person_name_to_name(name: str) -> str:
   """
@@ -275,7 +277,7 @@ def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
 
-def reverse_format_date(reverse_Date : str) -> str:
+def reverse_format_date(reverse_Date : str, seperator = '') -> str:
   """
     Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYYMMDD 
 
@@ -284,10 +286,13 @@ def reverse_format_date(reverse_Date : str) -> str:
 
     Returns
       dateformat : String on format YYYYMMDD
+      Returns '' on input = ''
 
     Raises:
       ValueError : On invalid String
     """
+  if reverse_Date == None or reverse_Date == '':
+    return ''
   # Argument checking
   if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
     day, month, year = reverse_Date.split('-')
@@ -301,7 +306,7 @@ def reverse_format_date(reverse_Date : str) -> str:
     else:
       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
   
-  elif reverse_Date.count('/') and len(reverse_Date) == 10:
+  elif reverse_Date.count('/') == 2 and len(reverse_Date) == 10:
     day, month, year = reverse_Date.split('/')
 
     if day.isdigit() and month.isdigit() and year.isdigit():
@@ -326,9 +331,40 @@ def reverse_format_date(reverse_Date : str) -> str:
   else:
     raise ValueError('Reverse_format_date: String is not on correct format')
 # Converting format
-  returnstring = str(year) + str(month) + str(day)
+  returnstring = year + seperator + month + seperator + day
   # Returning
   return returnstring
+
+def convert_date_to_danish_date(date_arg : str, seperator = '') -> str:
+  """
+    Converts a string from the format YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD to DD{seperator}MM{seperartor}YYYY
+
+  args:
+    date_arg : String, on format  YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD, where the string corospond to a date
+  kwargs:
+    seperator : String, this string is put in between the time
+  returns
+    String on format DD{seperator}MM{seperartor}YYYY
+
+  """
+  date = date_arg.replace('-','').replace('/','')
+  if len(date) == 8 and date.isdigit():
+    year = date[:4]
+    month = date[4:6]
+    day = date[6:]
+    
+    try:
+      #Create datetime object to see if it's a valid date
+      datetime(int(year), int(month), int(day)) 
+    except ValueError as V:
+      logger.error(f'Reverse_format_date: input string doesnt corrorspond to a valid date')
+      raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
+
+    return day + seperator + month + seperator + year
+
+  else:
+    logger.error(f'Convert date to danish format called with {date_arg}')
+    raise ValueError(f'Incorrect format, function is called with {date_arg}\n It should be on format YYYYMMDD, YYYY-MM-DD or YYYY/MM/DD')
 
 
 def xstr(s: str) -> str:

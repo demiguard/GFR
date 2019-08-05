@@ -56,6 +56,27 @@ var helper = (function() {
     return DATE_FORMAT.test(date_str);
   };
 
+  // Validates a given date string (format: DD-MM-YYYY)
+  var valid_danish_date_format = function(date_str) {
+    let DATE_FORMAT = /^([0-2][0-9]|[3][0-1])-([0][1-9]|[1][0-2])-[0-9]{4}$/;
+    return DATE_FORMAT.test(date_str);
+  };
+
+
+  var convert_date_to_danish_date_format = function(date_str){
+    let day = date_str.substr(8,2);
+    let month = date_str.substr(5,2);
+    let year = date_str.substr(0,4);
+    return day + '-' + month + '-' + year;  
+  };
+
+  var convert_danish_date_to_date_format = function(date_str){
+    let day   = date_str.substr(0,2);
+    let month = date_str.substr(3,2);
+    let year = date_str.substr(6,4);
+    return year + '-' + month + '-' + day;
+  }
+
   /*
   Automatically appends a character after the n'th character is typed.
 
@@ -88,6 +109,9 @@ var helper = (function() {
     is_number: is_number,
     valid_time_format: valid_time_format,
     valid_date_format: valid_date_format,
-    auto_char: auto_char
+    valid_danish_date_format: valid_danish_date_format,
+    auto_char: auto_char,
+    convert_danish_date_to_date_format: convert_danish_date_to_date_format,
+    convert_date_to_danish_date_format: convert_date_to_danish_date_format
   };
 })();

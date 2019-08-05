@@ -361,9 +361,6 @@ class LibsFormattingTestCase(TestCase):
     with self.assertRaises(ValueError):
       formatting.reverse_format_date(function_input)
 
-
-
-
   # Production test
   # If a test case comes up in production put it in here
 

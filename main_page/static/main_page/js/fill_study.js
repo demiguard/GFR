@@ -97,7 +97,7 @@ function add_date_checking() {
       $(date_ids[i][0]),
       date_ids[i][1],
       function(field) {
-        return !helper.valid_date_format(field.val());
+        return !helper.valid_danish_date_format(field.val());
       }
     );
   }
@@ -108,10 +108,10 @@ Initializes date fields
 */
 function initialize_date_fields() {
   // Add date pickers to date fields
-  $('#id_injection_date').datepicker({format: 'yyyy-mm-dd'});
-  $('#id_study_date').datepicker({format: 'yyyy-mm-dd'});
-  $('#id_birthdate').datepicker({format:'yyyy-mm-dd'});
-  $('#id_dateofmessurement').datepicker({format:'yyyy-mm-dd'});
+  $('#id_injection_date').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_study_date').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_birthdate').datepicker({format:'dd-mm-yyyy'});
+  $('#id_dateofmessurement').datepicker({format:'dd-mm-yyyy'});
 }
 
 /*
@@ -144,9 +144,9 @@ function get_backup_measurements(){
   This function is called when the button 'Hent målling'
   */
   // Extract url parameters
-  var date = $('#id_dateofmessurement').val();
+  var date = helper.convert_danish_date_to_date_format($('#id_dateofmessurement').val());
   
-  if (!helper.valid_date_format(date)) {
+  if (helper.valid_danish_date_format(date)) {
     console.log('Not a valid date format');
     return;
   }
@@ -395,7 +395,12 @@ $(function() {
         'Kan ikke beregne uden prøver.',
         'danger'
       );
-
+      return false;
+    } else if (test_count == 1 && $('id_study_type_2').is(":checked")) {
+      alerter.add_alert(
+        'Flere Prøve modellen er valgt, men der er kun tilføjet en prøve',
+        'danger'
+      );
       return false;
     }
 
@@ -428,7 +433,7 @@ $(function() {
 
     if (!is_valid) {
       alerter.add_alert(
-        'Et eller flere felter er ikke udfyldt.',
+        'Et eller flere felter er ikke udfyldt korrekt.',
         'danger'
       );
      
@@ -439,7 +444,7 @@ $(function() {
 
     // Check that injection date isn't in the future
     var now = new Date();
-    var inj_date_val = $('#id_injection_date').val();
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
     var inj_time_val = $('#id_injection_time').val();
     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
     var dt = Date.parse(dt_str);
@@ -467,7 +472,7 @@ $(function() {
     var date_fields = $("#test-data-container [name='study_date']");
     var time_fields = $("#test-data-container [name='study_time']");
 
-    var inj_date_val = $('#id_injection_date').val();
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
     var inj_time_val = $('#id_injection_time').val();
     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
     var dt = Date.parse(dt_str);
@@ -488,24 +493,12 @@ $(function() {
     return true;
   });
 
-
+  // TODO: revaluate life chocies with the following code below!
   // 'Gem' on click event
   $('#save').click(function() {
     // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
   
     alerter.clear_alerts();
-
-    // Check that if 'sprøjtevægt efter injektion' is entered then 'sprøjtevægt før injektion' must also be entered
-    inj_after = $("#id_vial_weight_after").val();
-    inj_before = $("#id_vial_weight_before").val();
-    
-    if (inj_after != "" && inj_before == "") {
-      alerter.add_alert('Sprøjtevægt før skal indtastes.', 'danger');
-      alerter.add_field_alert($("#id_vial_weight_before"), 'danger');
-
-      $(window).on("beforeunload", unload_func);
-      return false;
-    }
   });
 });

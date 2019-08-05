@@ -15,7 +15,7 @@ class LoginForm(forms.Form):
 class NewStudy(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.')
   name = forms.CharField(label='Navn')
-  study_date = forms.DateField(label='Dato (ÅÅÅÅ-MM-DD)')
+  study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)')
   rigs_nr = forms.CharField(label='Accessionnummer.')
 
 
@@ -26,7 +26,7 @@ class Fillpatient_1(forms.Form):
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   sex = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
   
-  birthdate = forms.DateField(label='Fødselsdato (ÅÅÅÅ-MM-DD)', required=False)
+  birthdate = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
 
 class Fillpatient_2(forms.Form):
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)
@@ -37,7 +37,7 @@ class Fillexamination(forms.Form):
   vial_weight_before = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, min_value=0)
   vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
-  injection_date = forms.DateField(label='Injektionsdato (ÅÅÅÅ-MM-DD)', required=False)  
+  injection_date = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)  
 
 
 class Filldosis(forms.Form):
@@ -58,7 +58,7 @@ class FillStudyType(forms.Form):
 
 class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
-  study_date = forms.DateField(label='Dato (ÅÅÅÅ-MM-DD)', required=False)
+  study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)', required=False)
 
   def __init__(self, *args, **kwargs):
     super(FillStudyTest, self).__init__(*args, **kwargs)
@@ -72,8 +72,8 @@ class GetStudy(forms.Form):
   name = forms.CharField(label='Navn', required=False)
   cpr  = forms.CharField(label='Cpr-nr.', required=False)
   Rigs = forms.CharField(label='Accessionnummer', required=False)
-  Dato_start = forms.DateField(label='Fra dato (ÅÅÅÅ-MM-DD)', required=False)
-  Dato_finish = forms.DateField(label='Til dato (ÅÅÅÅ-MM-DD)', required=False)
+  Dato_start = forms.DateField(label='Fra dato (DD-MM-ÅÅÅÅ)', required=False)
+  Dato_finish = forms.DateField(label='Til dato (DD-MM-ÅÅÅÅ)', required=False)
 
 
 # --- EDIT FORMS START --- #
@@ -276,4 +276,4 @@ class AddHandledExaminationsForm(forms.ModelForm):
 
 
 class GetBackupDateForm(forms.Form):
-  dateofmessurement = forms.DateField(label='Backup fra dato (ÅÅÅÅ-MM-DD)', required=False)
+  dateofmessurement = forms.DateField(label='Backup fra dato (DD-MM-ÅÅÅÅ)', required=False)

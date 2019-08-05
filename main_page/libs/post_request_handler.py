@@ -40,8 +40,16 @@ def fill_study_post(request, rigs_nr, dataset):
     rigs_nr: The REGH number for the corosponding examination
     dataset
   """
-  #Save Without Redirect
 
+  #NOTE: The comment just below is code that doesn't run be cause the directory request.POST is immuate therefore we cannot this.
+  #There probbally is a smarter way to do this. 
+
+  #Because we have a wierd date format, here we change the different times s.t they follow logical date format
+  #request.POST['injection_date'] = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
+  #request.POST['birthday'] = formatting.reverse_format_date(request.POST['birthday'], seperator='-')
+  #Study date is left out because it's a list and it's not clear how to overwrite that. 
+
+  #Save Without Redirect
   if 'save' in request.POST:
     return store_form(request, dataset, rigs_nr)
 
@@ -56,7 +64,7 @@ def fill_study_post(request, rigs_nr, dataset):
     dataset = store_form(request, dataset, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
-    inj_date = request.POST['injection_date']
+    inj_date = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
     inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
 
     # Construct datetimes for study times
@@ -74,6 +82,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     sample_times = request.POST.getlist('study_time')[:-1]
     sample_dates = request.POST.getlist('study_date')[:-1]
+    sample_dates = map(formatting.reverse_format_date, sample_dates)
     sample_datetimes = numpy.array([date_parser.parse(f"{date} {time}") 
                           for time, date in zip(sample_times, sample_dates)])
 
@@ -119,10 +128,10 @@ def fill_study_post(request, rigs_nr, dataset):
 
     name = request.POST['name']
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
-    birthdate = request.POST['birthdate']
+    birthdate = formatting.reverse_format_date(request.POST['birthdate'], seperator='-')
     gender = request.POST['sex']
 
-    age = datetime.datetime.strptime(request.POST['birthdate'], '%Y-%m-%d')
+    age = datetime.datetime.strptime(request.POST['birthdate'], '%d-%m-%Y')
 
     gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender)
 
@@ -187,7 +196,7 @@ def store_form(request, dataset, rigs_nr):
   seq = None
 
   # Store age
-  birthdate_str = request.POST['birthdate']
+  birthdate_str = formatting.reverse_format_date(request.POST['birthdate'], seperator='-')
   
   if birthdate_str:    
     birthdate = datetime.datetime.strptime(birthdate_str, '%Y-%m-%d').date()
@@ -196,7 +205,7 @@ def store_form(request, dataset, rigs_nr):
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']
-    inj_date = request.POST['injection_date']
+    inj_date = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
     inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
     injection_time = inj_datetime.strftime('%Y%m%d%H%M')
 
@@ -212,7 +221,7 @@ def store_form(request, dataset, rigs_nr):
 
   if request.POST['sex']:
     gender_num = request.POST['sex']
-    gender = enums.Gender(gender_num)
+    gender = enums.Gender(int(gender_num))
     print(gender)
 
   if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
@@ -243,6 +252,8 @@ def store_form(request, dataset, rigs_nr):
     std_cnt= float(request.POST['std_cnt_text_box'])
 
   sample_dates = request.POST.getlist('study_date')[:-1]
+  sample_dates = map(formatting.reverse_format_date, sample_dates) # could oneline this
+
   sample_times = request.POST.getlist('study_time')[:-1]  
 
   sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('test_value')])
