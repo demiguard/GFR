@@ -410,10 +410,35 @@ class LibsDicomlibTestCase(TestCase):
       self.assertAlmostEqual(sample_cnt, samples[i][1])
 
   def test_add_samples_cleartest(self):
-    pass
+    dicomlib.update_private_tags()
+
+    # Add samples to ds
+    now = datetime.now()
+    samples = [(now, x * 0.1) for x in range(1, 6)]
+
+    dicomlib.try_add_sample_sequence(self.ds, samples)
+    
+    for i, sample in enumerate(self.ds[0x00231020]):
+      sample_date = sample[0x00231021].value
+      sample_cnt = sample[0x00231022].value
+
+      self.assertEqual(sample_date, now)
+      self.assertAlmostEqual(sample_cnt, samples[i][1])
+
+    # Try to add empty list of samples (i.e. remove the existing ones)
+    empty_samples = [ ]
+
+    dicomlib.try_add_sample_sequence(self.ds, empty_samples)
+
+    # Assert that they where removed
+    self.assertEqual('ClearTest' in self.ds, False)
 
   def test_add_samples_none(self):
-    pass
+    empty_samples = [ ]
+
+    dicomlib.try_add_sample_sequence(self.ds, empty_samples)
+
+    self.assertEqual('ClearTest' in self.ds, False)
 
 
   # --- try_add_pixeldata tests ---
