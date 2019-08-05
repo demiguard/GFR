@@ -430,27 +430,19 @@ def fill_dicom(ds,
 
   # Dictionary defining custom functions and corresponding arguments for more
   # complicated values to set on the dataset
-  custom_try_adds = (
-    (try_update_exam_meta_data, update_dicom), 
-    (try_update_exam_meta_data, update_dicom), #simon: Why is this called again?
-    (try_add_department, department),
-    (try_update_study_date, update_date, study_date),
-    (try_update_scheduled_procedure_step_sequence),
-    (try_add_exam_status, exam_status),
-    (try_add_age, age),
-    (try_add_gender, gender),
-    (try_add_pixeldata, pixeldata),
+  custom_try_adds = {
+    try_update_exam_meta_data: [update_dicom],
+    try_add_department: [department],
+    try_update_study_date: [update_date, study_date],
+    try_update_scheduled_procedure_step_sequence: [ ],
+    try_add_exam_status: [exam_status],
+    try_add_age: [age],
+    try_add_gender: [gender],
+    try_add_pixeldata: [pixeldata],
     # ### PRIVATE TAGS START ###
-    (try_add_sample_sequence, sample_seq)
-  )
+    try_add_sample_sequence: [sample_seq]
+  }
 
-  for item in custom_try_adds:
-    #Simon this code is about as stechy as the pharmacy indistry
-    try:
-      try_func = item[0]
-      args = item[1:]
-    except TypeError: # i.e. no args supplied
-      try_func = item
-      args = [] # Remember to reset this else try_func will be called with previous arguments
-    
+  for try_func, args in custom_try_adds.items():
+    # Args is 'unpacked' to allow for functions with none or multiple required arguments
     try_func(ds, *args)
