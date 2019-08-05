@@ -36,22 +36,38 @@ Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via 
 	\item[Rød] - Undersøgelse har ingen bruger indtastet informationer. 
 \end{itemize} 
 \textbf{Bemærk:} For nogle hospitaler kan der findes flere tabel ingang til samme undersøgelse. Det er vigtigt, at den rigtige undersøgelse udfyldes for at  SP kan generer, de korrekte reporter.    
-\subsection{Udfyldning af undersøgelser} 
+\subsection{Udfyldning af undersøgelser}\label{fill_study}
 Denne side tilgås ved at klikke på en af undersøgelserne fra "Åbn undersøgelse"\\\\
 Øverst kan information om undersøgelsen indtastes.\\
 I venstre nedre hjørne kan man tilføje prøver og afslutte undersøgelsen.\\ 
 I højre-nedre hjørne Dagens findes tællinger fra "Wizarden".\\\\
-Extreme værdier vil blive markeret med gul. Dette har ingen funktionel betydning ud over at gøre op mærksom på mulige tastefejl.\\ Hvis en værdi indtaste i forkert format, eller umugelig vil der findes en rød værdi \\
-For at tilføje en prøve skal man vælge mindst 1 men op til 6 prøver. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er en stor numrisk på prøverne gives der en advarsel, som kan indikerer en mulig taste fejl.\\
-Scanniner kan indentificeres ved, tidspunktet hvor scanningen af første rack er færdig. Dette er normalt 5 minuter efter scanneren er startet.\\
+Extreme værdier vil blive markeret med gul. Dette har ingen funktionel betydning ud over at gøre opmærksom på mulige tastefejl.\\ Hvis en værdi indtaste i forkert format, eller værdien er umugelig, vil der findes en rød værdi. GFRcalc kan kun udregn GFR, hvis der ikke findes nogle røde tal på siden.\\
+Talende skal intastes i den korrekte enhed. Disse enheder er:
+\begin{itemize}
+	\item højde: centimeter - (cm)
+	\item vægt: Kilogram - (kg)
+	\item Sprøjtevægt: gram - (g)
+\end{itemize}
+Ved alle decimal tal skal benyttes: "."$\,$ istedet for: ",".\\
+Alle datoer skal intaste i formattet DD-MM-ÅÅÅÅ.\\\\
+For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 men op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er en stor numrisk på prøverne gives der en advarsel, som kan indikerer en mulig taste fejl.\\
+Scanniner kan indentificeres ved, tidspunktet hvor scanningen af første rack er færdig.\\
 Det er vigtigt at brugeren selv husker hvilken patient, der findes i hvilken række og position.\\
-Yderlige krav for at tilføje en prøve er, at udfylde hvilket tidspunkt prøven er taget på.\\ Datoerne for prøvetagningen sættes som standard til dagens dato.\\\\
+Yderlige krav for at tilføje en prøve er, at udfylde hvilket tidspunkt prøven er taget på.\\ Datoerne for prøvetagningen sættes som standard til dagens dato.\\
+Der kan maximalt tilføjes en prøve til en prøve modellerne. Der skal tilføjes mere end 1 prøve ved flere punkt modellen.\\
+Prøver kan slettest ved at klicke på det røde "X". Prøver kan redigeres ved at klikke på låsen. I tilfældet hvor der er valgt forkerte tællinger anbefales det at man sletter prøven og vælger de korrekte tællinger, istedet for at redigere.\\\\
 Tællinger, der er mere end 24 timer gamle, bliver rykket til en backup. Tællinger fra backup kan hentes, i bunden af de nuværende tællinger. Her kan alle tællinger fra en dato hentes. De gamle tællingerne er identificeret på samme som nye tællinger.
 \\\\
-Informationen gemmes ved at klikke på 'Gem knappen nedertst'. Hvis der gemmes og et injektions tidpunkt ikke er udfyldt, så vil hjemmesiden selv udfylde 00:00.\\\\
-\subsection{Godkendelse og oversigt}
+De instastede informationer kan gemmes ved at klikke på 'Gem knappen nedertst'. Hvis der gemmes og et injektions tidpunkt ikke er udfyldt, så vil hjemmesiden selv udfylde 00:00.\\\\
+Hvis man ønsker at begne GFR, så skal man udfylde alle felter, samt et relevant antal prøver. Man bliver videre sent til section \ref{present_study}.\\
+Bemærk dog at der kan opstå vente tid i forbindelse med lavet billede, da GFRcalc også skal fremskaffe alt historik om patients tidligere undersøgelser (fra Sommeren 2019 og frem). Denne historik includerer alle undersøgelser lavet med GFRcalc.  
+\subsection{Godkendelse og oversigt}\label{present_study}
+Denne side kan tilgås fra en udfyldt undersøgelse fra \ref{fill_study}.\\\\
+
+
 \subsection{Find gamle undersøgelse}
-\subsection{Dokumentation}
+
+\subsection{Dokumentation}\label{ref}
 Dokumentation beskriver metoden hvordan GFR værdierne er udregnet. 
 \newpage
 \section{Til administration}
