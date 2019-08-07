@@ -139,7 +139,6 @@ def fill_study_post(request, rigs_nr, dataset):
 
     gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender_short)
 
-
     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, age, request.user)
     pixel_data = clearance_math.generate_plot_text(
       weight,

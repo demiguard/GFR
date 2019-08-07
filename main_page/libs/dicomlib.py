@@ -384,7 +384,8 @@ def fill_dicom(ds,
     weight              : float, Weight of patient wished to be stored
 
   Remarks
-    It's only possible to store the predefined args with this function
+    This function assumes input is correctly formatted for the corresponding
+    VRs for each input argument, e.g. birthday must be in format YYYYMMDD
   """
   """
   TODO: Check if the updating of the DicomDictionary can be achieved through the

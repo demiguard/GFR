@@ -375,7 +375,7 @@ def generate_plot_text(
   index_gfr: float=0.0,
   injection_date=None,
   procedure_description: str='',
-  ):
+  ) -> bytes:
   """
   Generates GFR plot
 
