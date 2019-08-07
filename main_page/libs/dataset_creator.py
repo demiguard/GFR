@@ -2,6 +2,7 @@ import logging
 from pydicom import Dataset, Sequence, uid
 from . import dicomlib
 from . import server_config
+from . import formatting
 
 
 logger = logging.getLogger()
@@ -127,10 +128,16 @@ def create_search_dataset(
   #Generate Dataset
   dataset = Dataset()
   #Fill Dataset
-  dataset.StudyDate = f"{date_from.replace('-', '')}-{date_to.replace('-', '')}"
+  date_from = date_from.replace('-','')
+  date_to = date_to.replace('-','')
+  
+  if date_from != '' and date_to != '':
+    dataset.StudyDate = f"{date_from}-{date_to}"
+  else:
+    dataset.StudyDate = ''
   dataset.AccessionNumber = accession_number
   dataset.PatientID = cpr
-  dataset.PatientName = name
+  dataset.PatientName = formatting.name_to_person_name(name)
   dataset.QueryRetrieveLevel = 'STUDY'
   dataset.SOPClassUID = ''
   dataset.SOPInstanceUID = ''
