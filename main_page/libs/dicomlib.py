@@ -90,7 +90,7 @@ def save_dicom(file_path, dataset, default_error_handling=True ):
   dataset.save_as(file_path, write_like_original = False)
 
 
-def try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
+def try_add_new(ds: Type[Dataset], tag: int, VR: str, value, check_val: bool=True) -> None:
   """
   Attempts to add a new value by tag, if the value is not None or empty
 
@@ -99,8 +99,11 @@ def try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
     tag: tag to add
     VR: Value Representation of the value to add
     value: the value to add for the given tag
+
+  Kwargs:
+    check_val: additional boolean to check before trying to add
   """
-  if value:
+  if value and check_val:
     ds.add_new(tag, VR, value)
 
 
@@ -121,7 +124,6 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') # Manufacturer                  # ds.Manufacturer
     ds.add_new(0x00080064, 'CS', 'SYN')                                       # ds.ConversionType
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # TODO: Figure out what this tag is...
-    ds.add_new(0x00080030, 'TM', '')                                          # ds.StudyTime
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
     ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
     ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
@@ -148,19 +150,19 @@ def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -
     ds.InstitutionalDepartmentName = department.name
 
 
-def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str) -> None:
+def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: str) -> None:
   """
   Attempts to update the study date for the dataset
 
   Args:
     ds: dataset to update study date for
     update_date: whether or not to update the study date
-    study_date: the new study date (YYYY-MM-DD), if empty will be gotten from the scheduled procedure step sequence
+    study_datetime: the new study date YYYYMMDDHHMM, if empty will be gotten from the scheduled procedure step sequence
   """
   if update_date:
-    if study_date:
-      date_string = study_date.replace('-','')
-      time_string = datetime.datetime.now().strftime('%H%M')
+    if study_datetime:
+      date_string = study_datetime[:8]
+      time_string = study_datetime[8:]
 
       ds.StudyDate = date_string
       ds.SeriesDate = date_string
@@ -177,6 +179,7 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str)
         seq_data.add_new(0x00400003, 'TM', time_string) # ScheduledProcedureStepStartTime
         ds.add_new(0x00400100, 'SQ', Sequence([seq_data]))
     else:
+      # TODO: The below will fail if update_date=True, study_date=None and ds has no ScheduledProcedureStepSequence...
       ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
       ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
       ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
@@ -189,14 +192,17 @@ def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
 
   Args:
     ds: dataset to update for
+
+  Remark:
+    This function assumes ScheduledProcedureStepDescription and Modality is in
+    the ScheduledProcedureStepSequence
   """
-  if 'ScheduledProcedureStepSequence' in ds:  
-    Schedule = ds.ScheduledProcedureStepSequence[0]
-    ds.StudyDescription = Schedule.ScheduledProcedureStepDescription
-    ds.Modality = Schedule.Modality
+  if 'ScheduledProcedureStepSequence' in ds:
+    ds.StudyDescription = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
+    ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
 
 
-def try_add_exam_status(ds: Type[Dataset], exam_status: int) -> None:
+def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
   Attempts to add the exam status to the dataset
 
@@ -234,7 +240,7 @@ def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
   """
   if gender:
     # Save first character (either 'M' or 'F')
-    ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value][0]
+    ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value]
 
 
 def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:
@@ -262,7 +268,7 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
     del ds[0x00231020]
 
 
-def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
+def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
   """
   Attempts to add the pixeldata to the dataset
 
@@ -334,11 +340,12 @@ def fill_dicom(ds,
     series_number       = None,
     sop_instance_uid    = None,
     station_name        = None,
-    study_date          = None,
+    study_datetime      = None,
     std_cnt             = None,
     thiningfactor       = None,
     update_date         = False,
     update_dicom        = False,
+    update_version      = False,
     weight              = None
   ):
   """
@@ -376,11 +383,12 @@ def fill_dicom(ds,
     series_number       :
     sop_instance_uid    :
     station_name        :
-    study_date          : string, on format YYYYMMDDHHMM, describing study date
+    study_datetime      : string, on format YYYYMMDD, describing study date
     std_cnt             :
     thiningfactor       :
     update_date         :
     update_dicom        :
+    update_version      : whether or not to update the software version
     weight              : float, Weight of patient wished to be stored
 
   Remarks
@@ -398,43 +406,49 @@ def fill_dicom(ds,
           https://github.com/pydicom/pydicom/issues/799
   """
   update_private_tags()
-
+  
   # Dictionary defining which arguments to run through __try_add_new
   try_adds_dict = {
-    0x00080050 : ('SH', ris_nr),                                  # ds.AccessionNumber
-    0x00100030 : ('DA', birthday),                                # ds.PatientBirthDate
-    0x00100020 : ('LO', cpr),                                     # ds.PatientId
-    0x00100010 : ('PM', formatting.name_to_person_name(name)),    # ds.PatientName
-    0x00200011 : ('IS', series_number),                           # ds.SeriesNumber
-    0x00081010 : ('SH', station_name),                            # ds.StationName
-    0x00101020 : ('DS', height),                                  # ds.PatientSize
-    0x00101030 : ('DS', weight),                                  # ds.PatientWeight
-    0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type)),# ds.SeriesDescription
-                                                                  # ### PRIVATE TAGS START ###
-    0x00231001 : ('LO', gfr),                                     # ds.GFR
-    0x00231002 : ('LO', 'Version 1.0'),                           # ds.GFRVersion
-    0x00231010 : ('LO', gfr_type),                                # ds.GFRMethod
-    0x00231018 : ('DT', injection_time),                          # ds.injTime
-    0x0023101A : ('DS', injection_weight),                        # ds.injWeight
-    0x0023101B : ('DS', injection_before),                        # ds.injbefore
-    0x0023101C : ('DS', injection_after),                         # ds.injafter
-    0x00231011 : ('LO', bsa_method),                              # ds.BSAmethod
-    0x00231012 : ('DS', clearance),                               # ds.clearance
-    0x00231014 : ('DS', clearance_norm),                          # ds.normClear
-    0x00231024 : ('DS', std_cnt),                                 # ds.stdcnt
-    0x00231028 : ('DS', thiningfactor)                            # ds.thiningfactor
+    0x00080050 : ('SH', ris_nr),                                              # ds.AccessionNumber
+    0x00100030 : ('DA', birthday),                                            # ds.PatientBirthDate
+    0x00100020 : ('LO', cpr),                                                 # ds.PatientId
+    0x00100010 : ('PM', formatting.name_to_person_name(name)),                # ds.PatientName
+    0x00200011 : ('IS', series_number),                                       # ds.SeriesNumber
+    0x00081010 : ('SH', station_name),                                        # ds.StationName
+    0x00101020 : ('DS', height),                                              # ds.PatientSize
+    0x00101030 : ('DS', weight),                                              # ds.PatientWeight
+    0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
+                                                                              # ### PRIVATE TAGS START ###
+    0x00231001 : ('LO', gfr),                                                 # ds.GFR
+    0x00231002 : ('LO', 'Version 1.0', update_version),                       # ds.GFRVersion
+    0x00231010 : ('LO', gfr_type),                                            # ds.GFRMethod
+    0x00231018 : ('DT', injection_time),                                      # ds.injTime
+    0x0023101A : ('DS', injection_weight),                                    # ds.injWeight
+    0x0023101B : ('DS', injection_before),                                    # ds.injbefore
+    0x0023101C : ('DS', injection_after),                                     # ds.injafter
+    0x00231011 : ('LO', bsa_method),                                          # ds.BSAmethod
+    0x00231012 : ('DS', clearance),                                           # ds.clearance
+    0x00231014 : ('DS', clearance_norm),                                      # ds.normClear
+    0x00231024 : ('DS', std_cnt),                                             # ds.stdcnt
+    0x00231028 : ('DS', thiningfactor)                                        # ds.thiningfactor
   }
   
-  for tag, value_tuple in try_adds_dict.items():
-    VR, value = value_tuple
-    try_add_new(ds, tag, VR, value)
+  for tag, args in try_adds_dict.items():
+    VR, value = args[:2]
+    
+    # Get check_val if available
+    check_val = True
+    if len(args) == 3:
+      check_val = args[2]
+    
+    try_add_new(ds, tag, VR, value, check_val=check_val)
 
   # Dictionary defining custom functions and corresponding arguments for more
   # complicated values to set on the dataset
   custom_try_adds = {
     try_update_exam_meta_data: [update_dicom],
     try_add_department: [department],
-    try_update_study_date: [update_date, study_date],
+    try_update_study_date: [update_date, study_datetime],
     try_update_scheduled_procedure_step_sequence: [ ],
     try_add_exam_status: [exam_status],
     try_add_age: [age],

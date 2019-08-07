@@ -16,7 +16,7 @@ from .. import dicomlib
 logger = logging.getLogger()
 
 
-def surface_area(height, weight, method = "Haycock"):
+def surface_area(height, weight, method="Haycock"):
   """Estimate the surface area of a human being, based on height and height
 
   Args:
