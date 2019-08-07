@@ -129,16 +129,16 @@ def fill_study_post(request, rigs_nr, dataset):
     name = request.POST['name']
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
     birthdate = formatting.reverse_format_date(request.POST['birthdate'], seperator='-')
-    gender = request.POST['sex']
-    #TODO: for the enum luvers please uncancer this code kthxbye
-    gender = enums.Gender(int(gender))
+    gender_num = int(request.POST['sex'])
+    
+    gender = enums.Gender(gender_num)
+    gender_name = enums.GENDER_NAMINGS[gender.value]
     gender_short = enums.GENDER_SHORT_NAMES[gender.value]
 
     age = datetime.datetime.strptime(request.POST['birthdate'], '%d-%m-%Y')
 
     gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender_short)
 
-    gender = enums.GENDER_NAMINGS[gender.value]
 
     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, age, request.user)
     pixel_data = clearance_math.generate_plot_text(
@@ -149,7 +149,7 @@ def fill_study_post(request, rigs_nr, dataset):
       clearance_norm,
       gfr_str,
       birthdate,
-      gender,
+      gender_name,
       rigs_nr,
       cpr = cpr,
       index_gfr=gfr_index,
