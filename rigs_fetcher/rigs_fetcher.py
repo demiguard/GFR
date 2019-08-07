@@ -164,15 +164,15 @@ def save_dicom(file_path, dataset, default_error_handling=True):
   dataset.is_implicit_VR = True
   dataset.is_little_endian = True
 
-  if (not 'SOPClassUID' in dataset) or (not 'SOPInstanceUID' in dataset):  # Dicom is incomplete
+  if 'SOPClassUID' in dataset and 'SOPInstanceUID' in dataset:  # Dicom is incomplete
     if default_error_handling: 
       if 'AccessionNumber' in dataset:
         dataset.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #S econdary Image Capture
         dataset.SOPInstanceUID = pydicom.uid.generate_uid(prefix='1.3.', entropy_srcs=[dataset.AccessionNumber, 'SOP'])
       else:
         raise ValueError('default Error handling for saving dicom failed!\nCannot create SOPInstanceUID without AccessionNumber!')
-    else: 
-      raise AttributeError('Incomplete Dicom Required Tags are SOPClassUID and SOPInstanceUID')
+  else: 
+    raise AttributeError('Incomplete Dicom Required Tags are SOPClassUID and SOPInstanceUID')
   
   dataset.fix_meta_info()
 

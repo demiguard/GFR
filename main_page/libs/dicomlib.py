@@ -5,7 +5,7 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pydicom import uid
 
-from typing import Type, Tuple, List
+from typing import Type, Tuple, List, IO, Any
 import numpy as np
 
 from main_page import models
@@ -58,36 +58,34 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
   return obj
 
 
-def save_dicom(file_path, dataset, default_error_handling=True ):
+def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
   """
-  Saves a dicom file to a selected file path
+  Saves a dicom file to a given filepath
 
   Args:
-    file_path : String, desination for file to be saved
-    dataset
+  filepath: destionation to save dataset to
+    ds: dataset to save
 
-  kwargs:
-    no_error: With default dicom handling
-  Raises
-    Attribute Error: Incomplete Dicom, without default errorhandling
-    Value Error: No given AccessionNumber
+  Raises:
+    ValueError: No AccessionNumber was available when trying to resolve meta data issues
+    ValueError: if the filepath is empty
   """
+  ds.is_implicit_VR = True
+  ds.is_little_endian = True
+
+  if not filepath:
+    raise ValueError("Unable to save dataset, filepath is empty.")
+
+  if 'SOPClassUID' not in ds or 'SOPInstanceUID' not in ds:  # Dataset is incomplete
+    if 'AccessionNumber' in ds:
+      # Set missing meta data
+      fill_dicom(ds, update_dicom=True)
+    else:
+      raise ValueError('Cannot create SOPInstanceUID without AccessionNumber!')
   
-  dataset.is_implicit_VR = True
-  dataset.is_little_endian = True
-  if (not 'SOPClassUID' in dataset) or (not 'SOPInstanceUID' in dataset):  #Dicom is incomplete
-    if default_error_handling: 
-      if 'AccessionNumber' in dataset:
-        dataset.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secondary Image Capture
-        dataset.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[dataset.AccessionNumber, 'SOP'])
-      else:
-        raise ValueError('default Error handling for saving dicom failed!\nCannot create SOPInstanceUID without AccessionNumber!')
-    else: 
-      raise AttributeError('Incomplete Dicom Required Tags are SOPClassUID and SOPInstanceUID')
-  
-  dataset.fix_meta_info()
-  logger.info('Saving Dicom file at:{0}'.format(file_path))
-  dataset.save_as(file_path, write_like_original = False)
+  ds.fix_meta_info()
+  logger.info(f'Saving Dicom file at: {filepath}')
+  ds.save_as(filepath, write_like_original=False)
 
 
 def try_add_new(ds: Type[Dataset], tag: int, VR: str, value, check_val: bool=True) -> None:

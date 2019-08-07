@@ -2,6 +2,7 @@ from django.test import TestCase
 import unittest
 
 from pydicom import Dataset, Sequence, uid
+from tempfile import TemporaryFile
 from datetime import datetime
 import numpy as np
 
@@ -32,6 +33,36 @@ def validate_tags(ds, tags):
 
   return True
 
+
+# --- save_dicom tests ---
+class SaveDicomTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
+  def test_save_dicom(self):
+    tmp_file = TemporaryFile()
+
+    self.ds.AccessionNumber = 'REGH12345678'
+
+    dicomlib.save_dicom(tmp_file, self.ds)
+
+    tmp_file.seek(0)
+    contents = tmp_file.read()
+    self.assertEqual(len(contents) > 0, True)
+
+    tmp_file.close()
+
+  def test_save_dicom_empty_filepath(self):
+    with self.assertRaises(ValueError):
+      dicomlib.save_dicom('', self.ds)
+
+  def test_save_dicom_failed_resolve(self):
+    tmp_file = TemporaryFile()
+
+    with self.assertRaises(ValueError):
+      dicomlib.save_dicom(tmp_file, self.ds)
+    
+    tmp_file.close()
 
 # --- try_add_new tests ---
 class TryAddTestCase(unittest.TestCase):
