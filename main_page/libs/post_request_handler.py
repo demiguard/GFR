@@ -45,8 +45,8 @@ def fill_study_post(request, rigs_nr, dataset):
   #There probbally is a smarter way to do this. 
 
   #Because we have a wierd date format, here we change the different times s.t they follow logical date format
-  #request.POST['injection_date'] = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
-  #request.POST['birthday'] = formatting.reverse_format_date(request.POST['birthday'], seperator='-')
+  #request.POST['injection_date'] = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
+  #request.POST['birthday'] = formatting.reverse_format_date(request.POST['birthday'], sep='-')
   #Study date is left out because it's a list and it's not clear how to overwrite that. 
 
   #Save Without Redirect
@@ -64,7 +64,7 @@ def fill_study_post(request, rigs_nr, dataset):
     dataset = store_form(request, dataset, rigs_nr) 
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
-    inj_date = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
+    inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
     inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
 
     # Construct datetimes for study times
@@ -128,7 +128,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     name = request.POST['name']
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
-    birthdate = formatting.reverse_format_date(request.POST['birthdate'], seperator='-')
+    birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
     gender_num = int(request.POST['sex'])
     
     gender = enums.Gender(gender_num)
@@ -200,7 +200,7 @@ def store_form(request, dataset, rigs_nr):
   seq = None
 
   # Store age
-  birthdate_str = formatting.reverse_format_date(request.POST['birthdate'], seperator='-')
+  birthdate_str = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
   
   if birthdate_str:    
     birthdate = datetime.datetime.strptime(birthdate_str, '%Y-%m-%d').date()
@@ -209,7 +209,7 @@ def store_form(request, dataset, rigs_nr):
   #Injection Date Time information
   if len(request.POST['injection_date']) > 0:
     inj_time = request.POST['injection_time']
-    inj_date = formatting.reverse_format_date(request.POST['injection_date'], seperator='-')
+    inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
     inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
     injection_time = inj_datetime.strftime('%Y%m%d%H%M')
 
