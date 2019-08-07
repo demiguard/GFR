@@ -234,11 +234,13 @@ def name_to_person_name(name: str) -> str:
 
   Returns:
     The formatted name conforming with the dicom standard.
-
-  Remark:
-    The function doesn't handle suffixes, only first, middle and last names
   """
+  # If the name is empty, return it
   if not name:
+    return name
+
+  # If the name is already a person name, return it
+  if name.count('^') == 4:
     return name
 
   names = name.strip().split(' ')
@@ -277,12 +279,15 @@ def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
 
-def reverse_format_date(reverse_Date : str, seperator = '') -> str:
+def reverse_format_date(reverse_Date : str, sep='') -> str:
   """
-    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYYMMDD 
+    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYY{sep}MM{sep}DD
 
     Args:
-      reverse_Date : String on format DD-MM-YYYY or DD/MM/YYYY
+      reverse_Date: string of format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY
+
+    Kwargs:
+      sep: String, this string is put in between the time
 
     Returns
       dateformat : String on format YYYYMMDD
@@ -331,40 +336,38 @@ def reverse_format_date(reverse_Date : str, seperator = '') -> str:
   else:
     raise ValueError('Reverse_format_date: String is not on correct format')
 # Converting format
-  returnstring = year + seperator + month + seperator + day
+  returnstring = year + sep + month + sep + day
   # Returning
   return returnstring
 
-def convert_date_to_danish_date(date_arg : str, seperator = '') -> str:
+def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
   """
-    Converts a string from the format YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD to DD{seperator}MM{seperartor}YYYY
+  Converts a string from the format YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD to DD{sep}MM{sep}YYYY
 
-  args:
-    date_arg : String, on format  YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD, where the string corospond to a date
-  kwargs:
-    seperator : String, this string is put in between the time
-  returns
-    String on format DD{seperator}MM{seperartor}YYYY
-
+  Args:
+    date_str : String, on format  YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD, where the string corospond to a date
+  
+  Kwargs:
+    sep : String, this string is put in between the time
+  
+  Returns:
+    String on format DD{sep}MM{sep}YYYY
   """
-  date = date_arg.replace('-','').replace('/','')
-  if len(date) == 8 and date.isdigit():
-    year = date[:4]
-    month = date[4:6]
-    day = date[6:]
-    
+  VALID_FORMATS = ('%Y%m%d', '%Y-%m-%d', '%Y/%m/%d')
+  date = ''
+  
+  for date_format in VALID_FORMATS:
     try:
-      #Create datetime object to see if it's a valid date
-      datetime(int(year), int(month), int(day)) 
-    except ValueError as V:
-      logger.error(f'Reverse_format_date: input string doesnt corrorspond to a valid date')
-      raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-
-    return day + seperator + month + seperator + year
-
-  else:
-    logger.error(f'Convert date to danish format called with {date_arg}')
-    raise ValueError(f'Incorrect format, function is called with {date_arg}\n It should be on format YYYYMMDD, YYYY-MM-DD or YYYY/MM/DD')
+      date = datetime.datetime.strptime(date_str, date_format)
+      break
+    except ValueError:
+      # Unable to parse, try next one
+      continue
+  
+  if date:
+    return date.strftime(f'%d{sep}%m{sep}%Y')
+  
+  raise ValueError(f"Unable to parse date string: '{date_str}'")
 
 
 def xstr(s: str) -> str:

@@ -92,7 +92,6 @@ class ExamMetaDataTests(TestCase):
       (0x00080060, 'OT'),
       (0x00080064, 'SYN'),
       (0x00230010, 'Clearance - Denmark - Region Hovedstaden'),
-      (0x00080030, ''),
       (0x00080090, ''),
       (0x00200010, 'GFR#' + self.ds.AccessionNumber[4:]),
       (0x00200013, '1'),
@@ -191,12 +190,12 @@ class StudyDateTests(unittest.TestCase):
     self.ds.SeriesTime = init_time
 
     # Attempt update
-    study_date = '1111-11-11'
+    study_date = '111111110808'
     dicomlib.try_update_study_date(self.ds, True, study_date)
 
     # Assert that everything was set correctly
     expected_study_date = '11111111'
-    expected_study_time = datetime.now().strftime('%H%M')
+    expected_study_time = '0808'
 
     validation_tags = (
       (0x00080020, expected_study_date), # StudyDate
@@ -284,12 +283,12 @@ class StudyDateTests(unittest.TestCase):
     self.ds.SeriesTime = init_time
 
     # Attempt update
-    study_date = '1111-11-11'
+    study_date = '111111110808'
     dicomlib.try_update_study_date(self.ds, True, study_date)
 
     # Assert that everything was set correctly
     expected_study_date = '11111111'
-    expected_study_time = datetime.now().strftime('%H%M')
+    expected_study_time = '0808'
 
     validation_tags = (
       (0x00080020, expected_study_date), # StudyDate
@@ -488,6 +487,8 @@ class PixelDataTests(unittest.TestCase):
     self.ds = Dataset()
 
   def test_add_pixeldata(self):
+    # NOTE: The following input data has been randomly picked, and doesn't
+    # and doesn't represent an actual study that took place.
     pixeldata = clearance_math.generate_plot_text(
       weight = 90.0,
       height = 123.0,
@@ -496,8 +497,8 @@ class PixelDataTests(unittest.TestCase):
       clearance_norm = -141.94774250246337,
       kidney_function = 'Svært nedsat',
       day_of_birth = '1945-02-13',
-      sex = 'Kvinde',
-      rigs_nr = 'REGH14467067',
+      gender = 'Kvinde',
+      rigs_nr = 'REGH14461234',
       cpr = '1111222233',
       method = 'En blodprøve, Voksen',
       name = 'TEST PERSON',
@@ -507,7 +508,7 @@ class PixelDataTests(unittest.TestCase):
       image_height = 10.8,
       image_width = 19.2,
       index_gfr = 312.3350170356323,
-      injection_date = '05-Aug-2019',
+      injection_date = '12-Sep-2019',
       procedure_description = 'Clearance blodprøve 2. gang',
     )
 
@@ -551,9 +552,136 @@ class FillDicomTests(TestCase):
 
   def test_fill_dicom(self):
     # Everything is filled out or True
-    pass
+    dicomlib.update_private_tags()
+
+    # Set Modality and ScheduledProcedureStepDescription in the ScheduledProcedureStepSequence    
+    test_seq_data = Dataset()
+
+    test_seq_data.add_new(0x00400007, 'LO', 'TEST DESCRIPTION') # ScheduledProcedureStepDescription
+    test_seq_data.add_new(0x00080060, 'CS', 'OT')               # Modality
+
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    # NOTE: The following input data has been randomly picked, and doesn't
+    # and doesn't represent an actual study that took place.
+    PIXELDATA_BYTES_LEN = 6220800
+    test_pixeldata = ''.join(['0' for _ in range(PIXELDATA_BYTES_LEN)]).encode()
+
+    now = datetime.now()
+    test_samples = [(now, i * 0.25) for i in range(10)]
+
+    dicomlib.fill_dicom(
+      ds                  = self.ds,
+      age                 = 12,
+      birthday            = '18880102',
+      bsa_method          = 'Haycock',
+      clearance           = 129.11,
+      clearance_norm      = 100.23,
+      cpr                 = '0808081232',
+      department          = self.department,
+      exam_status         = '0',
+      gender              = enums.Gender(0),
+      gfr                 = 'Normal',
+      gfr_type            = 'En blodprøve, Voksen',
+      height              = 1.43,
+      injection_after     = 3.21,
+      injection_before    = 5.43,
+      injection_time      = '201908070946',
+      injection_weight    = 1.23,
+      name                = 'TEST PERSON TESTERSON',
+      pixeldata           = test_pixeldata,
+      ris_nr              = 'REGH12345678',
+      sample_seq          = test_samples,
+      # series_instance_uid = ,
+      series_number       = '123',
+      # sop_instance_uid    = ,
+      station_name        = 'RH_EDTA',
+      study_datetime        = '100102030809',
+      std_cnt             = 12345,
+      thiningfactor       = 54321,
+      update_date         = True,
+      update_dicom        = True,
+      update_version      = True,
+      weight              = 95.5
+    )
+
+    validation_dict = {
+      # try_add_new tags
+      0x00080050: 'REGH12345678',
+      0x00100030: '18880102',
+      0x00100020: '0808081232',
+      0x00100010: 'TESTERSON^TEST^PERSON^^',
+      0x00200011: 123,
+      0x00081010: 'RH_EDTA',
+      0x00101020: 1.43,
+      0x00101030: 95.5,
+      0x0008103E: 'Clearance En blodprøve, Voksen', 
+      0x00231001: 'Normal', 
+      0x00231002: 'Version 1.0', 
+      0x00231010: 'En blodprøve, Voksen',
+      0x00231018: '201908070946',
+      0x0023101A: 1.23,
+      0x0023101B: 5.43,
+      0x0023101C: 3.21, 
+      0x00231011: 'Haycock', 
+      0x00231012: 129.11,
+      0x00231014: 100.23, 
+      0x00231024: 12345, 
+      0x00231028: 54321,
+      # Pixel data tags
+      0x00280002: 3, 
+      0x00280004: 'RGB', 
+      0x00280006: 0, 
+      0x00280010: 1080, 
+      0x00280011: 1920, 
+      0x00280100: 8,
+      0x00280101: 8, 
+      0x00280102: 7, 
+      0x00280103: 0, 
+      0x7FE00010: test_pixeldata, 
+      0x00204000: 'GFR summary, generated by GFR-calc',
+      # Gender tags
+      0x00100040: 'M',
+      # Age tags,
+      0x00101010: '012',
+      # Exam status tags
+      0x00231032: '0',
+      # Study date tags
+      0x00080020: '10010203',
+      0x00080021: '10010203',
+      0x00080030: '0809',
+      0x00080031: '0809',
+      # Department tags
+      0x00080080: self.hospital.name, 
+      0x00080081: self.hospital.address, 
+      0x00081040: self.department.name,
+      # Exam meta data tags
+      0x00080064: 'SYN', 
+      0x00230010: 'Clearance - Denmark - Region Hovedstaden',
+      0x00080090: '', 
+      0x00200010: 'GFR#12345678', 
+      0x00200013: 1,
+      0x00181020: 'GFRCalc - V 1.0',
+      0x00080016: '1.2.840.10008.5.1.4.1.1.7',
+      # Try Update Scheduled Procedure Step Sequence tags
+      0x00081030: 'TEST DESCRIPTION',
+      0x00080060: 'OT',
+    }
+
+    for tag, value in validation_dict.items():
+      self.assertEqual(self.ds[tag].value, value)
+
+    # Sample sequence tags
+    for i, item in enumerate(self.ds[0x00231020]):
+      self.assertEqual(item[0x00231021].value, test_samples[i][0])
+      self.assertEqual(item[0x00231022].value, test_samples[i][1])
 
   def test_fill_dicom_none(self):
+    dicomlib.update_private_tags()
+    dicomlib.fill_dicom(ds=self.ds)
+
     # Everything is either None or False
     tags_to_check = [
       # try_add_new tags
@@ -580,6 +708,8 @@ class FillDicomTests(TestCase):
       0x00080080, 0x00080081, 0x00081040,
       # Exam meta data tags
       0x00080064, 0x00230010, 0x00080030, 0x00080090, 0x00200010, 0x00200013,
+      # Try Update Scheduled Procedure Step Sequence tags
+      0x00400007, 0x00080060,
     ]
 
     for tag in tags_to_check:

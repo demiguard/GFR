@@ -16,7 +16,7 @@ from .. import dicomlib
 logger = logging.getLogger()
 
 
-def surface_area(height, weight, method = "Haycock"):
+def surface_area(height, weight, method="Haycock"):
   """Estimate the surface area of a human being, based on height and height
 
   Args:
@@ -285,12 +285,10 @@ def compute_times(inj_time, times):
 
   Args:
     inj_time : Datetime object with matching 
-    times    : [List of Datetime objects with time of sample]
+    times    : List of Datetime objects with time of sample
 
   returns
     A numpy array of the difference in minutes
-
-  Remarks: List comp are REALLY HARD
   """
   return numpy.array([(time - inj_time).seconds / 60 for time in times])
 
@@ -364,7 +362,7 @@ def generate_plot_text(
   clearance_norm: float,
   kidney_function: str,
   day_of_birth: str,
-  sex: str,
+  gender: str,
   rigs_nr: str,
   cpr: str='',
   method: str='',
@@ -377,9 +375,9 @@ def generate_plot_text(
   index_gfr: float=0.0,
   injection_date=None,
   procedure_description: str='',
-  ):
+  ) -> bytes:
   """
-  Generate GFR plot
+  Generates GFR plot
 
   Args:
     weight          : float, Weight of patient
@@ -389,10 +387,22 @@ def generate_plot_text(
     clearance_norm  : float, Normalized Clearence of examination
     kidney_function : string, describing the kidney function of the patient 
     rigs_nr         : String
-
+    
   KWargs:
-    Name            : string, Name of patient
     cpr             : string, CPR number of Patient 
+    method          :
+    name            : string, Name of patient
+    history_age     :
+    history_clr_n   :
+    hosp_dir        :
+    image_height    :
+    image_width     :
+    index_gfr       :
+    injection_date  :
+    procedure_description:
+
+  Returns:
+
 
   Remark:
     Generate as one image, with multiple subplots.
@@ -404,7 +414,6 @@ def generate_plot_text(
   yellow_y =    [ 75,  75,  35]
   lightgrey_y = [160, 160, 160]
 
-  gender = sex
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
 
   ymax = 120
@@ -442,35 +451,21 @@ def generate_plot_text(
   # Right side - text information
   reference_percentage = 100 - index_gfr
 
-  name_str            = f"Navn: {name}\n"
-  cpr_str             = f"CPR: {cpr}\n"
-  injection_str       = f"Undersøgelsedato: {injection_date}\n"
-  accession_str       = f"Accession Nummer: {rigs_nr}\n"
-  gender_str          = f"Køn: {gender}\n"
-  age_str             = f"Alder: {_age_string(day_of_birth)}\n"
-  weight_str          = f"Vægt: {weight:.1f} kg\n"
-  height_str          = f"Højde: {height:.1f} cm\n"
-  BSA_str             = f"Overflade: {BSA:.2f} m²\n"
-  method_str          = f"Metode:  {method}\n"
-  clearance_str       = f"GFR: {clearance:.1f} ml / min\n"
-  clearance_norm_str  = f"GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n" 
-  kidney_function_str = f"Nyrefunktion: {kidney_function}\n"
-  index_gfr_str       = f"Nyrefunktion ift. Reference Patient: {reference_percentage:.1f}%"
-
-  print_str = f"""    {name_str}
-    {cpr_str}
-    {injection_str}
-    {accession_str}
-    {gender_str}
-    {age_str}
-    {weight_str}
-    {height_str}
-    {BSA_str}
-    {method_str}
-    {clearance_str}
-    {clearance_norm_str}
-    {kidney_function_str}
-    {index_gfr_str}"""
+  print_str = f"""    Navn: {name}\n
+    CPR: {cpr}\n
+    Undersøgelsedato: {injection_date}\n
+    Accession Nummer: {rigs_nr}\n
+    Køn: {gender}\n
+    Alder: {_age_string(day_of_birth)}\n
+    Vægt: {weight:.1f} kg\n
+    Højde: {height:.1f} cm\n
+    Overflade: {BSA:.2f} m²\n
+    Metode:  {method}\n
+    GFR: {clearance:.1f} ml / min\n
+    GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n"
+    Nyrefunktion: {kidney_function}\n
+    Nyrefunktion ift. Reference Patient: {reference_percentage:.1f}%
+  """
 
   ax[1].text(0, 0.00, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
   ax[1].axis('off')
