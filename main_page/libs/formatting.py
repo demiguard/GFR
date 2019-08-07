@@ -234,11 +234,13 @@ def name_to_person_name(name: str) -> str:
 
   Returns:
     The formatted name conforming with the dicom standard.
-
-  Remark:
-    The function doesn't handle suffixes, only first, middle and last names
   """
+  # If the name is empty, return it
   if not name:
+    return name
+
+  # If the name is already a person name, return it
+  if name.count('^') == 4:
     return name
 
   names = name.strip().split(' ')
