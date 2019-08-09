@@ -115,6 +115,7 @@ class UpdateTagsTests(unittest.TestCase):
     test_seq_data.add_new(0x00100020, 'LO', '1234564321')
     test_seq = Sequence([test_seq_data])
 
+    #print(str(test_seq))
     self.ds.add_new(0x00231020, 'SQ', test_seq)
 
     # Save dataset to make sequence bytes
