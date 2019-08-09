@@ -86,6 +86,141 @@ class DcmreadWrapperTests(unittest.TestCase):
     self.assertEqual(load_ds[0x00231028].value, thin_fac)
 
 
+# --- update_tags tests ---
+class UpdateTagsTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = Dataset()
+
+  def test_update_tags_one_unknown(self):
+    self.ds.add_new(0x00231012, 'UN', '123'.encode())
+
+    self.ds = dicomlib.update_tags(self.ds)
+
+    self.assertEqual(self.ds[0x00231012].value, 123)
+    self.assertEqual(self.ds[0x00231012].VR, 'DS')
+
+  def test_update_tags_unknown_string(self):
+    self.ds.add_new(0x00231001, 'UN', 'Normal'.encode())
+
+    self.ds = dicomlib.update_tags(self.ds)
+
+    self.assertEqual(self.ds[0x00231001].value, 'Normal')
+    self.assertEqual(self.ds[0x00231001].VR, 'LO')    
+
+  def test_update_tags_unknown_sequence(self):
+    # Unknown sequence with known tags
+    self.ds = dataset_creator.create_empty_dataset('REGH12345678')
+    print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFf")
+    test_seq_data = Dataset()
+    test_seq_data.add_new(0x00100020, 'LO', '1234564321')
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00231020, 'SQ', test_seq)
+
+    # Save dataset to make sequence bytes
+    tmp_file = NamedTemporaryFile(delete=False)
+    dicomlib.save_dicom(tmp_file, self.ds)
+    tmp_file.close()
+
+    load_ds = pydicom.dcmread(tmp_file.name)
+    print(load_ds)
+    os.remove(tmp_file.name)
+
+    load_ds = dicomlib.update_tags(load_ds)
+
+    self.assertEqual(len(load_ds[0x00231020].value), 1)
+    self.assertEqual(load_ds[0x00231020].VR, 'SQ')
+    self.assertEqual(load_ds[0x00231020][0][0x00100020].VR, 'LO')
+    self.assertEqual(load_ds[0x00231020][0][0x00100020].value, '1234564321')
+
+  def test_update_tags_sequence_with(self):
+    # Unknown sequence with unknown tags
+    self.ds = dataset_creator.create_empty_dataset('REGH12345678')
+
+    test_seq_data1 = Dataset()
+    test_seq_data1.add_new(0x00231001, 'UN', 'Normal'.encode())
+    
+    test_seq_data2 = Dataset()
+    test_seq_data2.add_new(0x00231028, 'UN', '35000'.encode())
+    
+    test_seq_data3 = Dataset()
+    test_seq_data3.add_new(0x00231011, 'UN', 'Haycock'.encode())
+    
+    test_seq = Sequence([test_seq_data1, test_seq_data2, test_seq_data3])
+
+    self.ds.add_new(0x00231020, 'SQ', test_seq)
+
+    # Save dataset to make sequence bytes
+    tmp_file = NamedTemporaryFile(delete=False)
+    dicomlib.save_dicom(tmp_file, self.ds)
+    tmp_file.close()
+
+    load_ds = pydicom.dcmread(tmp_file.name)
+    os.remove(tmp_file.name)
+
+    load_ds = dicomlib.update_tags(load_ds)
+
+    self.assertEqual(len(load_ds[0x00231020].value), 3)
+    self.assertEqual(load_ds[0x00231020].VR, 'SQ')
+    self.assertEqual(load_ds[0x00231020][0][0x00231001].VR, 'LO')
+    self.assertEqual(load_ds[0x00231020][0][0x00231001].value, 'Normal')
+    self.assertEqual(load_ds[0x00231020][1][0x00231028].VR, 'DS')
+    self.assertEqual(load_ds[0x00231020][1][0x00231028].value, 35000)
+    self.assertEqual(load_ds[0x00231020][2][0x00231011].VR, 'LO')
+    self.assertEqual(load_ds[0x00231020][2][0x00231011].value, 'Haycock')
+
+  def test_update_tags_recurrsion_depth(self):
+    """
+    Tests that the function can handle multiple layers of sequences within
+    sequences
+    """
+    self.ds = dataset_creator.create_empty_dataset('REGH12345678')
+
+    test_seq_data = Dataset()
+    seq_datas = [Dataset() for _ in range(69)]
+    
+    # Add something which is not a sequence to the last one
+    seq_datas[-1].add_new(0x00231001, 'UN', 'Normal'.encode())
+
+    # Add sequences to sequences
+    rev_cnt = -1
+    for seq_data in reversed(seq_datas[:-1]):
+      seq_data.add_new(0x00231020, 'SQ', Sequence([seq_datas[rev_cnt]]))
+      rev_cnt -= 1
+
+    # Add main sequence to datas
+    test_seq_data.add_new(0x00231020, 'SQ', Sequence([seq_datas[0]]))
+    test_seq = Sequence([test_seq_data])
+
+    self.ds.add_new(0x00231020, 'SQ', test_seq)
+
+    # Save dataset to make sequence bytes
+    tmp_file = NamedTemporaryFile(delete=False)
+    dicomlib.save_dicom(tmp_file, self.ds)
+    tmp_file.close()
+
+    load_ds = pydicom.dcmread(tmp_file.name)
+    os.remove(tmp_file.name)
+    
+    load_ds = dicomlib.update_tags(load_ds)
+    
+    def recurse_assert(elem):
+      # Recursively assert that every sequence has another sequence within
+      if elem.VR == 'SQ':
+        self.assertEqual(elem.VR, 'SQ')
+        self.assertEqual(len(elem.value), 1)
+
+        try:
+          recurse_assert(elem.value[0][0x00231020])
+        except:
+          recurse_assert(elem.value[0][0x00231001])
+      else:
+        self.assertEqual(elem.VR, 'LO')
+        self.assertEqual(elem.value, 'Normal')
+        
+    recurse_assert(load_ds[0x00231020])
+
+
 # --- save_dicom tests ---
 class SaveDicomTests(unittest.TestCase):
   def setUp(self):

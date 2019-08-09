@@ -25,7 +25,7 @@ def update_private_tags() -> None:
   keyword_dict.update(new_names_dirc)
 
 
-def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True):
+def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Type[Dataset]:
   """
   Takes a file path and reads it, update the private tags accordingly
 
@@ -45,12 +45,32 @@ def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_
   return obj
 
 
-def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
+def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
+  """
+  Resolves unknown private tags
+
+  Args:
+    obj: dataset/dataelement to resolve
+    is_little_endian: whether or not the obj should be in little endian form
+    is_implicit_VR: whether or not the obj should is implicit VR
+
+  Returns:
+    dataset with resolved unknown tags
+
+  Remarks:
+    It should be noted that the function relies on recursion and can possibly
+    hit the recurrsion limit of Python
+
+    For more see: https://docs.python.org/3/library/sys.html#sys.getrecursionlimit
+  """
   for ds in obj:
-    if ds.tag not in new_dict_items:
+    if ds.tag not in new_dict_items and ds.VR != 'SQ':
       continue
+
     if ds.VR == 'UN':
+      print(f"###############\n{new_dict_items[ds.tag][0]}, ds.tag: {ds.tag}")
       if new_dict_items[ds.tag][0] == 'SQ':
+        print(f"ENTERED SEQUENCE IF-STATEMENT")
         ds_sq = convert_SQ(ds.value, is_implicit_VR , is_little_endian)
         seq_list = []
         for sq in ds_sq:
