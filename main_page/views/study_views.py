@@ -151,7 +151,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       base_name = data_file['Measurement date & time'][0]
 
       measurement_date, measurement_time = base_name.split(' ') 
-      measurement_date = formatting.convert_date_to_danish_date(measurement_date, seperator='-')
+      measurement_date = formatting.convert_date_to_danish_date(measurement_date, sep='-')
 
       csv_present_names.append( f'{measurement_time} - {measurement_date}')
       
@@ -196,7 +196,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'cpr': exam.cpr,
       'name': exam.name,
       'sex': present_sex,
-      'birthdate': formatting.convert_date_to_danish_date(exam.birthdate,seperator='-')
+      'birthdate': formatting.convert_date_to_danish_date(exam.birthdate,sep='-')
     })
 
     today = datetime.date.today()
