@@ -358,7 +358,7 @@ def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
   
   for date_format in VALID_FORMATS:
     try:
-      date = datetime.datetime.strptime(date_str, date_format)
+      date = datetime.strptime(date_str, date_format)
       break
     except ValueError:
       # Unable to parse, try next one
