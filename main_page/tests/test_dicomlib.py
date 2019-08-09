@@ -2,10 +2,14 @@ from django.test import TestCase
 import unittest
 
 from pydicom import Dataset, Sequence, uid
-from tempfile import TemporaryFile
+from tempfile import TemporaryFile, NamedTemporaryFile
 from datetime import datetime
 import numpy as np
+import pydicom
+from pydicom._storage_sopclass_uids import SecondaryCaptureImageStorage
+import os
 
+from main_page.libs import dataset_creator
 from main_page.libs import enums 
 from main_page.libs import dicomlib
 from main_page.libs import server_config
@@ -32,6 +36,54 @@ def validate_tags(ds, tags):
       return False
 
   return True
+
+
+# --- dcmread_wrapper ---
+class DcmreadWrapperTests(unittest.TestCase):
+  def setUp(self):
+    self.ds = dataset_creator.create_empty_dataset('REGH12345678')
+    
+  def test_dcmread_wrapper_no_private(self):
+    """
+    Construct and save dataset without private tags to temp file
+    
+    Remark:
+    This test utilizes NamedTemporaryFile's to allow us to reopen them
+    since pydicom might close them
+    """
+    accession_number = '1234564321'
+    self.ds.add_new(0x00100020, 'LO', accession_number)
+
+    tmp_file = NamedTemporaryFile(delete=False)
+    self.ds.save_as(tmp_file, write_like_original=False)
+    tmp_file.close()
+
+    # Attempt to reload the dataset
+    load_ds = dicomlib.dcmread_wrapper(tmp_file.name)
+    os.remove(tmp_file.name)
+
+    self.assertEqual(load_ds[0x00100020].value, accession_number)
+
+  def test_dcmread_wrapper_with_private(self):
+    """
+    Construct and save dataset with private tags to temp file
+    
+    Remark:
+      This test utilizes NamedTemporaryFile's to allow us to reopen them
+      since pydicom might close them
+    """
+    thin_fac = 12345
+    self.ds.add_new(0x00231028, 'DS', thin_fac)
+
+    tmp_file = NamedTemporaryFile(delete=False)
+    self.ds.save_as(tmp_file, write_like_original=False)
+    tmp_file.close()
+
+    # Attempt to reload the dataset
+    load_ds = dicomlib.dcmread_wrapper(tmp_file.name)
+    os.remove(tmp_file.name)
+
+    self.assertEqual(load_ds[0x00231028].value, thin_fac)
 
 
 # --- save_dicom tests ---
