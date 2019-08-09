@@ -5,10 +5,11 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pydicom import uid
 
-from typing import Type, Tuple, List
+from typing import Type, Tuple, List, IO, Any
 import numpy as np
 
 from main_page import models
+from main_page.libs import enums
 from .server_config import new_dict_items
 from . import server_config
 from . import formatting
@@ -16,29 +17,60 @@ from . import formatting
 logger = logging.getLogger()
 
 
-def dcmread_wrapper(filename, is_little_endian=True, is_implicit_VR=True):
+def update_private_tags() -> None:
+  # Update DicomDictionary to include our private tags
+  DicomDictionary.update(new_dict_items)
+
+  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
+  keyword_dict.update(new_names_dirc)
+
+
+def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Type[Dataset]:
   """
-    Takes a file path and reads it, update the private tags accordingly
+  Takes a file path and reads it, update the private tags accordingly
 
-    Supports only VM 1
+  Args:
+  filepath: filepath of file to read from
+    is_little_endian: whether or not the obj should be in little endian form
+    is_implicit_VR: whether or not the obj should is implicit VR
 
+  Returns:
+    The read dicom object with corrected private tags
   """
-  DicomDictionary.update(new_dict_items)  
-  new_names_dict = dict([(val[4], tag) for tag, val in new_dict_items.items()])
-  keyword_dict.update(new_names_dict)
+  update_private_tags()
 
-  obj = pydicom.dcmread(filename)
+  obj = pydicom.dcmread(filepath)
   obj = update_tags(obj, is_little_endian, is_implicit_VR)
 
   return obj
 
 
-def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
+def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
+  """
+  Resolves unknown private tags
+
+  Args:
+    obj: dataset/dataelement to resolve
+    is_little_endian: whether or not the obj should be in little endian form
+    is_implicit_VR: whether or not the obj should is implicit VR
+
+  Returns:
+    dataset with resolved unknown tags
+
+  Remarks:
+    It should be noted that the function relies on recursion and can possibly
+    hit the recurrsion limit of Python
+
+    For more see: https://docs.python.org/3/library/sys.html#sys.getrecursionlimit
+  """
   for ds in obj:
-    if ds.tag not in new_dict_items:
+    if ds.tag not in new_dict_items and ds.VR != 'SQ':
       continue
+
     if ds.VR == 'UN':
+      print(f"###############\n{new_dict_items[ds.tag][0]}, ds.tag: {ds.tag}")
       if new_dict_items[ds.tag][0] == 'SQ':
+        print(f"ENTERED SEQUENCE IF-STATEMENT")
         ds_sq = convert_SQ(ds.value, is_implicit_VR , is_little_endian)
         seq_list = []
         for sq in ds_sq:
@@ -57,39 +89,37 @@ def update_tags(obj, is_little_endian=True, is_implicit_VR=True):
   return obj
 
 
-def save_dicom(file_path, dataset, default_error_handling=True ):
+def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
   """
-  Saves a dicom file to a selected file path
+  Saves a dicom file to a given filepath
 
   Args:
-    file_path : String, desination for file to be saved
-    dataset
+  filepath: destionation to save dataset to
+    ds: dataset to save
 
-  kwargs:
-    no_error: With default dicom handling
-  Raises
-    Attribute Error: Incomplete Dicom, without default errorhandling
-    Value Error: No given AccessionNumber
+  Raises:
+    ValueError: No AccessionNumber was available when trying to resolve meta data issues
+    ValueError: if the filepath is empty
   """
+  ds.is_implicit_VR = True
+  ds.is_little_endian = True
+
+  if not filepath:
+    raise ValueError("Unable to save dataset, filepath is empty.")
+
+  if 'SOPClassUID' not in ds or 'SOPInstanceUID' not in ds:  # Dataset is incomplete
+    if 'AccessionNumber' in ds:
+      # Set missing meta data
+      fill_dicom(ds, update_dicom=True)
+    else:
+      raise ValueError('Cannot create SOPInstanceUID without AccessionNumber!')
   
-  dataset.is_implicit_VR = True
-  dataset.is_little_endian = True
-  if (not 'SOPClassUID' in dataset) or (not 'SOPInstanceUID' in dataset):  #Dicom is incomplete
-    if default_error_handling: 
-      if 'AccessionNumber' in dataset:
-        dataset.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' #Secondary Image Capture
-        dataset.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[dataset.AccessionNumber, 'SOP'])
-      else:
-        raise ValueError('default Error handling for saving dicom failed!\nCannot create SOPInstanceUID without AccessionNumber!')
-    else: 
-      raise AttributeError('Incomplete Dicom Required Tags are SOPClassUID and SOPInstanceUID')
-  
-  dataset.fix_meta_info()
-  logger.info('Saving Dicom file at:{0}'.format(file_path))
-  dataset.save_as(file_path, write_like_original = False)
+  ds.fix_meta_info()
+  logger.info(f'Saving Dicom file at: {filepath}')
+  ds.save_as(filepath, write_like_original=False)
 
 
-def try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
+def try_add_new(ds: Type[Dataset], tag: int, VR: str, value, check_val: bool=True) -> None:
   """
   Attempts to add a new value by tag, if the value is not None or empty
 
@@ -98,8 +128,11 @@ def try_add_new(ds: Type[Dataset], tag: int, VR: str, value) -> None:
     tag: tag to add
     VR: Value Representation of the value to add
     value: the value to add for the given tag
+
+  Kwargs:
+    check_val: additional boolean to check before trying to add
   """
-  if value:
+  if value and check_val:
     ds.add_new(tag, VR, value)
 
 
@@ -120,7 +153,6 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') # Manufacturer                  # ds.Manufacturer
     ds.add_new(0x00080064, 'CS', 'SYN')                                       # ds.ConversionType
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # TODO: Figure out what this tag is...
-    ds.add_new(0x00080030, 'TM', '')                                          # ds.StudyTime
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
     ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
     ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
@@ -147,19 +179,19 @@ def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -
     ds.InstitutionalDepartmentName = department.name
 
 
-def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str) -> None:
+def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: str) -> None:
   """
   Attempts to update the study date for the dataset
 
   Args:
     ds: dataset to update study date for
     update_date: whether or not to update the study date
-    study_date: the new study date (YYYY-MM-DD), if empty will be gotten from the scheduled procedure step sequence
+    study_datetime: the new study date YYYYMMDDHHMM, if empty will be gotten from the scheduled procedure step sequence
   """
   if update_date:
-    if study_date:
-      date_string = study_date.replace('-','')
-      time_string = datetime.datetime.now().strftime('%H%M')
+    if study_datetime:
+      date_string = study_datetime[:8]
+      time_string = study_datetime[8:]
 
       ds.StudyDate = date_string
       ds.SeriesDate = date_string
@@ -176,6 +208,7 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_date: str)
         seq_data.add_new(0x00400003, 'TM', time_string) # ScheduledProcedureStepStartTime
         ds.add_new(0x00400100, 'SQ', Sequence([seq_data]))
     else:
+      # TODO: The below will fail if update_date=True, study_date=None and ds has no ScheduledProcedureStepSequence...
       ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
       ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
       ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
@@ -188,14 +221,17 @@ def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
 
   Args:
     ds: dataset to update for
+
+  Remark:
+    This function assumes ScheduledProcedureStepDescription and Modality is in
+    the ScheduledProcedureStepSequence
   """
-  if 'ScheduledProcedureStepSequence' in ds:  
-    Schedule = ds.ScheduledProcedureStepSequence[0]
-    ds.StudyDescription = Schedule.ScheduledProcedureStepDescription
-    ds.Modality = Schedule.Modality
+  if 'ScheduledProcedureStepSequence' in ds:
+    ds.StudyDescription = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
+    ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
 
 
-def try_add_exam_status(ds: Type[Dataset], exam_status: int) -> None:
+def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
   Attempts to add the exam status to the dataset
 
@@ -223,7 +259,7 @@ def try_add_age(ds: Type[Dataset], age: int) -> None:
     ds.PatientAge = f"{age:03d}"
 
 
-def try_add_gender(ds: Type[Dataset], gender: str) -> None:
+def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
   """
   Attempts to add the gender to the dataset
 
@@ -231,13 +267,9 @@ def try_add_gender(ds: Type[Dataset], gender: str) -> None:
     ds: dataset to add to
     gender: gender to add if present
   """
-  # TODO: Change this to use an enum instead
   if gender:
-    gender = gender.lower()
-    if gender in ['male', 'm', 'mand', 'dreng']:
-      ds.PatientSex = 'M'
-    if gender in ['kvinde', 'd', 'k', 'pige', 'woman', 'dame', 'female' ]:
-      ds.PatientSex = 'F'
+    # Save first character (either 'M' or 'F')
+    ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value]
 
 
 def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:
@@ -265,7 +297,7 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
     del ds[0x00231020]
 
 
-def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
+def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
   """
   Attempts to add the pixeldata to the dataset
 
@@ -274,6 +306,9 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
     pixeldata: pixeldata to add if present
 
   Remark:
+    This function assumes the pixeldata was generated through generate_plot_text
+    function from clearance_math.py
+
     The dicom dataset should have TransferSyntax to Little Endian Explicit
     to avoid any corruption of the pixeldata.
     
@@ -301,14 +336,6 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata) -> None:
     ds.ImageComments = 'GFR summary, generated by GFR-calc'
 
 
-def update_private_tags():
-  # Update DicomDictionary to include our private tags
-  DicomDictionary.update(new_dict_items)
-
-  new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
-  keyword_dict.update(new_names_dirc)
-
-
 def fill_dicom(ds,
     age                 = None,
     birthday            = None,
@@ -320,7 +347,7 @@ def fill_dicom(ds,
     exam_status         = None,
     gender              = None,
     gfr                 = None,
-    gfr_type            = '', #Stechy
+    gfr_type            = None,
     height              = None,
     injection_after     = None,
     injection_before    = None,
@@ -334,11 +361,12 @@ def fill_dicom(ds,
     series_number       = None,
     sop_instance_uid    = None,
     station_name        = None,
-    study_date          = None,
+    study_datetime      = None,
     std_cnt             = None,
     thiningfactor       = None,
     update_date         = False,
     update_dicom        = False,
+    update_version      = False,
     weight              = None
   ):
   """
@@ -376,15 +404,17 @@ def fill_dicom(ds,
     series_number       :
     sop_instance_uid    :
     station_name        :
-    study_date          : string, on format YYYYMMDDHHMM, describing study date
+    study_datetime      : string, on format YYYYMMDD, describing study date
     std_cnt             :
     thiningfactor       :
     update_date         :
     update_dicom        :
+    update_version      : whether or not to update the software version
     weight              : float, Weight of patient wished to be stored
 
   Remarks
-    It's only possible to store the predefined args with this function
+    This function assumes input is correctly formatted for the corresponding
+    VRs for each input argument, e.g. birthday must be in format YYYYMMDD
   """
   """
   TODO: Check if the updating of the DicomDictionary can be achieved through the
@@ -397,60 +427,58 @@ def fill_dicom(ds,
           https://github.com/pydicom/pydicom/issues/799
   """
   update_private_tags()
-
+  
   # Dictionary defining which arguments to run through __try_add_new
   try_adds_dict = {
-    0x00080050 : ('SH', ris_nr),                                  # ds.AccessionNumber
-    0x00100030 : ('DA', birthday),                                # ds.PatientBirthDate
-    0x00100020 : ('LO', cpr),                                     # ds.PatientId
-    0x00100010 : ('PM', formatting.name_to_person_name(name)),    # ds.PatientName
-    0x00200011 : ('IS', series_number),                           # ds.SeriesNumber
-    0x00081010 : ('SH', station_name),                            # ds.StationName
-    0x00101020 : ('DS', height),                                  # ds.PatientSize
-    0x00101030 : ('DS', weight),                                  # ds.PatientWeight
-    0x0008103E : ('LO', 'Clearance ' + gfr_type),                 # ds.SeriesDescription
-                                                                  # ### PRIVATE TAGS START ###
-    0x00231001 : ('LO', gfr),                                     # ds.GFR
-    0x00231002 : ('LO', 'Version 1.0'),                           # ds.GFRVersion
-    0x00231010 : ('LO', gfr_type),                                # ds.GFRMethod
-    0x00231018 : ('DT', injection_time),                          # ds.injTime
-    0x0023101A : ('DS', injection_weight),                        # ds.injWeight
-    0x0023101B : ('DS', injection_before),                        # ds.injbefore
-    0x0023101C : ('DS', injection_after),                         # ds.injafter
-    0x00231011 : ('LO', bsa_method),                              # ds.BSAmethod
-    0x00231012 : ('DS', clearance),                               # ds.clearance
-    0x00231014 : ('DS', clearance_norm),                          # ds.normClear
-    0x00231024 : ('DS', std_cnt),                                 # ds.stdcnt
-    0x00231028 : ('DS', thiningfactor)                            # ds.thiningfactor
+    0x00080050 : ('SH', ris_nr),                                              # ds.AccessionNumber
+    0x00100030 : ('DA', birthday),                                            # ds.PatientBirthDate
+    0x00100020 : ('LO', cpr),                                                 # ds.PatientId
+    0x00100010 : ('PM', formatting.name_to_person_name(name)),                # ds.PatientName
+    0x00200011 : ('IS', series_number),                                       # ds.SeriesNumber
+    0x00081010 : ('SH', station_name),                                        # ds.StationName
+    0x00101020 : ('DS', height),                                              # ds.PatientSize
+    0x00101030 : ('DS', weight),                                              # ds.PatientWeight
+    0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
+                                                                              # ### PRIVATE TAGS START ###
+    0x00231001 : ('LO', gfr),                                                 # ds.GFR
+    0x00231002 : ('LO', 'Version 1.0', update_version),                       # ds.GFRVersion
+    0x00231010 : ('LO', gfr_type),                                            # ds.GFRMethod
+    0x00231018 : ('DT', injection_time),                                      # ds.injTime
+    0x0023101A : ('DS', injection_weight),                                    # ds.injWeight
+    0x0023101B : ('DS', injection_before),                                    # ds.injbefore
+    0x0023101C : ('DS', injection_after),                                     # ds.injafter
+    0x00231011 : ('LO', bsa_method),                                          # ds.BSAmethod
+    0x00231012 : ('DS', clearance),                                           # ds.clearance
+    0x00231014 : ('DS', clearance_norm),                                      # ds.normClear
+    0x00231024 : ('DS', std_cnt),                                             # ds.stdcnt
+    0x00231028 : ('DS', thiningfactor)                                        # ds.thiningfactor
   }
   
-  for tag, value_tuple in try_adds_dict.items():
-    VR, value = value_tuple
-    try_add_new(ds, tag, VR, value)
+  for tag, args in try_adds_dict.items():
+    VR, value = args[:2]
+    
+    # Get check_val if available
+    check_val = True
+    if len(args) == 3:
+      check_val = args[2]
+    
+    try_add_new(ds, tag, VR, value, check_val=check_val)
 
   # Dictionary defining custom functions and corresponding arguments for more
   # complicated values to set on the dataset
-  custom_try_adds = (
-    (try_update_exam_meta_data, update_dicom), 
-    (try_update_exam_meta_data, update_dicom), #simon: Why is this called again?
-    (try_add_department, department),
-    (try_update_study_date, update_date, study_date),
-    (try_update_scheduled_procedure_step_sequence),
-    (try_add_exam_status, exam_status),
-    (try_add_age, age),
-    (try_add_gender, gender),
-    (try_add_pixeldata, pixeldata),
+  custom_try_adds = {
+    try_update_exam_meta_data: [update_dicom],
+    try_add_department: [department],
+    try_update_study_date: [update_date, study_datetime],
+    try_update_scheduled_procedure_step_sequence: [ ],
+    try_add_exam_status: [exam_status],
+    try_add_age: [age],
+    try_add_gender: [gender],
+    try_add_pixeldata: [pixeldata],
     # ### PRIVATE TAGS START ###
-    (try_add_sample_sequence, sample_seq)
-  )
+    try_add_sample_sequence: [sample_seq]
+  }
 
-  for item in custom_try_adds:
-    #Simon this code is about as stechy as the pharmacy indistry
-    try:
-      try_func = item[0]
-      args = item[1:]
-    except TypeError: # i.e. no args supplied
-      try_func = item
-      args = [] # Remember to reset this else try_func will be called with previous arguments
-    
+  for try_func, args in custom_try_adds.items():
+    # Args is 'unpacked' to allow for functions with none or multiple required arguments
     try_func(ds, *args)

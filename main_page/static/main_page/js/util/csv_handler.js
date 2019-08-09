@@ -224,7 +224,7 @@ var csv_handler = (function() {
         return;
       }
       
-      if (!helper.valid_date_format(study_date_field.val())) {
+      if (!helper.valid_danish_date_format(study_date_field.val())) {
         alerter.add_field_alert(study_date_field, 'danger');
         return;
       }

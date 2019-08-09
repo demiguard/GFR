@@ -1,27 +1,47 @@
 import logging
 from pydicom import Dataset, Sequence, uid
+from typing import Type
+
 from . import dicomlib
 from . import server_config
+from . import formatting
 
 
 logger = logging.getLogger()
+
+def create_empty_dataset(accession_number: str) -> Type[Dataset]:
+  """
+  Constructs an empty pydicom dataset only with meta data filled out
+
+  Returns:
+    The constructed dataset
+  """
+  ds = Dataset()
+
+  # set meta info
+  ds.is_little_endian = True
+  ds.is_implicit_VR = True
+  ds.add_new(0x00080005, 'CS', 'ISO_IR 100')
+  ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7'
+  ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[accession_number,'SOP'])
+
+  ds.fix_meta_info()
+  
+  return ds
 
 def get_blank(
     cpr,
     name,
     study_date,
     accession_number,
-    hospital_ae_title):
+    hospital_ae_title
+  ):
   
-  ds = Dataset()
+  ds = create_empty_dataset(accession_number)
 
   method_str = 'GFR, Tc-99m-DTPA'
-
-  #Meta info
-
-
-  #Normal Tags
-  ds.add_new(0x00080005, 'CS', 'ISO_IR 100')
+  
+  # Normal Tags
   ds.add_new(0x0020000d, 'UI', 
     uid.generate_uid(
       prefix='1.3.',
@@ -29,9 +49,6 @@ def get_blank(
     )
   ds.add_new(0x0032000a, 'CS', 'STARTED')
   ds.add_new(0x00321060, 'LO',  method_str)
-  ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7'
-  ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[accession_number,'SOP'])
-
 
   ds_seq = Dataset()
   ds_seq.add_new(0x00080060, 'CS', 'OT')
@@ -48,9 +65,9 @@ def get_blank(
     update_date=True,
     cpr=cpr,
     name=name,
-    study_date=study_date,
-    rigs_nr = accession_number
-    )
+    study_datetime=study_date,
+    ris_nr = accession_number
+  )
 
   return ds
 
@@ -127,10 +144,16 @@ def create_search_dataset(
   #Generate Dataset
   dataset = Dataset()
   #Fill Dataset
-  dataset.StudyDate = f"{date_from.replace('-', '')}-{date_to.replace('-', '')}"
+  date_from = date_from.replace('-','')
+  date_to = date_to.replace('-','')
+  
+  if date_from != '' and date_to != '':
+    dataset.StudyDate = f"{date_from}-{date_to}"
+  else:
+    dataset.StudyDate = ''
   dataset.AccessionNumber = accession_number
   dataset.PatientID = cpr
-  dataset.PatientName = name
+  dataset.PatientName = formatting.name_to_person_name(name)
   dataset.QueryRetrieveLevel = 'STUDY'
   dataset.SOPClassUID = ''
   dataset.SOPInstanceUID = ''

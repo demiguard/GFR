@@ -1,8 +1,10 @@
 import calendar
 import pandas
 import re
+import logging
 from datetime import datetime
 
+logger = logging.getLogger()
 
 def person_name_to_name(name: str) -> str:
   """
@@ -232,11 +234,13 @@ def name_to_person_name(name: str) -> str:
 
   Returns:
     The formatted name conforming with the dicom standard.
-
-  Remark:
-    The function doesn't handle suffixes, only first, middle and last names
   """
+  # If the name is empty, return it
   if not name:
+    return name
+
+  # If the name is already a person name, return it
+  if name.count('^') == 4:
     return name
 
   names = name.strip().split(' ')
@@ -275,19 +279,25 @@ def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
 
-def reverse_format_date(reverse_Date : str) -> str:
+def reverse_format_date(reverse_Date : str, sep='') -> str:
   """
-    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYYMMDD 
+    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYY{sep}MM{sep}DD
 
     Args:
-      reverse_Date : String on format DD-MM-YYYY or DD/MM/YYYY
+      reverse_Date: string of format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY
+
+    Kwargs:
+      sep: String, this string is put in between the time
 
     Returns
       dateformat : String on format YYYYMMDD
+      Returns '' on input = ''
 
     Raises:
       ValueError : On invalid String
     """
+  if reverse_Date == None or reverse_Date == '':
+    return ''
   # Argument checking
   if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
     day, month, year = reverse_Date.split('-')
@@ -301,7 +311,7 @@ def reverse_format_date(reverse_Date : str) -> str:
     else:
       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
   
-  elif reverse_Date.count('/') and len(reverse_Date) == 10:
+  elif reverse_Date.count('/') == 2 and len(reverse_Date) == 10:
     day, month, year = reverse_Date.split('/')
 
     if day.isdigit() and month.isdigit() and year.isdigit():
@@ -326,9 +336,58 @@ def reverse_format_date(reverse_Date : str) -> str:
   else:
     raise ValueError('Reverse_format_date: String is not on correct format')
 # Converting format
-  returnstring = str(year) + str(month) + str(day)
+  returnstring = year + sep + month + sep + day
   # Returning
   return returnstring
 
+def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
+  """
+  Converts a string from the format YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD to DD{sep}MM{sep}YYYY
+
+  Args:
+    date_str : String, on format  YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD, where the string corospond to a date
+  
+  Kwargs:
+    sep : String, this string is put in between the time
+  
+  Returns:
+    String on format DD{sep}MM{sep}YYYY
+  """
+  VALID_FORMATS = ('%Y%m%d', '%Y-%m-%d', '%Y/%m/%d')
+  date = ''
+  
+  for date_format in VALID_FORMATS:
+    try:
+      date = datetime.datetime.strptime(date_str, date_format)
+      break
+    except ValueError:
+      # Unable to parse, try next one
+      continue
+  
+  if date:
+    return date.strftime(f'%d{sep}%m{sep}%Y')
+  
+  raise ValueError(f"Unable to parse date string: '{date_str}'")
 
 
+def xstr(s: str) -> str:
+  """
+  Args:
+    s: string to transform
+
+  Returns:
+    s if s is not None, otherwise return an empty string
+
+  Remark:
+    This function exists since str will return 'None' for None objects, e.g.:
+
+    >>> x = None
+    >>> str(x)
+    'None'
+    >>> xstr(x)
+    ''
+  """
+  if not s:
+    return ''
+
+  return str(s)

@@ -22,11 +22,11 @@ class SearchView(LoginRequiredMixin, TemplateView):
   def get(self, request):
     # Default date case: display the patients from the last week
     now = datetime.datetime.now()
-    default_date_to = now.strftime('%Y-%m-%d')
+    default_date_to = now.strftime('%d-%m-%Y')
 
-    week_delta = datetime.timedelta(days=7)
+    week_delta = datetime.timedelta(days=7) #This could be changed to be a value from the database - department  
     week_datetime = now - week_delta
-    default_date_from = week_datetime.strftime('%Y-%m-%d')
+    default_date_from = week_datetime.strftime('%d-%m-%Y')
 
     # Extract search parameters from url
     if 'name' in request.GET:

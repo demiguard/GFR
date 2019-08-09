@@ -1,7 +1,7 @@
 $(function() {
   // Add datepickers to date fields
-  $('#id_Dato_start').datepicker({format: 'yyyy-mm-dd'});
-  $('#id_Dato_finish').datepicker({format: 'yyyy-mm-dd'});
+  $('#id_Dato_start').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_Dato_finish').datepicker({format: 'dd-mm-yyyy'});
 
   // Make search fields readonly 
   let disable_search_fields = function() {
@@ -50,8 +50,8 @@ $(function() {
       cpr = cpr.replace('-', '');
     }
     let rigs_nr = $('#id_Rigs').val();
-    let date_from = $('#id_Dato_start').val();
-    let date_to = $('#id_Dato_finish').val();
+    let date_from = helper.convert_danish_date_to_date_format($('#id_Dato_start').val());
+    let date_to = helper.convert_danish_date_to_date_format($('#id_Dato_finish').val());
 
     // Display loading element
     disable_search_fields();

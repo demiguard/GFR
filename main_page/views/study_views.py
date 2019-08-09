@@ -148,7 +148,12 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     for data_file in data_files:
       selected = data_file[['Rack', 'Pos', 'Tc-99m CPM']]
 
-      csv_present_names.append(data_file['Measurement date & time'][0])
+      base_name = data_file['Measurement date & time'][0]
+
+      measurement_date, measurement_time = base_name.split(' ') 
+      measurement_date = formatting.convert_date_to_danish_date(measurement_date, seperator='-')
+
+      csv_present_names.append( f'{measurement_time} - {measurement_date}')
       
       # Cast to int, as to remove dots when presenting on the site
       csv_data.append([[int(rack), int(pos), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
@@ -191,15 +196,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'cpr': exam.cpr,
       'name': exam.name,
       'sex': present_sex,
-      'birthdate': exam.birthdate
+      'birthdate': formatting.convert_date_to_danish_date(exam.birthdate,seperator='-')
     })
 
     today = datetime.date.today()
 
     inj_time = None
-    inj_date = today
+    inj_date = today.strftime('%d-%m-%Y')
     if exam.inj_t:
-      inj_date = exam.inj_t.strftime('%Y-%m-%d')
+      inj_date = exam.inj_t.strftime('%d-%m-%Y')
       inj_time = exam.inj_t.strftime('%H:%M')
 
     study_examination_form = forms.Fillexamination(initial={
@@ -210,7 +215,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     })
 
     get_backup_date_form = forms.GetBackupDateForm(initial={
-      'dateofmessurement' : today
+      'dateofmessurement' : today.strftime('%d-%m-%Y')
     })
 
     study_patient_form_2 = forms.Fillpatient_2(initial={
@@ -231,7 +236,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'save_fac' : thin_fac_save_inital
     })
 
-    test_form = forms.FillStudyTest(initial={'study_date' : today})
+    test_form = forms.FillStudyTest(initial={'study_date' : today.strftime('%d-%m-%Y')})
 
     return {
       'study_patient_form': study_patient_form,
@@ -254,7 +259,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       zip of the previous sample data
     """
     previous_sample_times = [st.strftime('%H:%M') for st in exam.sam_t]
-    previous_sample_dates = [st.strftime('%Y-%m-%d') for st in exam.sam_t]
+    previous_sample_dates = [st.strftime('%d-%m-%Y') for st in exam.sam_t]
     previous_sample_counts = exam.tch_cnt
     
     return zip(
