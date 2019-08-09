@@ -1,11 +1,11 @@
 from django.test import TestCase
 import unittest
 
-from pydicom import Dataset, Sequence, uid
 from tempfile import TemporaryFile, NamedTemporaryFile
 from datetime import datetime
 import numpy as np
 import pydicom
+from pydicom import Dataset, Sequence, uid, values
 from pydicom._storage_sopclass_uids import SecondaryCaptureImageStorage
 import os
 
@@ -90,6 +90,20 @@ class DcmreadWrapperTests(unittest.TestCase):
 class UpdateTagsTests(unittest.TestCase):
   def setUp(self):
     self.ds = Dataset()
+    
+    # Keywords to remove from the DicomDictionary
+    # These must be removed to ensure that pydicom reads the private tags as VR 'UN' (unknown)
+    self.kw_dict = {
+      0x00231020,
+      0x00231012,
+      0x00231001
+    }
+
+    for kw in self.kw_dict:
+      try:
+        del pydicom.datadict.DicomDictionary[kw]
+      except KeyError:
+        pass
 
   def test_update_tags_one_unknown(self):
     self.ds.add_new(0x00231012, 'UN', '123'.encode())
@@ -110,12 +124,11 @@ class UpdateTagsTests(unittest.TestCase):
   def test_update_tags_unknown_sequence(self):
     # Unknown sequence with known tags
     self.ds = dataset_creator.create_empty_dataset('REGH12345678')
-    print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFf")
+    
     test_seq_data = Dataset()
     test_seq_data.add_new(0x00100020, 'LO', '1234564321')
     test_seq = Sequence([test_seq_data])
 
-    #print(str(test_seq))
     self.ds.add_new(0x00231020, 'SQ', test_seq)
 
     # Save dataset to make sequence bytes
@@ -124,7 +137,6 @@ class UpdateTagsTests(unittest.TestCase):
     tmp_file.close()
 
     load_ds = pydicom.dcmread(tmp_file.name)
-    print(load_ds)
     os.remove(tmp_file.name)
 
     load_ds = dicomlib.update_tags(load_ds)
@@ -221,7 +233,32 @@ class UpdateTagsTests(unittest.TestCase):
         
     recurse_assert(load_ds[0x00231020])
 
+  def test_update_tags_known_sequence(self):
+    # Known sequence with unknown tags
+    self.ds = dataset_creator.create_empty_dataset('REGH12345678')
+    
+    test_seq_data = Dataset()
+    test_seq_data.add_new(0x00231001, 'UN', 'Normal'.encode())
+    test_seq = Sequence([test_seq_data])
 
+    self.ds.add_new(0x00400100, 'SQ', test_seq)
+
+    # Save dataset
+    tmp_file = NamedTemporaryFile(delete=False)
+    dicomlib.save_dicom(tmp_file, self.ds)
+    tmp_file.close()
+
+    load_ds = pydicom.dcmread(tmp_file.name)
+    os.remove(tmp_file.name)
+
+    load_ds = dicomlib.update_tags(load_ds)
+
+    self.assertEqual(len(load_ds[0x00400100].value), 1)
+    self.assertEqual(load_ds[0x00400100].VR, 'SQ')
+    self.assertEqual(load_ds[0x00400100][0][0x00231001].VR, 'LO')
+    self.assertEqual(load_ds[0x00400100][0][0x00231001].value, 'Normal')
+
+    
 # --- save_dicom tests ---
 class SaveDicomTests(unittest.TestCase):
   def setUp(self):

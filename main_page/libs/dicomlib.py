@@ -51,6 +51,8 @@ def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
 
   Args:
     obj: dataset/dataelement to resolve
+    
+  Kwargs:
     is_little_endian: whether or not the obj should be in little endian form
     is_implicit_VR: whether or not the obj should is implicit VR
 
@@ -68,9 +70,7 @@ def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
       continue
 
     if ds.VR == 'UN':
-      print(f"###############\n{new_dict_items[ds.tag][0]}, ds.tag: {ds.tag}")
       if new_dict_items[ds.tag][0] == 'SQ':
-        print(f"ENTERED SEQUENCE IF-STATEMENT")
         ds_sq = convert_SQ(ds.value, is_implicit_VR , is_little_endian)
         seq_list = []
         for sq in ds_sq:
