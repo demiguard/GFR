@@ -39,8 +39,11 @@ def fill_study_post(request, rigs_nr, dataset):
     Request: The Post request
     rigs_nr: The REGH number for the corosponding examination
     dataset
-  """
 
+  TODO: This function should be split into smaller functions and moved under
+        it corresponding views post request handler.
+        Write a function which can resolve the types of the request.POST content
+  """
   #NOTE: The comment just below is code that doesn't run be cause the directory request.POST is immuate therefore we cannot this.
   #There probbally is a smarter way to do this. 
 
@@ -48,6 +51,13 @@ def fill_study_post(request, rigs_nr, dataset):
   #request.POST['injection_date'] = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
   #request.POST['birthday'] = formatting.reverse_format_date(request.POST['birthday'], sep='-')
   #Study date is left out because it's a list and it's not clear how to overwrite that. 
+
+  print("##### START REQUEST #####")
+  print(request)
+  print("##### END REQUEST #####")
+  print("##### START REQUEST POST #####")
+  print(request.POST)
+  print("##### END REQUEST POST #####")
 
   #Save Without Redirect
   if 'save' in request.POST:
@@ -96,15 +106,6 @@ def fill_study_post(request, rigs_nr, dataset):
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
     # Calculate GFR
-    clearance, clearance_norm = clearance_math.calc_clearance(
-      inj_datetime, 
-      sample_datetimes,
-      tec_counts,
-      BSA,
-      dosis,
-      study_type
-    )
-    #Logging
     logger.info(f"""
     Clearance calculation input:
     injection time: {inj_datetime}
@@ -113,7 +114,19 @@ def fill_study_post(request, rigs_nr, dataset):
     Body Surface Area: {BSA}
     Dosis: {dosis}
     Method: {study_type_name}
-    Result:
+    """)
+
+    clearance, clearance_norm = clearance_math.calc_clearance(
+      inj_datetime, 
+      sample_datetimes,
+      tec_counts,
+      BSA,
+      dosis,
+      study_type
+    )
+
+    logger.info(f"""
+    Clearance calculation result:
       Clearnance: {clearance}
       Clearence Normal: {clearance_norm}"""
     )
@@ -129,7 +142,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     age = datetime.datetime.strptime(request.POST['birthdate'], '%d-%m-%Y')
 
-    gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate=birthdate, gender=gender_short)
+    gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate, gender_short)
 
     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, age, request.user)
     pixel_data = clearance_math.generate_plot_text(
@@ -207,8 +220,6 @@ def store_form(request, dataset, rigs_nr):
   #Study Always exists
   study_type = enums.StudyType(int(request.POST['study_type']))
   study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
-  
-  print(f"study type: {study_type}, study_type_name: {study_type_name}")
 
   if request.POST['sex']:
     gender_num = request.POST['sex']

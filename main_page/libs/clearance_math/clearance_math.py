@@ -9,17 +9,19 @@ import shutil
 import logging
 from PIL import Image
 from scipy.stats import linregress
+from typing import List, Tuple
 
 from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
 from .. import dicomlib
-from main_page.libs.enums import StudyType
+from main_page.libs import enums
 
 logger = logging.getLogger()
 
 
-def surface_area(height, weight, method="Haycock"):
-  """Estimate the surface area of a human being, based on height and height
+def surface_area(height: float, weight: float, method: str="Haycock") -> float:
+  """
+  Estimate the surface area of a human being, based on height and height
 
   Args:
     height: Height of person in centimeters 
@@ -28,101 +30,91 @@ def surface_area(height, weight, method="Haycock"):
 
   Returns:
     A float estimating the surface area of a human
+
+  Raises:
+    ValueError: if the given method is not supported
   """
   if method == "Du Bois": 
-      return 0.007184*(weight**0.425)*(height**0.725)
+      return 0.007184 * (weight ** 0.425) * (height ** 0.725)
   elif method == "Mosteller":
-      return 0.016667*(weight**0.5)*(height**0.5)
+      return 0.016667 * (weight ** 0.5) * (height ** 0.5)
   elif method == "Haycock":
-      return 0.024265*(weight**0.5378)*(height**0.3964)
+      return 0.024265 * (weight ** 0.5378) * (height ** 0.3964)
   else:
-    return -1
+    raise ValueError(f"Unable to estimate surface area. Got unknown method: '{method}'")
 
 
-def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, study_type):
+def calc_clearance(
+  inj_time: datetime.date, 
+  sample_time: List[datetime.date], 
+  tec99_cnt: List[float], 
+  BSA: float, 
+  dosis: float, 
+  study_type: enums.StudyType
+  ) -> Tuple[float, float]:
   """
-  Calculate the Clearence, using the functions from clearance_function.php
+  Calculate the clearence as specified in the pdf documentation found under: 
+  GFR/main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf
 
-  Argument:
-    inj_time: A Date from datetime containing information when injection happened 
-    sample_time: a list of dates from datetime containing formation when the bloodsample was taken
-    tec99_cnt: A list of int containing the counts from the samples
-    BSA: a float, representing body surface area, Use Surface_area
-    dosis: A float with calculation of the dosis size, Use dosis
+  Args:
+    inj_time: A date object containing information when the injection happened 
+    sample_time: a list of date objects containing formation when the bloodsample was taken
+    tec99_cnt: A list of floats containing the counts from the samples
+    BSA: a float, the estimated body surface area, see function: surface_area
+    dosis: A float with calculation of the dosis size, see function: dosis
     study_type: the type of study performed, e.g. 'En blodprøve, Voken', etc.
 
-  return
-    clearance, clearance-normalized
+  Returns:
+    Tuple of float w/ clearance and clearance-normalized
+  
+  Remarks:
+    The constants throughout the below calculations are specified in
+    the documentation pdf. "We" (Simon & Christoffer) didn't come up with
+    these, they were found by doctors so just trust them...
   """
-  delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_time] #timedelta list from timedate
-  # for time in sample_time:
-  #   #Compute how many minutes between injection and 
-  #   delta_times.append((time-inj_time).seconds / 60)
+  # timedelta list from timedate
+  # TODO: WTF is this list comprehension doing???....
+  delta_times = [(time - inj_time).seconds / 60 + 86400 * (time - inj_time).days for time in sample_time]
 
-  if study_type == "En blodprøve, Voksen":
-    #In this study_type deltatimes and tec99_cnt lenght is equal to one
-    #Magical number a credible doctor once found, See documentation
-    magic_number_1 = 0.213
-    magic_number_2 = 104
-    magic_number_3 = 1.88
-    magic_number_4 = 928
+  if study_type == enums.StudyType.ONE_SAMPLE_ADULT:
+    # In this study_type deltatimes and tec99_cnt lenght is equal to one
+    clearance_normalized = (0.213 * delta_times[0] - 104) * np.log(tec99_cnt[0] * BSA / dosis ) + 1.88 * delta_times[0] - 928
 
-    clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * np.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
-    
- 
-  elif study_type == "En blodprøve, Barn":
-    #
-    #Magical Numbers
-    magic_number_1 = 0.008
+  elif study_type == enums.StudyType.ONE_SAMPLE_CHILD:
     two_hours_min = 120
     ml_per_liter = 1000
 
-    P120 = tec99_cnt[0] * np.exp(magic_number_1 * (delta_times[0] - two_hours_min))
+    P120 = tec99_cnt[0] * np.exp(0.008 * (delta_times[0] - two_hours_min))
     V120 = dosis / (P120 * ml_per_liter)
 
-    magic_number_2 = 2.602
-    magic_number_3 = 0.273
-
-    GFR = ((magic_number_2 * V120) - magic_number_3)
+    GFR = ((2.602 * V120) - 0.273)
 
     normalizing_constant = 1.73
 
-    clearance_normalized = GFR * normalizing_constant / BSA 
+    clearance_normalized = GFR * normalizing_constant / BSA
 
-  elif study_type == "Flere blodprøver":
-
+  elif study_type == enums.StudyType.MULTI_SAMPLE:
     log_tec99_cnt = [np.log(x) for x in tec99_cnt]
 
-    slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
+    slope, intercept, _, _, _ =  linregress(delta_times, log_tec99_cnt)
   
     clearance_1 = (dosis * (-slope)) / np.exp(intercept) 
 
-    magic_number_1 = 0.0032
-    magic_number_2 = 1.3
+    clearance =  clearance_1 / (1 + 0.0032 * BSA ** (-1.3) * clearance_1)
 
-    clearance =  clearance_1 / ( 1 + magic_number_1 * BSA**(-magic_number_2) * clearance_1)
-    
-    magic_number_3 = 1.73
+    clearance_normalized = clearance * 1.73 / BSA
 
-    clearance_normalized = clearance * magic_number_3 / BSA
-
-    #Inulin Korrigering for 24 prøver 
+    # Inulin Korrigering for 24 prøver 
     if delta_times[-1] > 1440:
-      magic_number_4 = 0.5
-
       clearance_normalized  = clearance_normalized - 0.5
-      clearance = clearance_normalized * BSA * magic_number_3
+      clearance = clearance_normalized * BSA * 1.73
 
       return clearance, clearance_normalized
-
   else:
-    raise ValueError(f"Unknown study_type: {study_type}")
+    raise ValueError(f"Unable to compute clearance. Got unknown study_type: '{study_type}'")
 
-  #inulin Korrigering 
-  magic_number_1 = 3.7
-  magic_number_2 = 1.1
-
-  clearance_normalized = (clearance_normalized - magic_number_1) * magic_number_2
+  # inulin Korrigering
+  clearance_normalized = (clearance_normalized - 3.7) * 1.1
   clearance = clearance_normalized * BSA / 1.73
 
   return clearance, clearance_normalized
@@ -220,7 +212,7 @@ def calculate_sex(cprnr):
   else:
     return 'M'
 
-def kidney_function(clearance_norm, cpr, birthdate, gender='K'):
+def kidney_function(clearance_norm, cpr, birthdate, gender):
   """expression
     Calculate the Kidney function compared to their age and gender
   Args:
@@ -402,7 +394,7 @@ def generate_plot_text(
     procedure_description:
 
   Returns:
-
+    bytes object containing the generated plot
 
   Remark:
     Generate as one image, with multiple subplots.
@@ -462,7 +454,7 @@ def generate_plot_text(
     Overflade: {BSA:.2f} m²\n
     Metode:  {method}\n
     GFR: {clearance:.1f} ml / min\n
-    GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n"
+    GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n
     Nyrefunktion: {kidney_function}\n
     Nyrefunktion ift. Reference Patient: {reference_percentage:.1f}%
   """
