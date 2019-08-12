@@ -1,10 +1,11 @@
-import numpy
+import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import pandas
+
 import datetime
-import os, shutil
+import os
+import shutil
 import logging
 from PIL import Image
 from scipy.stats import linregress
@@ -12,6 +13,7 @@ from scipy.stats import linregress
 from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
 from .. import dicomlib
+from main_page.libs.enums import StudyType
 
 logger = logging.getLogger()
 
@@ -36,7 +38,8 @@ def surface_area(height, weight, method="Haycock"):
   else:
     return -1
 
-def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV"):
+
+def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, study_type):
   """
   Calculate the Clearence, using the functions from clearance_function.php
 
@@ -46,38 +49,35 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
     tec99_cnt: A list of int containing the counts from the samples
     BSA: a float, representing body surface area, Use Surface_area
     dosis: A float with calculation of the dosis size, Use dosis
-
-  Optional Arguments
-    method for calculating 
+    study_type: the type of study performed, e.g. 'En blodprøve, Voken', etc.
 
   return
     clearance, clearance-normalized
   """
-  
   delta_times = [(time - inj_time).seconds / 60 + 86400*(time - inj_time).days for time in sample_time] #timedelta list from timedate
   # for time in sample_time:
   #   #Compute how many minutes between injection and 
   #   delta_times.append((time-inj_time).seconds / 60)
 
-  if method == "En blodprøve, Voksen":
-    #In this method deltatimes and tec99_cnt lenght is equal to one
+  if study_type == "En blodprøve, Voksen":
+    #In this study_type deltatimes and tec99_cnt lenght is equal to one
     #Magical number a credible doctor once found, See documentation
     magic_number_1 = 0.213
     magic_number_2 = 104
     magic_number_3 = 1.88
     magic_number_4 = 928
 
-    clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * numpy.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
+    clearance_normalized = (magic_number_1 * delta_times[0] - magic_number_2) * np.log(tec99_cnt[0] * BSA / dosis ) + magic_number_3 * delta_times[0] - magic_number_4
     
  
-  elif method == "En blodprøve, Barn":
+  elif study_type == "En blodprøve, Barn":
     #
     #Magical Numbers
     magic_number_1 = 0.008
     two_hours_min = 120
     ml_per_liter = 1000
 
-    P120 = tec99_cnt[0] * numpy.exp(magic_number_1 * (delta_times[0] - two_hours_min))
+    P120 = tec99_cnt[0] * np.exp(magic_number_1 * (delta_times[0] - two_hours_min))
     V120 = dosis / (P120 * ml_per_liter)
 
     magic_number_2 = 2.602
@@ -89,13 +89,13 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
 
     clearance_normalized = GFR * normalizing_constant / BSA 
 
-  elif method == "Flere blodprøver":
+  elif study_type == "Flere blodprøver":
 
-    log_tec99_cnt = [numpy.log(x) for x in tec99_cnt]
+    log_tec99_cnt = [np.log(x) for x in tec99_cnt]
 
     slope, intercept, _, _, _ =  linregress(delta_times , log_tec99_cnt)
   
-    clearance_1 = (dosis * (-slope)) / numpy.exp(intercept) 
+    clearance_1 = (dosis * (-slope)) / np.exp(intercept) 
 
     magic_number_1 = 0.0032
     magic_number_2 = 1.3
@@ -116,7 +116,7 @@ def calc_clearance(inj_time, sample_time, tec99_cnt, BSA, dosis, method = "EPV")
       return clearance, clearance_normalized
 
   else:
-    raise ValueError(f"Unknown method: {method}")
+    raise ValueError(f"Unknown study_type: {study_type}")
 
   #inulin Korrigering 
   magic_number_1 = 3.7
@@ -250,7 +250,7 @@ def kidney_function(clearance_norm, cpr, birthdate, gender='K'):
   if age < 2 : # Babies
     magic_number_1 = 0.209
     magic_number_2 = 1.44
-    Mean_GFR = 10**(magic_number_1 * numpy.log10(age_in_days) + magic_number_2)
+    Mean_GFR = 10**(magic_number_1 * np.log10(age_in_days) + magic_number_2)
   elif age < 15 : # Childern
     Mean_GFR = 109
   elif age < 40: # Grown ups
@@ -288,9 +288,9 @@ def compute_times(inj_time, times):
     times    : List of Datetime objects with time of sample
 
   returns
-    A numpy array of the difference in minutes
+    A np array of the difference in minutes
   """
-  return numpy.array([(time - inj_time).seconds / 60 for time in times])
+  return np.array([(time - inj_time).seconds / 60 for time in times])
 
 def calculate_birthdate(cpr):
   """
@@ -508,14 +508,14 @@ def generate_QA_plot(
     A bytestring forming a RBG pictures of scale 1920x1080 (Default size)
   """
   # Log of tec-count as the formula calls for
-  log_tec99_cnt = [numpy.log(x) for x in tch_cnt]
+  log_tec99_cnt = [np.log(x) for x in tch_cnt]
 
   # Linear Regression
   slope, intercept, r_value, p_value, standard_error = linregress(delta_times, log_tec99_cnt)
 
   logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
 
-  x = numpy.arange(min(delta_times), max(delta_times), 0.1)
+  x = np.arange(min(delta_times), max(delta_times), 0.1)
   y = slope * x + intercept
 
   # Plot generation

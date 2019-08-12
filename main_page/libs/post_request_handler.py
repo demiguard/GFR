@@ -68,17 +68,9 @@ def fill_study_post(request, rigs_nr, dataset):
     inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
 
     # Construct datetimes for study times
-    # Determine study method
-    # TODO: Possibly make an Enum in the future
-    study_type = int(request.POST['study_type'])
-    if study_type == 0:
-      method = "En blodprøve, Voksen"
-    elif study_type == 1:
-      method = "En blodprøve, Barn"
-    elif study_type == 2:
-      method = "Flere blodprøver"
-    else:
-      method="INVALID METHOD"
+    # Determine study type
+    study_type = enums.StudyType(int(request.POST['study_type']))
+    study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
 
     sample_times = request.POST.getlist('study_time')[:-1]
     sample_dates = request.POST.getlist('study_date')[:-1]
@@ -110,7 +102,7 @@ def fill_study_post(request, rigs_nr, dataset):
       tec_counts,
       BSA,
       dosis,
-      method=method
+      study_type
     )
     #Logging
     logger.info(f"""
@@ -120,7 +112,7 @@ def fill_study_post(request, rigs_nr, dataset):
     Tch99 cnt: {tec_counts}
     Body Surface Area: {BSA}
     Dosis: {dosis}
-    Method: {method}
+    Method: {study_type_name}
     Result:
       Clearnance: {clearance}
       Clearence Normal: {clearance_norm}"""
@@ -155,7 +147,7 @@ def fill_study_post(request, rigs_nr, dataset):
       hosp_dir=request.user.department.hospital.short_name,
       history_age=history_age,
       history_clr_n=history_clrN,
-      method = method,
+      method = study_type_name,
       injection_date=inj_datetime.strftime('%d-%b-%Y'),
       name = name,
       procedure_description=dataset.RequestedProcedureDescription
@@ -189,7 +181,6 @@ def store_form(request, dataset, rigs_nr):
   #All Fields to be stored
   birthdate = None
   injection_time = None
-  gfr_type = None
   gender = None
   injection_before = None
   injection_after  = None
@@ -214,19 +205,14 @@ def store_form(request, dataset, rigs_nr):
     injection_time = inj_datetime.strftime('%Y%m%d%H%M')
 
   #Study Always exists
-  study_type = int(request.POST['study_type'])
-  gfr_type = ''
-  if study_type == 0:
-    gfr_type = 'Et punkt Voksen'
-  elif study_type == 1:
-    gfr_type = 'Et punkt Barn'
-  elif study_type == 2:
-    gfr_type = 'Flere prøve Voksen'
+  study_type = enums.StudyType(int(request.POST['study_type']))
+  study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
+  
+  print(f"study type: {study_type}, study_type_name: {study_type_name}")
 
   if request.POST['sex']:
     gender_num = request.POST['sex']
     gender = enums.Gender(int(gender_num))
-    print(gender)
 
   if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
     injection_before = float(request.POST['vial_weight_before'])
@@ -287,7 +273,7 @@ def store_form(request, dataset, rigs_nr):
     update_dicom = True,
     update_date = True,
     injection_time=injection_time,
-    gfr_type=gfr_type,
+    gfr_type=study_type_name,
     series_number = rigs_nr[4:],
     station_name = request.user.department.config.ris_calling,
     gender=gender,

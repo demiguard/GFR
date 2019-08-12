@@ -24,6 +24,7 @@ from main_page.libs import server_config
 from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
+from main_page.libs import enums
 from main_page import forms
 
 # Custom type
@@ -168,20 +169,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     Returns:
       Dict containing the initialized forms
-    """    
-    study_type = 0
-    if exam.Method:
-      # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
-      # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
-      if exam.Method == 'Et punkt voksen':
-        study_type = 0
-      elif exam.Method == 'Et punkt Barn':
-        study_type = 1
-      elif exam.Method == 'Flere prøve Voksen':
-        study_type = 2
+    """
+    try:
+      study_type = enums.STUDY_TYPE_NAMES.index(exam.Method)
+    except ValueError:
+      # Default to StudyType(0)
+      study_type = 0
 
     study_type_form = forms.FillStudyType(initial={
-      'study_type': study_type # Default: 'Et punkt voksen'
+      'study_type': study_type
     })
 
     if exam.sex == 'M':

@@ -3,12 +3,11 @@ import os
 import datetime
 import random
 import shutil
-import pydicom, pynetdicom
+import pydicom
+import pynetdicom
 import logging
 
-
 from ... import models
-
 from main_page.libs.dirmanager import try_mkdir
 from .. import dataset_creator
 from .. import dicomlib

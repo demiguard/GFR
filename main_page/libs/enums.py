@@ -14,6 +14,11 @@ class StudyType(Enum):
   ONE_SAMPLE_CHILD = 1  # 'En blodprøve, Barn'
   MULTI_SAMPLE = 2      # 'Flere blodprøver'
 
+STUDY_TYPE_NAMES = [
+  "En blodprøve, Voksen",
+  "En blodprøve, Barn",
+  "Flere blodprøver"
+]
 
 class ExamStatus(Enum):
   NO_CHANGES = 0      # The study has not been edited yet
