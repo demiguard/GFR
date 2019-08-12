@@ -425,6 +425,8 @@ def fill_dicom(ds,
           https://pydicom.github.io/pydicom/stable/release-notes.html
           or
           https://github.com/pydicom/pydicom/issues/799
+  
+  TODO: Move all formatting out of this function, it should be handled by higher level functions
   """
   update_private_tags()
   

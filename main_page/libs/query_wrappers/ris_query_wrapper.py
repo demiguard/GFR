@@ -134,7 +134,7 @@ def get_patients_from_rigs(user):
       user.department.config.ris_aet))
 
     #Create query file
-    query_ds = dataset_creator.get_rigs_base(rigs_calling=user.department.config.ris_calling)
+    query_ds = dataset_creator.generate_ris_query_dataset(ris_calling=user.department.config.ris_calling)
     accepted_procedures = [procedure.type_name for procedure in user.department.config.accepted_procedures.all()]
     logger.info(f'User:{user.username} is making a C-FIND')
     response = assocation.send_c_find(query_ds, query_model='S')

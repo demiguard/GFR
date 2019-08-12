@@ -66,9 +66,6 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
 
     if success:
-      #new_destination = '{0}{1}/{2}.dcm'.format(server_config.FIND_RESPONS_DIR, request.user.department.hospital, rigs_nr)
-      #shutil.copyfile(server_config.BLANK_DICOM_FILE, new_destination, follow_symlinks=False)  
-      
       dataset = dataset_creator.get_blank(
         cpr,
         name,
