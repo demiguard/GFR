@@ -52,12 +52,14 @@ def fill_study_post(request, rigs_nr, dataset):
   #request.POST['birthday'] = formatting.reverse_format_date(request.POST['birthday'], sep='-')
   #Study date is left out because it's a list and it's not clear how to overwrite that. 
 
-  #print("##### START REQUEST #####")
-  #print(request)
-  #print("##### END REQUEST #####")
-  #print("##### START REQUEST POST #####")
-  #print(request.POST)
-  #print("##### END REQUEST POST #####")
+  # The below print statements are therefore debugging the requets and it's POST body,
+  # so we can be begin to start making the below code better instead of having complicated type casts
+  # print("##### START REQUEST #####")
+  # print(request)
+  # print("##### END REQUEST #####")
+  # print("##### START REQUEST POST #####")
+  # print(request.POST)
+  # print("##### END REQUEST POST #####")
 
   #Save Without Redirect
   if 'save' in request.POST:

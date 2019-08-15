@@ -4,21 +4,25 @@ import datetime
 import random
 import shutil
 import pydicom
+from pydicom import Dataset
 import pynetdicom
 import logging
 
-from ... import models
+from typing import List, Tuple, Type
+
+from main_page import models
+from main_page.libs import server_config
+from main_page.libs import dataset_creator
+from main_page.libs import dicomlib
+from main_page.libs import examination_info
 from main_page.libs.dirmanager import try_mkdir
-from .. import dataset_creator
-from .. import dicomlib
-from .. import server_config
-from ..clearance_math import clearance_math
-from .. import examination_info
-from ..examination_info import ExaminationInfo
+from main_page.libs.clearance_math import clearance_math
+from main_page.libs.examination_info import ExaminationInfo
 
 logger = logging.getLogger()
 
-def parse_bookings(resp_dir):
+
+def parse_bookings(resp_dir: str):
   """
   Get dicom objects for all responses
 
@@ -28,7 +32,7 @@ def parse_bookings(resp_dir):
   Returns:
     dict of dicom objects for all responses
   """
-  ret = {}
+  ret = { }
 
   # Loop all responses
   for dcm_path in glob.glob('{0}/rsp*.dcm'.format(resp_dir)):
@@ -37,132 +41,188 @@ def parse_bookings(resp_dir):
   return ret
 
 
-def is_old_dcm_obj(obj_path):
+def dataset_is_valid(dataset: Type[Dataset], accession_numbers: List[str], accepted_procedures: List[str]) -> bool:
   """
-  Determines whether a dicom object is too old (i.e. it should be removed)
+  Validates the current new dataset
 
   Args:
-    obj_path: path to the dicom obj to check
+    dataset: the current new dataset being processed
+    accession_numbers: current list of accession number which have been processed
+    accepted_procedures: list of accepted procedure descriptions within the user instance
 
   Returns:
-    True, the dicom object was to old and has been removed.
-    False, the dicom object was NOT to old and still remains
-
-  Remark:
-    Only accepts valid dicom objects
+    True if the dataset is valid and should be kept, False otherwise
   """
-  obj = dicomlib.dcmread_wrapper(obj_path)
+  has_been_processed = dataset.AccessionNumber not in accession_numbers
+  is_accepted_procedure = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [])
+  has_been_handled = not models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+
+  return has_been_processed and is_accepted_procedure and has_been_handled
+
+
+def has_expired(study_date: Type[datetime.datetime], today=datetime.datetime.now()) -> bool:
+  """
+  Determines whether a study has expired
+
+  Args:
+    study_date: date study was made
   
-  exam = examination_info.deserialize(obj)
+  Kwargs:
+    today: the current date and time
 
-  # If more then 3 days old remove it
-  procedure_date = datetime.datetime.strptime(exam.date, '%d/%m-%Y')
+  Returns:
+    True if a study date has expired, False otherwise
+  """
+  return (today - study_date).days > server_config.DAYS_THRESHOLD
 
-  now = datetime.datetime.now()
-  time_diff = now - procedure_date
-  days_diff = time_diff.days
 
-  if days_diff >= server_config.DAYS_THRESHOLD:
-    os.remove(obj_path)
-    return True
+def log_connection_failed(config: Type[models.Config]) -> None:
+  """
+  Log that the connection to RIS failed
+  """
+  logger.warn(
+    f"""Could not connect to RIS with:
+        IP: {config.ris_ip}
+        port: {config.ris_port}
+        calling AET: {config.ris_calling}
+        RIS AET: {config.ris_aet}
+    """
+  )
 
-  return False
+
+def log_connection_success(config: Type[models.Config]) -> None:
+  """
+  Log that the connection to RIS succeded
+  """
+  logger.info(
+    f"""Connected to RIS with:
+        IP: {config.ris_ip},
+        port: {config.ris_port},
+        calling AET: {config.ris_calling},
+        RIS AET: {config.ris_aet}
+    """
+  )
+
+
+def connect_to_RIS(config: Type[models.Config]):
+  """
+  Attempts to establish a connection to RIS via. the given configuration
+
+  Args:
+    config: Config model instance, describing the connection RIS
+
+  Returns:
+    If successful, the assosication to RIS
+
+  Raises:
+    ConnectionError: if any error occured during the attempt 
+                     to establish a connection to RIS
+  """
+  try:
+    ae = pynetdicom.AE(ae_title=config.ris_calling)
+  except ValueError:
+    # If AET is empty then a ValueError is thrown by pynetdicom
+    log_connection_failed(config)
+    raise ConnectionError("Kunne ikke forbinde til RIS")
+
+  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+  
+  assocation = ae.associate(
+    config.ris_ip,
+    int(config.ris_port), # Portnumbers should be shorts or ints! - TODO: update our database to store integers intead of CharFields to avoid this type cast, as it might fail
+    ae_title=config.ris_aet
+  )
+
+  if assocation.is_established:
+    log_connection_success(config)
+  else:
+    log_connection_failed(config)
+    raise ConnectionError("Kunne ikke forbinde til RIS, der mangler måske nye undersøgelser")
+
+  return assocation
 
 
 def get_patients_from_rigs(user):
   """
   Args:
-    user : Django User model who is making the call to rigs
+    user: instance of Django User model who is making the call to RIS
+
   Returns:
     pydicom Dataset List : with all patients availble to the server  
     Error message : If an error happens it's described here, if no error happened, returns an empty string
+
   Raises:
-
-  NOTE: This function is not thread safe
+    a bunch of errors...
   """
+  user_hospital = user.department.hospital
+  user_config = user.department.config
 
-  # TODO: Describe what the hell is happening here
-  def complicated_and_statement(dataset, accession_numbers, accepted_procedures): 
-    fst_truth_val = not dataset.AccessionNumber in accession_numbers
-    snd_truth_val = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [])
-    thr_truth_val = not models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+  DATASET_AVAILABLE = 0xFF00
+  NO_MORE_FILES_AVAILABLE = 0x0000
 
-    return fst_truth_val and snd_truth_val and thr_truth_val
+  studies = [ ]
+  processed_accession_numbers = [ ] # List of accession numbers which have been processed
 
-  returnlist = []
-  accession_numbers = []
-  ErrorMessage = ''
-  #First Find all Dicom Objects
+  # Find all previous dicom objects which have not passed the expiration day threshold
+  try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}", mk_parents=True)
 
-  try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user.department.hospital.short_name}", mk_parents=True)
+  dcm_file_paths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}/*.dcm')
 
-  dcm_file_paths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{user.department.hospital.short_name}/*.dcm')
-
-  today = datetime.datetime.now()
   for dcm_file_path in dcm_file_paths:
-    dataset = dicomlib.dcmread_wrapper(dcm_file_path)
+    dataset = dicomlib.dcmread_wrapper(dcm_file_path) # TODO: Should this not be working on a ExaminaitonInfo object not the dicom object itself? I.e. possibly make dicomlib.dcmread_wrapper return a ExaminationInfo instance to eleminate all direct access with dicom objects within our code
     date_string = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
     date_of_examination = datetime.datetime.strptime(date_string,'%Y%m%d')
-    if (today - date_of_examination).days <= server_config.DAYS_THRESHOLD:
-      returnlist.append(dataset)
-      accession_numbers.append(dataset.AccessionNumber)
-    else:
-      #TODO: Move to recycle bin
-      logger.info('Old file Detected Moving {0}.dcm to recycle bin'.format(
+  
+    if not has_expired(date_of_examination): # Not expired
+      studies.append(dataset)
+      processed_accession_numbers.append(dataset.AccessionNumber)
+    else: # expired
+      # TODO: Move to recycle bin
+      logger.info('Old file detected moving {0}.dcm to recycle bin'.format(
         dataset.AccessionNumber
       ))
-      
-  #Make a Querry up to Ris
-  ae = pynetdicom.AE(ae_title=user.department.config.ris_calling)
+
+  # Attempt to connect to RIS
+  try:
+    assocation = connect_to_RIS(user_config)
+  except ConnectionError as e:
+    # Display error to user, if unable to establish connection to RIS
+    # NOTE: Still returns any previously found dicom objects
+    return studies, str(e)
+
+  # Create query file to get new studies
+  query_ds = dataset_creator.generate_ris_query_dataset(ris_calling=user_config.ris_calling)
+  accepted_procedures = [procedure.type_name for procedure in user_config.accepted_procedures.all()]
   
-  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+  logger.info(f'User: {user.username} is making a C-FIND')
+  
+  response = assocation.send_c_find(query_ds, query_model='S')
 
-  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
-  #If the object is not created, then Create an new object else add it to return list 
-  assocation = ae.associate(
-    user.department.config.ris_ip,
-    int(user.department.config.ris_port), #Portnumbers should be shorts or ints! bad database 
-    ae_title=user.department.config.ris_aet
-  )
-
-  if assocation.is_established:
-    logger.info('connected to Rigs with:\nIP:{0}\nPort:{1}\nMy ae Title:{2}\nCalling AE title:{3}'.format(
-      user.department.config.ris_ip,
-      user.department.config.ris_port,
-      user.department.config.ris_calling,
-      user.department.config.ris_aet))
-
-    #Create query file
-    query_ds = dataset_creator.generate_ris_query_dataset(ris_calling=user.department.config.ris_calling)
-    accepted_procedures = [procedure.type_name for procedure in user.department.config.accepted_procedures.all()]
-    logger.info(f'User:{user.username} is making a C-FIND')
-    response = assocation.send_c_find(query_ds, query_model='S')
-
-    for (status, dataset) in response:
-      if status.Status == 0xFF00 :
-        logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
-        #0x0000 is code for no more files available
-        #0xFF00 is code for dataset availble
-        #Succes, I have a dataset
-        if complicated_and_statement(dataset, accession_numbers, accepted_procedures):
-          #Dataset is valid
-          dicomlib.save_dicom(f'{server_config.FIND_RESPONS_DIR}{user.department.hospital.short_name}/{dataset.AccessionNumber}.dcm',
-            dataset
-          )
-          returnlist.append(dataset)
-          accession_numbers.append(dataset.AccessionNumber)
-        else:
-          pass #Discard the value
-      elif status.Status == 0x0000:
-        #Query Complete with no Errors
-        pass
+  # Process response datasets
+  for status, dataset in response:
+    if status.Status == DATASET_AVAILABLE:
+      logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
+      
+      # Validate dataset
+      if dataset_is_valid(dataset, processed_accession_numbers, accepted_procedures):
+        dicomlib.save_dicom(
+          f'{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}/{dataset.AccessionNumber}.dcm',
+          dataset
+        )
+        
+        studies.append(dataset)
+        processed_accession_numbers.append(dataset.AccessionNumber)
       else:
-        logger.warn('Status code:{0}'.format(hex(status.Status)))
-    #Clean up after we are done
-    assocation.release()
-  else:
-    #Error Messages to 
-    logger.warn(f'Could not connect to Rigs with:\nIP:{user.department.config.ris_ip}\nPort:{user.department.config.ris_port}\nMy ae Title:{user.department.config.ris_calling}\nCalling AE title:{user.department.config.ris_aet}')
-    ErrorMessage += 'Kunne ikke forbinde til Rigs, der mangler måske nye undersøgelser'
+        # Discard object, if already processed
+        continue
+    elif status.Status == NO_MORE_FILES_AVAILABLE:
+      logger.info("Query completed with no errors")
+      continue
+    else:
+      logger.warn(f"Got unknown status code: {hex(status.Status)}")
+  
+  # Deallocate assocation after processing each received object
+  assocation.release()
 
-  return returnlist, ErrorMessage
+  return studies, ''

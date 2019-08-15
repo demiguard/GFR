@@ -1,8 +1,8 @@
 import datetime
 import numpy as np
 
-from . import formatting
-from .clearance_math import clearance_math
+from main_page.libs import formatting
+from main_page.libs.clearance_math import clearance_math
 
 
 class ExaminationInfo:
@@ -151,9 +151,6 @@ def deserialize(dicom_obj):
 
   return exam
 
+
 def mass_deserialize(dicom_objs):
-  returnlist = []
-  for dicom_obj in dicom_objs:
-    exam_obj = deserialize(dicom_obj)
-    returnlist.append(exam_obj)
-  return returnlist
+  return [deserialize(obj) for obj in dicom_objs]

@@ -95,7 +95,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
-    
+
     bookings = examination_info.mass_deserialize(dicom_objs)
   
     def date_sort(item):
