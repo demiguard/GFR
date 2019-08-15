@@ -15,6 +15,7 @@ urlpatterns = [
   path('search', views.SearchView.as_view(), name='search'),
   path('logout', views.LogoutView.as_view(), name='logout'),
   path('documentation', views.DocumentationView.as_view(), name='documentation'),
+  path('userguide',views.UserGuideView.as_view(), name='userguide'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   #Images
   path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),

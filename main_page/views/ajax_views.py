@@ -83,7 +83,7 @@ class AjaxDeleteStudy(TemplateView):
   def post(self, request):
     delete_status = True
 
-    user_hosp = request.user.department.hospital
+    user_hosp = request.user.department.hospital.short_name
 
     delete_accession_number = request.POST['delete_accession_number']
 
@@ -94,10 +94,7 @@ class AjaxDeleteStudy(TemplateView):
 
     move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{delete_accession_number}.dcm"
 
-    if not os.path.exists(move_src):
-      delete_status = False
-
-    if delete_status:
+    if os.path.exists(move_src):
       move_dst = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{delete_accession_number}.dcm"
       
       # Reset modification time
@@ -105,6 +102,7 @@ class AjaxDeleteStudy(TemplateView):
       os.utime(move_src, (del_time, del_time))
 
       # Move to deletion directory
+      logger.info('Do we have all the permission we need to get to this point?')
       shutil.move(move_src, move_dst)
 
       logger.info(f"Successfully deleted study: {delete_accession_number}")
@@ -112,7 +110,7 @@ class AjaxDeleteStudy(TemplateView):
     data = { }
     resp = JsonResponse(data)
 
-    if not delete_status:
+    if os.path.exists(move_src):
       resp.status_code = 403
 
     return resp
@@ -122,7 +120,7 @@ class AjaxRestoreStudy(TemplateView):
   def post(self, request):
     recover_status = True
 
-    user_hosp = request.user.department.hospital
+    user_hosp = request.user.department.hospital.short_name
 
     recover_accession_number = request.POST['recover_accession_number']
 

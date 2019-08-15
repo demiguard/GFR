@@ -4,7 +4,7 @@ from pydicom import uid
 datasets = []
 
 rigs_calling = 'HVHFBERGHK7'
-rigs_aet     = 'VICIM'
+rigs_aet     = 'VICIM' #RIS
 rigs_ip      = '10.143.128.247'
 rigs_port    = 3320
 
@@ -17,7 +17,7 @@ ds.add_new(0x00080020, 'DA', '') #Study date
 ds.add_new(0x00080050, 'SH', '') #Accession Number
 ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
 ds.add_new(0x00100010, 'PN', '') #Patitent name
-ds.add_new(0x00100020, 'LO', 'QP-3503763') #PatientID / CPR NUMBER
+ds.add_new(0x00100020, 'LO', 'QP-3841309') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
 #Create Sequences

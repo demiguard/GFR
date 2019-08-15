@@ -94,7 +94,7 @@ def deserialize(dicom_obj):
     try:
       exam.birthdate = clearance_math.calculate_birthdate(exam.cpr)
     except:
-      exam.birthdate = '0000-00-00'
+      exam.birthdate = '2000-01-01'
 
   if 'clearance' in dicom_obj:
     exam.clearance = dicom_obj.clearance

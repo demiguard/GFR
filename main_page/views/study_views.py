@@ -26,6 +26,7 @@ from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
 from main_page import forms
+from main_page import models
 
 # Custom type
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
@@ -48,13 +49,13 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     cpr = request.POST['cpr']
     name = request.POST['name']
     study_date = request.POST['study_date']
-    rigs_nr = request.POST['rigs_nr']
+    ris_nr = request.POST['rigs_nr']
 
     new_study_form = forms.NewStudy(initial={
       'cpr': cpr,
       'name': name,
       'study_date': study_date,
-      'rigs_nr': rigs_nr
+      'rigs_nr': ris_nr
     })
 
     context = {
@@ -64,26 +65,26 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       'error_msg' : ''
     }
 
-    success, error_msgs = formatting.is_valid_study(cpr, name, study_date, rigs_nr)
+    success, error_msgs = formatting.is_valid_study(cpr, name, study_date, ris_nr)
 
     if success:
       dataset = dataset_creator.get_blank(
         cpr,
         name,
         study_date,
-        rigs_nr,
-        request.user.department.hospital
+        ris_nr,
+        request.user.department.hospital.short_name
       )
       dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
           server_config.FIND_RESPONS_DIR,
-          request.user.department.hospital,
-          rigs_nr
+          request.user.department.hospital.short_name,
+          ris_nr
         ), 
         dataset
       )
 
-      # redirect to fill_study/rigs_nr 
-      return redirect('main_page:fill_study', rigs_nr=rigs_nr)
+      # redirect to fill_study/ris_nr 
+      return redirect('main_page:fill_study', ris_nr=ris_nr)
     else:
       context['error_msgs'] = error_msgs
       return render(request, self.template_name, context)
@@ -359,7 +360,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
     current_user = request.user
-    hospital = request.user.department.hospital
+    hospital = request.user.department.hospital.short_name
 
     # Search to find patient id - pick field response
     
@@ -540,7 +541,7 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
 
   def get(self, request):
     # Get list of all deleted studies
-    user_hosp = request.user.department.hospital
+    user_hosp = request.user.department.hospital.short_name
 
     deleted_studies = [] # Contains ExaminationInfo objects
 

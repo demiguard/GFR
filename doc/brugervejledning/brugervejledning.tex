@@ -12,7 +12,8 @@
 \section*{Introduktion}
 Dette dokument beskriver dagligt brug af alle GFRcalc. Til udvikling og vedligeholdelse af GFRcalc bør du referer dokumentet: "kode-dokumentation.pdf". Dette dokument er skrevet så det kan læses af alle bruger.\\\\
 Brugervejledningen er skrevet til version 1.0 af GFRcalc.\\\\
-Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Andersen. Den ansvarlige person for vedligeholdelse er Christoffer Vilstrup Jensen og kan kontakt via mail på Christoffer.Vilstrup.Jensen@regionh.dk
+Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Andersen. Den ansvarlige person for vedligeholdelse er Christoffer Vilstrup Jensen og kan kontakt via mail på Christoffer.Vilstrup.Jensen@regionh.dk\\\\
+Alt data \textit{(Navne, Cpr, test data)} i brugervejledningen er fabrikeret.
 \section*{Ordbog}
 \begin{itemize}
 	\item[GFRcalc] 	- Dette program
@@ -25,7 +26,19 @@ Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Anderse
 GFRcalc er et værktøj som kan tilgås på hjemmesiden gfr/ eller gfr.petnet.rh.dk. værktøjet benyttes til udregning af Clearance undersøgelser. Mere specifik til at udregne GFR. 
 \newpage
 \section{Til dagligt brug}
-For at kunne benytte nogle GFRcalc funktioner, skal der logges ind.  
+For at kunne benytte nogle GFRcalc funktioner, skal der logges ind.
+\subsection{Hurtig Guide}
+\begin{enumerate}
+	\item Gå til hjemmesiden “GFR.petnet.rh.dk”
+	\item Log in
+	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen
+	\item Udfyld undersøgelsen ved at indtaste relevant data
+	\begin{itemize}
+		\item Brug knappen “Gem” til at gemme din nuværende indtastet data
+	\end{itemize}
+	\item Klik “Beregn”
+	\item Klik “Send til PACS” efter at havde bekraftet at undersøgelsen er korrekt. 
+\end{enumerate}  
 \subsection{Oversigt over nuværende undersøgelser (Åbn undersøgelse)}\label{list_study}
 Denne side præsenterer alle undersøgelser, hvor patienten er ankomst registret. Dette betyder at hvis undersøgelsen bliver afsluttet i RIS, før at man har besøgt GFRcalc, så kan undersøgelsen ikke findes i GFRcalc. Hvis en undersøgelse mangler kontakt din RIS/PACS ansvarlige person.\\
 Gamle undersøgelser kan slettes, bemærk dog at undersøgelser ikke kan slettes, så længe at undersøgelsen er aktiv (Patienten er fremmødt, og undersøgelsen er ikke afsluttet.)\\
@@ -37,7 +50,8 @@ Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via 
 	\item[Gul] - Undersøgelsen har nogle bruger indtastet informationer, men har ikke udregnet clearance endnu. 
 	\item[Rød] - Undersøgelse har ingen bruger indtastet informationer. 
 \end{itemize} 
-\textbf{Bemærk:} For nogle hospitaler kan der findes flere tabel indgange til samme undersøgelse. Det er vigtigt, at den rigtige undersøgelse udfyldes for at  SP kan genere, de korrekte reporter.    
+\textbf{Bemærk:} For nogle hospitaler kan der findes flere tabel indgange til samme undersøgelse. Det er vigtigt, at den rigtige undersøgelse udfyldes for at  SP kan genere, de korrekte reporter.
+
 \subsection{Udfyldning af undersøgelser}\label{fill_study}
 Denne side tilgås ved at klikke på en af undersøgelserne fra “Åbn undersøgelse”\\\\
 Øverst kan information om undersøgelsen indtastes.\\
@@ -46,11 +60,11 @@ I højre-nedre hjørne Dagens findes tællinger fra “Wizarden”.\\\\
 Extreme værdier vil blive markeret med gul. Dette har ingen funktionel betydning ud over at gøre opmærksom på mulige taste fejl.\\ Hvis en værdi indtaste i forkert format, eller værdien er umulig, vil der findes en rød værdi. GFRcalc kan kun udregn GFR, hvis der ikke findes nogle røde tal på siden.\\
 Talende skal indtastes i den korrekte enhed. Disse enheder er:
 \begin{itemize}
-	\item højde: centimeter - (cm)
-	\item vægt: Kilogram - (kg)
-	\item sprøjtevægt: gram - (g)
+	\item Højde: Centimeter - (cm)
+	\item Vægt: Kilogram - (kg)
+	\item Sprøjtevægt: Gram - (g)
 \end{itemize}
-Ved alle decimaltal skal benyttes: » . «"$\,$ i stedet for: » , «.\\
+Ved alle decimaltal skal benyttes: » . «$\;$ i stedet for: » , «.\\
 Alle datoer skal intaste i formatet DD-MM-ÅÅÅÅ.\\\\
 For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 men op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er en stor numerisk på prøverne gives der en advarsel, som kan indikerer en mulig tastefejl.\\
 Scanninger kan identificeres ved, tidspunktet hvor scanningen af første rack er færdig.\\
@@ -70,7 +84,7 @@ Der præsenteres et billede med en graf og information indtaste med undersøgels
 	\item \textbf{Tilbage til hovedmenu} - Navigerer til hjemmesiden beskrevet i sektion \ref{list_study}
 	\item \textbf{Tilbage til redigering} - Navigerer til hjemmesiden beskrevet sektion \ref{fill_study}
 	\item \textbf{Billede til printning} - Navigerer til et fuldt skærmbillede af billede uden hjemmeside navigation, denne side er velegnet til printning af undersøgelsen.
-	\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til pacs. Undersøgelsen bliver slettet fra GFRcalc, hvis den succesfuldt sender billede til PACS.\\
+	\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til pacs. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
 	Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.   
 	\item \textbf{QA-plot} \textit{Denne knap vises kun ved flere prøve metoden} - Navigerer til skærmbillede hvor man kan se et plot over hvor tæt prøveresultaterne ligger på den generetet linje.
 \end{itemize}
@@ -92,7 +106,7 @@ Efter at man kligger på søg, kan man sorterer søgeresultaterne efter søjlern
 \subsection{Metode Dokumentation}\label{Documentation}
 Dokumentation beskriver metoden hvordan GFR værdierne er udregnet.\\ 
 Den kan man tilgå via sidebaren ved at klippe på linket »Documentation«
-\newpage
-\section{Til administration}
+
+
 
 \end{document}
