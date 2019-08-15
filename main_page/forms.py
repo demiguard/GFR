@@ -157,6 +157,13 @@ class EditConfigForm(forms.ModelForm):
     ]
 
 
+class EditProcedureForm(forms.ModelForm):
+  class Meta:
+    models.ProcedureType
+    fields = [
+      'type_name'
+    ]
+
 class EditHospitalForm(forms.ModelForm):
   class Meta:
     model = models.Hospital
@@ -250,6 +257,18 @@ class AddDepartmentForm(forms.ModelForm):
 
   hospital = forms.ChoiceField(choices=hosp_choices)
 
+
+class AddProcedureForm(forms.ModelForm):
+  class Meta:
+    model = models.ProcedureType
+
+    fields = [
+      'type_name',
+    ]
+
+    labels = {
+      'type_name' : 'Procedure Navn',
+    }
 
 class AddConfigForm(forms.ModelForm):
   class Meta:

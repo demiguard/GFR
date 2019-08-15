@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import QueryDict, HttpResponseNotFound, JsonResponse, HttpResponse, HttpResponseServerError
+from django.http import QueryDict, HttpResponseNotFound, JsonResponse, HttpResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.generic import View
 
 from smb.base import NotConnectedError
@@ -107,6 +107,11 @@ class DepartmentEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'config': models.Config,
   }
 
+class ProcedureEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
+  model = models.ProcedureType
+
+  fields = ['type_name']
+
 
 class ConfigEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.Config
@@ -120,7 +125,7 @@ class ConfigEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'pacs_aet',
     'pacs_ip',
     'pacs_port',
-    'pacs_calling'
+    'pacs_calling',
   ]
 
 
@@ -135,8 +140,12 @@ class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEnd
 class SambaBackupEndpoint(View):
   def get(self, request, date):
     # Extract search parameters
-    date = datetime.strptime(date, '%Y-%m-%d')
-    hospital = request.user.department.hospital.short_name
+    try:
+      date = datetime.strptime(date, '%Y-%m-%d')
+      hospital = request.user.department.hospital.short_name
+    except:
+      logger.warn(f'Samba Endpoint requested {date}')
+      return HttpResponseBadRequest()
 
     # Attempt to get backup data
     logger.info(f'Handling Ajax Get backup request with format: {date}')

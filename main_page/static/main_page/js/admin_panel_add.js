@@ -7,6 +7,7 @@ $(function() {
     'config': 'konfiguration',
     'hospital': 'hospital',
     'handled_examination': 'behandlede undersøgelse',
+    'procedure': 'procedure',
   };
 
   alerter.init_alerter($('#error-msg-container'));

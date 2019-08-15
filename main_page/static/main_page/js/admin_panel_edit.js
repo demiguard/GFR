@@ -15,6 +15,7 @@ $(function() {
     'config': 'konfiguration',
     'hospital': 'hospital',
     'handled_examination': 'behandlede undersøgelse',
+    'procedure' : 'procedure',
   };
 
   // Save button on click - update model using backend REST api
