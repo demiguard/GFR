@@ -182,9 +182,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     })
 
     if exam.sex == 'M':
-      present_sex = 'Mand'
+      present_sex = 0
     else:
-      present_sex = 'Kvinde'
+      present_sex = 1
 
     study_patient_form = forms.Fillpatient_1(initial={
       'cpr': exam.cpr,
