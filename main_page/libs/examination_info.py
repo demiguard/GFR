@@ -1,9 +1,8 @@
 import datetime
 import numpy as np
 
-from main_page.libs import formatting
-from main_page.libs.clearance_math import clearance_math
-
+from . import formatting
+from .clearance_math import clearance_math
 
 class ExaminationInfo:
   def __init__(self):
@@ -94,7 +93,7 @@ def deserialize(dicom_obj):
     try:
       exam.birthdate = clearance_math.calculate_birthdate(exam.cpr)
     except:
-      exam.birthdate = '2000-01-01'
+      exam.birthdate = '2000-01-01' 
 
   if 'clearance' in dicom_obj:
     exam.clearance = dicom_obj.clearance
@@ -151,6 +150,9 @@ def deserialize(dicom_obj):
 
   return exam
 
-
 def mass_deserialize(dicom_objs):
-  return [deserialize(obj) for obj in dicom_objs]
+  returnlist = []
+  for dicom_obj in dicom_objs:
+    exam_obj = deserialize(dicom_obj)
+    returnlist.append(exam_obj)
+  return returnlist
