@@ -3,9 +3,12 @@ from pydicom import Dataset, Sequence, uid
 from typing import Type
 import inspect
 
+from datetime import datetime
+
 from . import dicomlib
 from . import server_config
 from . import formatting
+
 
 logger = logging.getLogger()
 
@@ -117,10 +120,14 @@ def get_blank(
   ds.add_new(0x00321060, 'LO',  method_str)
 
   # Create ScheduledProcedureStepSequence
+  now = datetime.now()
+
+
   ds_seq = Dataset()
   ds_seq.add_new(0x00080060, 'CS', 'OT')
   ds_seq.add_new(0x00400001, 'AE', hospital_ae_title)
   ds_seq.add_new(0x00400002, 'DA', study_date.replace('-',''))
+  ds_seq.add_new(0x00400003, 'TM', now.strftime('%H%M'))
   ds_seq.add_new(0x00400007, 'SH', method_str)
   ds_seq.add_new(0x00400010, 'SH', hospital_ae_title)
 

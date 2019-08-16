@@ -119,7 +119,7 @@ def fill_study_post(request, rigs_nr, dataset):
     """)
 
     clearance, clearance_norm = clearance_math.calc_clearance(
-      inj_datetime, 
+      inj_datetime, #
       sample_datetimes,
       tec_counts,
       BSA,

@@ -1,7 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import datetime
 import os
@@ -291,25 +291,27 @@ def calculate_birthdate(cpr):
     Return a string on format
       YYYY-MM-DD
   """
-  logger.debug('Called with argument:{0}'.format(cpr))
+  #logger.debug('Called with argument:{0}'.format(cpr))
 
   cpr = cpr.replace('-','')
 
-  day_of_birth = cpr[0:2]
-  month_of_birth = cpr[2:4]
-  last_digits_year_of_birth = cpr[4:6]
-  control = cpr[6]
+  day_of_birth = cpr[0:2] # string
+  month_of_birth = cpr[2:4] #string 
+  last_digits_year_of_birth = cpr[4:6] #string
+  control = cpr[6] #string
 
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  if control in [0,1,2,3] or (control in [4,9] and 37 <= last_digits_year_of_birth ): 
-    first_digits_year_of_birth = 19
-  elif (control in [4,9] and last_digits_year_of_birth <= 36) or (control in [5,6,7,8] and last_digits_year_of_birth <= 57):
-    first_digits_year_of_birth = 20
+  if int(control) in [0,1,2,3] or (int(control) in [4,9] and 37 <= int(last_digits_year_of_birth)): 
+    first_digits_year_of_birth = '19'
+  elif (int(control) in [4,9] and int(last_digits_year_of_birth) <= 36) or (int(control) in [5,6,7,8] and int(last_digits_year_of_birth) <= 57):
+    first_digits_year_of_birth = '20'
+  else:
+    raise ValueError('Dead person Detected')
   #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
   returnstring = f'{first_digits_year_of_birth}{last_digits_year_of_birth}-{month_of_birth}-{day_of_birth}'
 
-  logger.debug('Returning with string:{0}'.format(returnstring))
+  #logger.debug('Returning with string:{0}'.format(returnstring))
   
   return returnstring 
 

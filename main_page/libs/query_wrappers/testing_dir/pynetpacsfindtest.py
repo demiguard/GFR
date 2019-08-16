@@ -9,7 +9,7 @@ logger = logging.getLogger()
 datasets = []
 
 rigs_calling = 'HVHFBERGHK7'
-rigs_aet     = 'VIPDICOM'
+rigs_aet     = 'VIPDICOM' #PACS
 rigs_ip      = '10.143.128.234'
 rigs_port    = 104
 

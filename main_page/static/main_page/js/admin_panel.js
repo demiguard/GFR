@@ -3,7 +3,8 @@ MODEL_URL_MAPPINGS = {
   'hospitals': '/api/hospital',
   'departments': '/api/department',
   'handled_examinations': '/api/handled_examination',
-  'configs': '/api/config'
+  'configs': '/api/config',
+  'procedure' : '/api/procedure',
 };
 
 MODEL_NAME_MAPPINGS = {
@@ -11,7 +12,8 @@ MODEL_NAME_MAPPINGS = {
   'hospitals': 'hospital',
   'departments': 'afdeling',
   'handled_examinations': 'behandlede undersøgelse',
-  'configs': 'konfiguration'
+  'configs': 'konfiguration',
+  'procedures' : 'procedure',
 };
 
 function clear_table_headers() {

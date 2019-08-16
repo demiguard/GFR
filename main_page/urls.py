@@ -1,7 +1,9 @@
 from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint
+#Sooo WhY do we not just import api at this point?
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint
+
 import main_page.views.views as views
 
 
@@ -15,6 +17,7 @@ urlpatterns = [
   path('search', views.SearchView.as_view(), name='search'),
   path('logout', views.LogoutView.as_view(), name='logout'),
   path('documentation', views.DocumentationView.as_view(), name='documentation'),
+  path('userguide',views.UserGuideView.as_view(), name='userguide'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   #Images
   path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),
@@ -46,4 +49,5 @@ urlpatterns = [
   path('api/config', ConfigEndpoint.as_view(), name='config'),
   path('api/config/<int:obj_id>', ConfigEndpoint.as_view(), name='config'),
   path('api/get_backup/<str:date>', SambaBackupEndpoint.as_view(), name='get_backup'),
+  path('api/procedure', ProcedureEndpoint.as_view(), name='procedure')
 ]

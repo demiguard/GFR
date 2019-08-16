@@ -34,3 +34,11 @@ class ClearanceMathTestCase(TestCase):
 
     self.assertEqual(out,expected)
 
+
+  def test_calculate_birthday_valid(self):
+    functioninput = '0606500149'
+
+    expected = '1950-06-06'
+    #Test
+    self.assertEqual(expected, clearance_math.calculate_birthdate(functioninput))
+
