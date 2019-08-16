@@ -1,5 +1,5 @@
 """
-THIS TEST FILE REQUIRES DRIVERS FOR EACH BROWER TYPE TO BE INSTALLED
+THIS TEST FILE REQUIRES DRIVERS FOR EACH BROWSER TYPE TO BE INSTALLED
 AND LOCATED UNDER THE ./main_page/tests/selenium_drivers/ DIRECTORY.
 THE DRIVERS CAN BE DOWNLOADED FROM:
 https://github.com/SeleniumHQ/selenium/blob/master/py/docs/source/index.rst
@@ -12,6 +12,10 @@ from selenium.webdriver.firefox.webdriver import WebDriver as FirefoxWebDriver
 from selenium.webdriver.firefox import options as FirefoxOptions
 
 from main_page import models
+from main_page.libs import server_config
+from main_page.libs.dirmanager import try_mkdir
+from main_page.libs import dicomlib
+from main_page.libs import dataset_creator
 
 
 # --- FillStudyView ---
@@ -41,7 +45,17 @@ class FillStudyFullTests(LiveServerTestCase):
     cls.is_logged_in = False
 
   def setUp(self):
+    # Enable debugging mode
     settings.DEBUG = True
+
+    # Create testing directory and corresponding dicom datasets and files
+    test_hospital = models.Hospital.objects.get(pk=1)
+    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{test_hospital.short_name}"
+    try_mkdir(hosp_dir, mk_parents=True)
+    
+    self.test_accession_number = "REGH12345678"
+    
+
 
     # Login to the site or go to the fill_study page if already logged in
     if not self.is_logged_in:
@@ -65,34 +79,15 @@ class FillStudyFullTests(LiveServerTestCase):
     else:
       pass
 
-  @classmethod
-  def setUpTestData(cls):
-    # Ensure that a mock examination file ('from' RIS) is available in the ./active_dicom_objects/TH directory
-    # Ensure that a test_user is created and propperly configured (NOTE: don't allow PACS access)
-    # Ensure that a study (dicom object) is a available for the test
-    # Ensure that a sample file is available on the Samba Share
-    # cls.user_group = models.UserGroup.objects.create(id=1, name='user')
-    # cls.user_group.save()
-
-    # cls.hospital = models.Hospital.objects.create(id=1, name="test_hospital", short_name="TH")
-    # cls.hospital.save()
-
-    # cls.config = models.Config.objects.create(id=1)
-    # cls.config.save()
-
-    # cls.department = models.Department.objects.create(id=1, name="test_department", hospital=cls.hospital, config=cls.config)
-    # cls.department.save()
-
-    # cls.user = models.User.objects.create(id=1, username='test_user', department=cls.department, user_group=cls.user_group)
-    # cls.user.set_password('test_user')
-    # cls.user.save()
-    pass
-
 
   @classmethod
   def tearDownClass(cls):
     # Correctly close and deallocated driver resources once test is done
     cls.driver.quit()
+
+    # Remove all used directories and dicom files
+
+
     super().tearDownClass()
 
   def test_full_study_calculate(self):
@@ -112,28 +107,31 @@ class FillStudyFullTests(LiveServerTestCase):
       The existance of a generated study image on disk
       That HandledExaminations is updated correctly after the study has successfully completed
     """
-    pass
+    # Click on first table entry - goto fill_study page
+    first_table_item = self.driver.find_element_by_css_selector("#new_studies tbody tr:first-child td:first-child")
+    first_table_item.click()
 
-  def test_partial_study_calculate(self):
-    # This should assert that (together with other similar tests) that the correct
-    # errors are prompted if trying to calculate a partially filled out study
-    pass
+    # Fill out each field in study
+    name_field = self.driver.find_element_by_name("cpr")
 
-  def test_full_study_save(self):
-    # Ensure that studies are saved correctly in dicom objects for a full study
-    pass
 
-  def test_partial_study_save(self):
-    # Ensure that partially filled out studies are correctly save in dicom objects 
-    # (Should be split over multiple tests for each field on the page)
-    pass
+    # Click calculate
 
-  
-  # Example code from the Django doc. page: https://docs.djangoproject.com/en/2.2/topics/testing/tools/
-  # def test_login(self):
-  #   self.selenium.get('%s%s' % (self.live_server_url, '/login/'))
-  #   username_input = self.selenium.find_element_by_name("username")
-  #   username_input.send_keys('myuser')
-  #   password_input = self.selenium.find_element_by_name("password")
-  #   password_input.send_keys('secret')
-  #   self.selenium.find_element_by_xpath('//input[@value="Log in"]').click()
+
+    # Assert dicom object fields
+
+
+
+  # def test_partial_study_calculate(self):
+  #   # This should assert that (together with other similar tests) that the correct
+  #   # errors are prompted if trying to calculate a partially filled out study
+  #   pass
+
+  # def test_full_study_save(self):
+  #   # Ensure that studies are saved correctly in dicom objects for a full study
+  #   pass
+
+  # def test_partial_study_save(self):
+  #   # Ensure that partially filled out studies are correctly save in dicom objects 
+  #   # (Should be split over multiple tests for each field on the page)
+  #   pass

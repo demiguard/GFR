@@ -4,7 +4,7 @@
     "pk": 1, 
     "fields": {
       "name": "test_hospital", 
-      "short_name": "TEST", 
+      "short_name": "UNIT_TEST", 
       "address": ""
     }
   }, 

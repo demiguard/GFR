@@ -13,6 +13,9 @@ class Hospital(models.Model):
   short_name = models.CharField(max_length=8, null=True)
   address = models.CharField(default='', max_length = 200, null=True)
 
+  def __str__(self):
+    return self.name
+
 
 # Used to filter reveiced dicom objects from PACS
 class ProcedureType(models.Model):

@@ -253,9 +253,7 @@ class AddDepartmentForm(forms.ModelForm):
     }
 
   # List available hospitals
-  hosp_choices = [(hospital.id, hospital.name) for hospital in models.Hospital.objects.all()]
-
-  hospital = forms.ChoiceField(choices=hosp_choices)
+  hospital = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Hospital.objects.all())
 
 
 class AddProcedureForm(forms.ModelForm):
