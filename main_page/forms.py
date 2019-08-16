@@ -104,13 +104,7 @@ class EditUserForm(forms.ModelForm):
         break
 
   # List available hospital choices from the database
-  hosp_depart_choices = [ ]
-
-  for choice_id, department in enumerate(models.Department.objects.all()):
-    choice_str = f"{department.hospital.name} - {department.name}"
-    hosp_depart_choices.append((choice_id, choice_str))
-
-  hosp_depart = forms.ChoiceField(choices=hosp_depart_choices, label="Afdeling")
+  hosp_depart = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
 
 
 # Custom choice field to change the displayed labels for the hospitals
@@ -203,18 +197,10 @@ class AddUserForm(forms.ModelForm):
   confirm_pass = forms.CharField(max_length=120, label="Gentag password", widget=forms.PasswordInput())
 
   # List available hospital choices from the database
-  hosp_depart_choices = [ ]
-
-  for department in models.Department.objects.all():
-    choice_str = f"{department.hospital.name} - {department.name}"
-    hosp_depart_choices.append((department.id, choice_str))
-
-  hosp_depart = forms.ChoiceField(choices=hosp_depart_choices, label="Afdeling")
+  hosp_depart = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
 
   # List available user groups
-  group_choices = [(group.id, group.name) for group in reversed(models.UserGroup.objects.all())]
-
-  user_group = forms.ChoiceField(choices=group_choices, label="Bruger gruppe")
+  user_group = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.UserGroup.objects.all())
 
 
 class AddHospitalForm(forms.ModelForm):

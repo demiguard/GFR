@@ -22,6 +22,9 @@ class ProcedureType(models.Model):
   id = models.AutoField(primary_key=True)
   type_name = models.CharField(max_length=200, default='', blank=True)
 
+  def __str__(self):
+    return self.type_name
+
 
 # Configuration for a department
 class Config(models.Model):
@@ -56,11 +59,16 @@ class Department(models.Model):
   thining_factor = models.FloatField(default=0.0, null=True)
   thining_factor_change_date = models.DateField(default=datetime.date(1,1,1))
 
+  def __str__(self):
+    return f"{self.hospital.name} - {self.name}"
 
 # Defines user permissions
 class UserGroup(models.Model):
   id = models.AutoField(primary_key=True)
   name = models.CharField(max_length=200)
+
+  def __str__(self):
+    return self.name
 
 
 class User(AbstractBaseUser):
