@@ -16,6 +16,15 @@ MODEL_NAME_MAPPINGS = {
   'procedures' : 'procedure',
 };
 
+SELECTED_MODEL_NAMES = {
+  'users': 'user',
+  'hospitals': 'hospital',
+  'departments': 'department',
+  'handled_examinations': 'handled_examination',
+  'configs': 'config',
+  'procedures' : 'procedure',
+}
+
 function clear_table_headers() {
   $('#admin-table-head').empty();
 }
@@ -70,14 +79,14 @@ function init_action_button_event_handlers() {
   $('.edit-btn').each(function() {
     $(this).on('click', function() {
       // Which model is being editted
-      var selected_model = $('#model-selector').val();
-      selected_model = selected_model.substring(0, selected_model.length - 1); // Remove last 's'
+      let selected_model_value = $('#model-selector').val();
+      let selected_model_name = SELECTED_MODEL_NAMES[selected_model_value];
 
       // Which specific model instance is being editted
       let obj_id = $(this).parent().parent().children()[0].innerText;
       
       // Redirect
-      let redirect_url = "/admin_panel/edit/" + selected_model + "/" + obj_id;
+      let redirect_url = "/admin_panel/edit/" + selected_model_name + "/" + obj_id;
       window.location.href = redirect_url;
     });
   });
@@ -159,7 +168,7 @@ function show_model() {
       }
     },
     error: function(data) {
-      console.log(data);
+      console.warn(data);
       // $('#id_accession_number').attr('readonly', false);
       // let resp_accession_number = data.responseJSON.resp_accession_number;
       // alerter.add_alert("Kunne ikke slette behandlede undersøgelse med accession nummer: '" + resp_accession_number + "'", 'danger');
@@ -169,7 +178,6 @@ function show_model() {
 
 $(function() {
   // Site loaded
-  console.log("Admin panel loaded");
   alerter.init_alerter($('#error-container'));
 
   show_model();
@@ -177,12 +185,11 @@ $(function() {
   $('#model-selector').on('change', show_model);
 
   $('#add-btn').on('click', function() {
-    console.log("clicked add-btn");
-    // Which model is being added
-    var selected_model = $('#model-selector').val();
-    selected_model = selected_model.substring(0, selected_model.length - 1); // Remove last 's'
+    // Determine which model is being added, so the correct api endpoint can be reached 
+    let selected_model_value = $('#model-selector').val();
+    let selected_model_name = SELECTED_MODEL_NAMES[selected_model_value];
 
-    let add_url = "/admin_panel/add/" + selected_model;
+    let add_url = "/admin_panel/add/" + selected_model_name;
     window.location.href = add_url;
   });
 });
