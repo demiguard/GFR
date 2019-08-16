@@ -123,7 +123,7 @@ def connect_to_RIS(config: Type[models.Config]):
   except ValueError:
     # If AET is empty then a ValueError is thrown by pynetdicom
     log_connection_failed(config)
-    raise ConnectionError("Kunne ikke forbinde til RIS")
+    raise ConnectionError("Kunne ikke forbinde til RIS, der fremvises kun tidligere hentede undersøgelser.")
 
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
   ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
