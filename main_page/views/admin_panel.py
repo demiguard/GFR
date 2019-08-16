@@ -35,7 +35,8 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'config': models.Config,
     'hospital': models.Hospital,
     'handled_examination': models.HandledExaminations,
-    'proceduretype': models.ProcedureType
+    'proceduretype': models.ProcedureType,
+    'procedure_mapping': models.Config.accepted_procedures.through
   }
 
   EDIT_FORM_MAPPINGS = {
@@ -86,7 +87,8 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'config': models.Config,
     'hospital': models.Hospital,
     'handled_examination': models.HandledExaminations,
-    'procedure' : models.ProcedureType, 
+    'proceduretype' : models.ProcedureType,
+    'procedure_mapping': models.Config.accepted_procedures.through
   }
 
   ADD_FORM_MAPPINGS = {
@@ -96,6 +98,7 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'hospital': forms.AddHospitalForm,
     'handled_examination': forms.AddHandledExaminationsForm,
     'proceduretype': forms.AddProcedureForm,
+    'procedure_mapping': forms.AddProcedureMapping
   }
 
   def get(self, request, model_name):

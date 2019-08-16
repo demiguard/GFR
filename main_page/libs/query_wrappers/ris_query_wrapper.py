@@ -163,6 +163,7 @@ def get_patients_from_rigs(user):
 
   studies = [ ]
   processed_accession_numbers = [ ] # List of accession numbers which have been processed
+  accepted_procedures = [procedure.type_name for procedure in user_config.accepted_procedures.all()]
 
   # Find all previous dicom objects which have not passed the expiration day threshold
   try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}", mk_parents=True)
@@ -175,8 +176,9 @@ def get_patients_from_rigs(user):
     date_of_examination = datetime.datetime.strptime(date_string,'%Y%m%d')
   
     if not has_expired(date_of_examination): # Not expired
-      studies.append(dataset)
-      processed_accession_numbers.append(dataset.AccessionNumber)
+      if dataset_is_valid(dataset, processed_accession_numbers, accepted_procedures):
+        studies.append(dataset)
+        processed_accession_numbers.append(dataset.AccessionNumber)
     else: # expired
       # TODO: Move to recycle bin
       logger.info('Old file detected moving {0}.dcm to recycle bin'.format(
@@ -193,9 +195,9 @@ def get_patients_from_rigs(user):
 
   # Create query file to get new studies
   query_ds = dataset_creator.generate_ris_query_dataset(ris_calling=user_config.ris_calling)
-  accepted_procedures = [procedure.type_name for procedure in user_config.accepted_procedures.all()]
   
   logger.info(f'User: {user.username} is making a C-FIND')
+  logger.info(f"With accepted_procedures: {accepted_procedures}")
   
   response = assocation.send_c_find(query_ds, query_model='S')
 

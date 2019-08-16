@@ -1,3 +1,4 @@
+// Endpoint to access the model through
 MODEL_URL_MAPPINGS = {
   'users': '/api/user',
   'hospitals': '/api/hospital',
@@ -5,17 +6,21 @@ MODEL_URL_MAPPINGS = {
   'handled_examinations': '/api/handled_examination',
   'configs': '/api/config',
   'procedures' : '/api/proceduretype',
+  'procedure_mapping': '/api/procedure_mapping',
 };
 
+// Names to display to the user
 MODEL_NAME_MAPPINGS = {
   'users': 'bruger',
   'hospitals': 'hospital',
   'departments': 'afdeling',
   'handled_examinations': 'behandlede undersøgelse',
   'configs': 'konfiguration',
-  'procedures' : 'procedure',
+  'procedures' : 'proceduretype',
+  'procedure_mapping': 'procedure filter',
 };
 
+// Name of the underlying model
 SELECTED_MODEL_NAMES = {
   'users': 'user',
   'hospitals': 'hospital',
@@ -23,6 +28,7 @@ SELECTED_MODEL_NAMES = {
   'handled_examinations': 'handled_examination',
   'configs': 'config',
   'procedures' : 'proceduretype',
+  'procedure_mapping': 'procedure_mapping',
 }
 
 function clear_table_headers() {
@@ -104,12 +110,12 @@ function init_action_button_event_handlers() {
           url: api_url,
           type: 'DELETE',
           success: function(data) {
-            console.log(data);
+            // console.log(data);
             
             show_model();
           },
           error: function(data) {
-            console.log(data);
+            // console.log(data);
           }
         });
       }
@@ -134,7 +140,11 @@ function init_action_buttons() {
     var divider_div = document.createElement('div');
     divider_div.classList.add('divider');
 
-    edit_td.appendChild(edit_button);
+    let selected_model_value = $('#model-selector').val();
+    if (selected_model_value.indexOf('procedure_mapping') == -1) { // Excluded edit button from procedure_mappings
+      edit_td.appendChild(edit_button);
+    }
+    
     edit_td.appendChild(divider_div);
     edit_td.appendChild(delete_button);
 
@@ -148,12 +158,12 @@ function show_model() {
   alerter.clear_alerts();
 
   let selected_model = $('#model-selector').val();
-  console.log(selected_model);
+  // console.log(selected_model);
   $.ajax({
     url: MODEL_URL_MAPPINGS[selected_model],
     type: 'GET',
     success: function(data) {
-      console.log(data);
+      // console.log(data);
       let vals = Object.values(data)[0];
       if (vals.length != 0) {
         let headers = Object.keys(vals[0]);

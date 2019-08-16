@@ -110,11 +110,15 @@ class PostEndpoint(View):
 
     # Find next id available, if the model has an 'id' field
     if getattr(self.model, 'id', False):
-      obj_id = self.model.objects.all().order_by("-id")[0].id
-      obj.id = obj_id + 1
+      try:
+        obj_id = self.model.objects.all().order_by("-id")[0].id
+        obj.id = obj_id + 1
+      except IndexError: # No model instance currently exists
+        obj.id = 1
 
     # Set additional fields
     request_body = QueryDict(request.body)
+    print(request_body)
 
     for key, value in request_body.items():
       # If key is a password, set it

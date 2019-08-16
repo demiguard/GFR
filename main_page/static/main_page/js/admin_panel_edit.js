@@ -16,6 +16,7 @@ $(function() {
     'hospital': 'hospital',
     'handled_examination': 'behandlede undersøgelse',
     'proceduretype' : 'procedure',
+    'procedure_mapping': 'procedure filter',
   };
 
   // Save button on click - update model using backend REST api

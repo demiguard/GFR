@@ -275,6 +275,20 @@ class AddHandledExaminationsForm(forms.ModelForm):
     fields = [
       'accession_number'
     ]
+
+
+class AddProcedureMapping(forms.ModelForm):
+  class Meta:
+    model = models.Config.accepted_procedures.through
+  
+    fields = [
+      'department',
+      'proceduretype_id'
+    ]
+
+  department = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
+  proceduretype_id = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.ProcedureType.objects.all())
+
 # --- ADD FORMS END --- #
 
 

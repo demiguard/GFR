@@ -140,6 +140,29 @@ class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEnd
   ]
 
 
+class ProcedureMappingsEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
+  model = models.Config.accepted_procedures.through # Retreive the underlying relation model
+
+  fields = [
+    'id',
+    'config_id',
+    'proceduretype_id',
+  ]
+
+  def post(self, request):
+    # Modify request to contain correct config id instead of department id
+    request_body = request.POST
+   
+    department_id = request_body['department']
+    config_id = models.Department.objects.get(pk=department_id).config.id
+
+    proceduretype_id = request_body['proceduretype_id']
+
+    request._body = f"config_id={config_id}&proceduretype_id={proceduretype_id}".encode()
+
+    return super().post(request)
+
+
 class SambaBackupEndpoint(View):
   def get(self, request, date):
     # Extract search parameters
