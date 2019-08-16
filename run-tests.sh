@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+# TODO: Make the selenium tests optional through a new option (-s --selenium, and -so --selenium-only)
+# TODO: Allow the verbose option to have a long name (--verbose)
+# TODO: Create at help option (-h and --help)
+
 # Check arg count
 if [ $# -gt 1 ]; then
   echo "Error: To many arguments, expected one."

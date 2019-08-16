@@ -1,0 +1,62 @@
+[
+  {
+    "model": "main_page.hospital", 
+    "pk": 1, 
+    "fields": {
+      "name": "test_hospital", 
+      "short_name": "TEST", 
+      "address": ""
+    }
+  }, 
+  {
+    "model": "main_page.config", 
+    "pk": 1, 
+    "fields": {
+      "ris_aet": "", 
+      "ris_ip": "", 
+      "ris_port": "", 
+      "ris_calling": "", 
+      "pacs_aet": "", 
+      "pacs_ip": "", 
+      "pacs_port": "", 
+      "pacs_calling": "", 
+      "accepted_procedures": [ ]
+    }
+  }, 
+  {
+    "model": "main_page.department", 
+    "pk": 1, 
+    "fields": {
+      "name": "test_department", 
+      "hospital": 1,
+      "config": 1, 
+      "thining_factor": 0.0, 
+      "thining_factor_change_date": "2019-01-01"
+    }
+  }, 
+  {
+    "model": "main_page.usergroup", 
+    "pk": 1,
+    "fields": {
+      "name": "admin"
+    }
+  }, 
+  {
+    "model": "main_page.usergroup",
+    "pk": 2,
+    "fields": {
+      "name": "user"
+    }
+  }, 
+  {
+    "model": "main_page.user",
+    "pk": 2,
+    "fields": {
+      "last_login": "2019-08-14T07:46:26.448Z", 
+      "username": "test_user", 
+      "password": "pbkdf2_sha256$150000$dYbVvh70LR2z$FDFZoERcmbJS0fkCKtXRIToF66JfrTWJIWCi9NdBXmg=", 
+      "department": 1, 
+      "user_group": 2
+    }
+  }
+]
