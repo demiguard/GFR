@@ -1,7 +1,7 @@
 // TODO: Only send keys and values for the fields which have actually been changed
 
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 $(function() {
@@ -15,7 +15,7 @@ $(function() {
     'config': 'konfiguration',
     'hospital': 'hospital',
     'handled_examination': 'behandlede undersøgelse',
-    'procedure' : 'procedure',
+    'proceduretype' : 'procedure',
   };
 
   // Save button on click - update model using backend REST api

@@ -49,6 +49,6 @@ urlpatterns = [
   path('api/config', ConfigEndpoint.as_view(), name='config'),
   path('api/config/<int:obj_id>', ConfigEndpoint.as_view(), name='config'),
   path('api/get_backup/<str:date>', SambaBackupEndpoint.as_view(), name='get_backup'),
-  path('api/procedure', ProcedureEndpoint.as_view(), name='procedure'),
-  path('api/procedure/<int:obj_id>', ProcedureEndpoint.as_view(), name='procedure')
+  path('api/proceduretype', ProcedureEndpoint.as_view(), name='procedure'),
+  path('api/proceduretype/<int:obj_id>', ProcedureEndpoint.as_view(), name='procedure')
 ]

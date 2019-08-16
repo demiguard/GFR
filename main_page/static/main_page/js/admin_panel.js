@@ -4,7 +4,7 @@ MODEL_URL_MAPPINGS = {
   'departments': '/api/department',
   'handled_examinations': '/api/handled_examination',
   'configs': '/api/config',
-  'procedure' : '/api/procedure',
+  'procedures' : '/api/proceduretype',
 };
 
 MODEL_NAME_MAPPINGS = {
@@ -22,7 +22,7 @@ SELECTED_MODEL_NAMES = {
   'departments': 'department',
   'handled_examinations': 'handled_examination',
   'configs': 'config',
-  'procedures' : 'procedure',
+  'procedures' : 'proceduretype',
 }
 
 function clear_table_headers() {
@@ -148,7 +148,7 @@ function show_model() {
   alerter.clear_alerts();
 
   let selected_model = $('#model-selector').val();
-
+  console.log(selected_model);
   $.ajax({
     url: MODEL_URL_MAPPINGS[selected_model],
     type: 'GET',

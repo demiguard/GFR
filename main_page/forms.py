@@ -159,7 +159,7 @@ class EditConfigForm(forms.ModelForm):
 
 class EditProcedureForm(forms.ModelForm):
   class Meta:
-    models.ProcedureType
+    model = models.ProcedureType
     fields = [
       'type_name'
     ]

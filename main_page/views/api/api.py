@@ -110,7 +110,10 @@ class DepartmentEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
 class ProcedureEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.ProcedureType
 
-  fields = ['type_name']
+  fields = [
+    'id',
+    'type_name'
+  ]
 
 
 class ConfigEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
