@@ -184,6 +184,10 @@ def get_patients_from_rigs(user):
       logger.info('Old file detected moving {0}.dcm to recycle bin'.format(
         dataset.AccessionNumber
       ))
+      try_mkdir(f"{server_config.DELETED_STUDIES_DIR}{user_hospital.short_name}", mk_parents=True)
+      dest_path = f"{server_config.DELETED_STUDIES_DIR}{user_hospital.short_name}/{dataset.AccessionNumber}.dcm"
+      shutil.move(dcm_file_path, dest_path) 
+
 
   # Attempt to connect to RIS
   try:

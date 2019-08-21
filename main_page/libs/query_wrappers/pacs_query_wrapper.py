@@ -395,7 +395,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   return response_list
 
 
-def get_history_from_pacs(cpr, birthday, user):
+def get_history_from_pacs(cpr : str, birthday : str, user):
   """
   Retrieves information historical data about a user from pacs.
   This function doesn't save anything
