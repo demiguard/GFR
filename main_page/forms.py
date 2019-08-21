@@ -22,11 +22,17 @@ class NewStudy(forms.Form):
 class Fillpatient_1(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.', required=False)
   name = forms.CharField(label='Navn', required=False)
-  
+
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   sex = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
   
   birthdate = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(Fillpatient_1, self).__init__(*args, **kwargs)
+    self.fields['cpr'].widget.attrs['readonly'] = True
+    self.fields['name'].widget.attrs['readonly'] = True
+
 
 class Fillpatient_2(forms.Form):
   height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)
@@ -48,9 +54,9 @@ class Filldosis(forms.Form):
 
 class FillStudyType(forms.Form):
   types = [
-    (0, 'En blødprøve, voksen'),
-    (1, 'En blødprøve, barn'),
-    (2, 'Flere blødprøver')
+    (0, 'En blodprøve, voksen'),
+    (1, 'En blodprøve, barn'),
+    (2, 'Flere blodprøver')
   ]
 
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())

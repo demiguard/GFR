@@ -340,6 +340,8 @@ $(function() {
       } else {
         failure_callback();
       }
+    } else {
+      success_callback();
     }
   };
 
@@ -355,7 +357,7 @@ $(function() {
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
-  $("#cancel").click(function() {
+  $("#cancel").on('click', function() {
     confirm_cancel_study(
       function() {
         // Redirect on success
@@ -478,9 +480,11 @@ $(function() {
     var dt = Date.parse(dt_str);
 
     for (var i = 0; i < date_fields.length; i++) {
-      var t_str = date_fields[i].value + ' ' + time_fields[i].value + ':00';
+      var t_date = helper.convert_danish_date_to_date_format(date_fields[i].value);
+      var t_str = t_date + ' ' + time_fields[i].value + ':00';
+
       var t = Date.parse(t_str);
-      
+
       if (dt >= t) { // injection timestamp >= test timestamp
         alerter.add_alert(
           'Prøvetidspunkter kan ikke være før injektionstidspunkter.',
@@ -493,12 +497,11 @@ $(function() {
     return true;
   });
 
-  // TODO: revaluate life chocies with the following code below!
   // 'Gem' on click event
   $('#save').click(function() {
     // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
   
     alerter.clear_alerts();
-  });
+  });  
 });

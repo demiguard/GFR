@@ -41,9 +41,9 @@
       <!-- Left side-->
       <div class="col-md-6">
         <!-- Display test info -->
-        <strong>Stardardtælletal</strong>
         <div class="form-row">
           <div class="form-group col-md-6">
+            <label for="standard-field">Standardtælletal</label>
             <input type="number" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
           </div>
         </div>
@@ -91,6 +91,7 @@
           </div>
           {% buttons %}
             <input type="button" value="Tilføj prøve" id="add-test">
+            <input type="button" value="Tilføj tom prøve" id="add-empty-value">
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>

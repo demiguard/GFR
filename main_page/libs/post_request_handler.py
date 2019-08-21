@@ -31,6 +31,15 @@ from main_page.libs import enums
 
 logger = logging.getLogger()
 
+"""
+TODO: The two function below; fill_study_post and store_form both perform 
+      extraction and type conversion of the same fields in the POST request.
+      Meaning that as fill_study_post calls store_form this happends twice.
+      Fix this... i.e. move the type conversion to an external function which
+      performs the necessary conversions just ONCE.
+"""
+
+
 def fill_study_post(request, rigs_nr, dataset):
   """
   Handles Post request for fill study
@@ -73,7 +82,9 @@ def fill_study_post(request, rigs_nr, dataset):
       from ip: {request.META['REMOTE_ADDR']}
       """
     )
+    
     dataset = store_form(request, dataset, rigs_nr) 
+    
     # Construct datetime for injection time
     inj_time = request.POST['injection_time']
     inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
@@ -93,33 +104,35 @@ def fill_study_post(request, rigs_nr, dataset):
     # Measured tec99 counts
     tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
-    # Compute surface area
     weight = float(request.POST['weight'])
     height = float(request.POST['height'])
+    
+    # Compute surface area
     BSA = clearance_math.surface_area(height, weight)
 
-    # Compute dosis
     inj_weight_before = float(request.POST['vial_weight_before'])
     inj_weight_after = float(request.POST['vial_weight_after'])
     inj_weight = inj_weight_before - inj_weight_after
 
     STD_CNT = float(request.POST['std_cnt_text_box'])
     FACTOR = float(request.POST['thin_fac'])
+    
+    # Compute dosis
     dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
 
-    # Calculate GFR
     logger.info(f"""
-    Clearance calculation input:
-    injection time: {inj_datetime}
-    Sample Times: {sample_datetimes}
-    Tch99 cnt: {tec_counts}
-    Body Surface Area: {BSA}
-    Dosis: {dosis}
-    Method: {study_type_name}
+      Clearance calculation input:
+      injection time: {inj_datetime}
+      Sample Times: {sample_datetimes}
+      Tch99 cnt: {tec_counts}
+      Body Surface Area: {BSA}
+      Dosis: {dosis}
+      Method: {study_type_name}
     """)
 
+    # Compute clearance and normalized clearance
     clearance, clearance_norm = clearance_math.calc_clearance(
-      inj_datetime, #
+      inj_datetime,
       sample_datetimes,
       tec_counts,
       BSA,
@@ -135,18 +148,19 @@ def fill_study_post(request, rigs_nr, dataset):
 
     name = request.POST['name']
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
-    birthdate_str = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
-    gender_num = int(request.POST['sex'])
+    birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
     
+    gender_num = int(request.POST['sex'])
     gender = enums.Gender(gender_num)
     gender_name = enums.GENDER_NAMINGS[gender.value]
-    gender_short = enums.GENDER_SHORT_NAMES[gender.value]
 
-    birthdate = datetime.datetime.strptime(request.POST['birthdate'], '%d-%m-%Y')
+    # Determine new kidney function
+    gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, birthdate, gender)
 
-    gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, cpr, birthdate, gender_short)
-
+    # Get historical data from PACS
     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, birthdate, request.user)
+    
+    # Generate plot to display
     pixel_data = clearance_math.generate_plot_text(
       weight,
       height,
@@ -168,6 +182,7 @@ def fill_study_post(request, rigs_nr, dataset):
       procedure_description=dataset.RequestedProcedureDescription
     )
         
+    # Insert plot (as byte string) into dicom object
     dicomlib.fill_dicom(
       dataset,
       gfr            = gfr_str,
@@ -287,7 +302,7 @@ def store_form(request, dataset, rigs_nr):
     update_date = True,
     injection_time=injection_time,
     gfr_type=study_type_name,
-    series_number = rigs_nr[4:],
+    series_number = 1,
     station_name = request.user.department.config.ris_calling,
     gender=gender,
     injection_before = injection_before,
