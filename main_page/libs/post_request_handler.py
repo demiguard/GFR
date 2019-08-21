@@ -302,7 +302,7 @@ def store_form(request, dataset, rigs_nr):
     update_date = True,
     injection_time=injection_time,
     gfr_type=study_type_name,
-    series_number = rigs_nr[4:],
+    series_number = 1,
     station_name = request.user.department.config.ris_calling,
     gender=gender,
     injection_before = injection_before,
