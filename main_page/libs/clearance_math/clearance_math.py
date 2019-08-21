@@ -46,7 +46,7 @@ def surface_area(height: float, weight: float, method: str="Haycock") -> float:
 
 def calc_clearance(
   inj_time: datetime.date, 
-  sample_time: List[datetime.date], 
+  sample_times: List[datetime.date], 
   tec99_cnt: List[float], 
   BSA: float, 
   dosis: float, 
@@ -58,7 +58,7 @@ def calc_clearance(
 
   Args:
     inj_time: A date object containing information when the injection happened 
-    sample_time: a list of date objects containing formation when the bloodsample was taken
+    sample_times: a list of date objects containing formation when the bloodsample was taken
     tec99_cnt: A list of floats containing the counts from the samples
     BSA: a float, the estimated body surface area, see function: surface_area
     dosis: A float with calculation of the dosis size, see function: dosis
@@ -72,10 +72,16 @@ def calc_clearance(
     the documentation pdf. "We" (Simon & Christoffer) didn't come up with
     these, they were found by doctors so just trust them...
   """
-  # timedelta list from timedate
-  # TODO: WTF is this list comprehension doing???....
-  delta_times = [(time - inj_time).seconds / 60 + 86400 * (time - inj_time).days for time in sample_time]
+  # Computes difference between sample and injection time in minutes (timedelta list from timedate)
+  delta_times = [ ]
+  for sample_time in sample_times:
+    time_diff = sample_time - inj_time
+    
+    diff_in_minutes = (time_diff.seconds / 60) + (time_diff.days * 1440)
 
+    delta_times.append(diff_in_minutes)
+
+  # Determine computation based on study type
   if study_type == enums.StudyType.ONE_SAMPLE_ADULT:
     # In this study_type deltatimes and tec99_cnt lenght is equal to one
     clearance_normalized = (0.213 * delta_times[0] - 104) * np.log(tec99_cnt[0] * BSA / dosis ) + 1.88 * delta_times[0] - 928
@@ -237,9 +243,7 @@ def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Ge
 
   # Calculate Mean GFR
   if age < 2 : # Babies
-    magic_number_1 = 0.209
-    magic_number_2 = 1.44
-    Mean_GFR = 10 ** (magic_number_1 * np.log10(age_in_days) + magic_number_2)
+    Mean_GFR = 10 ** (0.209 * np.log10(age_in_days) + 1.44)
   elif age < 15 : # Childern
     Mean_GFR = 109
   elif age < 40: # Grown ups
@@ -247,22 +251,20 @@ def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Ge
       Mean_GFR = 111
     else:
       Mean_GFR = 103
-  else : #Elders
-    magic_number_1 = -1.16
-    magic_number_2 = 157.8
+  else: # Elders
     if gender == enums.Gender.MALE:
-      Mean_GFR = magic_number_1 * age + magic_number_2
+      Mean_GFR = -1.16 * age + 157.8
     else:  
       Female_reference_pct = 0.929
-      Mean_GFR = (magic_number_1 * age + magic_number_2) * Female_reference_pct
+      Mean_GFR = (-1.16 * age + 157.8) * Female_reference_pct
 
   # Use the mean GFR to calculate the index GFR, Whatever that might be
   index_GFR = 100 * (Mean_GFR - clearance_norm) / Mean_GFR
 
   # From the index GFR, Conclude on the kidney function
-  if index_GFR < 25 : 
+  if index_GFR < 25: 
     return "Normal", index_GFR
-  elif index_GFR < 48 :
+  elif index_GFR < 48:
     return "Moderat nedsat", index_GFR
   elif index_GFR < 72:
     return "Middelsvært nedsat", index_GFR
