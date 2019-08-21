@@ -232,9 +232,21 @@ var csv_handler = (function() {
     }
 
     // Check if time difference between injection time and test time is within a set threshold
-    let time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00');
-    let time_of_study = new Date(study_date_field.val() + 'T' + study_time_field.val() + ':00');
+    var inj_date = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
+    var inj_time = $('#id_injection_time').val()
+    let time_of_inj = new Date(inj_date + 'T' + inj_time  + ':00');
+
+    var study_date = helper.convert_danish_date_to_date_format(study_date_field.val());
+    var study_time = study_time_field.val();
+    let time_of_study = new Date(study_date + 'T' + study_time + ':00');
     let time_diff = time_of_study - time_of_inj;
+
+    if (inj_date != study_date) {
+      alerter.add_alert(
+        "Prøvedato er forskellig fra injektionsdato.",
+        "warning"
+      );
+    }
 
     // Check if study date was before injection date - this shouldn't be possible...
     if (time_of_study < time_of_inj) {
