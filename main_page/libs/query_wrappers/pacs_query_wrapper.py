@@ -469,6 +469,7 @@ def get_history_from_pacs(cpr, birthday, user):
               #Read values of Clearence Normalized and date of examination into a return list
               date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
               date_list.append(date_of_examination)
+              logger.info(f'Type of birthday: {type(birthday)} Type of date_of_examination:{type(date_of_examination)}')
               age_at_examination = (date_of_examination - birthday).days / 365
               age_list.append(age_at_examination)
               clearence_norm_list.append(float(move_response_dataset.normClear))
@@ -476,7 +477,9 @@ def get_history_from_pacs(cpr, birthday, user):
               logger.info(f'Deleteing File: {filename}')
               os.remove(filename)
             except Exception as E:
-              logger.warn(f'Error handling {accession_number} with {E}')      
+              logger.warn(f'Error handling {accession_number} with {E}')
+          elif move_status.Status == 0xFF00:
+            pass      
           else:
             logger.warn(f'Move Response code:{move_status.Status}')
       elif find_status.Status == 0x0000:
