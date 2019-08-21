@@ -168,7 +168,7 @@ def fill_study_post(request, rigs_nr, dataset):
       clearance,
       clearance_norm,
       gfr_str,
-      birthdate_str,
+      birthdate,
       gender_name,
       rigs_nr,
       cpr = cpr,
