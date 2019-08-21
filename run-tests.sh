@@ -9,7 +9,15 @@ if [[ $# -eq 1 && ( "$1" == "-h" || "$1" == "--help" ) ]]; then
   echo "-s  --selenium    : only run selenium tests"
   echo "-ns --no-selenium : disable selenium tests"
   echo "-nr --no-report   : disable XML report generation"
+  echo ""
+  echo "Remark: This test script assumes it's being ran in the virtual environment."
   exit 0
+fi
+
+# Virtual environment check
+if [[ "$VIRTUAL_ENV" == "" ]]; then
+  echo "Error: Test script MUST be ran in virtual environment. For setup of required virtual environment see README file."
+  exit 1
 fi
 
 # Check if Selenium drivers are available
