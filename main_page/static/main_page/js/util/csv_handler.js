@@ -36,7 +36,9 @@ var csv_handler = (function() {
 
     test_count = old_locks_len;
 
-    check_test_count();
+    let study_method = $('input[name=study_type]:checked').val();
+
+    check_test_count(study_method);
   };
 
   /*
@@ -176,7 +178,8 @@ var csv_handler = (function() {
       $(this).parent().parent().remove();
 
       // Check if buttons should be enabled
-      check_test_count();
+      let study_method = $('input[name=study_type]:checked').val();
+      check_test_count(study_method);
     });
   }
 
@@ -367,7 +370,8 @@ var csv_handler = (function() {
       clear_selected_rows();
 
       // Check if buttons should be disabled
-      check_test_count();
+      let study_method = $('input[name=study_type]:checked').val();
+      check_test_count(study_method);
 
       test_count++;
     });
@@ -440,9 +444,15 @@ var csv_handler = (function() {
 
   /*
   Determines wheter or not to display the button for adding more tests
+
+  Input:
+    study_method :
+      0 : Voksen enkel blodprøve
+      1 : Børn flere blodprøve
+      2 : Multi prøve blodprove
+
   */
-  var check_test_count = function() {
-    let study_method = $('input[name=study_type]:checked').val();
+  var check_test_count = function(study_method) {    
     
     if (study_method <= 1) {          // 'Et punkt voksen' eller 'Et punkt voksen'
       let test_count = $('#test-data-container .form-row').length;
@@ -465,8 +475,9 @@ var csv_handler = (function() {
     Selected tests won't be deselected
   */
   var init_study_method = function() {
-    $('input[name="study_type"]').click(function() { 
-      check_test_count();
+    $('input[name="study_type"]').click(function() {
+      let study_method = $('input[name=study_type]:checked').val(); 
+      check_test_count(study_method);
     });
   };
 
