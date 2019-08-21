@@ -48,9 +48,9 @@ class Filldosis(forms.Form):
 
 class FillStudyType(forms.Form):
   types = [
-    (0, 'En blødprøve, voksen'),
-    (1, 'En blødprøve, barn'),
-    (2, 'Flere blødprøver')
+    (0, 'En blodprøve, voksen'),
+    (1, 'En blodprøve, barn'),
+    (2, 'Flere blodprøver')
   ]
 
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
