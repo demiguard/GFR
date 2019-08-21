@@ -497,12 +497,11 @@ $(function() {
     return true;
   });
 
-  // TODO: revaluate life chocies with the following code below!
   // 'Gem' on click event
   $('#save').click(function() {
     // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
   
     alerter.clear_alerts();
-  });
+  });  
 });

@@ -9,7 +9,7 @@ import shutil
 import logging
 from PIL import Image
 from scipy.stats import linregress
-from typing import List, Tuple
+from typing import List, Tuple, Type
 
 from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
@@ -186,14 +186,14 @@ def calculate_age(cprnr):
 
 def calculate_age_in_days(cpr):
   """
-  DO NOT USE THIS FUNCTION ON PEOPLE BORN IN THE TWENTIES CENTURY
-  IT'S INTENTED FOR PEOPLE BORN IN 20XX
+  Computes the age in days for a given cpr
 
   Arg:
     cprnr: string, Cpr number of a person born in 20XX
 
-  REMARKS: DONT BE DUMB, READ FUNCTION DECRIPTION
-  YES, ALL CAPS IS NECESSARY, DONT YOU DARE QUESTION MY EGO
+  Remarks:
+    This function is intended to be used on people born in the 21th centry, e.g. 20xx
+    This function assumes correct formatting and validity of the cpr number 
   """
   day_of_birth = int(cpr[0:2])
   month_of_birth = int(cpr[2:4])
@@ -212,56 +212,54 @@ def calculate_sex(cprnr):
   else:
     return 'M'
 
-def kidney_function(clearance_norm, cpr, birthdate, gender):
-  """expression
-    Calculate the Kidney function compared to their age and gender
-  Args:
-    Clearence_norm: Float, Clearence of the patient
-    cpr:            string, cpr matching the patient
-  Returns
-    Kidney_function: string, Describing the kidney function of the patient
+def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Gender]) -> str:
   """
-  #Calculate Age and gender from Cpr number
-  try:
-    age = calculate_age(cpr)
-    age_in_days = calculate_age_in_days(cpr)
-    gender = calculate_sex(cpr)
-  except:
-    now = datetime.datetime.today()
-    birthdate = datetime.datetime.strptime(birthdate, '%Y-%m-%d')
-
-    age_in_days = (now - birthdate).days
-    age = int((now - birthdate).days / 365)
-    gender = gender
+  Calculate the Kidney function compared to their age and gender
+  
+  Args:
+    clearence_norm: computed clearence of the patient
+    birthdate: birthdate of patient (format: YYYY-MM-DD)
+    gender: gender of patient
+  
+  Returns:
+    String describing the kidney function of the patient
+  """
+  # Calulcate age in days and years
+  now = datetime.datetime.today()
+  birthdate = datetime.datetime.strptime(birthdate, '%Y-%m-%d')
+  
+  age_in_days = (now - birthdate).days
+  age = int(age_in_days / 365)
 
   logging.info(f"gender: {gender}")
   logging.info(f"Age: {age}")
   logging.info(f"age in days: {age_in_days}")
 
-  #Calculate Mean GFR
+  # Calculate Mean GFR
   if age < 2 : # Babies
     magic_number_1 = 0.209
     magic_number_2 = 1.44
-    Mean_GFR = 10**(magic_number_1 * np.log10(age_in_days) + magic_number_2)
+    Mean_GFR = 10 ** (magic_number_1 * np.log10(age_in_days) + magic_number_2)
   elif age < 15 : # Childern
     Mean_GFR = 109
   elif age < 40: # Grown ups
-    if gender == 'M':
+    if gender == enums.Gender.MALE:
       Mean_GFR = 111
     else:
       Mean_GFR = 103
   else : #Elders
     magic_number_1 = -1.16
     magic_number_2 = 157.8
-    if gender == 'M':
+    if gender == enums.Gender.MALE:
       Mean_GFR = magic_number_1 * age + magic_number_2
     else:  
-      Female_reference_pct = 0.929 #
+      Female_reference_pct = 0.929
       Mean_GFR = (magic_number_1 * age + magic_number_2) * Female_reference_pct
 
-  #Use the mean GFR to calculate the index GFR, Whatever that might be
+  # Use the mean GFR to calculate the index GFR, Whatever that might be
   index_GFR = 100 * (Mean_GFR - clearance_norm) / Mean_GFR
-  #From the index GFR, Conclude on the kidney function
+
+  # From the index GFR, Conclude on the kidney function
   if index_GFR < 25 : 
     return "Normal", index_GFR
   elif index_GFR < 48 :
@@ -452,15 +450,19 @@ def generate_plot_text(
     Køn: {gender}\n
     Alder: {_age_string(day_of_birth)}\n
     Vægt: {weight:.1f} kg\n
-    Højde: {height:.1f} cm\n
+    Højde: {height:.0f} cm\n
     Overflade: {BSA:.2f} m²\n
     Metode:  {method}\n
-    GFR: {clearance:.1f} ml / min\n
-    GFR, normaliseret til 1,73m²: {clearance_norm:.1f} ml / min\n
+    \n
+    GFR: {clearance:.0f} ml / min\n
+    GFR, normaliseret til 1,73m²: {clearance_norm:.0f} ml / min\n
     Nyrefunktion: {kidney_function}\n
-    Nyrefunktion ift. Reference Patient: {reference_percentage:.1f}%
+    Nyrefunktion ift. Reference Patient: {reference_percentage:.0f}%
   """
 
+  ax[1].set_xlim(0, 1)
+  ax[1].set_ylim(0, 1)
+  ax[1].plot([0.05, 0.95], [0.3125, 0.3125], color='grey')
   ax[1].text(0, 0.00, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
   ax[1].axis('off')
 

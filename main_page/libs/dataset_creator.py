@@ -13,6 +13,7 @@ from . import formatting
 logger = logging.getLogger()
 
 
+# TODO: Possibly put this decorator function in a seperate file so it can be reused in other places
 def none_check(func, kwargs_check=False):
   """
   Decorator which ensures that no argument, and optionally keyword arguments,
