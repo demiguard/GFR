@@ -340,6 +340,8 @@ $(function() {
       } else {
         failure_callback();
       }
+    } else {
+      success_callback();
     }
   };
 
@@ -355,7 +357,7 @@ $(function() {
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
-  $("#cancel").click(function() {
+  $("#cancel").on('click', function() {
     confirm_cancel_study(
       function() {
         // Redirect on success
