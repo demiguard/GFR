@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## 1.0.2 - 2019-08-23
+### Added
+
+### Changed
+  - Fixed a few Spelling mistakes
+  - QA plot changed from a log plot to a Exponentail plot
+
+### Fixed
+  - Auto Character add no longer adds an extra character if the character being added is the same as the function would add.
+  - Updated Color plot such that it reflect the underlying method
+
 ## 1.0.1 - 2019-08-21
 ### Added
 

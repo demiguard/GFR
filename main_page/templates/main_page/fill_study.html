@@ -11,7 +11,7 @@
 
 
 {% block content %}
-  <strong>Accession nr.:</strong><p>{{ rigsnr }}</p>
+  <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
 
   <form method="POST" id="fill-study-form">
     {% csrf_token %}
@@ -51,7 +51,7 @@
           <input type="button" value="Tilføj standard" id="add-standard">
         {% endbuttons %}
         
-        <h5>Prøve data</h5>
+        <h5>Prøvedata</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
 

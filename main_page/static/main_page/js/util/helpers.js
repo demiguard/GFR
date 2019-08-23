@@ -92,10 +92,11 @@ var helper = (function() {
     const BACKSPACE_KEY = 8;
     
     field.bind('keypress', function(key) {
+
       if (key.which !== BACKSPACE_KEY) {
         let number_of_chars = $(this).val().length;
         
-        if (number_of_chars === n){
+        if (number_of_chars === n  && String.fromCharCode(key.which) !== c){
           let prev_val = $(this).val();
           $(this).val(prev_val + c);
         }

@@ -401,12 +401,7 @@ def generate_plot_text(
   Remark:
     Generate as one image, with multiple subplots.
   """
-  x =           [ 0,   40, 110]
-  zeros =       [ 0,    0,   0]
-  darkred_y =   [ 25,  25,  10]
-  light_red_y = [ 50,  50,  30]
-  yellow_y =    [ 75,  75,  35]
-  lightgrey_y = [160, 160, 160]
+
 
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
 
@@ -433,6 +428,43 @@ def generate_plot_text(
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
   
   # Left side - the actual graph
+  def calc_mean_gfr_for_todlers(age, threshold):
+    return threshold * 10 ** (0.209 * np.log10(age*365) + 1.44) 
+  
+  x = np.arange(0,2, 1/365)
+  zeros = np.zeros(len(x))
+  darkred_y = calc_mean_gfr_for_todlers(x, 0.28)
+  light_red_y = calc_mean_gfr_for_todlers(x, 0.52)
+  yellow_y = calc_mean_gfr_for_todlers(x, 0.75)
+  lightgrey_y = np.full(len(x), ymax)
+
+  #convert to list to ensure
+  x = list(x)
+  zeros = list(zeros)
+  darkred_y = list(darkred_y)
+  light_red_y = list(light_red_y)
+  yellow_y = list(yellow_y)
+  lightgrey_y = list(lightgrey_y)
+
+  if gender == 'Mand':
+    #after age of 2
+    x +=           [2,     15,    15,    40,    xmax]
+    zeros +=       [0,     0,     0,     0,     0]
+    darkred_y +=   [30.52, 30.52, 31.08, 31.08, 0.28*(-1.16*xmax + 157.8)]
+    light_red_y += [56.68, 56.68, 57.72, 57.72, 0.52*(-1.16*xmax + 157.8)]
+    yellow_y +=    [81.75, 81.75, 83.25, 83.25, 0.75*(-1.16*xmax + 157.8)]
+    lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
+  else:
+    x +=           [2,     15,    15,    40,    xmax]
+    zeros +=       [0,     0,     0,     0,     0]
+    darkred_y +=   [30.52, 30.52, 28.84, 28.84, 0.28*(-1.16*xmax + 157.8) * 0.929]
+    light_red_y += [56.68, 56.68, 53.56, 53.56, 0.52*(-1.16*xmax + 157.8) * 0.929]
+    yellow_y +=    [81.75, 81.75, 77.25, 77.25, 0.75*(-1.16*xmax + 157.8) * 0.929]
+    lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
+    
+
+
+
   ax[0].set_xlim(0, xmax)      
   ax[0].set_ylim(0, ymax)
   ax[0].fill_between(x, yellow_y,    lightgrey_y, facecolor='#EFEFEF', label='Normal')
@@ -459,7 +491,7 @@ def generate_plot_text(
     GFR: {clearance:.0f} ml / min\n
     GFR, normaliseret til 1,73m²: {clearance_norm:.0f} ml / min\n
     Nyrefunktion: {kidney_function}\n
-    Nyrefunktion ift. Reference Patient: {reference_percentage:.0f}%
+    Nyrefunktion i procent af normal: {reference_percentage:.0f}%
   """
 
   ax[1].set_xlim(0, 1)
@@ -483,7 +515,7 @@ def generate_plot_text(
 
 def generate_QA_plot(
   delta_times, 
-  tch_cnt, 
+  tec99_cnt, 
   thining_factor, 
   accession_number, 
   image_height=server_config.PLOT_HEIGHT, 
@@ -506,15 +538,16 @@ def generate_QA_plot(
     A bytestring forming a RBG pictures of scale 1920x1080 (Default size)
   """
   # Log of tec-count as the formula calls for
-  log_tec99_cnt = [np.log(x) for x in tch_cnt]
+  log_tec99_cnt = [np.log(x) for x in tec99_cnt]
 
   # Linear Regression
   slope, intercept, r_value, p_value, standard_error = linregress(delta_times, log_tec99_cnt)
+  #slope, intercept, r_value, p_value, standard_error = linregress(delta_times, tec99_cnt)
 
   logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
 
-  x = np.arange(min(delta_times), max(delta_times), 0.1)
-  y = slope * x + intercept
+  x = np.arange(0, max(delta_times)+ 10, 0.1)
+  y = np.exp(slope * x + intercept)
 
   # Plot generation
   fig, ax = plt.subplots(nrows = 1, ncols=2)
@@ -527,20 +560,26 @@ def generate_QA_plot(
 
   fig.set_figheight(image_height)
   fig.set_figwidth(image_width)
-
+  
   # Left side - the plot
   ax[0].tick_params(labelsize=14) # Axis tick size
   ax[0].set_xlabel('Tid i minutter', fontsize=server_config.AXIS_FONT_SIZE)
-  ax[0].set_ylabel('log(tec99 count)', fontsize=server_config.AXIS_FONT_SIZE)
-  
-  for i, val in enumerate(log_tec99_cnt):
-    points              = [val, slope * delta_times[i] + intercept]
+  ax[0].set_ylabel('counts', fontsize=server_config.AXIS_FONT_SIZE)
+  ax[0].axes.set_yscale('log')
+  ax[0].grid(axis='y')
+  ax[0].set_xlim(0,max(delta_times) + 10)
+  ax[0].set_ylim(min(500, min(tec99_cnt)) ,max(y)*1.1)
+
+  #for i, val in enumerate(log_tec99_cnt):
+  for i, val in enumerate(tec99_cnt):
+    points              = [val, np.exp(slope * delta_times[i] + intercept)]
     time_of_examination = [delta_times[i], delta_times[i]]
     ax[0].plot(time_of_examination, points, color='black', linestyle='--', zorder=1)
-    ax[0].scatter(delta_times[i], slope * delta_times[i] + intercept, marker='o', color='red', zorder=2, s=25)
+    ax[0].scatter(delta_times[i], np.exp(slope * delta_times[i] + intercept), marker='o', color='red', zorder=2, s=25)
   
   ax[0].plot(x, y, label = 'Regressionslinje', color='red', zorder=2)
-  ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label='Datapunkter', zorder=3)
+  #ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label='Datapunkter', zorder=3)
+  ax[0].scatter(delta_times, tec99_cnt, marker = 'x', s=75, label='Datapunkter', zorder=3)
 
   ax[0].legend(framealpha=1.0, prop={'size': server_config.LEGEND_SIZE})
 
