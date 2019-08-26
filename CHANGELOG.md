@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
   - Resolve minor spelling mistake in tooltip for delete and edit buttons on admin panel.
+  - Disabled enter keypress on all input fields on fill_study
 
 ### Fixed
 

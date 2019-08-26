@@ -35,11 +35,11 @@ def surface_area(height: float, weight: float, method: str="Haycock") -> float:
     ValueError: if the given method is not supported
   """
   if method == "Du Bois": 
-      return 0.007184 * (weight ** 0.425) * (height ** 0.725)
+    return 0.007184 * (weight ** 0.425) * (height ** 0.725)
   elif method == "Mosteller":
-      return 0.016667 * (weight ** 0.5) * (height ** 0.5)
+    return 0.016667 * (weight ** 0.5) * (height ** 0.5)
   elif method == "Haycock":
-      return 0.024265 * (weight ** 0.5378) * (height ** 0.3964)
+    return 0.024265 * (weight ** 0.5378) * (height ** 0.3964)
   else:
     raise ValueError(f"Unable to estimate surface area. Got unknown method: '{method}'")
 
