@@ -443,7 +443,7 @@ def fill_dicom(ds,
     0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
                                                                               # ### PRIVATE TAGS START ###
     0x00231001 : ('LO', gfr),                                                 # ds.GFR
-    0x00231002 : ('LO', 'Version 1.0', update_version),                       # ds.GFRVersion
+    0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion
     0x00231010 : ('LO', gfr_type),                                            # ds.GFRMethod
     0x00231018 : ('DT', injection_time),                                      # ds.injTime
     0x0023101A : ('DS', injection_weight),                                    # ds.injWeight
