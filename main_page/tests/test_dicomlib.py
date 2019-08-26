@@ -919,7 +919,7 @@ class FillDicomTests(TestCase):
       0x00080090: '', 
       0x00200010: 'GFR#12345678', 
       0x00200013: 1,
-      0x00181020: 'GFRCalc - V 1.0',
+      0x00181020: f"{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}",
       0x00080016: '1.2.840.10008.5.1.4.1.1.7',
       # Try Update Scheduled Procedure Step Sequence tags
       0x00081030: 'TEST DESCRIPTION',
