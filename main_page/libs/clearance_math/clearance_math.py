@@ -349,6 +349,7 @@ def _age_string(day_of_birth):
 
 
 def generate_plot_text(
+  user,
   weight: float,
   height: float,
   BSA: float,
@@ -401,8 +402,6 @@ def generate_plot_text(
   Remark:
     Generate as one image, with multiple subplots.
   """
-
-
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
 
   ymax = 120
@@ -422,7 +421,7 @@ def generate_plot_text(
   
   plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
 
-  titlestring = f"""Undersøgelsen udført på: {server_config.HOSPITALS[hosp_dir]}
+  titlestring = f"""Undersøgelsen udført på: {user.department.hospital.name}
     {procedure_description}"""
 
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
@@ -461,9 +460,6 @@ def generate_plot_text(
     light_red_y += [56.68, 56.68, 53.56, 53.56, 0.52*(-1.16*xmax + 157.8) * 0.929]
     yellow_y +=    [81.75, 81.75, 77.25, 77.25, 0.75*(-1.16*xmax + 157.8) * 0.929]
     lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
-    
-
-
 
   ax[0].set_xlim(0, xmax)      
   ax[0].set_ylim(0, ymax)

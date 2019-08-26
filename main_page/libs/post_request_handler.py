@@ -158,10 +158,16 @@ def fill_study_post(request, rigs_nr, dataset):
     gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, birthdate, gender)
 
     # Get historical data from PACS
-    history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, birthdate, request.user)
-    
+    try:
+      history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, birthdate, request.user)
+    except ValueError: # Handle empty AET for PACS connection 
+      history_age = [ ]
+      history_clrN = [ ]
+      history_dates = [ ]
+
     # Generate plot to display
     pixel_data = clearance_math.generate_plot_text(
+      request.user,
       weight,
       height,
       BSA,

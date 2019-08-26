@@ -11,6 +11,9 @@ from django.conf import settings
 from selenium.webdriver.firefox.webdriver import WebDriver as FirefoxWebDriver
 from selenium.webdriver.firefox import options as FirefoxOptions
 
+import datetime
+import os
+
 from main_page import models
 from main_page.libs import server_config
 from main_page.libs.dirmanager import try_mkdir
@@ -44,18 +47,43 @@ class FillStudyFullTests(LiveServerTestCase):
     cls.driver.implicitly_wait(10)
     cls.is_logged_in = False
 
-  def setUp(self):
-    # Enable debugging mode
+    # Enable debugging mode for all tests
     settings.DEBUG = True
 
+  @classmethod
+  def tearDownClass(cls):
+    # Correctly close and deallocated driver resources once test is done
+    # cls.driver.quit()
+
+    super().tearDownClass()
+
+  def setUp(self):
+    self.test_hospital = models.Hospital.objects.get(pk=1)
+
     # Create testing directory and corresponding dicom datasets and files
-    test_hospital = models.Hospital.objects.get(pk=1)
-    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{test_hospital.short_name}"
+    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}"
     try_mkdir(hosp_dir, mk_parents=True)
     
-    self.test_accession_number = "REGH12345678"
-    
+    self.cpr = "1206830057"
+    self.name = "test person testerson"
+    self.study_date = datetime.date.today().strftime('%Y-%m-%d')
+    self.accession_number = "REGH12345678"
+    self.hospital_aet = ""
 
+    ds = dataset_creator.get_blank(
+      self.cpr,
+      self.name,
+      self.study_date,
+      self.accession_number,
+      self.hospital_aet
+    )
+
+    self.test_filepath = f"{hosp_dir}/{self.accession_number}.dcm"
+
+    dicomlib.save_dicom(
+      self.test_filepath,
+      ds
+    )
 
     # Login to the site or go to the fill_study page if already logged in
     if not self.is_logged_in:
@@ -79,20 +107,14 @@ class FillStudyFullTests(LiveServerTestCase):
     else:
       pass
 
-
-  @classmethod
-  def tearDownClass(cls):
-    # Correctly close and deallocated driver resources once test is done
-    cls.driver.quit()
-
-    # Remove all used directories and dicom files
-
-
-    super().tearDownClass()
+  def tearDown(self):
+    # Remove generated dicom objects
+    os.remove(self.test_filepath)
+    os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}")
 
   def test_full_study_calculate(self):
     """
-    Run a full study through the /fill_study/<RIS_NR page
+    Run a full study through the /fill_study/<RIS_NR> page
 
     Dependencies:
       A sample file located on the Samba Share named: /data/backup/TEST
@@ -112,15 +134,40 @@ class FillStudyFullTests(LiveServerTestCase):
     first_table_item.click()
 
     # Fill out each field in study
-    name_field = self.driver.find_element_by_name("cpr")
+    field_val_dict = {
+      'height': '178',
+      'weight': '60',
+      'vial_weight_before': '5.2020',
+      'vial_weight_after': '3.5100',
+      'injection_time': '10:50',
+      'thin_fac': '1242',
+      'std_cnt_text_box': '4569',
+      'study_time': '14:10'
+    }
+    
+    for field_name, value in field_val_dict.items():
+      field = self.driver.find_element_by_name(field_name)
+      field.send_keys(value)
 
+    # Add empty test
+    add_empty_btn = self.driver.find_element_by_id("add-empty-value")
+    add_empty_btn.click()
+
+    # Unlock test values and fill in test count
+    lock_btn = self.driver.find_element_by_id("lock0")
+    lock_btn.click()
+
+    count_field = self.driver.find_element_by_name("test_value")
+    count_field.clear()
+    count_field.send_keys("175")
 
     # Click calculate
-
+    calculate_btn = self.driver.find_element_by_id("calculate")
+    calculate_btn.click()
 
     # Assert dicom object fields
-
-
+    ds = dicomlib.dcmread_wrapper(self.test_filepath)
+    print(ds)
 
   # def test_partial_study_calculate(self):
   #   # This should assert that (together with other similar tests) that the correct
