@@ -169,17 +169,16 @@ class SambaBackupEndpoint(View):
     try:
       date = datetime.strptime(date, '%Y-%m-%d')
       hospital = request.user.department.hospital.short_name
-    except:
-      logger.warn(f'Samba Endpoint requested {date}')
+    except ValueError: # Unable to parse date
       return HttpResponseBadRequest()
 
     # Attempt to get backup data
-    logger.info(f'Handling Ajax Get backup request with format: {date}')
+    logger.info(f"Handling Ajax Get backup request with date: {date} and hospital: {hospital}")
 
     try:
       backup_data = samba_handler.get_backup_file(date, hospital)
-    except NotConnectedError as e: 
-      logger.warn(e)
+    except NotConnectedError as err: 
+      logger.warn(f"Error during handling of Samba Share files, got error: {err}")
 
       return HttpResponseServerError()
 

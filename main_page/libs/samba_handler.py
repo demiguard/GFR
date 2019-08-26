@@ -5,6 +5,7 @@ import tempfile
 from tempfile import NamedTemporaryFile
 import logging
 import pandas as pd
+from pandas.errors import ParserError
 from typing import List, Union
 
 from . import server_config
@@ -30,8 +31,7 @@ def open_csv_file(temp_file: NamedTemporaryFile):
     pandas_ds = pd.read_csv(temp_file.name)
     protocol = pandas_ds['Protocol name'][0]
     datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
-      
-  except:
+  except ParserError:
     # Hidex file
     pandas_ds = pd.read_csv(temp_file.name, skiprows=[0,1,2,3])
     pandas_ds = pandas_ds.rename(
@@ -42,16 +42,28 @@ def open_csv_file(temp_file: NamedTemporaryFile):
         'Tc-99m (counts)'         : 'Tc-99m Counts'
       }
     )
-    #Because Hidex is in american format, we change the data column to the ONLY CORRECT format
+
+    # Because Hidex is in american format, we change the data column to the ONLY CORRECT format
     pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
 
     datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
     # Get protocol
     temp_file.seek(0)
     protocol = temp_file.readline()
+    
+    temp_file.seek(0)
+
+    # Hidex might store these as bytes - convert them to str
+    logger.debug(f"Type protocol: {type(protocol)} with value: {protocol}")
+
+    if isinstance(protocol, bytes):
+      logger.debug(f"Converting bytes protocol to string.")
+      protocol = protocol.decode()
+      protocol = protocol.replace("\n", "")
+      protocol = protocol.replace("\r", "")
+      protocol = protocol.replace("\"", "")
   
   return pandas_ds, datestring, protocol
-
 
 
 def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: str) -> None:
@@ -242,6 +254,8 @@ def get_backup_file(
       file_contents.append(df)
 
       temp_file.close()
+    else:
+      logger.debug(f"first {date_str_len} chars of filename does not match date: '{date_str}'. Skipping file.")
 
     logger.debug(f'Done processing samba file: {curr_filename}')
 
