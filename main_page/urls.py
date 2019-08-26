@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 #Sooo WhY do we not just import api at this point?
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint
 
 import main_page.views.views as views
 
@@ -34,8 +34,6 @@ urlpatterns = [
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
   path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
-  path('ajax/delete_study', views.AjaxDeleteStudy.as_view(), name='ajax_delete_study'),
-  path('ajax/restore_study', views.AjaxRestoreStudy.as_view(), name='ajax_restore_study'),
   
   # New RESTful api design
   path('api/user', UserEndpoint.as_view(), name='user'),
@@ -53,4 +51,5 @@ urlpatterns = [
   path('api/proceduretype/<int:obj_id>', ProcedureEndpoint.as_view(), name='procedure'),
   path('api/procedure_mapping', ProcedureMappingsEndpoint.as_view(), name='procedure_mapping'),
   path('api/procedure_mapping/<int:obj_id>', ProcedureMappingsEndpoint.as_view(), name='procedure_mapping'),
+  path('api/study/<str:ris_nr>', StudyEndpoint.as_view(), name='study'),
 ]

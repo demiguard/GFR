@@ -1,7 +1,5 @@
-
-
-$(function() {
-  // Add tooltips to status icons
+// Add tooltips to status icons
+var init_tooltips = function() {
   $('.oi-clipboard').each(function() {
     if ($(this).hasClass('exam-status-0')) {
       $(this).attr('title', 'Ingen ændringer');
@@ -11,23 +9,34 @@ $(function() {
       $(this).attr('title', 'Klar til PACS');
     }
   });
+};
+
+
+// Sends a delete request to the server to move the dicom object with accession number (ris number)
+// to the trash can for later deletion.
+var delete_study = function(accession_number) {
+  $.ajax({
+    url: '/api/study/' + accession_number,
+    type: 'DELETE',
+    success: function() {
+      console.debug("Successfully move study to trash.");
+      window.location.href = "/list_studies";
+    },
+    error: function() {
+      console.warn("Error: Unable to move study to trash with accession number: '" + accession_number + "'");
+    }
+  });
+};
+
+
+$(function() {
+  init_tooltips();
 
   // On click event for accepting the deletion of a study
   $('#delete-modal-accept').on('click', function() {
     let del_accession_number = $('#modal-accession-number').text();
     
-    $.post({
-      url: '/ajax/delete_study',
-      data: {
-        'delete_accession_number': del_accession_number,
-      },
-      success: function() {
-        window.location.href = "/list_studies";
-      },
-      error: function() {
-        console.warn("Failed to delete study...");
-      }
-    });
+    delete_study(del_accession_number);
   });
 
   // On click event for deletion of a study
@@ -40,23 +49,5 @@ $(function() {
 
     // Show the modal
     $('#deleteModal').modal('toggle');
-  });
-
-  $('#thining_factor_button').on('click', function(){
-    
-    var a_thining_factor = $('#id_thin_fac').val()
-    
-    $.post({
-      url:'/ajax/update_thining_factor',
-      data:{
-        'thining_factor': a_thining_factor
-      },
-      success: function(){
-        window.location.href = '/list_studies'
-      },
-      error: function(){
-
-      }
-    });
   });
 });

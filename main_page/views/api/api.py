@@ -5,10 +5,14 @@ from django.views.generic import View
 from smb.base import NotConnectedError
 from datetime import datetime
 import logging
+import time
+import os
+import shutil
 
 from main_page.libs import samba_handler
 from main_page.libs import server_config
 from main_page.libs.status_codes import *
+from main_page.libs.dirmanager import try_mkdir
 from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, PostEndpoint, DeleteEndpoint
 from main_page.views.mixins import AdminRequiredMixin
 from main_page import models
@@ -204,3 +208,69 @@ class SambaBackupEndpoint(View):
       context[time_of_messurement] = df.to_dict()
     
     return JsonResponse(context)
+
+
+class StudyEndpoint(View):
+  """
+  Custom endpoint for handling moving of studies 
+  (i.e. for moving to trash and recovering them)
+  """
+  def patch(self, request, ris_nr):
+    """
+    Handles recovery of studies (i.e. moving them out from trash)
+    """
+    user_hosp = request.user.department.hospital.short_name
+
+    logger.info(f"Attempting to recover study: {ris_nr}")
+    
+    resp = JsonResponse({ })
+
+    # Create deleted studies directory if doesn't exist
+    try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user_hosp}", mk_parents=True)
+
+    move_src = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{ris_nr}.dcm"
+
+    if os.path.exists(move_src):
+      move_dst = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{ris_nr}.dcm"
+      
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully recovered study: {ris_nr}")
+    else:
+      logger.error(f"Unable to find dicom object for study to recover: '{move_src}'")
+      resp.status_code = HTTP_STATUS_BAD_REQUEST
+
+    return resp
+
+  def delete(self, request, ris_nr):
+    """
+    Handles deletion of studies (i.e. moving them to trash)
+    """
+    user_hosp = request.user.department.hospital.short_name
+
+    logger.info(f"Attempting to move study to trash with accession number: {ris_nr}")
+    
+    resp = JsonResponse({ })
+
+    # Create deleted studies directory if doesn't exist
+    try_mkdir(f"{server_config.DELETED_STUDIES_DIR}{user_hosp}", mk_parents=True)
+
+    move_src = f"{server_config.FIND_RESPONS_DIR}{user_hosp}/{ris_nr}.dcm"
+
+    if os.path.exists(move_src):
+      move_dst = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/{ris_nr}.dcm"
+      
+      # Reset modification time
+      del_time = time.mktime(datetime.now().timetuple())
+      os.utime(move_src, (del_time, del_time))
+
+      # Move to deletion directory
+      shutil.move(move_src, move_dst)
+
+      logger.info(f"Successfully moved study to trash can: {ris_nr}")
+    else:
+      logger.error(f"Unable to find dicom object for study to move to trash: '{move_src}'")
+      resp.status_code = HTTP_STATUS_NO_CONTENT
+
+    return resp
