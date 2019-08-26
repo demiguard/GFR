@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Resolve minor spelling mistake in tooltip for delete and edit buttons on admin panel.
   - Disabled enter keypress on all input fields on fill_study
   - Deletion and recovery of studies is now in the RESTful api instead of /ajax.
+  - Increased thinning factor threshold to 10k
 
 ### Fixed
   - Made deletion and recovery of studies work again
