@@ -21,8 +21,8 @@ function sort_table(n, tablename) {
       shouldSwitch = false;
       /* Get the two elements you want to compare,
       one from current row and one from the next: */
-      x = rows[i].getElementsByTagName("TD")[n].innerHTML.toLowerCase();
-      y = rows[i + 1].getElementsByTagName("TD")[n].innerHTML.toLowerCase();
+      x = rows[i].getElementsByTagName("td")[n].innerHTML.toLowerCase();
+      y = rows[i + 1].getElementsByTagName("td")[n].innerHTML.toLowerCase();
       
       // Reformat if date
       function try_reformat_date(s) {

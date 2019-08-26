@@ -173,6 +173,18 @@ function show_model() {
   
         init_action_buttons();
         init_action_button_event_handlers();
+
+        // Add sort_table function to all table headers
+        $('#admin-table-head th').each(function() {
+          let th_val = $(this).text();
+
+          if (th_val !== "") {
+            $(this).on('click', function() {
+              sort_table($(this).index(), 'admin-table');
+            });
+          }
+        });
+
       } else {
         alerter.add_alert('Ingen indgang fundet.', 'warning');
       }
