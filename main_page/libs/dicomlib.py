@@ -319,7 +319,6 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
   if pixeldata:
     # Save in DICOM pixel data encoding format
     pixeldata = np.frombuffer(pixeldata, dtype=np.uint8) # Reads byte array to 1D numpy array
-    pixeldata = np.reshape(pixeldata, (1080, 1920, 3))   # Reshapes to PIL displayable image - current format of byte string
     pixeldata = np.reshape(pixeldata, (1920, 1080, 3))   # Reshapes to DICOM conformat pixel data encoding (for more details see: https://dicom.innolitics.com/ciods/segmentation/image-pixel/7fe00010)
 
     # Set additional meta data about the image
