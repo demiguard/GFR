@@ -410,7 +410,7 @@ def generate_plot_text(
     ymax += 20
 
   xmax = 90
-  while age > xmax :
+  while age > xmax:
     xmax += 20 
 
   # Generate plot
@@ -431,35 +431,28 @@ def generate_plot_text(
   def calc_mean_gfr_for_todlers(age, threshold):
     return threshold * 10 ** (0.209 * np.log10(age*365) + 1.44) 
   
-  x = np.arange(0,2, 1/365)
-  zeros = np.zeros(len(x))
-  darkred_y = calc_mean_gfr_for_todlers(x, 0.28)
-  light_red_y = calc_mean_gfr_for_todlers(x, 0.52)
-  yellow_y = calc_mean_gfr_for_todlers(x, 0.75)
-  lightgrey_y = np.full(len(x), ymax)
-
-  #convert to list to ensure
-  x = list(x)
-  zeros = list(zeros)
-  darkred_y = list(darkred_y)
-  light_red_y = list(light_red_y)
-  yellow_y = list(yellow_y)
-  lightgrey_y = list(lightgrey_y)
+  # Compute plot ranges for determining GFR result based on age and gender
+  # Everything is a list to ensure same append operator
+  x             = list(np.arange(0, 2, 1/365))
+  zeros         = list(np.zeros(len(x)))
+  darkred_y     = list(calc_mean_gfr_for_todlers(x, 0.28))
+  light_red_y   = list(calc_mean_gfr_for_todlers(x, 0.52))
+  yellow_y      = list(calc_mean_gfr_for_todlers(x, 0.75))
+  lightgrey_y   = list(np.full(len(x), ymax))
 
   if gender == 'Mand':
-    #after age of 2
-    x +=           [2,     15,    15,    40,    xmax]
-    zeros +=       [0,     0,     0,     0,     0]
-    darkred_y +=   [30.52, 30.52, 31.08, 31.08, 0.28*(-1.16*xmax + 157.8)]
+    x           += [2,     15,    15,    40,    xmax]
+    zeros       += [0,     0,     0,     0,     0]
+    darkred_y   += [30.52, 30.52, 31.08, 31.08, 0.28*(-1.16*xmax + 157.8)]
     light_red_y += [56.68, 56.68, 57.72, 57.72, 0.52*(-1.16*xmax + 157.8)]
-    yellow_y +=    [81.75, 81.75, 83.25, 83.25, 0.75*(-1.16*xmax + 157.8)]
+    yellow_y    += [81.75, 81.75, 83.25, 83.25, 0.75*(-1.16*xmax + 157.8)]
     lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
   else:
-    x +=           [2,     15,    15,    40,    xmax]
-    zeros +=       [0,     0,     0,     0,     0]
-    darkred_y +=   [30.52, 30.52, 28.84, 28.84, 0.28*(-1.16*xmax + 157.8) * 0.929]
+    x           += [2,     15,    15,    40,    xmax]
+    zeros       += [0,     0,     0,     0,     0]
+    darkred_y   += [30.52, 30.52, 28.84, 28.84, 0.28*(-1.16*xmax + 157.8) * 0.929]
     light_red_y += [56.68, 56.68, 53.56, 53.56, 0.52*(-1.16*xmax + 157.8) * 0.929]
-    yellow_y +=    [81.75, 81.75, 77.25, 77.25, 0.75*(-1.16*xmax + 157.8) * 0.929]
+    yellow_y    += [81.75, 81.75, 77.25, 77.25, 0.75*(-1.16*xmax + 157.8) * 0.929]
     lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
 
   ax[0].set_xlim(0, xmax)      
@@ -471,7 +464,7 @@ def generate_plot_text(
 
   ax[0].tick_params(labelsize=14)
 
-  # Right side - text information
+  # Right side - textual information
   reference_percentage = 100 - index_gfr
 
   print_str = f"""    Navn: {name}\n
