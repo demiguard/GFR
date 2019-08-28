@@ -167,7 +167,6 @@ def fill_study_post(request, rigs_nr, dataset):
 
     # Generate plot to display
     pixel_data = clearance_math.generate_plot_text(
-      request.user,
       weight,
       height,
       BSA,
@@ -180,6 +179,7 @@ def fill_study_post(request, rigs_nr, dataset):
       cpr = cpr,
       index_gfr=gfr_index,
       hosp_dir=request.user.department.hospital.short_name,
+      hospital_name=request.user.department.hospital.name,
       history_age=history_age,
       history_clr_n=history_clrN,
       method = study_type_name,

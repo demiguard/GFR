@@ -349,7 +349,6 @@ def _age_string(day_of_birth):
 
 
 def generate_plot_text(
-  user,
   weight: float,
   height: float,
   BSA: float,
@@ -365,6 +364,7 @@ def generate_plot_text(
   history_age=[],
   history_clr_n=[],
   hosp_dir: str='',
+  hospital_name: str='',
   image_height: float=server_config.PLOT_HEIGHT,
   image_width: float=server_config.PLOT_WIDTH,
   index_gfr: float=0.0,
@@ -390,6 +390,7 @@ def generate_plot_text(
     history_age     :
     history_clr_n   :
     hosp_dir        :
+    hospital_name   : Full name of the hospital the study is made at
     image_height    :
     image_width     :
     index_gfr       :
@@ -421,7 +422,7 @@ def generate_plot_text(
   
   plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
 
-  titlestring = f"""Undersøgelsen udført på: {user.department.hospital.name}
+  titlestring = f"""Undersøgelsen udført på: {hospital_name}
     {procedure_description}"""
 
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
