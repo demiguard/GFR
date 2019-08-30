@@ -64,14 +64,14 @@ function init_table_entries(entries) {
   }
 }
 
-function create_button(iconic_class_name, btn_class) {
+function create_button(iconic_class_name, btn_class, tooltip) {
   var edit_button = document.createElement('button');
   edit_button.classList.add('btn');
   edit_button.classList.add('btn-link');
   edit_button.classList.add(btn_class);
   
   var edit_span = document.createElement('span');
-  edit_span.title = 'Slet';
+  edit_span.title = tooltip;
   edit_span.classList.add('oi');
   edit_span.classList.add('oi-' + iconic_class_name);
   
@@ -134,8 +134,8 @@ function init_action_buttons() {
   
   $('#admin-table-body tr').each(function() {
     var edit_td = document.createElement('td');
-    var edit_button = create_button('pencil', 'edit-btn');
-    var delete_button = create_button('trash', 'delete-btn');
+    var edit_button = create_button('pencil', 'edit-btn', 'Rediger');
+    var delete_button = create_button('trash', 'delete-btn', 'Slet');
 
     var divider_div = document.createElement('div');
     divider_div.classList.add('divider');
@@ -173,6 +173,18 @@ function show_model() {
   
         init_action_buttons();
         init_action_button_event_handlers();
+
+        // Add sort_table function to all table headers
+        $('#admin-table-head th').each(function() {
+          let th_val = $(this).text();
+
+          if (th_val !== "") {
+            $(this).on('click', function() {
+              sort_table($(this).index(), 'admin-table');
+            });
+          }
+        });
+
       } else {
         alerter.add_alert('Ingen indgang fundet.', 'warning');
       }

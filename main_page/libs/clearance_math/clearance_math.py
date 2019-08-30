@@ -35,11 +35,11 @@ def surface_area(height: float, weight: float, method: str="Haycock") -> float:
     ValueError: if the given method is not supported
   """
   if method == "Du Bois": 
-      return 0.007184 * (weight ** 0.425) * (height ** 0.725)
+    return 0.007184 * (weight ** 0.425) * (height ** 0.725)
   elif method == "Mosteller":
-      return 0.016667 * (weight ** 0.5) * (height ** 0.5)
+    return 0.016667 * (weight ** 0.5) * (height ** 0.5)
   elif method == "Haycock":
-      return 0.024265 * (weight ** 0.5378) * (height ** 0.3964)
+    return 0.024265 * (weight ** 0.5378) * (height ** 0.3964)
   else:
     raise ValueError(f"Unable to estimate surface area. Got unknown method: '{method}'")
 
@@ -244,7 +244,7 @@ def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Ge
   # Calculate Mean GFR
   if age < 2 : # Babies
     Mean_GFR = 10 ** (0.209 * np.log10(age_in_days) + 1.44)
-  elif age < 15 : # Childern
+  elif age < 20 : # Childern
     Mean_GFR = 109
   elif age < 40: # Grown ups
     if gender == enums.Gender.MALE:
@@ -364,6 +364,7 @@ def generate_plot_text(
   history_age=[],
   history_clr_n=[],
   hosp_dir: str='',
+  hospital_name: str='',
   image_height: float=server_config.PLOT_HEIGHT,
   image_width: float=server_config.PLOT_WIDTH,
   index_gfr: float=0.0,
@@ -389,6 +390,7 @@ def generate_plot_text(
     history_age     :
     history_clr_n   :
     hosp_dir        :
+    hospital_name   : Full name of the hospital the study is made at
     image_height    :
     image_width     :
     index_gfr       :
@@ -401,8 +403,6 @@ def generate_plot_text(
   Remark:
     Generate as one image, with multiple subplots.
   """
-
-
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365) 
 
   ymax = 120
@@ -422,7 +422,7 @@ def generate_plot_text(
   
   plt.rc('axes', labelsize=server_config.AXIS_FONT_SIZE)
 
-  titlestring = f"""Undersøgelsen udført på: {server_config.HOSPITALS[hosp_dir]}
+  titlestring = f"""Undersøgelsen udført på: {hospital_name}
     {procedure_description}"""
 
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
@@ -431,14 +431,14 @@ def generate_plot_text(
   def calc_mean_gfr_for_todlers(age, threshold):
     return threshold * 10 ** (0.209 * np.log10(age*365) + 1.44) 
   
-  x = np.arange(0,2, 1/365)
+  x = np.arange(0, 2, 1/365)
   zeros = np.zeros(len(x))
   darkred_y = calc_mean_gfr_for_todlers(x, 0.28)
   light_red_y = calc_mean_gfr_for_todlers(x, 0.52)
   yellow_y = calc_mean_gfr_for_todlers(x, 0.75)
   lightgrey_y = np.full(len(x), ymax)
 
-  #convert to list to ensure
+  # convert to list to ensure
   x = list(x)
   zeros = list(zeros)
   darkred_y = list(darkred_y)
@@ -448,22 +448,19 @@ def generate_plot_text(
 
   if gender == 'Mand':
     #after age of 2
-    x +=           [2,     15,    15,    40,    xmax]
+    x +=           [2,     20,    20,    40,    xmax]
     zeros +=       [0,     0,     0,     0,     0]
     darkred_y +=   [30.52, 30.52, 31.08, 31.08, 0.28*(-1.16*xmax + 157.8)]
     light_red_y += [56.68, 56.68, 57.72, 57.72, 0.52*(-1.16*xmax + 157.8)]
     yellow_y +=    [81.75, 81.75, 83.25, 83.25, 0.75*(-1.16*xmax + 157.8)]
     lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
   else:
-    x +=           [2,     15,    15,    40,    xmax]
+    x +=           [2,     20,    20,    40,    xmax]
     zeros +=       [0,     0,     0,     0,     0]
     darkred_y +=   [30.52, 30.52, 28.84, 28.84, 0.28*(-1.16*xmax + 157.8) * 0.929]
     light_red_y += [56.68, 56.68, 53.56, 53.56, 0.52*(-1.16*xmax + 157.8) * 0.929]
     yellow_y +=    [81.75, 81.75, 77.25, 77.25, 0.75*(-1.16*xmax + 157.8) * 0.929]
     lightgrey_y += [ymax,  ymax,  ymax,  ymax,  ymax]
-    
-
-
 
   ax[0].set_xlim(0, xmax)      
   ax[0].set_ylim(0, ymax)

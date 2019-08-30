@@ -34,7 +34,7 @@ function add_threshold_checking() {
     {'id': '#id_vial_weight_before',  'min_val': 3,     'max_val': 5},
     {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
     {'id': '#id_std_cnt',             'min_val': 1000,  'max_val': 10000},
-    {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 7500},
+    {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 10000},
     {'id': '#standard-field',         'min_val': 0,     'max_val': 100000}
   ];
   
@@ -503,5 +503,15 @@ $(function() {
     $(window).off("beforeunload");
   
     alerter.clear_alerts();
-  });  
+  });
+
+  // Disable all enter keys on fields
+  $('input').on('keyup keypress', function(e) {
+    var keyCode = e.keyCode || e.which;
+    
+    if (keyCode === 13) { 
+      e.preventDefault();
+      return false;
+    }
+  });
 });

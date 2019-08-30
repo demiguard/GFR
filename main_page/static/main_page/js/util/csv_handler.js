@@ -41,10 +41,13 @@ var csv_handler = (function() {
 
   /*
   Gets the count from a row by id
+
   Args:
     row_id: id of row to get count from
+
   Returns:
     float value of the count from the row
+
   Remark:
     The '#' character in the row id is optional
   */
@@ -59,6 +62,7 @@ var csv_handler = (function() {
 
   /*
   Computes the average of all selected rows
+
   Returns:
     The average of selected rows
   */
@@ -76,8 +80,10 @@ var csv_handler = (function() {
   /*
   Checks whether any two rows in the selected rows array (csv_row_ids)
   has a large numerical difference between them.
+
   Args:
     threshold: the threshold for the difference
+
   Returns: 
     True if there are two rows with a large numerical difference, false otherwise.
   */
@@ -108,6 +114,7 @@ var csv_handler = (function() {
 
   /*
   Adds the on click event to each row in every csv file
+
   Args:
     row_class: class assigned to each row in the csv accordion
   */
@@ -175,8 +182,10 @@ var csv_handler = (function() {
 
   /*
   Checks if the number of selected rows is greater than 0
+
   Returns:
     True, if the number of selected row is greater than 0, false otherwise.
+
   Remark:
     This function might set alerts based on the number of selected rows.
   */
@@ -194,10 +203,174 @@ var csv_handler = (function() {
   }
 
   /*
+  adds a new sample to the list of tests
+
+  Args:
+    selected_avg_func: function which computes the average of selected csv rows
+  */
+  var add_test = function(selected_avg_func) {
+    // Check if time and date fields are correctly formatted
+    let study_time_field = $('#id_study_time');
+    let study_date_field = $('#id_study_date');
+
+    if (!helper.valid_time_format(study_time_field.val())) {
+      alerter.add_field_alert(study_time_field, 'danger');
+      return;
+    }
+    
+    if (!helper.valid_danish_date_format(study_date_field.val())) {
+      alerter.add_field_alert(study_date_field, 'danger');
+      return;
+    }
+
+    // Check if there is a large numerical difference between any two tests
+    if (difference_check(MAX_DIFFERENCE)) {
+      alerter.add_alert(
+        'Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 
+        'warning'
+      );
+    }
+
+    // Check if time difference between injection time and test time is within a set threshold
+    let time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00');
+    let time_of_study = new Date(study_date_field.val() + 'T' + study_time_field.val() + ':00');
+    let time_diff = time_of_study - time_of_inj;
+
+    // Check if study date was before injection date - this shouldn't be possible...
+    if (time_of_study < time_of_inj) {
+      alerter.add_field_alert(study_date_field, 'danger');
+      alerter.add_field_alert(study_time_field, 'danger');
+      
+      alerter.add_alert(
+        'Prøve tidspunktet kan ikke være før injektionstidspunktet.',
+        'danger'
+      );
+
+      return;
+    }
+
+    // Set threshold based on study type
+    var lower = 0;
+    var upper = 0;
+    if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
+      lower = 110 * 60 * 1000;  // 110 min.
+      upper = 130 * 60 * 1000;  // 130 min.
+    } 
+  
+    if ($('input[name=study_type]:checked').val() == 0) {   // 'Et punkt voksen'
+      lower = 180 * 60 * 1000;  // 180 min.
+      upper = 240 * 60 * 1000;  // 240 min.
+    }
+
+    // Perform difference check - not for multiple point tests
+    if ($('input[name=study_type]:checked').val() != 2) {
+      if (!helper.is_within_threshold(time_diff, lower, upper)) {
+        let lower_min = lower / 60 / 1000;
+        let upper_min = upper / 60 / 1000;
+
+        alerter.add_alert(
+          'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
+          'warning'
+        );
+      }
+    }
+
+    // Generate DOM elements for study fields
+    var row_div = document.createElement('div');
+    row_div.classList.add('form-row');
+
+    var date_field_div = document.createElement('div');
+    date_field_div.classList.add('form-group');
+    date_field_div.classList.add('col-md-3');
+    date_field_div.classList.add('readonly-field');
+
+    var date_input = document.createElement('input');
+    date_input.type = 'text';
+    date_input.classList.add('form-control');
+    date_input.name = 'study_date';
+    date_input.value = study_date_field.val();
+    date_input.readOnly = true;
+    date_field_div.appendChild(date_input);
+
+    var time_field_div = document.createElement('div');
+    time_field_div.classList.add('form-group');
+    time_field_div.classList.add('col-md-3');
+    time_field_div.classList.add('readonly-field');
+
+    var time_input = document.createElement('input');
+    time_input.type = 'text';
+    time_input.classList.add('form-control');
+    time_input.name = 'study_time';
+    time_input.value = study_time_field.val();
+    time_input.readOnly = true;
+    time_field_div.appendChild(time_input);
+    
+    var count_field_div = document.createElement('div');
+    count_field_div.classList.add('form-group');
+    count_field_div.classList.add('col-md-3');
+    count_field_div.classList.add('readonly-field');
+
+    var count_input = document.createElement('input');
+    count_input.type = 'text';
+    count_input.classList.add('form-control');
+    count_input.name = 'test_value';
+    count_input.value = helper.round_to(compute_selected_avg(), 3);
+    count_input.readOnly = true;
+    count_field_div.appendChild(count_input);
+
+    var remove_btn_div = document.createElement('div');
+    remove_btn_div.classList.add('form-group');
+    remove_btn_div.classList.add('col-md-1');
+
+    var remove_btn = document.createElement('input');
+    remove_btn.type = 'button';
+    remove_btn.value = 'X';
+    remove_btn.id = 'remove' + test_count.toString();
+    remove_btn.classList.add('btn');
+    remove_btn.classList.add('btn-danger');
+    remove_btn.classList.add('row-remove-btn');
+    remove_btn_div.appendChild(remove_btn);
+
+    var lock_btn_div = document.createElement('div');
+    lock_btn_div.classList.add('form-group');
+    lock_btn_div.classList.add('col-md-1');
+
+    var lock_btn = document.createElement('input');
+    lock_btn.type = 'button';
+    lock_btn.value = '🔒';
+    lock_btn.id = 'lock' + test_count.toString();
+    lock_btn.classList.add('btn');
+    lock_btn.classList.add('btn-light');
+    lock_btn.classList.add('row-lock-btn');
+    lock_btn_div.appendChild(lock_btn);
+    
+    // Append everything to the DOM
+    $('#test-data-container').append(row_div);
+    $('#test-data-container .form-row').last().append(date_field_div);
+    $('#test-data-container .form-row').last().append(time_field_div);
+    $('#test-data-container .form-row').last().append(count_field_div);
+    $('#test-data-container .form-row').last().append(remove_btn_div);
+    $('#test-data-container .form-row').last().append(lock_btn_div);
+
+    // Add lock and remove button on click events
+    add_lock_functionality($('#lock' + test_count.toString()));
+    add_remove_functionality($('#remove' + test_count.toString()));
+
+    // Clear time field and selected rows
+    study_time_field.val('');
+    clear_selected_rows();
+
+    // Check if buttons should be disabled
+    check_test_count();
+
+    test_count++;
+  };
+
+  /*
   Initializes the click event for 'Tilføj prøve'
   */
   var init_add_test = function() {
-    $('#add-test').click(function() {
+    $('#add-test').on('click', function() {
       // Reset error messages
       alerter.clear_alerts();
       
@@ -206,161 +379,17 @@ var csv_handler = (function() {
         return;
       }
 
-      // Check if time and date fields are correctly formatted
-      let study_time_field = $('#id_study_time');
-      let study_date_field = $('#id_study_date');
-
-      if (!helper.valid_time_format(study_time_field.val())) {
-        alerter.add_field_alert(study_time_field, 'danger');
-        return;
-      }
-      
-      if (!helper.valid_danish_date_format(study_date_field.val())) {
-        alerter.add_field_alert(study_date_field, 'danger');
-        return;
-      }
-
-      // Check if there is a large numerical difference between any two tests
-      if (difference_check(MAX_DIFFERENCE)) {
-        alerter.add_alert(
-          'Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 
-          'warning'
-        );
-      }
-
-      // Check if time difference between injection time and test time is within a set threshold
-      let time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00');
-      let time_of_study = new Date(study_date_field.val() + 'T' + study_time_field.val() + ':00');
-      let time_diff = time_of_study - time_of_inj;
-
-      // Check if study date was before injection date - this shouldn't be possible...
-      if (time_of_study < time_of_inj) {
-        alerter.add_field_alert(study_date_field, 'danger');
-        alerter.add_field_alert(study_time_field, 'danger');
-        
-        alerter.add_alert(
-          'Prøve tidspunktet kan ikke være før injektionstidspunktet.',
-          'danger'
-        );
-
-        return;
-      }
-
-      // Set threshold based on study type
-      var lower = 0;
-      var upper = 0;
-      if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
-        lower = 110 * 60 * 1000;  // 110 min.
-        upper = 130 * 60 * 1000;  // 130 min.
-      } 
+      add_test(compute_selected_avg); 
+    });
     
-      if ($('input[name=study_type]:checked').val() == 0) {   // 'Et punkt voksen'
-        lower = 180 * 60 * 1000;  // 180 min.
-        upper = 240 * 60 * 1000;  // 240 min.
-      }
+    // 'Tilføj tom prøve'
+    $('#add-empty-value').on('click', function() {
+      add_test(function() {
+        return 0;
+      });
 
-      // Perform difference check - not for multiple point tests
-      if ($('input[name=study_type]:checked').val() != 2) {
-        if (!helper.is_within_threshold(time_diff, lower, upper)) {
-          let lower_min = lower / 60 / 1000;
-          let upper_min = upper / 60 / 1000;
-  
-          alerter.add_alert(
-            'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
-            'warning'
-          );
-        }
-      }
-
-      // Generate DOM elements for study fields
-      var row_div = document.createElement('div');
-      row_div.classList.add('form-row');
-
-      var date_field_div = document.createElement('div');
-      date_field_div.classList.add('form-group');
-      date_field_div.classList.add('col-md-3');
-      date_field_div.classList.add('readonly-field');
-
-      var date_input = document.createElement('input');
-      date_input.type = 'text';
-      date_input.classList.add('form-control');
-      date_input.name = 'study_date';
-      date_input.value = study_date_field.val();
-      date_input.readOnly = true;
-      date_field_div.appendChild(date_input);
-
-      var time_field_div = document.createElement('div');
-      time_field_div.classList.add('form-group');
-      time_field_div.classList.add('col-md-3');
-      time_field_div.classList.add('readonly-field');
-
-      var time_input = document.createElement('input');
-      time_input.type = 'text';
-      time_input.classList.add('form-control');
-      time_input.name = 'study_time';
-      time_input.value = study_time_field.val();
-      time_input.readOnly = true;
-      time_field_div.appendChild(time_input);
-      
-      var count_field_div = document.createElement('div');
-      count_field_div.classList.add('form-group');
-      count_field_div.classList.add('col-md-3');
-      count_field_div.classList.add('readonly-field');
-
-      var count_input = document.createElement('input');
-      count_input.type = 'text';
-      count_input.classList.add('form-control');
-      count_input.name = 'test_value';
-      count_input.value = helper.round_to(compute_selected_avg(), 3);
-      count_input.readOnly = true;
-      count_field_div.appendChild(count_input);
-
-      var remove_btn_div = document.createElement('div');
-      remove_btn_div.classList.add('form-group');
-      remove_btn_div.classList.add('col-md-1');
-
-      var remove_btn = document.createElement('input');
-      remove_btn.type = 'button';
-      remove_btn.value = 'X';
-      remove_btn.id = 'remove' + test_count.toString();
-      remove_btn.classList.add('btn');
-      remove_btn.classList.add('btn-danger');
-      remove_btn.classList.add('row-remove-btn');
-      remove_btn_div.appendChild(remove_btn);
-
-      var lock_btn_div = document.createElement('div');
-      lock_btn_div.classList.add('form-group');
-      lock_btn_div.classList.add('col-md-1');
-
-      var lock_btn = document.createElement('input');
-      lock_btn.type = 'button';
-      lock_btn.value = '🔒';
-      lock_btn.id = 'lock' + test_count.toString();
-      lock_btn.classList.add('btn');
-      lock_btn.classList.add('btn-light');
-      lock_btn.classList.add('row-lock-btn');
-      lock_btn_div.appendChild(lock_btn);
-      
-      // Append everything to the DOM
-      $('#test-data-container').append(row_div);
-      $('#test-data-container .form-row').last().append(date_field_div);
-      $('#test-data-container .form-row').last().append(time_field_div);
-      $('#test-data-container .form-row').last().append(count_field_div);
-      $('#test-data-container .form-row').last().append(remove_btn_div);
-      $('#test-data-container .form-row').last().append(lock_btn_div);
-
-      // Add lock and remove button on click events
-      add_lock_functionality($('#lock' + test_count.toString()));
-      add_remove_functionality($('#remove' + test_count.toString()));
-
-      // Clear time field and selected rows
-      study_time_field.val('');
-      clear_selected_rows();
-
-      // Check if buttons should be disabled
-      check_test_count();
-
-      test_count++;
+      // Remove the inserted NaN or avg. value
+      $('#test-data-container .form-row:last-child .form-group:nth-of-type(3) input').val(0)
     });
   };
 
@@ -416,6 +445,7 @@ var csv_handler = (function() {
 
   /*
   Removes tests until there is only max_tests number of the latest tests left
+
   Args:
     max_tests: number of tests to leave be
   */
@@ -450,6 +480,7 @@ var csv_handler = (function() {
 
   /*
   Triggers whenever a radio button for the study method is clicked
+
   Remark:
     Selected tests won't be deselected
   */

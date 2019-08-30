@@ -366,7 +366,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
       accession_number
     )  
 
-  logger.info(f"Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
+  logger.info(f"{user} is Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
 
   # Construct AE
   ae = AE(ae_title=server_config.SERVER_AE_TITLE)

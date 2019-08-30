@@ -118,7 +118,6 @@ class PostEndpoint(View):
 
     # Set additional fields
     request_body = QueryDict(request.body)
-    print(request_body)
 
     for key, value in request_body.items():
       # If key is a password, set it

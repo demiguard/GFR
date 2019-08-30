@@ -43,7 +43,7 @@
         
       </div>
 
-      <table class="table table-hover"> 
+      <table class="table table-hover" id="admin-table"> 
         <thead>
           <tr id="admin-table-head">
 
@@ -60,6 +60,7 @@
 
 {% block javascript %}
   <script src="{% static 'main_page/js/util/csrf.js' %}"></script>
+  <script src="{% static 'main_page/js/sort_table.js' %}"></script>
   <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
   <script src="{% static 'main_page/js/admin_panel.js' %}"></script>
 {% endblock %}

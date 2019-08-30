@@ -514,11 +514,11 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
       try:
         os.remove(obj_path)
       except:  
-        logger.warn(f'Could not delete {obj_path}')
+        logger.warn(f'Could not delete dicom-object {obj_path}')
       try:
         os.remove(image_path)
       except:
-        logger.warn(f'Could not delete {image_path}')
+        logger.warn(f'Could not delete image: {image_path}')
       # Store the RIS number in the HandleExaminations table
       HE = models.HandledExaminations(accession_number=ris_nr)
       HE.save()
