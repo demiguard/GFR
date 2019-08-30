@@ -1,4 +1,4 @@
-import pydicom, datetime, logging
+import pydicom, datetime, logging, csv
 from pydicom.values import convert_SQ, convert_string
 from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
@@ -296,6 +296,10 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
     logger.info('Removing Seqence')
     del ds[0x00231020]
 
+def try_add_dicom_history(ds: Type[Dataset], dicom_history:List[Type(Dataset)]):
+  if dicom_history:
+    ds.clearancehistory = Sequence(dicom_history)
+
 
 def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
   """
@@ -344,6 +348,7 @@ def fill_dicom(ds,
     clearance_norm      = None,
     cpr                 = None,
     department          = None,
+    dicom_history       = None,
     exam_status         = None,
     gender              = None,
     gfr                 = None,
@@ -383,6 +388,7 @@ def fill_dicom(ds,
     clearance_norm      : float, Clearance Value Normalized to 1.73m²
     cpr                 : string, CPR number
     department          :
+    dicom_history       : list[class:pydicom:dataset], contains the history of the patient
     exam_status         : int, status of the exam, e.g. to be reviewed, ready to send to packs, etc.
     gender              :
     gfr                 : string, either 'Normal', 'Moderat Nedsat', 'Nedsat', 'Stærkt nedsat' 
@@ -479,8 +485,32 @@ def fill_dicom(ds,
     try_add_pixeldata: [pixeldata],
     # ### PRIVATE TAGS START ###
     try_add_sample_sequence: [sample_seq]
+    try_add_dicom_history: [dicom_history]
   }
 
   for try_func, args in custom_try_adds.items():
     # Args is 'unpacked' to allow for functions with none or multiple required arguments
     try_func(ds, *args)
+
+def export_dicom(ds, file_path):
+  """
+    converts a dicom file to csv file and saves it at 'file_path'
+
+    args:
+      ds: Pydicom dataset, data to be saved
+      file_path: str, the file destination for the csv
+  """
+
+  with open(file_path, mode='w', newline='') as csv_file:
+    
+    headerrow = [
+      'Clearance',
+      'Clearance Normalized',
+      'Injection Time', 
+    ]
+
+    datarow = [
+      ds.clearance,
+      ds.normClear
+      ds.injTime,
+    ]
