@@ -63,7 +63,7 @@ class FillStudyType(forms.Form):
 
 
 class FillStudyTest(forms.Form):
-  study_time = forms.TimeField(label='Prøvetidspunkt (tt:mm)', required=False)
+  study_time = forms.TimeField(label='Blodprøve taget ved tidspunkt', required=False)
   study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)', required=False)
 
   def __init__(self, *args, **kwargs):
