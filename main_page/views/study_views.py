@@ -225,6 +225,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       else:
         exam.thin_fact = None
 
+    # Check to avoid resetting the thining factor when clicking 'beregn'
+    if exam.thin_fact:
+      if exam.thin_fact != request.user.department.thining_factor:
+        thin_fac_save_inital = False
+
     study_dosis_form = forms.Filldosis(initial={
       'thin_fac' : exam.thin_fact,
       'save_fac' : thin_fac_save_inital

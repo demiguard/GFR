@@ -6,7 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## 1.1 TODO Features
   - [ ] csv export
+  - [ ] Resolve issues described in Bryan's mail
+  - [ ] Resolve timeout issues related to retreiving the history of studies (compress the images uploaded to PACS)
 
+---
+
+## 1.0.4 - 2019-09-04
+### Added
+
+
+### Changed
+
+
+### Fixed
+  - Saving of the daily thining factor is initially uncheck if already entered previously.
+  - Made SambaBackupEndpoint and StudyEndpoint have login required.
+
+---
 
 ## 1.0.3 - 2019-08-26
 ### Added
@@ -22,6 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
   - Made deletion and recovery of studies work again
 
+---
 
 ## 1.0.2 - 2019-08-23
 ### Added
@@ -35,6 +52,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Updated Color plot such that it reflect the underlying method
   - Resolved issue in ```calc_clearance``` under clearance_math.py with days to minutes conversion for tests done over multiple days
 
+---
 
 ## 1.0.1 - 2019-08-21
 ### Added
