@@ -11,6 +11,7 @@ DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporaril
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
+CSV_DIR = f"{STATIC_DIR}csv/"
 
 BASE_FIND_QUERY = f"{BASE_QUERY_DIR}base_find_query.dcm"                              # Used for the list studies page
 BASE_IMG_QUERY_PATH = f"{BASE_QUERY_DIR}base_img_query.dcm"                          # Used for retreiving images
@@ -34,14 +35,14 @@ new_dict_items = {
   0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'), #Sequnce Item
   0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
   0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor'),
-  0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus')
+  0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus'),
   0x0023103F : ('SQ', '1', 'Clearance History', '', 'clearancehistory')
 }
 
 
 # --- Plot specification --- #
-PLOT_WIDTH = 19.2   # 1920
-PLOT_HEIGHT = 10.8  # 1080
+PLOT_WIDTH = 19.2   # 1920 Pixels
+PLOT_HEIGHT = 10.8  # 1080 Pixels
 
 TITLE_FONT_SIZE = 28
 AXIS_FONT_SIZE = 18

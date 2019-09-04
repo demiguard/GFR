@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import QueryDict, HttpResponseNotFound, JsonResponse, HttpResponse, HttpResponseServerError, HttpResponseBadRequest
+from django.http import FileResponse, QueryDict, HttpResponseNotFound, JsonResponse, HttpResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.generic import View
 
 from smb.base import NotConnectedError
@@ -10,7 +10,9 @@ import os
 import shutil
 
 from main_page.libs import samba_handler
+from main_page.libs import dicomlib
 from main_page.libs import server_config
+from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.status_codes import *
 from main_page.libs.dirmanager import try_mkdir
 from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, PostEndpoint, DeleteEndpoint
@@ -274,3 +276,39 @@ class StudyEndpoint(View):
       resp.status_code = HTTP_STATUS_NO_CONTENT
 
     return resp
+
+class CsvEndpoint(LoginRequiredMixin, View):
+  def get(self, request, accessionnumber):
+    """
+      Handles the response from request of export to csv file 
+
+
+
+    """
+    #init
+    user = request.user
+    hospital_sn = user.department.hospital.short_name
+    csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
+    csv_file_path = f'{csv_dir}{accessionnumber}.csv'
+    dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accessionnumber}.dcm'
+    try:
+      dataset = dicomlib.dcmread_wrapper(dataset_file_path)
+    except: #file not found
+      #Generate Bad response
+      return HttpResponseNotFound()
+    #Create directories as needed
+    try_mkdir(csv_dir,mk_parents=True)
+    #Create csv file
+    output = dicomlib.export_dicom(dataset, csv_file_path)
+    print(output)
+
+    try:
+      #This should be happening because we just created the csv file
+      return FileResponse(open(csv_file_path, 'rb')) #Powerful one liner, I luv it
+    except:
+      return HttpResponseServerError()
+
+  def delete(self, request, accessionnumber):
+    logger.info()
+
+
