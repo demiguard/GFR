@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
   - Saving of the daily thining factor is initially uncheck if already entered previously.
+  - Made SambaBackupEndpoint and StudyEndpoint have login required.
 
 ---
 

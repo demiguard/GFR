@@ -14,7 +14,7 @@ from main_page.libs import server_config
 from main_page.libs.status_codes import *
 from main_page.libs.dirmanager import try_mkdir
 from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, PostEndpoint, DeleteEndpoint
-from main_page.views.mixins import AdminRequiredMixin
+from main_page.views.mixins import AdminRequiredMixin, LoggingMixin
 from main_page import models
 
 
@@ -167,7 +167,7 @@ class ProcedureMappingsEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndp
     return super().post(request)
 
 
-class SambaBackupEndpoint(View):
+class SambaBackupEndpoint(LoginRequiredMixin, View):
   def get(self, request, date):
     # Extract search parameters
     try:
@@ -210,7 +210,7 @@ class SambaBackupEndpoint(View):
     return JsonResponse(context)
 
 
-class StudyEndpoint(View):
+class StudyEndpoint(LoginRequiredMixin, View):
   """
   Custom endpoint for handling moving of studies 
   (i.e. for moving to trash and recovering them)
