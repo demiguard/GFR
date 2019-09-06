@@ -15,6 +15,7 @@
       <input type="button" value="Tilbage til redigering" onclick="document.location='{% url "main_page:fill_study" ris_nr %}'">
       <input type="button" value="Tilbage til hovedmenu" onclick="document.location='{% url "main_page:list_studies" %}'">
       <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
+      <input type="button" value="Hent csv fil"          onclick="document.location='{% url "main_page:csv" ris_nr %}'">
       <input type="submit" value="Send til PACS">
 
       {% if show_QA_button %}

@@ -395,7 +395,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   return response_list
 
 
-def get_history_from_pacs(cpr : str, birthday : str, user):
+def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
   """
   Retrieves information historical data about a user from pacs.
   This function doesn't save anything
@@ -416,6 +416,7 @@ def get_history_from_pacs(cpr : str, birthday : str, user):
   date_list           = []
   age_list            = []
   clearence_norm_list = []
+  history_datasets     = []
 
   birthday = datetime.datetime.strptime(birthday,'%Y-%m-%d')
   #Create Assosiation to pacs
@@ -474,6 +475,19 @@ def get_history_from_pacs(cpr : str, birthday : str, user):
               age_at_examination = (date_of_examination - birthday).days / 365
               age_list.append(age_at_examination)
               clearence_norm_list.append(float(move_response_dataset.normClear))
+
+              history_dataset = Dataset()
+              try: #fill dataset
+                history_dataset.StudyDate = move_response_dataset.StudyDate
+                history_dataset.clearance = move_response_dataset.clearance
+                history_dataset.normClear = move_response_dataset.normClear
+                history_dataset.ClearTest = move_response_dataset.ClearTest
+                history_dataset.injTime   = move_response_dataset.injTime
+              except AttributeError:
+                logger.info(move_response_dataset)
+
+
+              history_datasets.append(history_dataset)
               #Delete the file
               logger.info(f'Deleteing File: {filename}')
               os.remove(filename)
@@ -495,6 +509,9 @@ def get_history_from_pacs(cpr : str, birthday : str, user):
     move_assoc.release()
   else:
     logger.warn('Could not connect to pacs')
+  #Fill the dicom object:
+  dicomlib.fill_dicom(dataset)
+  
   #Return
   return date_list, age_list, clearence_norm_list
 

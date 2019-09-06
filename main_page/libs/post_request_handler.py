@@ -159,7 +159,7 @@ def fill_study_post(request, rigs_nr, dataset):
 
     # Get historical data from PACS
     try:
-      history_dates, history_age, history_clrN = pacs.get_history_from_pacs(cpr, birthdate, request.user)
+      history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, cpr, birthdate, request.user)
     except ValueError: # Handle empty AET for PACS connection 
       history_age = [ ]
       history_clrN = [ ]

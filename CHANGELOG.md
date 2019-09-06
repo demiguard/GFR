@@ -5,7 +5,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <!-- and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). -->
 
 ## 1.1 TODO Features
-  - [ ] csv export
   - [ ] Resolve issues described in Bryan's mail
   - [ ] Resolve timeout issues related to retreiving the history of studies (compress the images uploaded to PACS)
 
@@ -13,10 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## 1.0.4 - 2019-09-04
 ### Added
-
+  -  csv export, on site single study
 
 ### Changed
-
+  - Spelling of sample
 
 ### Fixed
   - Saving of the daily thining factor is initially uncheck if already entered previously.
