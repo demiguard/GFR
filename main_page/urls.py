@@ -19,7 +19,8 @@ urlpatterns = [
   path('documentation', views.DocumentationView.as_view(), name='documentation'),
   path('userguide',views.UserGuideView.as_view(), name='userguide'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
-  #Images
+  
+  # Images
   path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),
   path('present_old_study/<str:ris_nr>', views.PresentOldStudyView.as_view(), name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
