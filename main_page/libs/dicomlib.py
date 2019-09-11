@@ -152,7 +152,7 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.Modality = 'OT'
     #ds.add_new(0x00080070, 'LO', 'GFR-calc') # Manufacturer                  # ds.Manufacturer
     ds.add_new(0x00080064, 'CS', 'SYN')                                       # ds.ConversionType
-    ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # TODO: Figure out what this tag is...
+    ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # Our PrivateCreator tag (0x00230010)
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
     ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
     ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
@@ -161,7 +161,6 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
-    #ds.StudyInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Study'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
 
