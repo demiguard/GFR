@@ -285,10 +285,13 @@ def start_scp_server():
     # Infomation Retrieved
     # Availble vars retrieved_dataset, retrieved_meta_info
     
+    logger.info(f'Dataset:\n {retrieved_dataset}')
+
     if 'AccessionNumber' in retrieved_dataset:
-      filename = f'{retrieved_dataset.AccessionNumber}.dcm'
-      fullpath = server_config.SEARCH_DIR + filename
-      dicomlib.save_dicom(fullpath, retrieved_dataset)
+      if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
+        filename = f'{retrieved_dataset.AccessionNumber}.dcm'
+        fullpath = server_config.SEARCH_DIR + filename
+        dicomlib.save_dicom(fullpath, retrieved_dataset)
 
       return 0x0000
 
