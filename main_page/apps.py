@@ -1,6 +1,8 @@
 from django.apps import AppConfig
+from .libs import ris_thread
 
 import logging
+
 
 
 class MainPageConfig(AppConfig):

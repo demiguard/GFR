@@ -4,6 +4,8 @@ import logging
 from main_page.libs.dirmanager import try_mkdir
 from .libs import server_config
 
+global ris_thread
+
 
 def init_logger():  
   logfile = server_config.LOG_DIR + 'logging_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
