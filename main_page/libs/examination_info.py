@@ -1,8 +1,11 @@
 import datetime
 import numpy as np
+import logging
 
 from main_page.libs import formatting
 from main_page.libs.clearance_math import clearance_math
+
+logger = logging.getLogger()
 
 
 class ExaminationInfo:
@@ -151,5 +154,33 @@ def deserialize(dicom_obj):
 
   return exam
 
+
 def mass_deserialize(dicom_objs):
-  return [deserialize(obj) for obj in dicom_objs]
+  """
+  Deserializes a list of dicom objects into ExaminationInfo objects
+
+  Args:
+    dicom_objs: list of dicom objects
+
+  Returns:
+    2-tuple of lists, with first being the list of deserialized objects,
+    and seconds a list of dicom objects which failed to deserialize.
+  """
+  examination_objects = [ ]
+  failed_objects = [ ]
+
+  for dcm_obj in dicom_objs:
+    try:
+      examination_objects.append(deserialize(dcm_obj))
+    except Exception as e:
+      failed_objects.append(dcm_obj)
+      logger.warn(
+        f"""Failed to deserialize dicom object:
+
+        {dcm_obj} 
+
+        with error: {e}"""
+      )
+      continue
+
+  return examination_objects, failed_objects

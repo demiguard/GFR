@@ -96,8 +96,26 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
 
-    bookings = examination_info.mass_deserialize(dicom_objs)
+    bookings, failed_to_deserialize = examination_info.mass_deserialize(dicom_objs)
   
+    # Inform user if some studies failed to deserialize
+    if failed_to_deserialize:
+      failed_cnt = len(failed_to_deserialize)
+
+      failed_accession_numbers = [ ]
+      for dcm_obj in failed_to_deserialize:
+        try:
+          failed_accession_numbers.append(dcm_obj.AccessionNumber)
+        except (KeyError, AttributeError):
+          failed_accession_numbers.append("...kunne ikke læse accession nummer...")
+
+      accessions_str = ', '.join(failed_accession_numbers)
+      error_message += \
+        f"""{failed_cnt} undersøgelser fejlede i at blive indlæst.
+        Accession nummere:
+        {accessions_str}
+        """
+
     def date_sort(item):
       item_time = datetime.datetime.strptime(item.date, "%d/%m-%Y")
       return int(item_time.strftime("%Y%m%d"))

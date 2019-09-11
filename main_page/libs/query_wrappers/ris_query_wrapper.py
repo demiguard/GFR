@@ -127,7 +127,7 @@ def connect_to_RIS(config: Type[models.Config]):
 
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
   ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
-  
+
   assocation = ae.associate(
     config.ris_ip,
     int(config.ris_port), # Portnumbers should be shorts or ints! - TODO: update our database to store integers intead of CharFields to avoid this type cast, as it might fail
