@@ -13,3 +13,9 @@ clairvoyance.sock
 
 # Logging files
 log/
+
+*.dcm
+*.png
+*.jpeg
+*.jpg
+*.csv
