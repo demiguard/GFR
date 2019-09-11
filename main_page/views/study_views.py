@@ -39,17 +39,20 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     context = {
-      'study_form': forms.NewStudy(initial={'study_date': datetime.date.today})
+      'study_form': forms.NewStudy(initial={
+          'study_date': datetime.date.today().strftime('%d-%m-%Y')
+        }
+      )
     }
 
     return render(request, self.template_name, context)
 
   def post(self, request: Type[WSGIRequest]) -> HttpResponse:
     # Create and store dicom object for new study
-    cpr = request.POST['cpr']
-    name = request.POST['name']
-    study_date = request.POST['study_date']
-    ris_nr = request.POST['rigs_nr']
+    cpr = request.POST['cpr'].strip()
+    name = request.POST['name'].strip()
+    study_date = request.POST['study_date'].strip()
+    ris_nr = request.POST['rigs_nr'].strip()
 
     new_study_form = forms.NewStudy(initial={
       'cpr': cpr,
@@ -62,12 +65,16 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'study_form': new_study_form,
-      'error_msg' : ''
+      'error_message' : ''
     }
 
-    success, error_msgs = formatting.is_valid_study(cpr, name, study_date, ris_nr)
+    # Ensure validity of study
+    validation_status, error_messages = formatting.is_valid_study(
+      cpr, name, study_date, ris_nr)
 
-    if success:
+    if validation_status:
+      study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
+      
       dataset = dataset_creator.get_blank(
         cpr,
         name,
@@ -75,6 +82,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         ris_nr,
         request.user.department.hospital.short_name
       )
+      
       dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
           server_config.FIND_RESPONS_DIR,
           request.user.department.hospital.short_name,
@@ -83,10 +91,10 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         dataset
       )
 
-      # redirect to fill_study/ris_nr 
+      # redirect to fill_study/ris_nr
       return redirect('main_page:fill_study', ris_nr=ris_nr)
     else:
-      context['error_msgs'] = error_msgs
+      context['error_messages'] = error_messages
       return render(request, self.template_name, context)
 
 
