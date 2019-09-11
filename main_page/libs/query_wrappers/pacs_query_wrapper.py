@@ -289,7 +289,7 @@ def start_scp_server():
 
     if 'AccessionNumber' in retrieved_dataset:
       dicomlib.update_tags(retrieved_dataset)
-      if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality = 'OT':
+      if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
         filename = f'{retrieved_dataset.AccessionNumber}.dcm'
         fullpath = server_config.SEARCH_DIR + filename
         dicomlib.save_dicom(fullpath, retrieved_dataset)
