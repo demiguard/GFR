@@ -309,6 +309,20 @@ class CsvEndpoint(LoginRequiredMixin, View):
       return HttpResponseServerError()
 
   def delete(self, request, accessionnumber):
-    logger.info()
+    logger.info(f'Recieved Delete request of csv file for {accessionnumber}')
 
+    user = request.user
+    hospital_sn = user.department.hospital.short_name
+    csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
+    csv_file_path = f'{csv_dir}{accessionnumber}.csv'
+    
+    if os.path.exists(csv_file_path):
+      os.remove(csv_file_path)
+
+      response = HttpResponse()
+      response.status_code = HTTP_STATUS_OK
+
+      return response
+    else:
+      return HttpResponseNotFound()
 

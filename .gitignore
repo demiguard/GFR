@@ -19,3 +19,8 @@ log/
 *.jpeg
 *.jpg
 *.csv
+*.log
+*.aux
+*.dvi
+*.coverage
+*.toc
