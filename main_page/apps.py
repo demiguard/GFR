@@ -36,3 +36,6 @@ class MainPageConfig(AppConfig):
 
     from main_page.libs import ris_thread_config_gen 
     from main_page.libs import ris_thread
+
+    RT = ris_thread.Ris_thread(ris_thread_config_gen.read_config())
+    RT.start()
