@@ -24,7 +24,6 @@ class MainPageConfig(AppConfig):
     """
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import Startup
-    from .libs import ris_thread_config_gen 
 
     Startup.init_logger()
     logger = logging.getLogger(name='ServerLogger')
@@ -35,5 +34,5 @@ class MainPageConfig(AppConfig):
     except Exception as e:
       logger.info('Failed to start SCP server because:{0}'.format(str(e)))
 
-      
+    from .libs import ris_thread_config_gen 
     from .libs import ris_thread
