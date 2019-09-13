@@ -26,7 +26,7 @@ from threading import Thread
 
 #Init mainly for logging
 logger = logging.getLogger()
-logger.info('Thread:Init Ris Thread')  
+logger.info('Thread:Init Ris Thread')
 
 """
   Config documentation
@@ -134,6 +134,13 @@ class Ris_thread(Thread):
   def apply_kill_to_self(self):
     self.Running = False
 
+  __instance = None
+  @staticmethod
+  def get_instance(config):
+    if Ris_thread.__instance == None:
+      Ris_thread(config)
+    return Ris_thread.__instance
+
   def __init__(self, config):
     """
       Inits a thread for ris
@@ -142,6 +149,13 @@ class Ris_thread(Thread):
       Args:
         config: Directory - See other documentation for kw + values
     """
+    logger.info("Thread: initializing")
+
+    if Ris_thread.__instance != None:
+      raise Exception("This is a singleton...")
+    else:
+      Ris_thread.__instance = self
+
     #Init Thread
     #Thread is a daemon thread aka close on program termination
     self.config = config
@@ -153,13 +167,15 @@ class Ris_thread(Thread):
       group=None
     )
 
-  #End class
-logger.info(f'Tread:Globals: {globlas}')
-if not('ris_thread' in globals()):
-  logger.info('Thread:Creating RIS_THREAD var')
-  ris_thread = Ris_thread(ris_thread_config_gen.read_config())
-  global ris_thread
-  ris_thread.start()
+    logger.info("Thread: initializing done.")
+
+#   #End class
+# logger.info(f'Tread:Globals: {globlas}')
+# if not('ris_thread' in globals()):
+#   logger.info('Thread:Creating RIS_THREAD var')
+#   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
+#   global ris_thread
+#   ris_thread.start()
 
 
   
