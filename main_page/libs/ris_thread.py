@@ -1,4 +1,4 @@
-import pydicom,
+import pydicom
 import pynetdicom
 import logging
 import os
@@ -152,7 +152,7 @@ class Ris_thread(Thread):
 
   #End class
 
-if not('RIS_THREAD' in globals()):
+if not('ris_thread' in globals()):
   logger.info('Thread:Creating RIS_THREAD var')
   global ris_thread
   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
