@@ -1,5 +1,6 @@
 import pydicom, pynetdicom, logging, os, time, datetime, random
 from . import dicomlib, dataset_creator
+from .dirmanager import try_mkdir
 
 from . import server_config, ris_thread_config_gen
 from threading import Thread, Timer, Event
