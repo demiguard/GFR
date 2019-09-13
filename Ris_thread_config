@@ -1,0 +1,16 @@
+# This file generates the config for ris_thread
+#
+# Use the ris_thread_config_generator to make this file
+# 
+# Guide:
+#  - put a # for comments
+#  - <key>, <item>
+#  - item non-list and non-dir will take string
+#  - ENSURE there're no special chars like: ,:;[], and so forth
+# 
+Delay_minimum, 10
+ris_ip, 10.143.128.247
+ris_port, 3320
+ris_AET, VIPDICOM
+AE_items, {RH_EDTA:RH;EDTA_GLO:GLO;HEHKFARGHOTR05:HEH;HVHFBERGHK7:HVH;}
+Delay_maximum, 17
