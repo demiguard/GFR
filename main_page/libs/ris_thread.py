@@ -56,6 +56,7 @@ class Ris_thread(Thread):
       logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
       ds.save_as(filepath, write_like_original=False)
 
+  
   def run(self):
     """
       This is the main
@@ -72,6 +73,7 @@ class Ris_thread(Thread):
   
     logger.info('Thread:Ris Thread is starting!')
     
+    """
     while self.Running:
       logger.info("Thread:RIS thread sending response")
       try:
@@ -127,6 +129,7 @@ class Ris_thread(Thread):
     logger.info('Thread:To die for the emperor is a glorious day - Ris_threads last words')
 
   # End thread_target
+  """
 
   def apply_kill_to_self(self):
     self.Running = False
