@@ -34,5 +34,5 @@ class MainPageConfig(AppConfig):
     except Exception as e:
       logger.info('Failed to start SCP server because:{0}'.format(str(e)))
 
-    from .libs import ris_thread_config_gen 
-    from .libs import ris_thread
+    from main_page.libs import ris_thread_config_gen 
+    from main_page.libs import ris_thread
