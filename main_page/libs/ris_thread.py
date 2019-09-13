@@ -18,14 +18,7 @@ from threading import Thread, Timer, Event
 
 #Init mainly for logging
 logger = logging.getLogger()
-logger.info('Init Ris Thread')  
-
-logfile = server_config.LOG_DIR + 'logging_thread_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
-try_mkdir(server_config.LOG_DIR)
-logging.basicConfig(filename=logfile, level=server_config.LOG_LEVEL, format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s')
-
-logger = logging.getLogger()
-logger.info('New logger Have been set up')
+logger.info('Thread:Init Ris Thread')  
 
 """
   Config documentation
@@ -52,7 +45,7 @@ class Ris_thread(Thread):
     if 'AccessionNumber' in ds:
       filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{ds.AccessionNumber}.dcm'
       ds.fix_meta_info()
-      logger.info(f'Thread saving Dicom file at: {filepath}')
+      logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
       ds.save_as(filepath, write_like_original=False)
 
   def thread_target(self):
@@ -69,10 +62,10 @@ class Ris_thread(Thread):
     SUCCESSFUL_FILE_TRANSFER = 0x0000
     DICOM_FILE_RECIEVED = 0xFF00
   
-    logger.info('Ris Thread is starting!')
+    logger.info('Thread:Ris Thread is starting!')
     
     while self.Running:
-      logger.info("RIS thread sending response")
+      logger.info("Thread:RIS thread sending response")
       try:
         ris_ip = self.config['ris_ip']
         ris_port = int(self.config['ris_port'])
@@ -113,7 +106,7 @@ class Ris_thread(Thread):
               except:
                 pass
       else:
-        logger.info('Ris_thread could not connect to ris')
+        logger.info('Thread:Ris_thread could not connect to ris')
 
       #Association done 
       delay = random.uniform(delay_min, delay_max)
@@ -123,7 +116,7 @@ class Ris_thread(Thread):
       self.config = ris_thread_config_gen.read_config()
       #End of While loop
 
-    logger.info('To die for the emperor is a glorious day - Ris_threads last words')
+    logger.info('Thread:To die for the emperor is a glorious day - Ris_threads last words')
 
   # End thread_target
 
@@ -152,7 +145,7 @@ class Ris_thread(Thread):
   #End class
 
 if not('RIS_THREAD' in globals()):
-  logger.info('Creating RIS_THREAD var')
+  logger.info('Thread:Creating RIS_THREAD var')
   global ris_thread
   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
   ris_thread.start()
