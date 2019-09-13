@@ -151,11 +151,11 @@ class Ris_thread(Thread):
     )
 
   #End class
-
+logger.info(f'Tread:Globals: {globlas}')
 if not('ris_thread' in globals()):
   logger.info('Thread:Creating RIS_THREAD var')
-  global ris_thread
   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
+  global ris_thread
   ris_thread.start()
 
 
