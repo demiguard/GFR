@@ -10,9 +10,9 @@
       {% csrf_token %}
       {% bootstrap_form study_form %}
       
-      {% for err in error_msgs %}
+      {% for err_msg in error_messages %}
         <div class="alert alert-danger" role="alert">
-          Fejl: {{ err }}
+          Fejl: {{ err_msg }}
         </div>
       {% endfor %}
 

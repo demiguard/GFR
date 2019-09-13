@@ -63,6 +63,9 @@ def format_cpr(cpr: str) -> str:
   if re.search(r"[a-zA-Z]", cpr):
     return cpr
 
+  if not re.search(r"^[a-zA-Z0-9\-]+$", cpr):
+    raise ValueError("cpr number contain illegal characters")
+
   # Optional dash at 6'th index check
   DASH_CNT = 1
   DASH_IDX = 6
@@ -194,7 +197,7 @@ def check_rigs_nr(rigs_nr):
   return "Accession nr. skal starte med 'REGH'."
 
 
-def is_valid_study(cpr, name, study_date, rigs_nr):
+def is_valid_study(cpr, name, study_date, accession_number):
   """
   Checks whether given study information is vaild.
 
@@ -203,25 +206,37 @@ def is_valid_study(cpr, name, study_date, rigs_nr):
     name: name of patient
     study_date: date of the study
     rigs_nr: RIGS number of the study
-
-  Returns:
-    tuple of the type (bool, string), if the study is valid then bool is True and
-    string is None.
-    Otherwise if the study is invalid bool is False and string contains an error
-    message describing the all points where the study is invalid.
   """
-  error_strings = []
-  
-  # Validate every input
-  error_strings.append(check_cpr(cpr))
-  error_strings.append(check_name(name))
-  error_strings.append(check_date(study_date))
-  error_strings.append(check_rigs_nr(rigs_nr))
+  errors = [ ]
 
-  # Filter out None values
-  error_strings = list(filter(lambda x: x, error_strings))
+  # Check cpr
+  if cpr:
+    if not re.match(r"^[a-zA-Z0-9\-]+$", cpr):
+      errors.append("CPR nummer indeholder ulovlige karaktere.")
+  else:
+    errors.append("CPR nummer må ikke være tomt.")
 
-  return (True, error_strings)
+  # Check name
+  if not name:
+    errors.append("Navn må ikke være tomt.")
+
+  # Check study_date
+  try:
+    datetime.strptime(study_date, '%d-%m-%Y')
+  except ValueError:
+    errors.append("Dato har ikke korrekt format (tilladt format: DD-MM-ÅÅÅÅ).")
+
+  # Check accession number
+  if accession_number:
+    if not re.search(r"\s", accession_number):
+      if not re.match(r"^[a-zA-Z0-9\-]+$", accession_number):
+        errors.append("Accession nummer indeholder ulovlige karaktere.")
+    else:
+      errors.append("Accession nummer må ikke indeholde mellemrum.")
+  else:
+    errors.append("Accession nummer må ikke være tomt.")
+
+  return (errors == [ ]), errors
 
 
 def name_to_person_name(name: str) -> str:

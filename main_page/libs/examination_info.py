@@ -77,7 +77,10 @@ def deserialize(dicom_obj):
   if 'PatientSex' in dicom_obj:
     exam.sex = dicom_obj.PatientSex
   else:
-    exam.sex = clearance_math.calculate_sex(exam.cpr)
+    try:
+      exam.sex = clearance_math.calculate_sex(exam.cpr)
+    except ValueError: # Failed to case cpr nr. to int
+      exam.sex = "F"
 
   if 'PatientWeight' in dicom_obj:
     exam.weight = dicom_obj.PatientWeight
@@ -88,7 +91,10 @@ def deserialize(dicom_obj):
   if 'PatientAge' in dicom_obj:
     exam.age = dicom_obj.PatientAge
   else:
-    exam.age = clearance_math.calculate_age(exam.cpr)
+    try:
+      exam.age = clearance_math.calculate_age(exam.cpr)
+    except (UnboundLocalError, ValueError):
+      exam.age = 0
 
   if 'PatientBirthDate' in dicom_obj:
     birthday_str = dicom_obj.PatientBirthDate[0:4] + '-' + dicom_obj.PatientBirthDate[4:6] + '-' + dicom_obj.PatientBirthDate[6:8]
