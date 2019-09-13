@@ -51,7 +51,7 @@
           <input type="button" value="Tilføj standard" id="add-standard">
         {% endbuttons %}
         
-        <h5>Bloodprøvedata</h5>
+        <h5>Blodprøvedata</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
 
@@ -90,7 +90,7 @@
             </div>
           </div>
           {% buttons %}
-            <input type="button" value="Tilføj prøve" id="add-test">
+            <input type="button" value="Tilføj tælletal" id="add-test">
             <input type="button" value="Tilføj tom prøve" id="add-empty-value">
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
@@ -111,7 +111,7 @@
       <!-- Right side -->
       <div class="col-md-6" id="right_side">
         {% if csv_data_len != 0 %}
-          <p><strong>Vælg prøve fra fil:</strong></p>
+          <p><strong>Vælg prøvens tælletal fra fil:</strong></p>
             <div class="csvAccordion" id="accordionContainer">
               {% for name, data, id in csv_data %}
                 <div class="card">

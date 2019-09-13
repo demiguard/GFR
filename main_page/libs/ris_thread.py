@@ -19,6 +19,13 @@ from threading import Thread, Timer, Event
 logger = logging.getLogger()
 logger.info('Init Ris Thread')  
 
+server_config.LOG_DIR + 'logging_thread_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
+try_mkdir(server_config.LOG_DIR)
+logging.basicConfig(filename=logfile, level=server_config.LOG_LEVEL, format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s')
+
+logger = logging.getLogger()
+logger.info('New logger Have been set up')
+
 """
   Config documentation
 
@@ -109,6 +116,7 @@ class Ris_thread(Thread):
 
       #Association done 
       delay = random.uniform(delay_min, delay_max)
+      logger.info(f'Ris thread going to sleep for {delay} min.')
       time.sleep(delay * 60)
 
       self.config = ris_thread_config_gen.read_config()
@@ -139,7 +147,6 @@ class Ris_thread(Thread):
     )
     self.config = config
     self.Running = False
-    self.start()
 
   #End class
 
@@ -147,7 +154,7 @@ if not('RIS_THREAD' in globals()):
   logger.info('Creating RIS_THREAD var')
   global ris_thread
   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
- 
+  ris_thread.start()
 
 
   
