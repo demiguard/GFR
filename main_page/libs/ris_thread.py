@@ -1,9 +1,17 @@
-import pydicom, pynetdicom, logging, os, time, datetime, random
-from . import dicomlib, dataset_creator
-from .dirmanager import try_mkdir
+import pydicom,
+import pynetdicom
+import logging
+import os
+import time
+import datetime
+import random
+from . import dicomlib, 
+from . import dataset_creator
+from . import server_config 
+from . import ris_thread_config_gen
 
-from . import server_config, ris_thread_config_gen
-from threading import Thread, Timer, Event
+from .dirmanager import try_mkdir
+from threading import Thread
 
 """
     NOTE TO self and furture devs
