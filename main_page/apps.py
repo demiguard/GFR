@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-from .libs import ris_thread
 
 import logging
 
@@ -25,6 +24,8 @@ class MainPageConfig(AppConfig):
     """
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import Startup
+    from .libs import ris_thread_config_gen 
+    from .libs import ris_thread
 
     Startup.init_logger()
     logger = logging.getLogger(name='ServerLogger')

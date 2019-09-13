@@ -63,8 +63,8 @@ class FillStudyType(forms.Form):
 
 
 class FillStudyTest(forms.Form):
-  study_time = forms.TimeField(label='Blodprøve taget ved tidspunkt', required=False)
-  study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)', required=False)
+  study_time = forms.TimeField(label='Blodprøve taget kl:', required=False)
+  study_date = forms.DateField(label='Blodprøve taget dato', required=False)
 
   def __init__(self, *args, **kwargs):
     super(FillStudyTest, self).__init__(*args, **kwargs)

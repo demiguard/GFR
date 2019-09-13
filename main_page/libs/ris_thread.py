@@ -1,6 +1,7 @@
 import pydicom, pynetdicom, logging, os, time, datetime, random
+from . import dicomlib, dataset_creator
 
-from . import server_config
+from . import server_config, ris_thread_config_gen
 from threading import Thread, Timer, Event
 
 """
@@ -37,7 +38,7 @@ config['Delay_maximum'] = 17 #int
 
 
 class Ris_thread(Thread):
-  def save_dicom(ds, hospital_shortname):
+  def save_dicom(self, ds, hospital_shortname):
     #Okay so this function is in dicom lib, HOWEVER other parts of dicomlib imports something that depends. 
     #Please do not break everything by removing this function and replacing with it's counter part!
     if 'AccessionNumber' in ds:
@@ -46,12 +47,7 @@ class Ris_thread(Thread):
       logger.info(f'Thread saving Dicom file at: {filepath}')
       ds.save_as(filepath, write_like_original=False)
 
-  def Update_Args():
-    pass  
-
-
-
-  def thread_target(AE_titles):
+  def thread_target(self):
     """
       This is the main
 
@@ -68,49 +64,54 @@ class Ris_thread(Thread):
     logger.info('Ris Thread is starting!')
     
     while self.Running:
+      logger.info("RIS thread sending response")
       try:
-        ris_ip = config['ris_ip']
-        ris_port = int(config['ris_port'])
-        ris_AET = config['ris_AET']
-        delay_min = int(config['Delay_minimum'])
-        delay_max = int(config['Delay_maximum'])
-        AE_titles = config['AE_items']
+        ris_ip = self.config['ris_ip']
+        ris_port = int(self.config['ris_port'])
+        ris_AET = self.config['ris_AET']
+        delay_min = int(self.config['Delay_minimum'])
+        delay_max = int(self.config['Delay_maximum'])
+        AE_titles = self.config['AE_items']
 
         assert delay_min <= delay_max
       except KeyError as KE:
-        raise AttributeError()
+        raise AttributeError(f'{KE} : {self.config}')
 
       ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
       FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-      ae.add_requested_context(FIN# This file generates the config for ris_thread
-#
-# Use the ris_thread_config_generator to make this file
-# 
-# Guide
-# put a # for comments
-# DStudyRootQueryRetrieveInformationModel)      
+      ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)# This file generates the config for ris_thread
 
       association = ae.associate(
         ris_ip,
         ris_port,
         ae_title=ris_AET
       )
-
+      
       if association.is_established:
-        for (AE, hospital_shortname) in AE_titles:
+        for AE_key in AE_titles.keys():
+          AE = AE_key
+          hospital_shortname = AE_titles[AE_key]
+
           response = association.send_c_find(
             dataset_creator.generate_ris_query_dataset(AE),
             query_model='S'
           )
           for status, dataset in response:
-            if status.status == DICOM_FILE_RECIEVED:
-              self.save_dicom(dataset, hospital_shortname)
+            
+            if status.Status == DICOM_FILE_RECIEVED:
+              try:
+                filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
+                dicomlib.save_dicom(filepath,dataset)
+              except:
+                pass
       else:
         logger.info('Ris_thread could not connect to ris')
 
       #Association done 
       delay = random.uniform(delay_min, delay_max)
-      timer.sleep(delay * 60)
+      time.sleep(delay * 60)
+
+      self.config = ris_thread_config_gen.read_config()
       #End of While loop
 
     logger.info('To die for the emperor is a glorious day - Ris_threads last words')
@@ -133,24 +134,20 @@ class Ris_thread(Thread):
     Thread.__init__(
       self,
       name='Ris thread',
-      target=thread_target,
+      target=self.thread_target,
       daemon=True,
     )
     self.config = config
     self.Running = False
-
-    if config['']:
-      pass
-
-
+    self.start()
 
   #End class
-"""
+
 if not('RIS_THREAD' in globals()):
   logger.info('Creating RIS_THREAD var')
-  global Ris_thread
-  Ris_thread = Ris_thread(config)
-""" 
+  global ris_thread
+  ris_thread = Ris_thread(ris_thread_config_gen.read_config())
+ 
 
 
   
