@@ -20,7 +20,7 @@ from threading import Thread, Timer, Event
 logger = logging.getLogger()
 logger.info('Init Ris Thread')  
 
-server_config.LOG_DIR + 'logging_thread_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
+logfile = server_config.LOG_DIR + 'logging_thread_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
 try_mkdir(server_config.LOG_DIR)
 logging.basicConfig(filename=logfile, level=server_config.LOG_LEVEL, format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s')
 
