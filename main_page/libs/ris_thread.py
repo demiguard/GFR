@@ -11,7 +11,7 @@ from . import server_config
 from . import ris_thread_config_gen
 
 from .dirmanager import try_mkdir
-from threading import Thread
+from threading import Thread, Timer
 
 """
     NOTE TO self and furture devs
@@ -45,19 +45,22 @@ config = {
 config['Delay_minimum'] = 12 #int
 config['Delay_maximum'] = 17 #int 
 
+def Thread_target()
 
-class Ris_thread(Thread):
-  def save_dicom(self, ds, hospital_shortname):
+
+
+#class Ris_thread(Thread):
+# def save_dicom(self, ds, hospital_shortname):
     #Okay so this function is in dicom lib, HOWEVER other parts of dicomlib imports something that depends. 
     #Please do not break everything by removing this function and replacing with it's counter part!
-    if 'AccessionNumber' in ds:
-      filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{ds.AccessionNumber}.dcm'
-      ds.fix_meta_info()
-      logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
-      ds.save_as(filepath, write_like_original=False)
+#    if 'AccessionNumber' in ds:
+#      filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{ds.AccessionNumber}.dcm'
+#      ds.fix_meta_info()
+#      logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
+#      ds.save_as(filepath, write_like_original=False)
 
   
-  def run(self):
+def run(config):
     """
       This is the main
 
@@ -73,7 +76,7 @@ class Ris_thread(Thread):
   
     logger.info('Thread:Ris Thread is starting!')
     
-    """
+    
     while self.Running:
       logger.info("Thread:RIS thread sending response")
       try:
@@ -121,15 +124,14 @@ class Ris_thread(Thread):
       #Association done 
       delay = random.uniform(delay_min, delay_max)
       logger.info(f'Ris thread going to sleep for {delay} min.')
-      time.sleep(delay * 60)
 
       self.config = ris_thread_config_gen.read_config()
       #End of While loop
+      time.sleep(delay * 60)
 
     logger.info('Thread:To die for the emperor is a glorious day - Ris_threads last words')
-
   # End thread_target
-  """
+  
 
   def apply_kill_to_self(self):
     self.Running = False
