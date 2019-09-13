@@ -146,7 +146,7 @@ class Ris_thread(Thread):
       Args:
         config: Directory - See other documentation for kw + values
     """
-    logger.info("Thread: Instantiating thread.")
+    logger.info("Thread: initializing")
 
     if Ris_thread.__instance != None:
       raise Exception("This is a singleton...")
@@ -164,7 +164,7 @@ class Ris_thread(Thread):
       group=None
     )
 
-    logger.info("Thread: Instantiating done.")
+    logger.info("Thread: initializing done.")
 
 #   #End class
 # logger.info(f'Tread:Globals: {globlas}')
