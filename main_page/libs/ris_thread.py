@@ -48,7 +48,7 @@ class Ris_thread(Thread):
       logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
       ds.save_as(filepath, write_like_original=False)
 
-  def thread_target(self):
+  def run(self):
     """
       This is the main
 
@@ -133,14 +133,14 @@ class Ris_thread(Thread):
     """
     #Init Thread
     #Thread is a daemon thread aka close on program termination
+    self.config = config
+    self.Running = False
     Thread.__init__(
       self,
       name='Ris thread',
-      target=self.thread_target,
       daemon=True,
+      group=None
     )
-    self.config = config
-    self.Running = False
 
   #End class
 
