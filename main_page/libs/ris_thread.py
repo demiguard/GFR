@@ -10,6 +10,7 @@ from . import dataset_creator
 from . import server_config 
 from . import ris_thread_config_gen
 
+import main_page.models
 from .dirmanager import try_mkdir
 from threading import Thread
 
@@ -79,7 +80,10 @@ class RisFetcherThread(Thread):
             if status.Status == DICOM_FILE_RECIEVED:
               try:
                 filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
-                dicomlib.save_dicom(filepath, dataset)
+                if not os.path.exists(filepath) and models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists():
+                  dicomlib.save_dicom(filepath, dataset)
+                else:
+                  logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
               except Exception as e: # Possible AttributeError, due to possible missing accession number
                 logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
             elif status.Status == SUCCESSFUL_TRANSFER:
