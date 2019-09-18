@@ -11,7 +11,7 @@ from . import server_config
 from . import ris_thread_config_gen
 
 from .dirmanager import try_mkdir
-from threading import Thread, Timer
+from threading import Thread
 
 """
     NOTE TO self and furture devs
@@ -21,60 +21,29 @@ from threading import Thread, Timer
       dataset_creator.py
 
     This file describes a thread that pings ris every given time interval, retrieving 
-
 """
 
-#Init mainly for logging
 logger = logging.getLogger()
-logger.info('Thread:Init Ris Thread')
 
-"""
-  Config documentation
 
-  KW : Data type, Data description
-
-      Delay - minimum : int, The minimum amount of time (minutes) between each ping. Cannot be negative. Cannot be less than Delay - maximum. Must be part of config directory.
-      Delay - maximum : int, The maximum amount of time (minutes) between each ping. Cannot be negative. Cannot be greater than Delay - minimum. Must be part of config directory.
-      
-"""
-
-config = {
-
-}
-#Config[KW] = data
-config['Delay_minimum'] = 12 #int
-config['Delay_maximum'] = 17 #int 
-
-class Ris_thread(Thread):
-  def save_dicom(self, ds, hospital_shortname):
-    #Okay so this function is in dicom lib, HOWEVER other parts of dicomlib imports something that depends. 
-    #Please do not break everything by removing this function and replacing with it's counter part!
-    if 'AccessionNumber' in ds:
-      filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{ds.AccessionNumber}.dcm'
-      ds.fix_meta_info()
-      logger.info(f'Thread:Thread saving Dicom file at: {filepath}')
-      ds.save_as(filepath, write_like_original=False)
-
+class RisFetcherThread(Thread):
+  """
+  Thread subclass for retreiving studies periodically, as to avoid problems with
+  study information first being entered the day after the study was actually made
+  """
   
-  def run(config):
+  def run(self):
     """
-      This is the main
-
-      Args:
-        AE_titles : List[Tuple(str,str)]
+      Routine function to periodically run
     """
+    self.running = True
     
-    #init
-    self.Running = True    
-    
-    SUCCESSFUL_FILE_TRANSFER = 0x0000
     DICOM_FILE_RECIEVED = 0xFF00
   
-    logger.info('Thread:Ris Thread is starting!')
+    logger.info(f"{self.log_name}: Starting run routine")
     
-    
-    while self.Running:
-      logger.info("Thread:RIS thread sending response")
+    while self.running:
+      logger.info(f"{self.log_name}: RIS thread sending response")
       try:
         ris_ip = self.config['ris_ip']
         ris_port = int(self.config['ris_port'])
@@ -85,95 +54,98 @@ class Ris_thread(Thread):
 
         assert delay_min <= delay_max
       except KeyError as KE:
-        raise AttributeError(f'{KE} : {self.config}')
+        raise AttributeError(f'{KE} : {self.config}') # NOTE: Why change the exception class like this?
 
       ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
       FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-      ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)# This file generates the config for ris_thread
+      ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
 
       association = ae.associate(
         ris_ip,
         ris_port,
         ae_title=ris_AET
       )
-      
-      if association.is_established:
-        for AE_key in AE_titles.keys():
-          AE = AE_key
-          hospital_shortname = AE_titles[AE_key]
 
+      if association.is_established:
+        # Send C-FIND to fetch studies for each AET
+        for AET, hospital_shortname in AE_titles.items():
           response = association.send_c_find(
-            dataset_creator.generate_ris_query_dataset(AE),
+            dataset_creator.generate_ris_query_dataset(AET),
             query_model='S'
           )
+
           for status, dataset in response:
-            
             if status.Status == DICOM_FILE_RECIEVED:
               try:
                 filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
-                dicomlib.save_dicom(filepath,dataset)
-              except:
-                pass
-      else:
-        logger.info('Thread:Ris_thread could not connect to ris')
+                dicomlib.save_dicom(filepath, dataset)
+              except Exception as e: # Possible AttributeError, due to possible missing accession number
+                logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
+            else:
+              logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
+              break
 
-      #Association done 
-      delay = random.uniform(delay_min, delay_max)
+        association.release()
+      else:
+        logger.error(f"{self.log_name}: Unable to establish connection to RIS")
+
+      # Association done
+      delay = random.uniform(delay_min, delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay} min.')
 
+      # Re-read config for possible updates
       self.config = ris_thread_config_gen.read_config()
-      #End of While loop
-      time.sleep(delay * 60)
 
-    logger.info('Thread:To die for the emperor is a glorious day - Ris_threads last words')
-  # End thread_target
-  
+      time.sleep(delay)
+
+    logger.info(f"{self.log_name}: Terminated run loop")
 
   def apply_kill_to_self(self):
-    self.Running = False
+    """
+    Termiantes the periodic loop. Intended for restarting the thread
+    """
+    self.running = False
+    logger.info(f"{self.log_name}: killing self")
 
   __instance = None
   @staticmethod
   def get_instance(config):
-    if Ris_thread.__instance == None:
-      Ris_thread(config)
-    return Ris_thread.__instance
+    """
+    Retreives or instantiates the thread (this is a singleton class)
+
+    Args:
+      config: initial configuration for the thread to use
+    """
+    if RisFetcherThread.__instance == None:
+      RisFetcherThread(config)
+    return RisFetcherThread.__instance
 
   def __init__(self, config):
     """
-      Inits a thread for ris
-
+      Initializes a fetcher thread instance
 
       Args:
-        config: Directory - See other documentation for kw + values
+        config: dictionary containing required 
     """
-    logger.info("Thread: initializing")
+    self.log_name = type(self).__name__
+    logger.info(f"{self.log_name}: starting initialization of thread")
 
-    if Ris_thread.__instance != None:
+    # Ensure singleton pattern
+    if RisFetcherThread.__instance != None:
       raise Exception("This is a singleton...")
     else:
-      Ris_thread.__instance = self
+      RisFetcherThread.__instance = self
 
-    #Init Thread
-    #Thread is a daemon thread aka close on program termination
     self.config = config
-    self.Running = False
+    self.running = False
+
+    # Thread is a daemon, i.e. background worker thread
     Thread.__init__(
       self,
-      name='Ris thread',
+      name='RisFetcherThread',
       daemon=True,
       group=None
     )
 
-    logger.info("Thread: initializing done.")
-
-#   #End class
-# logger.info(f'Tread:Globals: {globlas}')
-# if not('ris_thread' in globals()):
-#   logger.info('Thread:Creating RIS_THREAD var')
-#   ris_thread = Ris_thread(ris_thread_config_gen.read_config())
-#   global ris_thread
-#   ris_thread.start()
-
-
+    logger.info(f"{self.log_name}: initialization done")
   

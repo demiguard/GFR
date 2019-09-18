@@ -87,12 +87,12 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   try:
     smb_conn.createDirectory(share_name, u'/backup')
   except:
-    logger.debug("Samba Error: Failed to create directory '/backup'")
+    logger.debug("Samba Info: Failed to create directory '/backup'")
 
   try:
     smb_conn.createDirectory(share_name, f'backup/{hospital}'.encode())
   except:
-    logger.debug(f"Samba Error: Failed to create directory '/backup/{hospital}'")
+    logger.debug(f"Samba Info: Failed to create directory '/backup/{hospital}'")
 
   smb_conn.storeFileFromOffset(
     share_name,

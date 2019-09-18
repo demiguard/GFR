@@ -19,8 +19,8 @@ header = """# This file generates the config for ris_thread
 #  - ENSURE there're no special chars like: ,:;[], and so forth
 # \n"""
 
+
 def _check_config(input_config):
-  
   required_config = {
     'Delay_minimum' : False,
     'Delay_maximum' : False,
@@ -28,17 +28,19 @@ def _check_config(input_config):
     'ris_port'      : False,
     'ris_AET'       : False,
     'AE_items'      : False
-  } 
+  }
+
   required_keys = required_config.keys()
   input_keys    = input_config.keys()
   return_value = True
-  
+
   for key in required_keys:
     if key in input_keys:
       required_config[key] = True
     return_value &= required_config[key]
 
   return return_value
+
 
 def generate_config(config):
   """
@@ -74,7 +76,6 @@ def generate_config(config):
         a_file.write(']\n')
       else:
         a_file.write(f'{key}, {str(item)}\n')
-
 
 
 def read_config():

@@ -38,18 +38,18 @@ class MainPageConfig(AppConfig):
     from main_page.libs import ris_thread_config_gen 
     from main_page.libs import ris_thread
 
-    RT = ris_thread.Ris_thread(ris_thread_config_gen.read_config())
+    RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config())
     RT.start()
-    logger.info(f"Thread: is running with daemon={RT.daemon}")
-    logger.info(f"Thread: current number of threads={threading.active_count()}")
+    # logger.info(f"Thread: is running with daemon={RT.daemon}")
+    # logger.info(f"Thread: current number of threads={threading.active_count()}")
     
-    a_variable = True
-    for thread in threading.enumerate():
-      logger.info(f"Thread: current thread with name: {thread.name}")
-      if thread.name == 'Ris thread':
-        a_variable = False
+    # a_variable = True
+    # for thread in threading.enumerate():
+    #   logger.info(f"Thread: current thread with name: {thread.name}")
+    #   if thread.name == 'Ris thread':
+    #     a_variable = False
       
-    if a_variable:
-      logger.info("Thread: starting next thread")
-      RT = ris_thread.Ris_thread(ris_thread_config_gen.read_config())
-      RT.start()
+    # if a_variable:
+    #   logger.info("Thread: starting next thread")
+    #   RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config())
+    #   RT.start()
