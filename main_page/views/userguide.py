@@ -2,7 +2,7 @@ from django.views.generic import View
 from django.http import FileResponse
 import logging
 
-logger = logging.getlogger()
+logger = logging.getLogger()
 
 
 class UserGuideView(View):
