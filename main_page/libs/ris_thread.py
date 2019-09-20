@@ -10,7 +10,7 @@ from . import dataset_creator
 from . import server_config 
 from . import ris_thread_config_gen
 
-import main_page.models
+from main_page import models
 from .dirmanager import try_mkdir
 from threading import Thread
 

@@ -13,6 +13,7 @@ import calendar
 import numpy
 import pandas
 import random
+import csv
 
 from main_page.libs.dirmanager import try_mkdir
 from .. import dicomlib, dataset_creator
@@ -592,6 +593,21 @@ def get_history_for_csv(
       valid_study &= study.StudyDescription in method_bounds
 
     return valid_study
+
+  def format_dicom(dicom_object, taglist):
+    def helper(ds, tag):
+      if tag in ds:
+        return str(ds[tag])
+      else :
+        return ''
+      
+    returnlist = []
+
+    for tag in taglist:
+      returnlist.append(helper(dicom_object, tag))
+    
+    return returnlist
+
   #End Helper Functions
 
   bounds = (
@@ -698,4 +714,28 @@ def get_history_for_csv(
   #Studies at this point contains all valid studies given by the function input
   #This part is the csv
 
-  
+  today = datetime.datetime.today()
+  filename = f'gfr_data_{today.strftime("%Y%m%d")}.csv'
+  with open(filename, mode='w', newline = '') as csv_file:
+    header_tags = [
+      ("Navn",                    0x00100010),
+      ("CPR",                     0x00100020),
+      ("Alder",                   0x00100010),
+      ("Højde",                   0x00101020),
+      ("Vægt",                    0x00101030),
+      ("Køn",                     0x00100040),
+      ("Dato",                    0x00080020),
+      ("Krops overfalde metode",  0x00231011),
+      ("Clearance",               0x00231012),
+      ("Clearance Normalized",    0x00231014),
+      ("Injektions Tidspunkt",    0x00231018),
+      ("Injektions vægt",         0x0023101A),
+      ("Sprøjte Vægt før",        0x0023101B),
+      ("Sprøjte Vægt Efter",      0x0023101C),
+      ("Standard",                0x00231024),
+      ("Thining Factor",0x0)
+    ]
+
+
+    for study in studies:
+      pass
