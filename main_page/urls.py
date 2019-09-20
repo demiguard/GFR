@@ -54,5 +54,4 @@ urlpatterns = [
   path('api/procedure_mapping/<int:obj_id>', ProcedureMappingsEndpoint.as_view(), name='procedure_mapping'),
   path('api/study/<str:ris_nr>', StudyEndpoint.as_view(), name='study'),
   path('api/csv/<str:accessionnumber>', CsvEndpoint.as_view(), name='csv'),
-  #path('api/delete_csv/<str:accessionnumber>') #Path incomplete
 ]
