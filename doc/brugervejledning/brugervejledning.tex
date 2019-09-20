@@ -1,8 +1,21 @@
 \documentclass{article}
-\usepackage[T1]{fontenc} %thanks's daleif
+\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[danish]{babel}						% Dokumentets sprog
+\usepackage[danish]{babel} % Set document language = danish
 
+\setlength\parindent{0pt} % \noindent on the whole document
+
+% URL styling - start
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,%blue,
+    filecolor=magenta,      
+    urlcolor=blue,%cyan,
+}
+ 
+\urlstyle{same}
+% URL styling - end
 
 \author{Christoffer Vilstrup Jensen, Simon Surland Andersen}
 \title{Brugervejledning}
@@ -10,41 +23,46 @@
 \begin{document}
 \tableofcontents
 \section*{Introduktion}
-Dette dokument beskriver dagligt brug af alle GFRcalc. Til udvikling og vedligeholdelse af GFRcalc bør du referer dokumentet: "kode-dokumentation.pdf". Dette dokument er skrevet så det kan læses af alle bruger.\\\\
-Brugervejledningen er skrevet til version 1.0 af GFRcalc.\\\\
-Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Andersen. Den ansvarlige person for vedligeholdelse er Christoffer Vilstrup Jensen og kan kontakt via mail på Christoffer.Vilstrup.Jensen@regionh.dk\\\\
-Alt data \textit{(Navne, Cpr, test data)} i brugervejledningen er fabrikeret.
+Dette dokument beskriver dagligt brug af GFRcalc. Til udvikling og vedligeholdelse af GFRcalc bør du referer dokumentet: "kode-dokumentation.pdf". Dette dokument er skrevet så det kan læses af alle bruger.\\\\
+Brugervejledningen er skrevet til version 1.0.x af GFRcalc.\\\\
+Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Andersen. Den ansvarlige person for vedligeholdelse er Christoffer Vilstrup Jensen og kan kontakt via mail på christoffer.vilstrup.jensen@regionh.dk\\\\
+Alt data; \textit{Navne, cpr numre og test data}, i brugervejledningen er fabrikeret.
+
 \section*{Ordbog}
 \begin{itemize}
 	\item[GFRcalc] 	- Dette program
-	\item[GFR]     	- Glomerular filtration rate
+	\item[GFR]     	- Glomerular Filtration Rate
 	\item[SP]      	- Sundhedsplatformen
 	\item[PACS]	   	- Picture Archiving and Communication Systems
 	\item[RIS]		- Radiology Information System
 \end{itemize}
 \section*{Formål}
-GFRcalc er et værktøj som kan tilgås på hjemmesiden gfr/ eller gfr.petnet.rh.dk. værktøjet benyttes til udregning af Clearance undersøgelser. Mere specifik til at udregne GFR. 
+GFRcalc er et værktøj som kan tilgås på hjemmesiden \url{http://gfr} eller \url{http://gfr.petnet.rh.dk}. værktøjet benyttes til udregning af Clearance undersøgelser. Mere specifik til at udregne GFR. 
 \newpage
 \section{Til dagligt brug}
 For at kunne benytte nogle GFRcalc funktioner, skal der logges ind.
 \subsection{Hurtig Guide}
 \begin{enumerate}
-	\item Gå til hjemmesiden “GFR.petnet.rh.dk”
-	\item Log in
-	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen
-	\item Udfyld undersøgelsen ved at indtaste relevant data
+	\item Gå til hjemmesiden \url{http://gfr.petnet.rh.dk}.
+	\item Log in.
+	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen.
+	\item Udfyld undersøgelsen ved at indtaste relevant data.
 	\begin{itemize}
-		\item Brug knappen “Gem” til at gemme din nuværende indtastet data
+		\item Brug knappen “Gem” til at gemme de nuværende indtastet data
 	\end{itemize}
-	\item Klik “Beregn”
-	\item Klik “Send til PACS” efter at havde bekraftet at undersøgelsen er korrekt. 
+	\item Klik “Beregn”, hvorefter en graf vil blive genereret som beskriver undersøgelsen.
+	\item Klik “Send til PACS” efter at havde bekræftet at undersøgelsen er korrekt. Den genereret graf vil blive sent til PACS, sammen med det tilhørende data for undersøgelsen. 
 \end{enumerate}  
 \subsection{Oversigt over nuværende undersøgelser (Åbn undersøgelse)}\label{list_study}
-Denne side præsenterer alle undersøgelser, hvor patienten er ankomst registret. Dette betyder at hvis undersøgelsen bliver afsluttet i RIS, før at man har besøgt GFRcalc, så kan undersøgelsen ikke findes i GFRcalc. Hvis en undersøgelse mangler kontakt din RIS/PACS ansvarlige person.\\
-Gamle undersøgelser kan slettes, bemærk dog at undersøgelser ikke kan slettes, så længe at undersøgelsen er aktiv (Patienten er fremmødt, og undersøgelsen er ikke afsluttet.)\\
-Tabellen kan sorteres efter: navn, cpr-nr, dato, procedure eller accession number, ved at klikke på toppen af den ønskede søjle.\\
-En undersøgelse information kan tilgås via at klikke på den.\\\\
-Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via farven på “clipboardet”:
+Denne side præsenterer alle undersøgelser, hvor patienten er ankomst registret. Dette betyder at hvis undersøgelsen bliver afsluttet i RIS, før at man har besøgt GFRcalc, så kan undersøgelsen ikke findes i GFRcalc. Hvis en undersøgelse mangler kontakt din RIS/PACS ansvarlige person. \\
+
+Gamle undersøgelser kan slettes, bemærk dog at undersøgelser ikke kan slettes, så længe at undersøgelsen er aktiv (Patienten er fremmødt, og undersøgelsen er ikke afsluttet.) \\
+
+Tabellen kan sorteres efter: navn, cpr-nr, dato, procedure eller accession number, ved at klikke på toppen af den ønskede søjle. \\
+
+En undersøgelses information kan tilgås via at klikke på den. \\
+
+Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via farven på clipboardet (i søjlen med "status"):
 \begin{itemize}
 	\item[Grøn] - Undersøgelsen har alle information og afventer at blive godkendt og sendt til PACS.
 	\item[Gul] - Undersøgelsen har nogle bruger indtastet informationer, men har ikke udregnet clearance endnu. 
@@ -54,29 +72,37 @@ Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via 
 
 \subsection{Udfyldning af undersøgelser}\label{fill_study}
 Denne side tilgås ved at klikke på en af undersøgelserne fra “Åbn undersøgelse”\\\\
-Øverst kan information om undersøgelsen indtastes.\\
-I venstre nedre hjørne kan man tilføje prøver og afslutte undersøgelsen.\\ 
-I højre-nedre hjørne Dagens findes tællinger fra “Wizarden”.\\\\
-Extreme værdier vil blive markeret med gul. Dette har ingen funktionel betydning ud over at gøre opmærksom på mulige taste fejl.\\ Hvis en værdi indtaste i forkert format, eller værdien er umulig, vil der findes en rød værdi. GFRcalc kan kun udregn GFR, hvis der ikke findes nogle røde tal på siden.\\
+Øverst kan information om patienten og undersøgelsen indtastes. \\
+Nederst i venstre hjørne kan man tilføje blodprøver og afslutte undersøgelsen. \\ 
+Nederst i højre hjørne findes dagens tællinger fra “Wizarden”. Tællingerne er angivet efter tidspunkt og dato.  \\
+
+Ekstreme værdier vil blive markeret med gul. Dette har ingen funktionel betydning ud over at gøre opmærksom på mulige taste fejl. Hvis en værdi  bliver indtastet i forkert format, eller værdien er umulig, vil den mærkeres med rød. GFRcalc kan kun udregn GFR, hvis der ikke findes nogle røde tal på siden. \\
+
 Talende skal indtastes i den korrekte enhed. Disse enheder er:
 \begin{itemize}
 	\item Højde: Centimeter - (cm)
 	\item Vægt: Kilogram - (kg)
 	\item Sprøjtevægt: Gram - (g)
 \end{itemize}
-Ved alle decimaltal skal benyttes: » . «$\;$ i stedet for: » , «.\\
+Ved alle decimaltal skal der benyttes: » . «\\%$\;$ i stedet for: » , «.\\
 Alle datoer skal intaste i formatet DD-MM-ÅÅÅÅ.\\\\
-For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 men op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er en stor numerisk på prøverne gives der en advarsel, som kan indikerer en mulig tastefejl.\\
+For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 men op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er stor numerisk forskel på prøverne gives der en advarsel, som kan indikerer en mulig tastefejl.\\
 Scanninger kan identificeres ved, tidspunktet hvor scanningen af første rack er færdig.\\
+
 Det er vigtigt at brugeren selv husker hvilken patient, der findes i hvilken række og position.\\
+
 Yderlige krav for at tilføje en prøve er, at udfylde hvilket tidspunkt prøven er taget på.\\ Datoerne for prøvetagningen sættes som standard til dagens dato.\\
 Der kan maximalt tilføjes en prøve til en prøve modellerne. Der skal tilføjes mere end 1 prøve ved flere punkt modellen.\\
-Prøver kan slettes ved at clike på det røde »X«. Prøver kan redigeres ved at klikke på låsen. I tilfældet hvor der er valgt forkerte tællinger, anbefales det at brugeren sletter den forkerte prøve og vælger de korrekte tællinger, i stedet for at brugeren redigere på den forkerte prøve.\\\\
+
+Prøver kan slettes ved at clike på det røde »X«. Prøver kan redigeres ved at klikke på låsen. I tilfældet hvor der er valgt forkerte tællinger, anbefales det at brugeren sletter den forkerte prøve og vælger de korrekte tællinger, i stedet for at brugeren redigere på den forkerte prøve.\\
+
 Tællinger, der er mere end 24 timer gamle, bliver rykket til en backup. Tællinger fra backup kan hentes, i bunden af de nuværende tællinger. Her kan alle tællinger fra en dato hentes. De gamle tællingerne er identificeret på samme som nye tællinger.
-\\\\
+\\
+
 De indtastede informationer kan gemmes ved at klikke på 'Gem' knappen, som er placeret i nederst venstre hjørne. Hvis brugeren gemmer og et injektions tidspunkt ikke er udfyldt, så vil hjemmesiden selv udfylde 00:00.\\\\
-Hvis man ønsker at beregne GFR, så skal man udfylde alle felter, samt et relevant antal prøver. Derefter bliver bruger videre sent til hjemmesiden beskrevet i section \ref{present_study}.\\
-\textbf{Bemærk:} Der kan opstå ventetid i forbindelse med lavet billede, da GFRcalc også skal fremskaffe alt historik om patients tidligere undersøgelser (fra Sommeren 2019 og frem). Denne historik includerer alle undersøgelser lavet med GFRcalc.  
+Hvis man ønsker at beregne GFR, så skal man udfylde alle felter, samt et relevant antal prøver. Derefter bliver bruger videresendt til hjemmesiden beskrevet i section \ref{present_study}.\\
+
+\textbf{Bemærk:} Der kan opstå ventetid i forbindelse med lavet billede, da GFRcalc også skal fremskaffe alt historik om patients tidligere undersøgelser (fra Sommeren 2019 og frem). Denne historik inkluderer alle undersøgelser lavet med GFRcalc.  
 \subsection{Godkendelse og oversigt}\label{present_study}
 Denne side kan tilgås fra en udfyldt undersøgelse fra \ref{fill_study}.\\\\
 Der præsenteres et billede med en graf og information indtaste med undersøgelsen. GFR-værdierne er genereret ud fra metoden beskrevet i \ref{Documentation}.  Nedenunder billedet findes 4 knapper, som kan bruges til følgende:
@@ -84,7 +110,7 @@ Der præsenteres et billede med en graf og information indtaste med undersøgels
 	\item \textbf{Tilbage til hovedmenu} - Navigerer til hjemmesiden beskrevet i sektion \ref{list_study}
 	\item \textbf{Tilbage til redigering} - Navigerer til hjemmesiden beskrevet sektion \ref{fill_study}
 	\item \textbf{Billede til printning} - Navigerer til et fuldt skærmbillede af billede uden hjemmeside navigation, denne side er velegnet til printning af undersøgelsen.
-	\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til pacs. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
+	\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til PACS. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
 	Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.   
 	\item \textbf{QA-plot} \textit{Denne knap vises kun ved flere prøve metoden} - Navigerer til skærmbillede hvor man kan se et plot over hvor tæt prøveresultaterne ligger på den generetet linje.
 \end{itemize}
@@ -98,14 +124,15 @@ Man kan søge på:
 	\item CPR number
 	\item AccessionNummer 
 \end{itemize}
-Efter at man kligger på søg, kan man sorterer søgeresultaterne efter søjlerne i tabellen ved at klikke på toppen af søjlen. Man kan se et søge resultat ved at klikke på resultatet.\\
+Efter at man klikker på søg, kan man sorterer søgeresultaterne efter søjlerne i tabellen ved at klikke på toppen af søjlen. Man kan se et søge resultat ved at klikke på resultatet.\\
+
 \textbf{Bemærk} Søgetiden kan reduceres ved at man indskrænker sin søgning. 
 
 
 
 \subsection{Metode Dokumentation}\label{Documentation}
 Dokumentation beskriver metoden hvordan GFR værdierne er udregnet.\\ 
-Den kan man tilgå via sidebaren ved at klippe på linket »Documentation«
+Den kan man tilgå via sidebaren ved at klippe på linket »Documentation« (eller via. linket: \url{http://gfr/documentation}). 
 
 
 
