@@ -10,6 +10,7 @@ from . import dataset_creator
 from . import server_config 
 from . import ris_thread_config_gen
 
+import main_page.models
 from .dirmanager import try_mkdir
 from threading import Thread
 
@@ -38,6 +39,7 @@ class RisFetcherThread(Thread):
     """
     self.running = True
     
+    SUCCESSFUL_TRANSFER = 0x0000
     DICOM_FILE_RECIEVED = 0xFF00
   
     logger.info(f"{self.log_name}: Starting run routine")
@@ -54,7 +56,7 @@ class RisFetcherThread(Thread):
 
         assert delay_min <= delay_max
       except KeyError as KE:
-        raise AttributeError(f'{KE} : {self.config}') # NOTE: Why change the exception class like this?
+        raise AttributeError(f'{KE} : {self.config}') # TODO: Why change the exception class like this?
 
       ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
       FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
@@ -78,9 +80,14 @@ class RisFetcherThread(Thread):
             if status.Status == DICOM_FILE_RECIEVED:
               try:
                 filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
-                dicomlib.save_dicom(filepath, dataset)
+                if not os.path.exists(filepath) and models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists():
+                  dicomlib.save_dicom(filepath, dataset)
+                else:
+                  logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
               except Exception as e: # Possible AttributeError, due to possible missing accession number
                 logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
+            elif status.Status == SUCCESSFUL_TRANSFER:
+              pass # Ignore, then release association
             else:
               logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
               break
@@ -91,7 +98,7 @@ class RisFetcherThread(Thread):
 
       # Association done
       delay = random.uniform(delay_min, delay_max) * 60
-      logger.info(f'Ris thread going to sleep for {delay} min.')
+      logger.info(f'Ris thread going to sleep for {delay} sec.')
 
       # Re-read config for possible updates
       self.config = ris_thread_config_gen.read_config()
