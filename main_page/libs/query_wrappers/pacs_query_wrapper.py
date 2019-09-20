@@ -597,7 +597,7 @@ def get_history_for_csv(
   def format_dicom(dicom_object, taglist):
     def helper(ds, tag):
       if tag in ds:
-        return str(ds[tag])
+        return str(ds[tag].value)
       else :
         return ''
       
@@ -717,6 +717,13 @@ def get_history_for_csv(
   today = datetime.datetime.today()
   filename = f'gfr_data_{today.strftime("%Y%m%d")}.csv'
   with open(filename, mode='w', newline = '') as csv_file:
+    
+    csv_writer = csv.writer(
+      csv_file,
+      delimiter=',',
+      quotechar=''
+    )
+    
     header_tags = [
       ("Navn",                    0x00100010),
       ("CPR",                     0x00100020),
@@ -733,9 +740,34 @@ def get_history_for_csv(
       ("Sprøjte Vægt før",        0x0023101B),
       ("Sprøjte Vægt Efter",      0x0023101C),
       ("Standard",                0x00231024),
-      ("Thining Factor",0x0)
+      ("Thining Factor",          0x00231028),
+    ]
+    sequnce_header = [
+      "Prøve 1 Værdi",  "Prøve 1 tidpunkt",
+      "Prøve 2 Værdi",  "Prøve 2 tidpunkt",
+      "Prøve 3 Værdi",  "Prøve 3 tidpunkt",
+      "Prøve 4 Værdi",  "Prøve 4 tidpunkt",
+      "Prøve 5 Værdi",  "Prøve 5 tidpunkt",
+      "Prøve 6 Værdi",  "Prøve 6 tidpunkt"
     ]
 
+    sequence_tags = [0x00231021, 0x00231022]
 
+    textrow = [header_tag[0] for header_tag in header_tags] + sequnce_header 
+    csv_writer.writerow(textrow)
+
+    taglist = [atuple[1] for atuple in header_tags]
     for study in studies:
-      pass
+      
+      datarow = format_dicom(study, taglist)
+      seq_strs = []
+      if 0x00231020 in study:
+        for seq_item in study[0x00231020]:
+          strs = format_dicom(seq_item, sequence_tags)
+          
+          seq_strs += strs
+
+      datarow += seq_strs
+
+      csv_writer.writerow(datarow)          
+
