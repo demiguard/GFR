@@ -12,4 +12,8 @@ def init_logger():
 
   try_mkdir(server_config.LOG_DIR)
 
-  logging.basicConfig(filename=logfile, level=server_config.LOG_LEVEL, format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s')
+  logging.basicConfig(
+    filename=logfile,
+    level=server_config.LOG_LEVEL,
+    format='%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s'
+  )

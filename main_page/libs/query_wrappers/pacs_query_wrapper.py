@@ -519,6 +519,7 @@ def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
   return date_list, age_list, clearence_norm_list
 
 def get_history_for_csv(
+  user,
   date_bounds                 = (datetime.date(2019,7,1), datetime.date(2100,1,1)),
   clearance_bounds            = (0.,200.),
   clearance_normalized_bounds = (0.,200.),
@@ -552,6 +553,7 @@ def get_history_for_csv(
   Raises: 
     ValueError : Whenever a keyword tuple first argument is greater than the secound argument 
   """
+  #Helper Functions 
   #Check bounds
   def check_bounds(a_tuple):
     if a_tuple[0] > a_tuple[1]:
@@ -590,6 +592,7 @@ def get_history_for_csv(
       valid_study &= study.StudyDescription in method_bounds
 
     return valid_study
+  #End Helper Functions
 
   bounds = (
     date_bounds,
@@ -612,5 +615,87 @@ def get_history_for_csv(
     raise ValueError('Invalids Genders')
   #End checking bounds
 
-  find_ae = pynetdicom.AE(ae_title='')
+  find_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
+  move_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
 
+  #Add different presentation contexts for the AE's
+  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.1'
+  MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2'
+
+  find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+  move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
+
+  #Associates
+
+  #Note that due to some unknown bugs, pacs is not happy make the same association handling both move and finds at the same time, thus we make two associations
+  find_assoc = find_ae.associate(
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_calling
+  )
+
+  move_assoc = move_ae.associate(
+    user.department.config.pacs_ip,
+    int(user.department.config.pacs_port),
+    ae_title=user.department.config.pacs_calling
+  )
+
+  studies = []
+
+  if find_assoc.is_established and move_assoc.is_established:
+    find_query_dataset = dataset_creator.create_search_dataset(
+      date_from = date_bounds[0].strftime("%Y%m%d"),
+      date_to   = date_bounds[1].strftime("%Y%m%d")
+    )
+
+    #This retrives all studies from pacs
+    find_response = find_assoc.send_c_find(
+      find_query_dataset,
+      query_model='S'
+    )
+
+    for find_status, find_response_dataset in find_response:
+      successfull_move = False
+      move_response = move_assoc.send_c_move(find_response_dataset, server_config.SERVER_AE_TITLE, query_model='S')
+      for (status, identifier) in move_response:
+        if status.Status == 0x0000:
+          # Status code for C-move is successful
+          logger.info('C-move successful')
+          successfull_move = True
+        elif status.Status == 0xFF00:
+          #We are not done, but shit have not broken down
+          pass
+        else:
+          logger.warn('C-Move move opration failed with Status code:{0}'.format(hex(status.Status)))
+      #C-move done for the one response
+      file_location = f'{server_config.SEARCH_DIR}/{find_dataset.AccessionNumber}.dcm'
+      if successfull_move and os.path.exists(file_location) :
+        study = dicomlib.dcmread_wrapper(f'{server_config.SEARCH_DIR}/{find_response_dataset.AccessionNumber}')
+        os.remove(file_location)
+        try:
+          #Here is where the indiviual study handling happens
+          if check_study(study):
+            studies.append(studies)
+          else:
+            pass #Study Was not part search critie
+        except: #TODO error handling
+          logger.error(f'Error in handling:\n {study}')
+      else:
+        logger.info(f'Could not successfully move {find_response_dataset.AccessionNumber}')
+
+    #Finallize Association
+    find_assoc.release()
+    move_assoc.release()
+  else:
+    logger.error('Could not connect to pacs')
+    #While unlikely a bug could be there
+    if find_assoc.is_established:
+      find_assoc.release()
+    if move_assoc.is_established:
+      move_assoc.release()
+
+  #Handling of studies
+  #Studies at this point contains all valid studies given by the function input
+  #This part is the csv
+
+  

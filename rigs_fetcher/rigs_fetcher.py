@@ -95,10 +95,6 @@ def create_base_dataset(calling_aet=''):
   return ds
 
 
-#res = is_handled(conn, 'REGH99999999')  # Test : True
-#res = is_handled(conn, 'REGH12345678') # Test : False
-#print(res)
-
 def get_bookings(conn, calling_aet, rigs_ip, rigs_port, rigs_aet, accepted_procedures, storage_directory):
   logger = logging.getLogger()
   logger.info("##### TICK START #####")

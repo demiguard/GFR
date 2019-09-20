@@ -300,8 +300,7 @@ class CsvEndpoint(LoginRequiredMixin, View):
     try_mkdir(csv_dir,mk_parents=True)
     #Create csv file
     output = dicomlib.export_dicom(dataset, csv_file_path)
-    print(output)
-
+    
     try:
       #This should be happening because we just created the csv file
       return FileResponse(open(csv_file_path, 'rb')) #Powerful one liner, I luv it

@@ -517,7 +517,6 @@ def export_dicom(ds, file_path):
     try:
       #Format of the list is tuple, with (header, data)
       #Keep it to this format for easy commenting out / addition
-      print(f'{type(ds.PatientName)}, {ds.PatientName}')
       column_list = [
         ('CPR',                       ds.PatientID),
         ('Navn',                      formatting.person_name_to_name(str(ds.PatientName))),
