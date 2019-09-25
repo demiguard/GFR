@@ -40,12 +40,12 @@ class AjaxLogin(TemplateView):
 
       if user:
         login(request, user)
-        logger.info('User: {0} logged in successful'.format(request.user.username))
+        logger.info(f'User: {request.user.username} logged in successful')
 
         if user.is_authenticated:
           signed_in = True
       else:
-        logger.warning('User: {0} Failed to log in'.format(request.POST['username']))
+        logger.warning(f"User: {request.POST['username']} Failed to log in, from IP address: {request.META.get('REMOTE_ADDR')}")
 
     data = {
       'signed_in': signed_in,
