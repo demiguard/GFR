@@ -18,7 +18,8 @@ class AdminRequiredMixin:
 
 
 class LoggingMixin:
-  # Logs current user name, ip address and site
+  # Logs current user name, ip address and site for every incoming request to a
+  # view if added as a mixin.
 
   def dispatch(self, request, *args, **kwargs):
     logger = logging.getLogger()
