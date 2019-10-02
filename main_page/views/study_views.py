@@ -390,11 +390,11 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/present_old_study.html'
 
   def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+    logger.info(f"Attempting to present old study with accession_number: {ris_nr}")
     current_user = request.user
     hospital = request.user.department.hospital.short_name
 
     # Search to find patient id - pick field response
-    
     dataset = pacs.move_from_pacs(
       current_user,
       ris_nr

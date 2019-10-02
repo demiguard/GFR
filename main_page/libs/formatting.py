@@ -81,10 +81,6 @@ def format_cpr(cpr: str) -> str:
   elif dash_idx_len > DASH_CNT:
     raise ValueError(f"cpr: '{cpr}', contains more than one dash")
 
-  # danish cpr numbers should contain exactly 10 digits
-  if not re.match(r"[0-9]{10}", cpr):
-    raise ValueError(f"cpr: '{cpr}', doesn't contain exactly 10 digits")
-
   return cpr[:DASH_IDX] + '-' + cpr[DASH_IDX:]
 
 
