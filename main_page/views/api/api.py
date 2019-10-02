@@ -299,12 +299,17 @@ class CsvEndpoint(LoginRequiredMixin, View):
     #Create directories as needed
     try_mkdir(csv_dir,mk_parents=True)
     #Create csv file
-    output = dicomlib.export_dicom(dataset, csv_file_path)
+    export_status = dicomlib.export_dicom(dataset, csv_file_path)
     
-    try:
-      #This should be happening because we just created the csv file
-      return FileResponse(open(csv_file_path, 'rb')) #Powerful one liner, I luv it
-    except:
+    if export_status == 'OK':
+      with open(csv_file_path, 'r') as csv_file:
+        response = HttpResponse(
+          csv_file,
+          content_type="text/csv"
+        )
+        response['Content-Disposition'] = f"attachment; filename={accessionnumber}.csv"
+        return response
+    else:
       return HttpResponseServerError()
 
   def delete(self, request, accessionnumber):
