@@ -495,69 +495,58 @@ def export_dicom(ds, file_path):
     converts a dicom file to csv file and saves it at 'file_path'
     Note that this csv file doesn't contain any patient history
 
-
     args:
       ds: Pydicom dataset, data to be saved
       file_path: str, the file destination for the csv
     Throws:
       Attribute Error: if the ds do not have the following tags
         [0x00100010]
-
-    
   """
+  try:
+    # Get initial header and data row
+    column_dict = {
+      'CPR':                       ds.PatientID,
+      'Navn':                      formatting.person_name_to_name(str(ds.PatientName)),
+      'Study Date':                ds.StudyDate,
+      'Height':                    ds.PatientSize * 100,
+      'Weight':                    ds.PatientWeight,
+      'Body Surface Area Method':  ds.BSAmethod,
+      'Standard count':            ds.stdcnt,
+      'Thining Factor':            ds.thiningfactor,
+      'Injection Weight':          ds.injWeight,
+      'Injection Time':            ds.injTime,
+      'Clearance':                 ds.clearance,
+      'Clearance Normalized':      ds.normClear
+    }
 
+    header_row = list(column_dict.keys())
+    data_row   = list(column_dict.values())
+  except AttributeError as e: # Misssing attribute in dicom object
+    logger.info(f'Error in writing to CSV: {e}')
+    return 'Incomplete dicom 1'
+
+  # Add samples to header and data row
+  for i in range(1, 7):
+    header_row.append(f"Sample Value {i}")
+    header_row.append(f"Sample Time {i}")
+  
+  try:
+    for sample_ds in ds.ClearTest:
+      data_row.append(sample_ds[0x00231022].value)
+      data_row.append(sample_ds.SampleTime)
+  except AttributeError as e: # Missing attribute in dicom object
+    logger.info(f'Error in writing to CSV: {e}')
+    return 'Incomplete Dicom 2'
+  
+  # Write header and data row to the csv file
   with open(file_path, mode='w', newline='') as csv_file:
-    #init Writeer
     csv_writer = csv.writer(
       csv_file,
       delimiter=',',
       quotechar='"'     
     )
-    #Data to put into file
-    try:
-      #Format of the list is tuple, with (header, data)
-      #Keep it to this format for easy commenting out / addition
-      column_list = [
-        ('CPR',                       ds.PatientID),
-        ('Navn',                      formatting.person_name_to_name(str(ds.PatientName))),
-        ('Study Date',                ds.StudyDate),
-        ('Height',                    ds.PatientSize * 100),
-        ('Weight',                    ds.PatientWeight),
-        ('Body Surface Area Method',  ds.BSAmethod),
-        ('Standard count',            ds.stdcnt),
-        ('Thining Factor',            ds.thiningfactor),
-        ('Injection Weight',          ds.injWeight),
-        ('Injection Time',            ds.injTime), 
-        ('Clearance',                 ds.clearance),
-        ('Clearance Normalized',      ds.normClear)
-      ]
 
-      #Get rows 
-      header_row = [ column[0] for column in column_list]
-      data_row   = [ column[1] for column in column_list] 
-      #Write Data
-      csv_writer.writerow(header_row)
-      csv_writer.writerow(data_row)
-    except AttributeError as E: #Missing a tag
-      logger.info(f'Error in writing to CSV: {E}')
-      return 'Incomplete dicom 1'
+    csv_writer.writerow(header_row)
+    csv_writer.writerow(data_row)
 
-    sample_header = [
-      'Sample Value',
-      'Sample time'
-    ]
-    csv_writer.writerow(sample_header)
-
-    try:
-      for sample_ds in ds.ClearTest:
-        sample = [
-          sample_ds[0x00231022].value,
-          sample_ds.SampleTime
-        ]
-        csv_writer.writerow(sample)
-
-    except AttributeError as E:
-      logger.info(f'Error in writing to CSV: {E}')
-      return 'Incomplete Dicom 2'
-  
   return 'OK'

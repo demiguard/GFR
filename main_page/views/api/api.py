@@ -278,47 +278,53 @@ class StudyEndpoint(LoginRequiredMixin, View):
     return resp
 
 class CsvEndpoint(LoginRequiredMixin, View):
-  def get(self, request, accessionnumber):
+  def get(self, request, accession_number):
     """
-      Handles the response from request of export to csv file 
+    Endpoint providing csv export for completed studies
 
-
-
+    Args:
+      request: incoming HTTP request
+      accession_number: accession number of study to export to csv
+    
+    Returns:
+      HTTP file reponse of content type 'text/csv' with the export file
     """
-    #init
     user = request.user
     hospital_sn = user.department.hospital.short_name
     csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
-    csv_file_path = f'{csv_dir}{accessionnumber}.csv'
-    dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accessionnumber}.dcm'
+    csv_file_path = f'{csv_dir}{accession_number}.csv'
+    dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}.dcm'
+    
     try:
       dataset = dicomlib.dcmread_wrapper(dataset_file_path)
-    except: #file not found
-      #Generate Bad response
+    except: # Unable to find dicom object
+      logger.info(f"Unable to export study to csv for accession number: {accession_number}")
       return HttpResponseNotFound()
-    #Create directories as needed
+    
+    # Create csv file
     try_mkdir(csv_dir,mk_parents=True)
-    #Create csv file
     export_status = dicomlib.export_dicom(dataset, csv_file_path)
     
+    # Create response if csv file creation was successful
     if export_status == 'OK':
       with open(csv_file_path, 'r') as csv_file:
         response = HttpResponse(
           csv_file,
           content_type="text/csv"
         )
-        response['Content-Disposition'] = f"attachment; filename={accessionnumber}.csv"
+        response['Content-Disposition'] = f"attachment; filename={accession_number}.csv"
         return response
     else:
+      logger.info(f"Unable to export study to csv for accession number: {accession_number}")
       return HttpResponseServerError()
 
-  def delete(self, request, accessionnumber):
-    logger.info(f'Recieved Delete request of csv file for {accessionnumber}')
+  def delete(self, request, accession_number):
+    logger.info(f'Recieved Delete request of csv file for {accession_number}')
 
     user = request.user
     hospital_sn = user.department.hospital.short_name
     csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
-    csv_file_path = f'{csv_dir}{accessionnumber}.csv'
+    csv_file_path = f'{csv_dir}{accession_number}.csv'
     
     if os.path.exists(csv_file_path):
       os.remove(csv_file_path)

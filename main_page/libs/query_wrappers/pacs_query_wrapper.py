@@ -710,6 +710,7 @@ def get_history_for_csv(
     if move_assoc.is_established:
       move_assoc.release()
 
+  # TODO: Make the below code use the export_dicom function from dicomlib
   #Handling of studies
   #Studies at this point contains all valid studies given by the function input
   #This part is the csv
