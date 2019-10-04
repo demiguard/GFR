@@ -514,4 +514,13 @@ $(function() {
       return false;
     }
   });
+
+  // Initial check to see if any study dates differ from the injection date
+  var inj_date = $("#id_injection_date").val();
+  $("#test-data-container .form-row .form-group:first-child input").each(function() {
+    if (inj_date != $(this).val()) { // One of the study dates differ from the injection date
+      alerter.add_alert("En eller flere blodprøve(r) har anden dato end injektionsdatoen.", "warning");
+      return false; // I.e. break
+    }
+  });
 });

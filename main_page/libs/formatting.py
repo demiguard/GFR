@@ -279,10 +279,12 @@ def convert_cpr_to_cpr_number(cpr):
   Ret:
     String 
   """
-
-  if cpr[6] == '-':
-    return cpr.replace('-','') 
-  else:
+  try:
+    if cpr[6] == '-':
+      return cpr.replace('-','') 
+    else:
+      return cpr
+  except IndexError:
     return cpr
 
 def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
