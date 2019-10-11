@@ -5,8 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <!-- and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). -->
 
 ## 1.1 TODO Features
-  - [ ] Resolve issues described in Bryan's mail
   - [ ] Resolve timeout issues related to retreiving the history of studies (compress the images uploaded to PACS)
+
+---
+
+## 1.0.5 - 2019-10-11
+### Added
+  - Javascript checks on entered study date to see if they differ from the injection date
+
+### Changed
+  - Procedure filtering is blacklisting instead of whitelisting
+
+### Fixed
+  - Exporting study results to csv now exports to .csv filetype.
 
 ---
 
