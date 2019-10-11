@@ -54,7 +54,7 @@ def dataset_is_valid(dataset: Type[Dataset], accession_numbers: List[str], accep
     True if the dataset is valid and should be kept, False otherwise
   """
   has_been_processed = dataset.AccessionNumber not in accession_numbers
-  is_accepted_procedure = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription in accepted_procedures) or (accepted_procedures == [])
+  is_accepted_procedure = (dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription not in accepted_procedures) or (accepted_procedures == [])
   has_been_handled = not models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
 
   return has_been_processed and is_accepted_procedure and has_been_handled
