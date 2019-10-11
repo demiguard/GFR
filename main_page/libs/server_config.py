@@ -53,6 +53,7 @@ LEGEND_SIZE = 18
 # --- Logging --- #
 LOG_DIR = "./log/"
 LOG_LEVEL = logging.DEBUG #logging.INFO
+THREAD_LOG_LEVEL = logging.DEBUG
 
 
 # --- Samba Share --- #
