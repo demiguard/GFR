@@ -1,6 +1,7 @@
 import pynetdicom
 from pydicom import Dataset
 from typing import Type
+from .status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 
 import logging
 
@@ -84,10 +85,12 @@ def __handle_resp(resp, process, *args, **kwargs):
     process: function for processing successful response identifiers (datasets)
   """
   for status, identifier in resp:
-    p_response = process(status, identifier, *args, **kwargs)
-
-    if not p_response:
-      break
+    if status.Status == DATASET_AVAILABLE:
+      process(status, identifier, *args, **kwargs)
+    elif status.Status == TRANSFER_COMPLETE:
+      pass # Ignore, then release association
+    else:
+      logger.info(f"{self.log_name}: Failed to transfer dataset, with status: {status.Status}")
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
@@ -98,8 +101,6 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     association: an established association
     query_ds: pydicom dataset containing the query parameters
     process: function for processing incoming response identifiers (datasets).
-             function should return True if the processing is to continue,
-             false if it's to break.
              *args and **kwargs will be passed on to this function
 
   Kwargs:
@@ -125,8 +126,6 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     to_aet: AET of where to send responses
     query_ds: pydicom dataset containing the query parameters
     process: function for processing incoming response identifiers (datasets).
-             function should return True if the processing is to continue,
-             false if it's to break.
              *args and **kwargs will be passed on to this function
 
   Kwargs:

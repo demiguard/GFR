@@ -15,9 +15,6 @@ from main_page import models
 from .dirmanager import try_mkdir
 from threading import Thread
 
-SUCCESSFUL_TRANSFER = 0x0000
-DICOM_FILE_RECIEVED = 0xFF00
-
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
 def setup_logger(name, log_file, level=logging.INFO):
@@ -151,7 +148,7 @@ class RisFetcherThread(Thread):
 
   def __process_find_dataset(self, status, dataset, **kwargs):
     """
-    Function for processing received find responses
+    Function for processing successful responses
 
     Args:
       status: status of the received response
@@ -159,33 +156,22 @@ class RisFetcherThread(Thread):
 
     Kwargs:
       hospital_shortname: current hospital shortname e.g. RH
-
-    Returns:
-      True if the processing is to continue, False to stop
     """
     hospital_shortname = kwargs['hospital_shortname']
+    
+    try:
+      filepath = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm"            # Check if in active_dicom_objects
+      deleted_filepath = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm" # Check if in deleted_studies
 
-    if status.Status == DICOM_FILE_RECIEVED:
-      try:
-        filepath = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm"            # Check if in active_dicom_objects
-        deleted_filepath = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm" # Check if in deleted_studies
+      file_exists = (os.path.exists(filepath) and os.path.exists(deleted_filepath))
+      file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
 
-        file_exists = (os.path.exists(filepath) and os.path.exists(deleted_filepath))
-        file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
-
-        if not file_exists and not file_handled:
-          dicomlib.save_dicom(filepath, dataset)
-        else:
-          logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
-      except AttributeError as e:
-        logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
-    elif status.Status == SUCCESSFUL_TRANSFER:
-      pass # Ignore, then release association
-    else:
-      logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
-      return False
-
-    return True
+      if not file_exists and not file_handled:
+        dicomlib.save_dicom(filepath, dataset)
+      else:
+        logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
+    except AttributeError as e:
+      logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
 
   def apply_kill_to_self(self):
     """
