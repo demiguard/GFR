@@ -86,7 +86,7 @@ def __handle_resp(resp, process, *args, **kwargs):
   """
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
-      process(status, identifier, *args, **kwargs)
+      process(identifier, *args, **kwargs)
     elif status.Status == TRANSFER_COMPLETE:
       pass # Ignore, then release association
     else:

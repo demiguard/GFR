@@ -109,13 +109,6 @@ class RisFetcherThread(Thread):
           self.config={self.config}"""
         )
 
-      # Create directories for tmp. storage
-      for _, hospital_shortname in AE_titles.items():
-        try_mkdir(
-          f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}", 
-          mk_parents=True
-        )
-
       # Send C-FIND requests to RIS
       association = ae_controller.connect(
         ris_ip,
@@ -146,12 +139,11 @@ class RisFetcherThread(Thread):
 
     logger.info(f"{self.log_name}: Terminated run loop")
 
-  def __process_find_dataset(self, status, dataset, **kwargs):
+  def __process_find_dataset(self, dataset, **kwargs):
     """
     Function for processing successful responses
 
     Args:
-      status: status of the received response
       dataset: response dataset
 
     Kwargs:
@@ -160,16 +152,19 @@ class RisFetcherThread(Thread):
     hospital_shortname = kwargs['hospital_shortname']
     
     try:
-      filepath = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm"            # Check if in active_dicom_objects
-      deleted_filepath = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm" # Check if in deleted_studies
+      dataset_dir = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}"    # Check if in active_dicom_objects
+      deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}" # Check if in deleted_studies
 
-      file_exists = (os.path.exists(filepath) and os.path.exists(deleted_filepath))
+      file_exists = (os.path.exists(dataset_dir) and os.path.exists(deleted_dir))
       file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
 
       if not file_exists and not file_handled:
-        dicomlib.save_dicom(filepath, dataset)
+        try_mkdir(dataset_dir, mk_parents=True)
+
+        dicomlib.save_dicom(f"{dataset_dir}/{dataset.AccessionNumber}.dcm", dataset)
+        logger.info(f"Successfully save dataset: {dataset_dir}")
       else:
-        logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
+        logger.info(f"{self.log_name}: Skipping file: {dataset_dir}, as it already exists or has been handled")
     except AttributeError as e:
       logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
 
