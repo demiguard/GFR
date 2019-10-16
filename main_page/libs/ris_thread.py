@@ -129,7 +129,8 @@ class RisFetcherThread(Thread):
         )
 
       # Sleep the thread
-      delay = random.uniform(delay_min, delay_max) * 60
+      #delay = random.uniform(delay_min, delay_max) * 60
+      delay = 60
       logger.info(f'Ris thread going to sleep for {delay} sec.')
 
       # Re-read config for possible updates
@@ -155,7 +156,8 @@ class RisFetcherThread(Thread):
       dataset_dir = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}"    # Check if in active_dicom_objects
       deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}" # Check if in deleted_studies
 
-      file_exists = (os.path.exists(dataset_dir) and os.path.exists(deleted_dir))
+      file_exists = (os.path.exists(dataset_dir) and os.path.exists(deleted_dir)) # Old
+      # file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir)) # New
       file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
 
       if not file_exists and not file_handled:

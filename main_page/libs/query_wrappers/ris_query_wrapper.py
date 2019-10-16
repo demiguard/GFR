@@ -210,17 +210,23 @@ def get_patients_from_rigs(user):
     if status.Status == DATASET_AVAILABLE:
       logger.info(f'Recieved Dataset:{dataset.AccessionNumber}')
       
-      # Validate dataset
+      # Validate dataset and ensure it doesn't already exist
       if dataset_is_valid(dataset, processed_accession_numbers, accepted_procedures):
-        dicomlib.save_dicom(
-          f'{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}/{dataset.AccessionNumber}.dcm',
-          dataset
-        )
+        dataset_path = f'{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}/{dataset.AccessionNumber}.dcm'
+        deleted_dataset_path = f'{server_config.DELETED_STUDIES_DIR}{user_hospital.short_name}/{dataset.AccessionNumber}.dcm'
         
-        studies.append(dataset)
-        processed_accession_numbers.append(dataset.AccessionNumber)
+        if not ((os.path.exists(dataset_path)) or (os.path.exists(deleted_dataset_path))):
+          try_mkdir(f"{server_config.FIND_RESPONS_DIR}{user_hospital.short_name}", mk_parents=True)
+        
+          dicomlib.save_dicom(
+            dataset_path,
+            dataset
+          )
+          
+          studies.append(dataset)
+          processed_accession_numbers.append(dataset.AccessionNumber)
       else:
-        # Discard object, if already processed
+        # Discard dataset object, if already processed
         continue
     elif status.Status == NO_MORE_FILES_AVAILABLE:
       logger.info("Query completed with no errors")
