@@ -207,36 +207,3 @@ class RisFetcherThread(Thread):
     if RisFetcherThread.__instance == None:
       RisFetcherThread(config)
     return RisFetcherThread.__instance
-<<<<<<< HEAD
-
-  def __init__(self, config):
-    """
-      Initializes a fetcher thread instance
-
-      Args:
-        config: dictionary containing required 
-    """
-    self.log_name = type(self).__name__
-    logger.info(f"{self.log_name}: starting initialization of thread")
-
-    # Ensure singleton pattern
-    if RisFetcherThread.__instance != None:
-      raise Exception("This is a singleton...")
-    else:
-      RisFetcherThread.__instance = self
-
-    self.config = config
-    self.running = False
-
-    # Thread is a daemon, i.e. background worker thread
-    Thread.__init__(
-      self,
-      name='RisFetcherThread',
-      daemon=True,
-      group=None
-    )
-
-    logger.info(f"{self.log_name}: initialization done")
-  
-=======
->>>>>>> f38e0b91786aedb83cf8b9db4eb8c1c283fb33c0
