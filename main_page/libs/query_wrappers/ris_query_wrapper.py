@@ -11,6 +11,7 @@ import logging
 from typing import List, Tuple, Type
 
 from main_page import models
+from main_page.libs import formatting
 from main_page.libs import server_config
 from main_page.libs import dataset_creator
 from main_page.libs import dicomlib
@@ -22,23 +23,105 @@ from main_page.libs.examination_info import ExaminationInfo
 logger = logging.getLogger()
 
 
-def parse_bookings(resp_dir: str):
+def sort_datasets_by_date(
+  datasets: List[Dataset], 
+  reverse: bool=True
+  ) -> List[Dataset]:
   """
-  Get dicom objects for all responses
+  Sorts a list of pydicom datasets by date
 
   Args:
-    resp_dir: path to directory containing dicom responses from findscu
+    datasets: list of datasets to sort
+
+  Kwargs:
+    reverse: whether to sort in decending or ascending order
 
   Returns:
-    dict of dicom objects for all responses
+    Sorted list of datasets
+
+  Remarks:
+    The datasets are sorted first based on the ScheduledProcedureStepStartDate
+    within ScheduledProcedureStepSequence. If non of these are present in the
+    dataset, then it attempts to use StudyDate. If StudyDate fails, then a
+    dataset will default to 0.
   """
-  ret = { }
+  # Sort based on date in descending order
+  def date_sort(dataset):
+    try:
+      return int(dataset.ScheduledProcedureStepSequence[0]
+                 .ScheduledProcedureStepStartDate)
+    except AttributeError: 
+      # ScheduledProcedureStepSequence or ScheduledProcedureStepStartDate
+      # not present in dataset
+      try:
+        return int(dataset.StudyDate)
+      except (AttributeError, ValueError):
+        # StudyDate not present in dataset or failed to convert it's value
+        return 0
 
-  # Loop all responses
-  for dcm_path in glob.glob('{0}/rsp*.dcm'.format(resp_dir)):
-    ret[dcm_path] = dicomlib.dcmread_wrapper(dcm_path)
+  return sorted(datasets, key=date_sort, reverse=reverse)
 
-  return ret
+
+def extract_list_info(
+  datasets: List[Dataset]
+  ) -> Tuple[List[dict], List[Dataset]]:
+  """
+  Extracts information from a list of datasets to be displayed in list_studies
+
+  Args:
+    datasets: list of pydicom datasets to extract infomation from for list_studies
+
+  Returns:
+    Tuple of two list, first being a list of dict each contaning the extracted
+    information. The second list are all pydicom datasets which failed to have
+    information extracted, due to missing attributes
+  """
+  registered_studies = [ ]
+  failed_studies = [ ] # List of accession numbers for studies which failed to have data extracted    
+
+  for dataset in datasets:
+    try:
+      procedure = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
+    except AttributeError:
+      try:
+        procedure = dataset.StudyDescription
+      except AttributeError:
+        failed_studies.append(dataset.AccessionNumber)
+        continue
+
+    try:
+      study_date = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+    except AttributeError: 
+      # ScheduledProcedureStepSequence or ScheduledProcedureStepStartDate
+      # not present in dataset
+      try:
+        study_date = dataset.StudyDate
+      except AttributeError:
+        failed_studies.append(dataset.AccessionNumber)
+        continue
+    
+    study_date = datetime.datetime.strptime(study_date, "%Y%m%d")
+    study_date = study_date.strftime("%d-%m-%Y")
+
+    try:
+      exam_status = dataset.ExamStatus
+    except AttributeError:
+      exam_status = 0
+
+    try:
+      registered_studies.append({
+        'accession_number': dataset.AccessionNumber,
+        'cpr'             : dataset.PatientID,
+        'study_date'      : study_date,
+        'procedure'       : procedure,
+        'name'            : formatting.person_name_to_name(str(dataset.PatientName)),
+        'exam_status'     : exam_status
+      })
+    except AttributeError: # Unable to find tag in dataset
+      failed_studies.append(dataset.AccessionNumber)
+      continue
+
+  return registered_studies, failed_studies
 
 
 def dataset_is_valid(dataset: Type[Dataset], accession_numbers: List[str], accepted_procedures: List[str]) -> bool:
@@ -143,6 +226,40 @@ def connect_to_RIS(config: Type[models.Config]):
   return assocation
 
 
+def get_registered_studies(
+  active_datasets_dir: str, 
+  hospital_shortname: str) -> List[Dataset]:
+  """
+  Get the list of currently registered studies
+
+  Args:
+    active_datasets_dir: path to directory containing active dicom objects
+    hospital_shortname: abbreviated hospital name 
+    (e.g. 'RH' for 'Rigshospitalet', 'GLO' for 'Glostrup Hospital')
+
+  Returns:
+    List of pydicom datasets of all registered studies currently in the
+    active_datasets_dir directory
+
+  Remarks:
+    This function will retrieve all patients from the active_datasets_dir,
+    including ones from previous dates.
+  """
+  hospital_dir = f"{active_datasets_dir}{hospital_shortname}"
+  hospital_dir_wildcard = f"{hospital_dir}/*"
+
+  datasets = [ ]
+
+  for dataset_dir in glob.glob(hospital_dir_wildcard):
+    accession_number = dataset_dir.split('/')[-1]
+    dataset_filepath = f"{hospital_dir}/{accession_number}/{accession_number}.dcm"
+    
+    datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
+
+  return datasets
+
+
+# TODO: This below function is depricated and is being phased out! (use get_registered_studies instead)
 def get_patients_from_rigs(user):
   """
   Args:
