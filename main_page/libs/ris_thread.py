@@ -80,7 +80,7 @@ class RisFetcherThread(Thread):
             if status.Status == DICOM_FILE_RECIEVED:
               try:
                 filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
-                if not os.path.exists(filepath) and models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists():
+                if not (os.path.exists(filepath) and models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()):
                   dicomlib.save_dicom(filepath, dataset)
                 else:
                   logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
