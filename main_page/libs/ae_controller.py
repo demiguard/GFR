@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger()
 
 
+FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
+
+
 def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
   """
   Establish a connection to an AET
@@ -71,62 +75,48 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
   return association
 
 
-SUCCESS = 0x0000
-CONTINUING = 0xFF00
-
-def __handle_resp(resp, process):
+def __handle_resp(resp, process, *args, **kwargs):
   """
   Passes each successful response on to the user defined process function
 
   Args:
     resp: response generator from e.g. C_FIND, C_MOVE, etc.
     process: function for processing successful response identifiers (datasets)
-
-  Returns:
-    True if any single response was successful, False otherwise
   """
-  any_succeeded = False
-
   for status, identifier in resp:
-    if status.Status == SUCCESS:
-      any_succeeded = True
-      process(identifier)
-    elif status.Status == CONTINUING:
-      continue
-    else:
-      logger.warn(
-        f"""Operation failed for 
-            status code: {status.Status}
-            identifier: {identifier}
-        """)
+    p_response = process(status, identifier, *args, **kwargs)
 
-  return any_succeeded
+    if not p_response:
+      break
 
 
-def send_find(association, query_model, query_ds, process) -> None:
+def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
   """
   Sends a C_FIND query request to an association using the supplied dataset
 
   Args:
     association: an established association
-    query_model: which level to query one (e.g. 'S' for study level)
     query_ds: pydicom dataset containing the query parameters
-    process: function for processing incoming response identifiers (datasets)
+    process: function for processing incoming response identifiers (datasets).
+             function should return True if the processing is to continue,
+             false if it's to break.
+             *args and **kwargs will be passed on to this function
+
+  Kwargs:
+    query_model: which query model to use (see DICOM standard for specifics)
+                 (Default='S' for Study level)
 
   Raises:
     RuntimeError: if the association is not an established association
     ValueError: if the query dataset fails to encode in the underlying
                 query request
-
-  Returns:
-    True if any single response was successful, False otherwise
   """
   logger.info("Sending C_FIND query")
   resp = association.send_c_find(query_ds, query_model=query_model)
-  return __handle_resp(resp, process)
+  __handle_resp(resp, process, *args, **kwargs)
 
 
-def send_move(association, to_aet, query_model, query_ds, process: lambda x: None) -> None:
+def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model='S', *args, **kwargs) -> None:
   """
   Sends a C_FIND query request to an association using the supplied dataset
 
@@ -134,16 +124,20 @@ def send_move(association, to_aet, query_model, query_ds, process: lambda x: Non
     association: an established association
     to_aet: AET of where to send responses
     query_ds: pydicom dataset containing the query parameters
-    process: function for processing incoming response identifiers
+    process: function for processing incoming response identifiers (datasets).
+             function should return True if the processing is to continue,
+             false if it's to break.
+             *args and **kwargs will be passed on to this function
+
+  Kwargs:
+    query_model: which query model to use (see DICOM standard for specifics)
+                 (Default='S' for Study level)
 
   Raises:
     RuntimeError: if the association is not an established association
     ValueError: if the query dataset fails to encode in the underlying
                 query request
-  
-  Returns:
-    True if any single response was successful, False otherwise
   """
   logger.info("Sending C_MOVE query")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
-  return __handle_resp(resp, process)
+  __handle_resp(resp, process, *args, **kwargs)

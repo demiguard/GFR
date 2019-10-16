@@ -9,22 +9,44 @@ from . import dicomlib
 from . import dataset_creator
 from . import server_config 
 from . import ris_thread_config_gen
+from . import ae_controller
 
 from main_page import models
 from .dirmanager import try_mkdir
 from threading import Thread
 
-"""
-    NOTE TO self and furture devs
-    Because this thread is started at run time, it cannot access the django database as such it must be manually configured using this file.
-    This includes the files:
-      dicomlib.py
-      dataset_creator.py
+SUCCESSFUL_TRANSFER = 0x0000
+DICOM_FILE_RECIEVED = 0xFF00
 
-    This file describes a thread that pings ris every given time interval, retrieving 
-"""
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
-logger = logging.getLogger()
+def setup_logger(name, log_file, level=logging.INFO):
+  """
+  Generates loggers
+
+  Args:
+    name: name of the logger 
+          (a logger can be retreived by calling logging.getLogger(<LOGGER_NAME>))
+    log_file: filepath to placement of the logfile on the system
+  
+  Kwargs:
+    level: which level should the logger log on (default=INFO)
+  """
+  handler = logging.FileHandler(log_file)        
+  handler.setFormatter(formatter)
+
+  logger = logging.getLogger(name)
+  logger.setLevel(level)
+  logger.addHandler(handler)
+
+  return logger
+
+# Get the ris threads logger
+logger = setup_logger(
+  "ris-thread-log", 
+  f"{server_config.LOG_DIR}ris_thread.log", 
+  level=server_config.THREAD_LOG_LEVEL
+)
 
 
 class RisFetcherThread(Thread):
@@ -32,20 +54,49 @@ class RisFetcherThread(Thread):
   Thread subclass for retreiving studies periodically, as to avoid problems with
   study information first being entered the day after the study was actually made
   """
+
+  def __init__(self, config):
+    """
+    Initializes a fetcher thread instance
+
+    Args:
+      config: dictionary containing required 
+    """
+    self.log_name = type(self).__name__
+    logger.info(f"{self.log_name}: starting initialization of thread")
+
+    # Ensure singleton pattern
+    if RisFetcherThread.__instance != None:
+      raise Exception("This is a singleton...")
+    else:
+      RisFetcherThread.__instance = self
+
+    self.config = config
+    self.running = False
+
+    # Thread is a daemon, i.e. background worker thread
+    Thread.__init__(
+      self,
+      name='RisFetcherThread',
+      daemon=True,
+      group=None
+    )
+
+    logger.info(f"{self.log_name}: initialization done")
   
+
   def run(self):
     """
-      Routine function to periodically run
+    Routine function to periodically run
     """
     self.running = True
-    
-    SUCCESSFUL_TRANSFER = 0x0000
-    DICOM_FILE_RECIEVED = 0xFF00
   
     logger.info(f"{self.log_name}: Starting run routine")
     
     while self.running:
       logger.info(f"{self.log_name}: RIS thread sending response")
+      
+      # Extract configuration parameters
       try:
         ris_ip = self.config['ris_ip']
         ris_port = int(self.config['ris_port'])
@@ -56,47 +107,38 @@ class RisFetcherThread(Thread):
 
         assert delay_min <= delay_max
       except KeyError as KE:
-        raise AttributeError(f'{KE} : {self.config}') # TODO: Why change the exception class like this?
+        raise AttributeError(
+          f"""Unable to read from config, '{KE}'.
+          self.config={self.config}"""
+        )
 
-      ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
-      FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-      ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+      # Create directories for tmp. storage
+      for _, hospital_shortname in AE_titles.items():
+        try_mkdir(
+          f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}", 
+          mk_parents=True
+        )
 
-      association = ae.associate(
+      # Send C-FIND requests to RIS
+      association = ae_controller.connect(
         ris_ip,
         ris_port,
-        ae_title=ris_AET
+        server_config.SERVER_AE_TITLE,
+        ris_AET,
+        ae_controller.FINDStudyRootQueryRetrieveInformationModel
       )
 
-      if association.is_established:
-        # Send C-FIND to fetch studies for each AET
-        for AET, hospital_shortname in AE_titles.items():
-          response = association.send_c_find(
-            dataset_creator.generate_ris_query_dataset(AET),
-            query_model='S'
-          )
+      for AET, hospital_shortname in AE_titles.items():
+        query_dataset = dataset_creator.generate_ris_query_dataset(AET)        
 
-          for status, dataset in response:
-            if status.Status == DICOM_FILE_RECIEVED:
-              try:
-                filepath = f'{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm'
-                if not (os.path.exists(filepath) and models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()):
-                  dicomlib.save_dicom(filepath, dataset)
-                else:
-                  logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
-              except Exception as e: # Possible AttributeError, due to possible missing accession number
-                logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
-            elif status.Status == SUCCESSFUL_TRANSFER:
-              pass # Ignore, then release association
-            else:
-              logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
-              break
+        ae_controller.send_find(
+          association, 
+          query_dataset, 
+          self.__process_find_dataset, 
+          hospital_shortname=hospital_shortname
+        )
 
-        association.release()
-      else:
-        logger.error(f"{self.log_name}: Unable to establish connection to RIS")
-
-      # Association done
+      # Sleep the thread
       delay = random.uniform(delay_min, delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay} sec.')
 
@@ -106,6 +148,45 @@ class RisFetcherThread(Thread):
       time.sleep(delay)
 
     logger.info(f"{self.log_name}: Terminated run loop")
+
+  def __process_find_dataset(self, status, dataset, **kwargs):
+    """
+    Function for processing received find responses
+
+    Args:
+      status: status of the received response
+      dataset: response dataset
+
+    Kwargs:
+      hospital_shortname: current hospital shortname e.g. RH
+
+    Returns:
+      True if the processing is to continue, False to stop
+    """
+    hospital_shortname = kwargs['hospital_shortname']
+
+    if status.Status == DICOM_FILE_RECIEVED:
+      try:
+        filepath = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm"            # Check if in active_dicom_objects
+        deleted_filepath = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm" # Check if in deleted_studies
+
+        # file_exists = (os.path.exists(filepath) and os.path.exists(deleted_filepath)) # Old
+        file_exists = (os.path.exists(filepath) or os.path.exists(deleted_filepath)) # New
+        file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+
+        if not file_exists and not file_handled:
+          dicomlib.save_dicom(filepath, dataset)
+        else:
+          logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
+      except AttributeError as e:
+        logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
+    elif status.Status == SUCCESSFUL_TRANSFER:
+      pass # Ignore, then release association
+    else:
+      logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
+      return False
+
+    return True
 
   def apply_kill_to_self(self):
     """
@@ -126,6 +207,7 @@ class RisFetcherThread(Thread):
     if RisFetcherThread.__instance == None:
       RisFetcherThread(config)
     return RisFetcherThread.__instance
+<<<<<<< HEAD
 
   def __init__(self, config):
     """
@@ -156,3 +238,5 @@ class RisFetcherThread(Thread):
 
     logger.info(f"{self.log_name}: initialization done")
   
+=======
+>>>>>>> f38e0b91786aedb83cf8b9db4eb8c1c283fb33c0

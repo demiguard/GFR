@@ -53,6 +53,7 @@ LEGEND_SIZE = 18
 # --- Logging --- #
 LOG_DIR = "./log/"
 LOG_LEVEL = logging.DEBUG #logging.INFO
+THREAD_LOG_LEVEL = logging.DEBUG
 
 
 # --- Samba Share --- #
@@ -86,4 +87,4 @@ SERVER_AE_TITLE = 'HVHFBERGHK7'
 STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7']
 
 SERVER_NAME    = 'GFRCalc'
-SERVER_VERSION = 'v1.0.5'
+SERVER_VERSION = 'v1.0.6'

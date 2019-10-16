@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## 1.0.6 - 2019-10-16
+### Added
+  
+
+### Changed
+  
+
+### Fixed
+  - Resolve data overwriting issue with ris_thread and ris_query_wrapper, where they could overwrite previously filled out data
+
+---
+
 ## 1.0.5 - 2019-10-11
 ### Added
   - Javascript checks on entered study date to see if they differ from the injection date
