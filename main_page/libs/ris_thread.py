@@ -139,8 +139,7 @@ class RisFetcherThread(Thread):
         )
 
       # Sleep the thread
-      # delay = random.uniform(delay_min, delay_max) * 60
-      delay = 60
+      delay = random.uniform(delay_min, delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay} sec.')
 
       # Re-read config for possible updates
