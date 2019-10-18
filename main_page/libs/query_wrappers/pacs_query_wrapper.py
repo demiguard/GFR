@@ -399,7 +399,7 @@ def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", 
   return response_list
 
 
-def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
+def get_history_from_pacs(dataset, active_objects_path):
   """
   Retrieves information historical data about a user from pacs.
   This function doesn't save anything
@@ -410,17 +410,62 @@ def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
 
   Returns:
     date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
-    age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
+    age_list:             A float list. Element is calculated age at time of examination. The lenght is 'm'
     clearence_norm_list:  A float list. The n'th element is float
   Notes:
     This function doesn't save anything and cleans up after it-self
   """
   
   #Init 
-  date_list           = []
   age_list            = []
   clearence_norm_list = []
-  history_datasets     = []
+  date_list           = []
+  history_sequence    = []
+
+  birthday = datetime.datetime.strptime(dataset.PatientBirthDate, '%Y%m%d')
+
+  #Get all file paths for the Accession number
+  curr_dicom_path = f"{active_objects_path}{dataset.AccessionNumber}/{dataset.AccessionNumber}.dcm"
+  dicom_filepaths = glob.glob(f'{active_objects_path}{dataset.AccessionNumber}/*.dcm')
+  #Filter the already opened dataset out
+  history_filepaths = filter(lambda x: x != curr_dicom_path, dicom_filepaths)
+  #Iterate through the datasets
+  for history_filepath in history_filepaths:
+    #Open the dataset
+    
+    history_dataset = dicomlib.dcmread_wrapper(history_filepath)
+    #Create History dataset for history datasets
+    try:
+      date_of_examination = datetime.datetime.strptime(history_dataset.StudyDate,'%Y%m%d')
+      age_at_examination = (date_of_examination - birthday).days / 365
+      
+      age_list.append(age_at_examination)
+      date_list.append(date_of_examination)
+      clearence_norm_list.append(history_dataset.normClear)
+
+      #Dataset for dicom
+      sequence_dataset = Dataset()
+      sequence_dataset.AccessionNumber  = history_dataset.AccessionNumber
+      sequence_dataset.StudyDate        = history_dataset.StudyDate
+      sequence_dataset.PatientSize      = history_dataset.PatientSize
+      sequence_dataset.PatientWeight    = history_dataset.PatientWeight
+      #Private tags 
+      sequence_dataset.clearance        = history_dataset.clearance 
+      sequence_dataset.normClear        = history_dataset.normClear 
+      sequence_dataset.ClearTest        = history_dataset.ClearTest 
+      sequence_dataset.injTime          = history_dataset.injTime   
+      history_sequence.append(sequence_dataset)
+    except AttributeError as E:
+      logger.error(f'Sequence dataset {history_filepath} has invalid format with {E}')
+
+
+
+  dicomlib.fill_dicom(dataset, dicom_history=history_sequence)
+  
+  return date_list, age_list, clearence_norm_list
+  
+  """
+  # Old function
 
   birthday = datetime.datetime.strptime(birthday,'%Y-%m-%d')
   #Create Assosiation to pacs
@@ -502,12 +547,12 @@ def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
           else:
             logger.warn(f'Move Response code:{move_status.Status}')
       elif find_status.Status == 0x0000:
-        logger.info(f"""Successfull gathered history to be:
+        logger.info(f""Successfull gathered history to be:
           date_list:{date_list}
           age_list:{age_list}
-          clearence_normalized_list:{clearence_norm_list}""")
+          clearence_normalized_list:{clearence_norm_list}")
       else: 
-        logger.warn(f""" Unexpected Status code:{find_status.Status}""")
+        logger.warn(f" Unexpected Status code:{find_status.Status}"")
   #If statement done
     find_assoc.release()
     move_assoc.release()
@@ -515,9 +560,9 @@ def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
     logger.warn('Could not connect to pacs')
   #Fill the dicom object:
   dicomlib.fill_dicom(dataset)
-  
   #Return
   return date_list, age_list, clearence_norm_list
+  """
 
 def get_history_for_csv(
   user,
