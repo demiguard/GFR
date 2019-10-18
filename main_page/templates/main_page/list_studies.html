@@ -33,14 +33,14 @@
     </thead>
     <tbody>
       <!-- Make each row redirect to fill_study/rigsnr with rigsnr being the rigs nr. of the patient clicked -->
-      {% for booking in bookings %}
+      {% for study in registered_studies %}
         <tr>
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.name }}</td>
-          <td class="exam-status-column" onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'"><span class="oi oi-clipboard exam-status-{{ booking.exam_status }}"></span></td>
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.cpr }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.date }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.procedure }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" booking.rigs_nr %}'">{{ booking.rigs_nr }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.name }}</td>
+          <td class="exam-status-column" onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'"><span class="oi oi-clipboard exam-status-{{ study.exam_status }}"></span></td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.cpr }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.study_date }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.procedure }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.accession_number }}</td>
           <td>
             <button type="button" class="trash-btn btn btn-link">
               <span title="Slet undersøgelse" class="oi oi-trash" title="Fjern undersøgelse" aria-hidden="true"></span>

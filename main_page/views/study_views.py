@@ -100,42 +100,38 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
 
 class ListStudiesView(LoginRequiredMixin, TemplateView):
-  template_name = 'main_page/list_studies.html'
+  """
+  Lists all registered studies in RIS
+  """
+  template_name = "main_page/list_studies.html"
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
-    dicom_objs, error_message = ris.get_patients_from_rigs(request.user)
+    # Fetch all registered studies
+    current_hospital = request.user.department.hospital.short_name
+    
+    registered_datasets = ris.get_registered_studies(
+      server_config.FIND_RESPONS_DIR, 
+      current_hospital
+    )
 
-    bookings, failed_to_deserialize = examination_info.mass_deserialize(dicom_objs)
-  
-    # Inform user if some studies failed to deserialize
-    if failed_to_deserialize:
-      failed_cnt = len(failed_to_deserialize)
+    # Sort by descending date
+    registered_datasets = ris.sort_datasets_by_date(registered_datasets)
 
-      failed_accession_numbers = [ ]
-      for dcm_obj in failed_to_deserialize:
-        try:
-          failed_accession_numbers.append(dcm_obj.AccessionNumber)
-        except (KeyError, AttributeError):
-          failed_accession_numbers.append("...kunne ikke læse accession nummer...")
+    # Extract required booking information
+    registered_studies, failed_studies = ris.extract_list_info(registered_datasets)
 
-      accessions_str = ', '.join(failed_accession_numbers)
-      error_message += \
-        f"""{failed_cnt} undersøgelser fejlede i at blive indlæst.
-        Accession nummere:
-        {accessions_str}
-        """
+    # Construct error message if any errors occured duing info extraction
+    if failed_studies:
+      error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_studies)]}"
+    else:
+      error_message = ""
 
-    def date_sort(item):
-      item_time = datetime.datetime.strptime(item.date, "%d/%m-%Y")
-      return int(item_time.strftime("%Y%m%d"))
-
-    bookings = list(sorted(bookings, key=date_sort, reverse=True))
-
+    # Return rendered view
     context = {
-      'title'     : server_config.SERVER_NAME,
-      'version'   : server_config.SERVER_VERSION,
-      'bookings': bookings,
-      'error_message' : error_message
+      "title"              : server_config.SERVER_NAME,
+      "version"            : server_config.SERVER_VERSION,
+      "registered_studies" : registered_studies,
+      "error_message"      : error_message
     }
 
     return render(request, self.template_name, context)
@@ -560,7 +556,7 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
       # Redirect to informative site, telling the user that the connection to PACS is down
       logger.warn(f'Failed to store {ris_nr} in pacs, because:{error_message}')
     
-    return redirect('main_page:list_studies')    
+    return redirect('main_page:list_studies')
 
 
 class DeletedStudiesView(LoginRequiredMixin, TemplateView):
