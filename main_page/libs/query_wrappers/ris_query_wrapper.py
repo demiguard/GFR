@@ -22,6 +22,41 @@ from main_page.libs.examination_info import ExaminationInfo
 
 logger = logging.getLogger()
 
+"""
+This module contains functions for working with studies/datasets received
+from RIS. datasets are retreieved by the background thread RIS_thread,
+which periodically queries RIS for any new datasets and stores them in the
+directory specified in: server_config.FIND_RESPONS_DIR
+"""
+
+
+def move_old_to_deleted(
+  datasets: List[Dataset], 
+  threshold: int=7
+  ) -> Tuple[List[Dataset], List[Dataset]]:
+  """
+  Moves any old datasets, datasets with a StudyDate or
+  ScheduledProcedureStepStartDate outside of a set threshold, to the directory
+  containing inactive (deleted) studies.
+
+  Args:
+    datasets: pydicom datasets to check through
+
+  Kwargs:
+    threshold: number of days a dataset is allowed be active for
+
+  Returns:
+    Tuple of two lists; first list contains all datasets which are within 
+    the threshold. Second list contains datasets where neither StudyDate or
+    ScheduleProcedureStepStartDate were available.
+
+  Remarks:
+    First checks StudyDate, if it's unavailable then attempts to use
+    ScheduleProcedureStepStartDate, if this too is unavailable the dataset
+    will be appended to the failed_datasets lists which are unable to parse
+  """
+  pass
+
 
 def sort_datasets_by_date(
   datasets: List[Dataset], 

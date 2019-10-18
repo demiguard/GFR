@@ -119,6 +119,9 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     # Extract required booking information
     registered_studies, failed_studies = ris.extract_list_info(registered_datasets)
 
+    # Move 7 day old studies to deleted_studies
+    # registered_studies = ris.
+
     # Construct error message if any errors occured duing info extraction
     if failed_studies:
       error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_studies)]}"
