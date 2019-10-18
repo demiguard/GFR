@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 
+import shutil
 import os
 import datetime
 import logging
@@ -532,7 +533,8 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
 
   def post(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
     # Send information to PACS
-    obj_path    = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}.dcm"
+    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}/"
+    obj_path    = f"{obj_dir}{ris_nr}.dcm"
     image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}.png"
 
     dicom_object = dicomlib.dcmread_wrapper(obj_path)
@@ -541,11 +543,11 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
     success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
     logger.info(f"User:{request.user.username} has stored {ris_nr} in PACS")
     if success_rate:
-      # Remove the file    
+      # Remove the file + history
       try:
-        os.remove(obj_path)
-      except:  
-        logger.warn(f'Could not delete dicom-object {obj_path}')
+        shutil.rmtree(obj_dir)
+      except OSError as error:
+        logger.error(f'Could not remove directory: {obj_dir}')
       try:
         os.remove(image_path)
       except:

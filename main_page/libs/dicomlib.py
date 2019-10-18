@@ -208,11 +208,16 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: 
         ds.add_new(0x00400100, 'SQ', Sequence([seq_data]))
     else:
       # TODO: The below will fail if update_date=True, study_date=None and ds has no ScheduledProcedureStepSequence...
-      ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-      ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
-      ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-      ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
-
+      try:
+        ds.StudyDate  = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+        ds.StudyTime  = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+        ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+        ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+      except:
+        ds.StudyDate  = datetime.datetime.today().strftime('%Y%m%d')
+        ds.StudyTime  = '0800'
+        ds.SeriesDate  = datetime.datetime.today().strftime('%Y%m%d')
+        ds.SeriesTime  = '0800'
 
 def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
   """
