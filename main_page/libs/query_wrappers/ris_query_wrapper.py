@@ -335,10 +335,10 @@ def connect_to_RIS(config: Type[models.Config]):
 
   return assocation
 
-
-def get_registered_studies(
-  active_datasets_dir: str, 
-  hospital_shortname: str) -> List[Dataset]:
+#TODO: The following function have nothing to do with RIS, it should perhaps be moved into Either Dicomlib or Dirmanager?
+def get_studies(
+  master_dir: str
+  ) -> List[Dataset]:
   """
   Get the list of currently registered studies
 
@@ -355,14 +355,14 @@ def get_registered_studies(
     This function will retrieve all patients from the active_datasets_dir,
     including ones from previous dates.
   """
-  hospital_dir = f"{active_datasets_dir}{hospital_shortname}"
-  hospital_dir_wildcard = f"{hospital_dir}/*"
+  
+  master_dir_wildcard = f"{master_dir}*/"
 
   datasets = [ ]
 
   for dataset_dir in glob.glob(hospital_dir_wildcard):
-    accession_number = dataset_dir.split('/')[-1]
-    dataset_filepath = f"{hospital_dir}/{accession_number}/{accession_number}.dcm"
+    accession_number = dataset_dir.split('/')[-2] # "this, string, is, split, by:,".split(',') = ['this', 'string', 'is', 'split','by:','']
+    dataset_filepath = f"{master_dir}{accession_number}/{accession_number}.dcm"
     
     datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
 
