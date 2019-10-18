@@ -7,6 +7,7 @@ import pydicom
 from pydicom import Dataset
 import pynetdicom
 import logging
+from pathlib import Path
 
 from typing import List, Tuple, Type
 
@@ -20,6 +21,7 @@ from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.clearance_math import clearance_math
 from main_page.libs.examination_info import ExaminationInfo
 
+
 logger = logging.getLogger()
 
 """
@@ -30,14 +32,65 @@ directory specified in: server_config.FIND_RESPONS_DIR
 """
 
 
-def move_old_to_deleted(
-  datasets: List[Dataset], 
-  threshold: int=7
+def move_to_deleted(
+  dataset: Type[Dataset],
+  hospital_shortname: str,
+  active_studies_dir: str=server_config.FIND_RESPONS_DIR, 
+  deleted_studies_dir: str=server_config.DELETED_STUDIES_DIR
+  ) -> bool:
+  """
+  Moves a dataset from active_studies_dir to deleted_studies_dir
+
+  Args:
+    dataset: dataset to move from active to deleted
+    hospital_shortname: abbreviation for hospital name 
+                        (e.g. "RH" for Rigshospitalet)
+
+  Kwargs:
+    active_studies_dir: directory containing active studies
+    deleted_studies_dir: directory containing deleted studies
+
+  Returns:
+    True if the move succeeded, False otherwise
+  """
+  try:
+    accession_number = dataset.AccessionNumber
+  except AttributeError:
+    return False
+
+  deleted_dir_loc = Path(deleted_studies_dir, hospital_shortname)
+  try_mkdir(deleted_dir_loc, mk_parents=True)
+
+  active_file = Path(
+    active_studies_dir,
+    hospital_shortname,
+    accession_number
+  )
+
+  deleted_file = Path(
+    deleted_dir_loc,
+    accession_number
+  )
+
+  shutil.move(active_file, deleted_file)
+
+  return True
+
+
+def check_if_old(
+  datasets: List[Dataset],
+  process,
+  *args,
+  threshold: int=7,
+  **kwargs
   ) -> Tuple[List[Dataset], List[Dataset]]:
   """
-  Moves any old datasets, datasets with a StudyDate or
-  ScheduledProcedureStepStartDate outside of a set threshold, to the directory
-  containing inactive (deleted) studies.
+  Checks if a list of datasets are older than a given number of days, 
+  if a dataset is to old then call the function process with 
+  the dataset, args and kwargs as parameters.
+  
+  The process function should return True if the processing succeeded, False
+  otherwise.
 
   Args:
     datasets: pydicom datasets to check through
@@ -47,15 +100,47 @@ def move_old_to_deleted(
 
   Returns:
     Tuple of two lists; first list contains all datasets which are within 
-    the threshold. Second list contains datasets where neither StudyDate or
-    ScheduleProcedureStepStartDate were available.
+    the threshold. Second list contains datasets which failed to be processed.
 
   Remarks:
     First checks StudyDate, if it's unavailable then attempts to use
     ScheduleProcedureStepStartDate, if this too is unavailable the dataset
     will be appended to the failed_datasets lists which are unable to parse
   """
-  pass
+  valid_datasets = [ ]
+  failed_datasets = [ ]
+
+  today = datetime.datetime.today()
+
+  for dataset in datasets:
+    # Attempt determine study_date for dataset
+    study_date_str = dicomlib.get_study_date(dataset)
+
+    if not study_date_str:  
+      failed_datasets.append(dataset)
+      continue
+    
+    # Attempt to convert to datetime.datetime object in order to check threshold
+    try:
+      study_date = datetime.datetime.strptime(study_date_str, "%Y%m%d")
+    except ValueError:
+      failed_datasets.append(dataset)
+      continue
+
+    day_diff = int((today - study_date).days)
+
+    if day_diff <= threshold:
+      # It's valid, keep it
+      valid_datasets.append(dataset)
+    else:
+      # It's invalid, apply action
+      action_resp = process(dataset, *args, **kwargs)
+      
+      if not action_resp: # Action failed
+        failed_datasets.append(dataset)
+        continue
+
+  return valid_datasets, failed_datasets
 
 
 def sort_datasets_by_date(
@@ -83,16 +168,9 @@ def sort_datasets_by_date(
   # Sort based on date in descending order
   def date_sort(dataset):
     try:
-      return int(dataset.ScheduledProcedureStepSequence[0]
-                 .ScheduledProcedureStepStartDate)
-    except AttributeError: 
-      # ScheduledProcedureStepSequence or ScheduledProcedureStepStartDate
-      # not present in dataset
-      try:
-        return int(dataset.StudyDate)
-      except (AttributeError, ValueError):
-        # StudyDate not present in dataset or failed to convert it's value
-        return 0
+      return int(dicomlib.get_study_date(dataset))
+    except (TypeError, ValueError): # None and '' conversion fail
+      return 0
 
   return sorted(datasets, key=date_sort, reverse=reverse)
 
@@ -121,19 +199,13 @@ def extract_list_info(
       try:
         procedure = dataset.StudyDescription
       except AttributeError:
-        failed_studies.append(dataset.AccessionNumber)
+        failed_studies.append(dataset)
         continue
 
-    try:
-      study_date = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-    except AttributeError: 
-      # ScheduledProcedureStepSequence or ScheduledProcedureStepStartDate
-      # not present in dataset
-      try:
-        study_date = dataset.StudyDate
-      except AttributeError:
-        failed_studies.append(dataset.AccessionNumber)
-        continue
+    study_date = dicomlib.get_study_date(dataset)
+    if not study_date:
+      failed_studies.append(dataset)
+      continue
     
     study_date = datetime.datetime.strptime(study_date, "%Y%m%d")
     study_date = study_date.strftime("%d-%m-%Y")
@@ -153,10 +225,13 @@ def extract_list_info(
         'exam_status'     : exam_status
       })
     except AttributeError: # Unable to find tag in dataset
-      failed_studies.append(dataset.AccessionNumber)
+      failed_studies.append(dataset)
       continue
 
   return registered_studies, failed_studies
+
+
+
 
 
 def dataset_is_valid(dataset: Type[Dataset], accession_numbers: List[str], accepted_procedures: List[str]) -> bool:

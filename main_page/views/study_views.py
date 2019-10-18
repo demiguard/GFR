@@ -113,18 +113,35 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
       current_hospital
     )
 
+    # Move 7 day old studies to deleted_studies
+    registered_studies, failed_old = ris.check_if_old(
+      registered_datasets, 
+      ris.move_to_deleted,
+      current_hospital
+    )
+    
     # Sort by descending date
     registered_datasets = ris.sort_datasets_by_date(registered_datasets)
 
     # Extract required booking information
     registered_studies, failed_studies = ris.extract_list_info(registered_datasets)
-
-    # Move 7 day old studies to deleted_studies
-    # registered_studies = ris.
+    failed_studies += failed_old
+    
+    # Report on failed datasets
+    failed_accession_nr = [ ]
+    no_accession_nr = 0
+    for dataset in failed_studies:
+      try:
+        failed_accession_nr.append(dataset.AccessionNumber)
+      except AttributeError: # Somehow dataset doesn't have an AccessionNumber
+        no_accession_nr += 1
 
     # Construct error message if any errors occured duing info extraction
-    if failed_studies:
-      error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_studies)]}"
+    if failed_accession_nr:
+      error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_accession_nr)]}"
+
+      if no_accession_nr > 0:
+        error_message += f", fandt {no_accession_nr} undersøgelser uden accession nr."
     else:
       error_message = ""
 

@@ -25,6 +25,34 @@ def update_private_tags() -> None:
   keyword_dict.update(new_names_dirc)
 
 
+def get_study_date(dataset: Type[Dataset]) -> str:
+  """
+  Attempts to retreieve the study date of a dataset, by check first on StudyDate
+  then on ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
+  Args:
+    dataset: dataset to get study date from
+
+  Returns:
+    The study date if it found one, otherwise None
+  """
+  try:
+    study_date_str = dataset.StudyDate
+
+    if not study_date_str:
+      raise ValueError()
+  except (AttributeError, ValueError):
+    try:
+      study_date_str = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
+      if not study_date_str:
+        return None
+    except (AttributeError, IndexError):
+      return None
+
+  return study_date_str
+    
+
 def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Type[Dataset]:
   """
   Takes a file path and reads it, update the private tags accordingly
