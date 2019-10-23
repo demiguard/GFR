@@ -91,3 +91,15 @@ class User(AbstractBaseUser):
 # This means we don't have to query PACS for all previous examinations
 class HandledExaminations(models.Model):
   accession_number = models.CharField(primary_key=True, max_length=20)
+
+
+class ServerConfiguration(models.Model):
+  id          = models.AutoField(primary_key=True)
+  samba_ip    = models.CharField(max_length=20)
+  samba_name  = models.CharField(max_length=30)
+  samba_user  = models.CharField(max_length=30)
+  samba_pass  = models.CharField(max_length=30)
+  samba_pc    = models.CharField(max_length=30)
+  samba_share = models.CharField(max_length=30)
+
+  AE_title    = models.CharField(max_length=30)

@@ -9,3 +9,5 @@ from main_page.views.userguide import UserGuideView
 from main_page.views.study_view.new_study import NewStudyView
 from main_page.views.study_view.list_study import ListStudiesView
 from main_page.views.study_view.deleted_studies import DeletedStudiesView
+from main_page.views.study_view.control_list_studies import ControlListView
+from main_page.views.study_view.control_study import ControlView

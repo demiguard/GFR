@@ -1,0 +1,54 @@
+{% extends 'main_page/base.html' %}
+
+{% load bootstrap4 %}
+{% load staticfiles %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/contorl_list_studies.css' %}">
+{% endblock head %}
+
+
+{% block content %}
+<h2>Vælg undersøgelse - Kontrol</h2> <br>
+  {% if error_message %}
+    <div class="row">
+      <div class="col-md-4">
+        <div class="alert alert-warning" role="alert">
+          <strong>Advarsel: </strong><span>{{ error_message }}</span>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <table class="table table-hover" id="new_studies"> 
+    <thead>
+      <tr>
+        <th onclick="sort_table(0, 'new_studies')">Navn</th>
+        <th class="exam-status-column" onclick="sort_table(1, 'new_studies')">Status</th>
+        <th onclick="sort_table(2, 'new_studies')">Cpr nr.</th>
+        <th onclick="sort_table(3, 'new_studies')">Dato</th>
+        <th onclick="sort_table(4, 'new_studies')"> Procedure</th>
+        <th onclick="sort_table(5, 'new_studies')">Accession nr.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Make each row redirect to control_study/accessionNumber with Accession Number being the accession Number of the patient clicked -->
+      {% for study in registered_studies %}
+        <tr>
+          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.name }}</td>
+          <td class="exam-status-column" onclick="document.location='{% url "main_page:control_study" study.accession_number %}'"><span class="oi oi-clipboard exam-status-{{ study.exam_status }}"></span></td>
+          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.cpr }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.study_date }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.procedure }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.accession_number }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}
+
+{% block javascript %}
+  <script src="{% static 'main_page/js/util/csrf.js' %}"></script>
+  <script src="{% static 'main_page/js/sort_table.js' %}"></script>
+{% endblock %}
