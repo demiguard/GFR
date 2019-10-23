@@ -71,32 +71,3 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
     }
 
     return render(request, self.template_name, context)
-  
-  
-    # # Get list of all deleted studies
-    # user_hosp = request.user.department.hospital.short_name
-
-    # deleted_studies = [] # Contains ExaminationInfo objects
-
-    # deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/"
-    
-    # studies =  ris.get_studies(deleted_dir)
-    # today = datetime.datetime.today()
-
-    # for study in studies:
-    #   #Check if Study is old
-    #   if ((today - datetime.datetime.strptime(study.StudyDate,'%Y%m%d')).days > server_config.DAYS_THRESHOLD):
-    #     # Delete the study
-    #     study_dir_path = f'{deleted_dir}{study.AccessionNumber}/'
-    #     shutil.rmtree(study_dir_path)
-    #   else:
-    #     #TODO: Change Jinja templete such that it's a dicom object and not an Examination Info 
-    #     deleted_studies.append(examination_info.deserialize(study))    
-    
-    # context = {
-    #   'title'     : server_config.SERVER_NAME,
-    #   'version'   : server_config.SERVER_VERSION,
-    #   'deleted_studies': deleted_studies,
-    # }
-
-    # return render(request, self.template_name, context)
