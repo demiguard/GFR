@@ -8,6 +8,7 @@ SEARCH_DIR          = "./search_dir/"                # Directory for temporarily
 FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses
 BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
 DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
+CONTROL_STUDIES_DIR = "./control_studies/"
 
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
