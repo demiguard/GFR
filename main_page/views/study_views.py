@@ -35,126 +35,127 @@ CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], Li
 logger = logging.getLogger()
 
 
-class NewStudyView(LoginRequiredMixin, TemplateView):
-  template_name = 'main_page/new_study.html'
+# class NewStudyView(LoginRequiredMixin, TemplateView):
+  # template_name = 'main_page/new_study.html'
+# 
+  # def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+    # context = {
+      # 'study_form': forms.NewStudy(initial={
+          # 'study_date': datetime.date.today().strftime('%d-%m-%Y')
+        # }
+      # )
+    # }
+# 
+    # return render(request, self.template_name, context)
+# 
+  # def post(self, request: Type[WSGIRequest]) -> HttpResponse:
+#    #Create and store dicom object for new study
+    # cpr = request.POST['cpr'].strip()
+    # name = request.POST['name'].strip()
+    # study_date = request.POST['study_date'].strip()
+    # ris_nr = request.POST['rigs_nr'].strip()
+# 
+    # new_study_form = forms.NewStudy(initial={
+      # 'cpr': cpr,
+      # 'name': name,
+      # 'study_date': study_date,
+      # 'rigs_nr': ris_nr
+    # })
+# 
+    # context = {
+      # 'title'     : server_config.SERVER_NAME,
+      # 'version'   : server_config.SERVER_VERSION,
+      # 'study_form': new_study_form,
+      # 'error_message' : ''
+    # }
+# 
+    #Ensure validity of study
+    # validation_status, error_messages = formatting.is_valid_study(
+      # cpr, name, study_date, ris_nr)
+# 
+    # if validation_status:
+      # study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
+      # 
+      # dataset = dataset_creator.get_blank(
+        # cpr,
+        # name,
+        # study_date,
+        # ris_nr,
+        # request.user.department.hospital.short_name
+      # )
+      # 
+      # dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
+          # server_config.FIND_RESPONS_DIR,
+          # request.user.department.hospital.short_name,
+          # ris_nr
+        # ), 
+        # dataset
+      # )
+# 
+      ##redirect to fill_study/ris_nr
+      # return redirect('main_page:fill_study', ris_nr=ris_nr)
+    # else:
+      # context['error_messages'] = error_messages
+      # return render(request, self.template_name, context)
+# 
 
-  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
-    context = {
-      'study_form': forms.NewStudy(initial={
-          'study_date': datetime.date.today().strftime('%d-%m-%Y')
-        }
-      )
-    }
+# class ListStudiesView(LoginRequiredMixin, TemplateView):
+#   """
+#   Lists all registered studies in RIS
+#   """
+#   template_name = "main_page/list_studies.html"
 
-    return render(request, self.template_name, context)
-
-  def post(self, request: Type[WSGIRequest]) -> HttpResponse:
-    # Create and store dicom object for new study
-    cpr = request.POST['cpr'].strip()
-    name = request.POST['name'].strip()
-    study_date = request.POST['study_date'].strip()
-    ris_nr = request.POST['rigs_nr'].strip()
-
-    new_study_form = forms.NewStudy(initial={
-      'cpr': cpr,
-      'name': name,
-      'study_date': study_date,
-      'rigs_nr': ris_nr
-    })
-
-    context = {
-      'title'     : server_config.SERVER_NAME,
-      'version'   : server_config.SERVER_VERSION,
-      'study_form': new_study_form,
-      'error_message' : ''
-    }
-
-    # Ensure validity of study
-    validation_status, error_messages = formatting.is_valid_study(
-      cpr, name, study_date, ris_nr)
-
-    if validation_status:
-      study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
-      
-      dataset = dataset_creator.get_blank(
-        cpr,
-        name,
-        study_date,
-        ris_nr,
-        request.user.department.hospital.short_name
-      )
-      
-      dicomlib.save_dicom('{0}{1}/{2}.dcm'.format(
-          server_config.FIND_RESPONS_DIR,
-          request.user.department.hospital.short_name,
-          ris_nr
-        ), 
-        dataset
-      )
-
-      # redirect to fill_study/ris_nr
-      return redirect('main_page:fill_study', ris_nr=ris_nr)
-    else:
-      context['error_messages'] = error_messages
-      return render(request, self.template_name, context)
-
-
-class ListStudiesView(LoginRequiredMixin, TemplateView):
-  """
-  Lists all registered studies in RIS
-  """
-  template_name = "main_page/list_studies.html"
-
-  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
-    # Fetch all registered studies
-    current_hospital = request.user.department.hospital.short_name
+#   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+#     # Fetch all registered studies
+#     current_hospital = request.user.department.hospital.short_name
     
-    registered_datasets = ris.get_registered_studies(
-      server_config.FIND_RESPONS_DIR, 
-      current_hospital
-    )
 
-    # Move 7 day old studies to deleted_studies
-    registered_studies, failed_old = ris.check_if_old(
-      registered_datasets, 
-      current_hospital,
-      ris.move_to_deleted
-    )
+#     registered_datasets = ris.get_registered_studies(
+#       server_config.FIND_RESPONS_DIR, 
+#       current_hospital
+#     )
+
+#     # Move 7 day old studies to deleted_studies
+#     registered_studies, failed_old = ris.check_if_old(
+#       registered_datasets, 
+#       ris.move_to_deleted,
+#       current_hospital
+#     )
     
-    # Sort by descending date
-    registered_datasets = ris.sort_datasets_by_date(registered_datasets)
+#     # Sort by descending date
+#     registered_datasets = ris.sort_datasets_by_date(registered_datasets)
 
-    # Extract required booking information
-    registered_studies, failed_studies = ris.extract_list_info(registered_datasets)
-    failed_studies += failed_old
+#     # Extract required booking information
+#     registered_studies, failed_studies = ris.extract_list_info(registered_datasets)
+#     failed_studies += failed_old
     
-    # Report on failed datasets
-    failed_accession_nr = [ ]
-    no_accession_nr = 0
-    for dataset in failed_studies:
-      try:
-        failed_accession_nr.append(dataset.AccessionNumber)
-      except AttributeError: # Somehow dataset doesn't have an AccessionNumber
-        no_accession_nr += 1
+#     # Report on failed datasets
+#     failed_accession_nr = [ ]
+#     no_accession_nr = 0
+#     for dataset in failed_studies:
+#       try:
+#         failed_accession_nr.append(dataset.AccessionNumber)
+#       except AttributeError: # Somehow dataset doesn't have an AccessionNumber
+#         no_accession_nr += 1
 
-    # Construct error message if any errors occured duing info extraction
-    if failed_accession_nr:
-      error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_accession_nr)]}"
+#     # Construct error message if any errors occured duing info extraction
+#     if failed_accession_nr:
+#       error_message = f"Kunne ikke indlæse undersøgelser med accession numre: {[', '.join(failed_accession_nr)]}"
 
-      if no_accession_nr > 0:
-        error_message += f", fandt {no_accession_nr} undersøgelser uden accession nr."
-    else:
-      error_message = ""
+#       if no_accession_nr > 0:
+#         error_message += f", fandt {no_accession_nr} undersøgelser uden accession nr."
+#     else:
+#       error_message = ""
 
-    # Return rendered view
-    context = {
-      "title"              : server_config.SERVER_NAME,
-      "version"            : server_config.SERVER_VERSION,
-      "registered_studies" : registered_studies,
-      "error_message"      : error_message
-    }
+#     # Return rendered view
+#     context = {
+#       "title"              : server_config.SERVER_NAME,
+#       "version"            : server_config.SERVER_VERSION,
+#       "registered_studies" : registered_studies,
+#       "error_message"      : error_message
+#     }
 
-    return render(request, self.template_name, context)
+#     return render(request, self.template_name, context)
 
 
 class FillStudyView(LoginRequiredMixin, TemplateView):
