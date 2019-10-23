@@ -40,7 +40,8 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     # Fetch all registered studies
-    hospital_shortname = request.user.department.hospital.short_name
+    curr_department = request.user.department
+    hospital_shortname = curr_department.hospital.short_name
     
     registered_datasets = ris.get_studies(
       f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}"
@@ -53,6 +54,16 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
       ris.move_to_deleted
     )
     
+    # Filter out datasets based on procedure blacklist
+    procedure_blacklist = [
+      x.type_name for x in curr_department.config.accepted_procedures.all()
+    ]
+
+    registered_datasets = ris.procedure_filter(
+      registered_datasets,
+      procedure_blacklist
+    )
+
     # Sort by descending date
     registered_datasets = ris.sort_datasets_by_date(registered_datasets)
 

@@ -202,7 +202,24 @@ def procedure_filter(
   Returns:
     List of datasets which don't have a procedure type on the blacklist
   """
-  pass
+  ret = [ ]
+  
+  for dataset in datasets:
+    try:
+      procedure = dataset.StudyDescription
+
+      if not procedure:
+        raise AttributeError
+    except AttributeError:
+      try:
+        procedure = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
+      except (IndexError, AttributeError):
+        ret.append(dataset)
+
+    if procedure not in blacklist:
+      ret.append(dataset)
+
+  return ret
 
 
 def sort_datasets_by_date(
