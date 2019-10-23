@@ -1,9 +1,15 @@
 import pynetdicom
 from pydicom import Dataset
-from typing import Type
-from .status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 
+import os
 import logging
+from typing import Type
+
+from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
+from main_page.libs.dirmanager import try_mkdir
+from main_page.libs import dicomlib
+from main_page.libs import server_config
+from main_page import models
 
 logger = logging.getLogger()
 
@@ -90,7 +96,7 @@ def __handle_resp(resp, process, *args, **kwargs):
     elif status.Status == TRANSFER_COMPLETE:
       pass # Ignore, then release association
     else:
-      logger.info(f"{self.log_name}: Failed to transfer dataset, with status: {status.Status}")
+      logger.info(f"Failed to transfer dataset, with status: {status.Status}")
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
@@ -140,3 +146,45 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
   logger.info("Sending C_MOVE query")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
   __handle_resp(resp, process, *args, **kwargs)
+
+
+def save_resp_to_file(
+  dataset, 
+  active_studies_dir: str=server_config.FIND_RESPONS_DIR,
+  deleted_studies_dir: str=server_config.DELETED_STUDIES_DIR,
+  **kwargs) -> None:
+  """
+  Processing function for saving successful response to files
+
+  Args:
+    dataset: response dataset
+
+  Kwargs:
+    logger: logger to use
+    hospital_shortname: current hospital shortname e.g. RH
+  """
+  if 'active_studies_dir' in kwargs:
+    active_studies_dir = kwargs['active_studies_dir']
+
+  if 'deleted_studies_dir' in kwargs:
+    deleted_studies_dir = kwargs['deleted_studies_dir']
+
+  logger = kwargs['logger']
+  hospital_shortname = kwargs['hospital_shortname']
+
+  try:
+    dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}"  # Check if in active_dicom_objects
+    deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}" # Check if in deleted_studies
+
+    file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
+    file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+
+    if not file_exists and not file_handled:
+      try_mkdir(dataset_dir, mk_parents=True)
+
+      dicomlib.save_dicom(f"{dataset_dir}/{dataset.AccessionNumber}.dcm", dataset)
+      logger.info(f"Successfully save dataset: {dataset_dir}")
+    else:
+      logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
+  except AttributeError as e:
+    logger.error(f"failed to load/save dataset, with error: {e}")
