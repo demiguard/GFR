@@ -46,8 +46,7 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
 
     # Fetch all deleted studies
     deleted_studies = ris.get_studies(
-      server_config.DELETED_STUDIES_DIR,
-      hospital_shortname
+      f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}"
     )
 
     # Permantly delete any old studies

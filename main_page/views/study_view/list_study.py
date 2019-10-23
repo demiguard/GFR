@@ -40,17 +40,16 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     # Fetch all registered studies
-    current_hospital = request.user.department.hospital.short_name
+    hospital_shortname = request.user.department.hospital.short_name
     
     registered_datasets = ris.get_studies(
-      server_config.FIND_RESPONS_DIR,
-      current_hospital
+      f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}"
     )
 
     # Move 7 day old studies to deleted_studies
     registered_studies, failed_old = ris.check_if_old(
       registered_datasets, 
-      current_hospital,
+      hospital_shortname,
       ris.move_to_deleted
     )
     

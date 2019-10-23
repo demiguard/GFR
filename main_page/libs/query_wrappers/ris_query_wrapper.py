@@ -188,6 +188,23 @@ def check_if_old(
   return valid_datasets, failed_datasets
 
 
+def procedure_filter(
+  datasets: List[Dataset],
+  blacklist: List[str]
+) -> List[Dataset]:
+  """
+  Filters out any datasets which have a procedure type which is blacklisted
+
+  Args:
+    datasets: datasets to filter through
+    blacklist: list strings of procedure types which are blacklisted
+
+  Returns:
+    List of datasets which don't have a procedure type on the blacklist
+  """
+  pass
+
+
 def sort_datasets_by_date(
   datasets: List[Dataset], 
   reverse: bool=True
@@ -277,28 +294,23 @@ def extract_list_info(
 
 
 def get_studies(
-  datasets_dir: str, 
-  hospital_shortname: str) -> List[Dataset]:
+  directory: str, 
+  ) -> List[Dataset]:
   """
   Get the list of studies from a directory
 
   Args:
-    datasets_dir: path to directory containing studies
-    hospital_shortname: abbreviated hospital name 
-    (e.g. 'RH' for 'Rigshospitalet', 'GLO' for 'Glostrup Hospital')
-  
+    directory: path to directory containing studies
+    
   Returns:
     List of pydicom datasets of all studies currently in the
     datasets_dir directory
   """
-  hospital_dir = f"{datasets_dir}{hospital_shortname}"
-  hospital_dir_wildcard = f"{hospital_dir}/*"
-
   datasets = [ ]
 
-  for dataset_dir in glob.glob(hospital_dir_wildcard):
-    accession_number = dataset_dir.split('/')[-1]
-    dataset_filepath = f"{hospital_dir}/{accession_number}/{accession_number}.dcm"
+  for dataset_dir in Path(directory).glob('*'):
+    accession_number = dataset_dir.name
+    dataset_filepath = f"{directory}/{accession_number}/{accession_number}.dcm"
     
     datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
 
