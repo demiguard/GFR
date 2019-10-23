@@ -59,8 +59,7 @@ class RisFetcherThread(Thread):
     Args:
       config: dictionary containing setup parameters for the thread to query RIS
     """
-    self.log_name = type(self).__name__
-    logger.info(f"{self.log_name}: starting initialization of thread")
+    logger.info("starting initialization of thread")
 
     # Ensure singleton pattern
     if RisFetcherThread.__instance != None:
@@ -79,7 +78,7 @@ class RisFetcherThread(Thread):
       group=None
     )
 
-    logger.info(f"{self.log_name}: initialization done")
+    logger.info("initialization done")
   
 
   def run(self):
@@ -88,10 +87,10 @@ class RisFetcherThread(Thread):
     """
     self.running = True
   
-    logger.info(f"{self.log_name}: Starting run routine")
+    logger.info("Starting run routine")
     
     while self.running:
-      logger.info(f"{self.log_name}: RIS thread sending response")
+      logger.info("RIS thread sending response")
       
       # Extract configuration parameters
       try:
@@ -124,7 +123,8 @@ class RisFetcherThread(Thread):
         ae_controller.send_find(
           association, 
           query_dataset, 
-          self.__process_find_dataset, 
+          ae_controller.save_resp_to_file,
+          logger=logger,
           hospital_shortname=hospital_shortname
         )
 
@@ -137,43 +137,14 @@ class RisFetcherThread(Thread):
 
       time.sleep(delay)
 
-    logger.info(f"{self.log_name}: Terminated run loop")
-
-  def __process_find_dataset(self, dataset, **kwargs):
-    """
-    Function for processing successful responses
-
-    Args:
-      dataset: response dataset
-
-    Kwargs:
-      hospital_shortname: current hospital shortname e.g. RH
-    """
-    hospital_shortname = kwargs['hospital_shortname']
-    
-    try:
-      dataset_dir = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}"    # Check if in active_dicom_objects
-      deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}" # Check if in deleted_studies
-
-      file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
-      file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
-
-      if not file_exists and not file_handled:
-        try_mkdir(dataset_dir, mk_parents=True)
-
-        dicomlib.save_dicom(f"{dataset_dir}/{dataset.AccessionNumber}.dcm", dataset)
-        logger.info(f"Successfully save dataset: {dataset_dir}")
-      else:
-        logger.info(f"{self.log_name}: Skipping file: {dataset_dir}, as it already exists or has been handled")
-    except AttributeError as e:
-      logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
+    logger.info("Terminated run loop")
 
   def apply_kill_to_self(self):
     """
     Termiantes the periodic loop. Intended for restarting the thread
     """
     self.running = False
-    logger.info(f"{self.log_name}: killing self")
+    logger.info("Killing self")
 
   __instance = None
   @staticmethod

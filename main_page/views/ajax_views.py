@@ -87,7 +87,7 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
     # Extract search parameters
     search_name = request.GET['name']
     search_cpr = request.GET['cpr']
-    search_rigs_nr = request.GET['rigs_nr']
+    search_accession_number = request.GET['accession_number']
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
 
@@ -95,7 +95,7 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
       request.user,
       name=search_name,
       cpr=search_cpr,
-      accession_number=search_rigs_nr,
+      accession_number=search_accession_number,
       date_from=search_date_from,
       date_to=search_date_to,
     )
@@ -104,7 +104,7 @@ class AjaxSearch(LoginRequiredMixin, TemplateView):
     serialized_results = []
     for res in search_resp:
       serialized_results.append({
-        'rigs_nr': res.rigs_nr,
+        'accession_number': res.rigs_nr,
         'name': res.name,
         'cpr': res.cpr,
         'date': res.date

@@ -168,12 +168,19 @@ class FillStudyTest(forms.Form):
       field.widget.attrs['class'] = 'form-control'
 
 
-class GetStudy(forms.Form):
+class SearchForm(forms.Form):
   name = forms.CharField(label='Navn', required=False)
   cpr  = forms.CharField(label='Cpr-nr.', required=False)
-  Rigs = forms.CharField(label='Accessionnummer', required=False)
-  Dato_start = forms.DateField(label='Fra dato (DD-MM-ÅÅÅÅ)', required=False)
-  Dato_finish = forms.DateField(label='Til dato (DD-MM-ÅÅÅÅ)', required=False)
+  accession_number = forms.CharField(label='Accession nummer', required=False)
+  from_date = forms.DateField(label='Fra dato (DD-MM-ÅÅÅÅ)', required=False)
+  to_date = forms.DateField(label='Til dato (DD-MM-ÅÅÅÅ)', required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(SearchForm, self).__init__(*args, **kwargs)
+
+    # Add bootstrap class to fields
+    for _, field in self.fields.items():
+      field.widget.attrs['class'] = 'form-control'
 
 
 # --- EDIT FORMS START --- #
