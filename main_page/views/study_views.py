@@ -117,8 +117,8 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     # Move 7 day old studies to deleted_studies
     registered_studies, failed_old = ris.check_if_old(
       registered_datasets, 
-      ris.move_to_deleted,
-      current_hospital
+      current_hospital,
+      ris.move_to_deleted
     )
     
     # Sort by descending date

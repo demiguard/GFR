@@ -79,6 +79,7 @@ def move_to_deleted(
 
 def check_if_old(
   datasets: List[Dataset],
+  hospital_shortname: str,
   process,
   *args,
   threshold: int=7,
@@ -87,7 +88,7 @@ def check_if_old(
   """
   Checks if a list of datasets are older than a given number of days, 
   if a dataset is to old then call the function process with 
-  the dataset, args and kwargs as parameters.
+  the dataset, hospital_shortname, args and kwargs as parameters.
   
   The process function should return True if the processing succeeded, False
   otherwise.
@@ -114,7 +115,15 @@ def check_if_old(
 
   for dataset in datasets:
     # Attempt determine study_date for dataset
-    study_date_str = dicomlib.get_study_date(dataset)
+    # first check recovery date if the study has been previously recovered
+    recover_date = dicomlib.get_recovered_date(
+      dataset.AccessionNumber, hospital_shortname
+    )
+    
+    if recover_date:
+      study_date_str = recover_date
+    else:
+      study_date_str = dicomlib.get_study_date(dataset)
 
     if not study_date_str:  
       failed_datasets.append(dataset)
@@ -134,7 +143,7 @@ def check_if_old(
       valid_datasets.append(dataset)
     else:
       # It's invalid, apply action
-      action_resp = process(dataset, *args, **kwargs)
+      action_resp = process(dataset, hospital_shortname, *args, **kwargs)
       
       if not action_resp: # Action failed
         failed_datasets.append(dataset)
