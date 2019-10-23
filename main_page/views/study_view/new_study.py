@@ -87,13 +87,14 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         request.user.department.hospital.short_name
       )
       
-      #Get history from pacs
-      is_valid_cpr = formatting.check_cpr(cpr)
-      if(is_valid_cpr):
-        #Error
-      else:
+      # Get history from pacs
+      if formatting.check_cpr(cpr):
         #CPR is valid, so we can retrieve history from pacs
         #TODO: Get history from pacs
+        pass
+      else:
+        #Error
+        pass
 
       dicomlib.save_dicom( 
         f'{study_directory}/{ris_nr}.dcm',

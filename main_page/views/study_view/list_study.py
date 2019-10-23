@@ -29,10 +29,8 @@ from main_page.libs import enums
 from main_page import forms
 from main_page import models
 
-# Custom type
-CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
-
 logger = logging.getLogger()
+
 
 class ListStudiesView(LoginRequiredMixin, TemplateView):
   """
@@ -44,17 +42,16 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     # Fetch all registered studies
     current_hospital = request.user.department.hospital.short_name
     
-    master_dir = f'{server_config.FIND_RESPONS_DIR}{current_hospital}/'
-
-    registered_datasets = ris.get_registered_studies(
-      master_dir
+    registered_datasets = ris.get_studies(
+      server_config.FIND_RESPONS_DIR,
+      current_hospital
     )
 
     # Move 7 day old studies to deleted_studies
     registered_studies, failed_old = ris.check_if_old(
       registered_datasets, 
-      ris.move_to_deleted,
-      current_hospital
+      current_hospital,
+      ris.move_to_deleted
     )
     
     # Sort by descending date
