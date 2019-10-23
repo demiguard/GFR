@@ -15,19 +15,20 @@
         <th onclick="sort_table(0, 'deleted_studies')">Navn</th>
         <th onclick="sort_table(1, 'deleted_studies')">Cpr-nr.</th>
         <th onclick="sort_table(2, 'deleted_studies')">Undersøgelsesdato</th>
-        <th onclick="sort_table(3, 'deleted_studies')">Dato slettet</th>
+        <!-- <th onclick="sort_table(3, 'deleted_studies')">Dato slettet</th> -->
         <th onclick="sort_table(4, 'deleted_studies')">Accessionnr</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% for exam in deleted_studies %}
+      {% for study in deleted_studies %}
         <tr>
-          <td>{{ exam.name }}</td>
-          <td>{{ exam.cpr }}</td>
-          <td>{{ exam.date }}</td>
-          <td>{{ exam.deletion_date }}</td>
-          <td>{{ exam.rigs_nr }}</td>
+          <td>{{ study.name }}</td>
+          <td>{{ study.cpr }}</td>
+          <td>{{ study.study_date }}</td>
+          <!-- <td>{{ study.study_date }}</td> -->
+          <!-- <td>...</td> -->
+          <td>{{ study.accession_number }}</td>
           <td align="center">
             <button type="button" class="btn btn-link restore-btn">
               <span class="oi oi-loop-circular" title="Gendan undersøgelse" aria-hidden="true"></span>

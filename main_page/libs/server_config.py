@@ -10,6 +10,8 @@ BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
 DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
 CONTROL_STUDIES_DIR = "./control_studies/"
 
+RECOVERED_FILENAME = "recovered" # Filename of recovery file containing timestamp of when a study was recovered
+
 STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 CSV_DIR = f"{STATIC_DIR}csv/"

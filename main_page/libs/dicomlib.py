@@ -5,8 +5,10 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pydicom import uid
 
-from typing import Type, Tuple, List, IO, Any
+from pathlib import Path
 import numpy as np
+
+from typing import Type, Tuple, List, IO, Any
 
 from main_page import models
 from main_page.libs import enums
@@ -23,6 +25,39 @@ def update_private_tags() -> None:
 
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
+
+
+def get_recovered_date(
+  accession_number: str,
+  hospital_shortname: str,
+  active_studies_dir: str=server_config.FIND_RESPONS_DIR,
+  recovered_filename: str=server_config.RECOVERED_FILENAME
+  ) -> str:
+  """
+  Attempts to get the recovery date of a study
+
+  Args:
+    accession_number: accession number of study to get recovery date from
+
+  Kwargs:
+    active_studies_dir: directory containing currently active studies
+    recovered_filename: filename of the recovery file
+
+  Returns:
+    string contaning the recovery date of the study, None otherwise
+  """
+  recover_filepath = Path(
+    active_studies_dir,
+    hospital_shortname,
+    accession_number,
+    recovered_filename
+  )
+  
+  try:
+    with open(recover_filepath, 'r') as fp:
+      return fp.readline()
+  except FileNotFoundError:
+    return None
 
 
 def get_study_date(dataset: Type[Dataset]) -> str:

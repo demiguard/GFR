@@ -29,45 +29,45 @@ from main_page.libs import enums
 from main_page import forms
 from main_page import models
 
-# Custom type
-CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
-
 logger = logging.getLogger()
+
 
 class DeletedStudiesView(LoginRequiredMixin, TemplateView):
   """
-  Displays deleted studies from 30 days ago.
-  Works like a trashcan for files, that deleted studies lie for 30 days until
-  they are completly removed.
-  """
+  Displays any deleted studies.
 
+  A study will only remain deleted for 21 days after which it is permanetly
+  deleted from the server's system
+  """
   template_name = "main_page/deleted_studies.html"
 
-  def get(self, request):
-    # Get list of all deleted studies
-    user_hosp = request.user.department.hospital.short_name
+  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+    hospital_shortname = request.user.department.hospital.short_name
 
-    deleted_studies = [] # Contains ExaminationInfo objects
+    # Fetch all deleted studies
+    deleted_studies = ris.get_studies(
+      server_config.DELETED_STUDIES_DIR,
+      hospital_shortname
+    )
 
-    deleted_dir = f"{server_config.DELETED_STUDIES_DIR}{user_hosp}/"
-    
-    studies =  ris.get_studies(deleted_dir)
-    today = datetime.datetime.today()
+    # Permantly delete any old studies
+    deleted_studies, _ = ris.check_if_old(
+      deleted_studies,
+      hospital_shortname,
+      ris.permanent_delete,
+      threshold=21
+    )
 
-    for study in studies:
-      #Check if Study is old
-      if ((today - datetime.datetime.strptime(study.StudyDate,'%Y%m%d')).days > server_config.DAYS_THRESHOLD):
-        # Delete the study
-        study_dir_path = f'{deleted_dir}{study.AccessionNumber}/'
-        shutil.rmtree(study_dir_path)
-      else:
-        #TODO: Change Jinja templete such that it's a dicom object and not an Examination Info 
-        deleted_studies.append(examination_info.deserialize(study))    
-    
+    # Sort by descending date
+    deleted_studies = ris.sort_datasets_by_date(deleted_studies)
+
+    # Extract required booking information
+    deleted_studies, _ = ris.extract_list_info(deleted_studies)
+
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
-      'deleted_studies': deleted_studies,
+      "deleted_studies" : deleted_studies
     }
 
     return render(request, self.template_name, context)

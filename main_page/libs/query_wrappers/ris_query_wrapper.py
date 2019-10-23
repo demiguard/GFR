@@ -32,6 +32,42 @@ directory specified in: server_config.FIND_RESPONS_DIR
 """
 
 
+def permanent_delete(
+  dataset: Type[Dataset],
+  hospital_shortname: str,
+  deleted_studies_dir: str=server_config.DELETED_STUDIES_DIR
+) -> bool:
+  """
+  Permanently deletes a study from the server's system
+
+  Args:
+    dataset: dataset to move from active to deleted
+    hospital_shortname: abbreviation for hospital name 
+                        (e.g. "RH" for Rigshospitalet)
+
+  Kwargs:
+    deleted_studies_dir: directory containing deleted studies
+
+  Returns:
+    True if the move succeeded, False otherwise
+  """
+  try:
+    study_dir = Path(
+      deleted_studies_dir,
+      hospital_shortname,
+      dataset.AccessionNumber
+    )
+  except AttributeError:
+    return False
+
+  try:
+    shutil.rmtree(study_dir)
+  except Exception:
+    return False
+
+  return True
+
+
 def move_to_deleted(
   dataset: Type[Dataset],
   hospital_shortname: str,
@@ -79,6 +115,7 @@ def move_to_deleted(
 
 def check_if_old(
   datasets: List[Dataset],
+  hospital_shortname: str,
   process,
   *args,
   threshold: int=7,
@@ -87,7 +124,7 @@ def check_if_old(
   """
   Checks if a list of datasets are older than a given number of days, 
   if a dataset is to old then call the function process with 
-  the dataset, args and kwargs as parameters.
+  the dataset, hospital_shortname, args and kwargs as parameters.
   
   The process function should return True if the processing succeeded, False
   otherwise.
@@ -114,7 +151,15 @@ def check_if_old(
 
   for dataset in datasets:
     # Attempt determine study_date for dataset
-    study_date_str = dicomlib.get_study_date(dataset)
+    # first check recovery date if the study has been previously recovered
+    recover_date = dicomlib.get_recovered_date(
+      dataset.AccessionNumber, hospital_shortname
+    )
+    
+    if recover_date:
+      study_date_str = recover_date
+    else:
+      study_date_str = dicomlib.get_study_date(dataset)
 
     if not study_date_str:  
       failed_datasets.append(dataset)
@@ -134,7 +179,7 @@ def check_if_old(
       valid_datasets.append(dataset)
     else:
       # It's invalid, apply action
-      action_resp = process(dataset, *args, **kwargs)
+      action_resp = process(dataset, hospital_shortname, *args, **kwargs)
       
       if not action_resp: # Action failed
         failed_datasets.append(dataset)
@@ -231,7 +276,39 @@ def extract_list_info(
   return registered_studies, failed_studies
 
 
+def get_studies(
+  datasets_dir: str, 
+  hospital_shortname: str) -> List[Dataset]:
+  """
+  Get the list of studies from a directory
 
+  Args:
+    datasets_dir: path to directory containing studies
+    hospital_shortname: abbreviated hospital name 
+    (e.g. 'RH' for 'Rigshospitalet', 'GLO' for 'Glostrup Hospital')
+  
+  Returns:
+    List of pydicom datasets of all studies currently in the
+    datasets_dir directory
+  """
+  hospital_dir = f"{datasets_dir}{hospital_shortname}"
+  hospital_dir_wildcard = f"{hospital_dir}/*"
+
+  datasets = [ ]
+
+  for dataset_dir in glob.glob(hospital_dir_wildcard):
+    accession_number = dataset_dir.split('/')[-1]
+    dataset_filepath = f"{hospital_dir}/{accession_number}/{accession_number}.dcm"
+    
+    datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
+
+  return datasets
+
+
+################################################################################
+# DEPRICATION LINE #
+# ANYTHING BELOW THIS LINE IS DEPRICATED AND IS CURRENTLY BEING PHASED OUT!
+################################################################################
 
 
 def dataset_is_valid(dataset: Type[Dataset], accession_numbers: List[str], accepted_procedures: List[str]) -> bool:
@@ -334,39 +411,6 @@ def connect_to_RIS(config: Type[models.Config]):
     raise ConnectionError("Kunne ikke forbinde til RIS, der mangler måske nye undersøgelser")
 
   return assocation
-
-#TODO: The following function have nothing to do with RIS, it should perhaps be moved into Either Dicomlib or Dirmanager?
-def get_studies(
-  master_dir: str
-  ) -> List[Dataset]:
-  """
-  Get the list of currently registered studies
-
-  Args:
-    active_datasets_dir: path to directory containing active dicom objects
-    hospital_shortname: abbreviated hospital name 
-    (e.g. 'RH' for 'Rigshospitalet', 'GLO' for 'Glostrup Hospital')
-
-  Returns:
-    List of pydicom datasets of all registered studies currently in the
-    active_datasets_dir directory
-
-  Remarks:
-    This function will retrieve all patients from the active_datasets_dir,
-    including ones from previous dates.
-  """
-  
-  master_dir_wildcard = f"{master_dir}*/"
-
-  datasets = [ ]
-
-  for dataset_dir in glob.glob(hospital_dir_wildcard):
-    accession_number = dataset_dir.split('/')[-2] # "this, string, is, split, by:,".split(',') = ['this', 'string', 'is', 'split','by:','']
-    dataset_filepath = f"{master_dir}{accession_number}/{accession_number}.dcm"
-    
-    datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
-
-  return datasets
 
 
 # TODO: This below function is depricated and is being phased out! (use get_registered_studies instead)
