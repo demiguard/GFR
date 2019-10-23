@@ -22,7 +22,6 @@ from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, Pos
 from main_page.views.mixins import AdminRequiredMixin, LoggingMixin
 from main_page import models
 
-
 logger = logging.getLogger()
 
 

@@ -137,7 +137,7 @@ def get_examination(user, rigs_nr, resp_dir):
   """
   # Read after dictionary update
   try:
-    obj = dicomlib.dcmread_wrapper(f'{resp_dir}{rigs_nr}.dcm')
+    obj = dicomlib.dcmread_wrapper(f'{resp_dir}{rigs_nr}/{rigs_nr}.dcm')
   except FileNotFoundError:
     # Get object from DCM4CHEE/PACS Database
     obj = move_from_pacs(user, rigs_nr)
