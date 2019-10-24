@@ -171,19 +171,23 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     data_indicies = []
     
     for data_file in data_files:
-      selected = data_file[['Rack', 'Pos', 'Tc-99m CPM']]
+      try:
+        selected = data_file[['Rack', 'Pos', 'Tc-99m CPM']]
 
-      base_name = data_file['Measurement date & time'][0]
+        base_name = data_file['Measurement date & time'][0]
 
-      measurement_date, measurement_time = base_name.split(' ') 
-      measurement_date = formatting.convert_date_to_danish_date(measurement_date, sep='-')
+        measurement_date, measurement_time = base_name.split(' ') 
+        measurement_date = formatting.convert_date_to_danish_date(measurement_date, sep='-')
 
-      csv_present_names.append( f'{measurement_time} - {measurement_date}')
+        csv_present_names.append( f'{measurement_time} - {measurement_date}')
       
-      # Cast to int, as to remove dots when presenting on the site
-      csv_data.append([[int(rack), int(pos), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
+        # Cast to int, as to remove dots when presenting on the site
+        csv_data.append([[int(rack), int(pos), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
       
-      data_indicies.append(selected.index.tolist())
+        data_indicies.append(selected.index.tolist())
+      except KeyError as e:
+        logger.error('Invalid format of scan')
+      
 
     # Flatten list of lists
     data_indicies = [idx for sublist in data_indicies for idx in sublist]
