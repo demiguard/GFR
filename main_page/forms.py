@@ -18,10 +18,104 @@ class NewStudy(forms.Form):
   study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)')
   rigs_nr = forms.CharField(label='Accession nummer')
 
+class ControlPatient1(forms.Form):
+  sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
+
+  cpr       = forms.CharField(label='Cpr-nr.',        required=False)
+  name      = forms.CharField(label='Navn',           required=False)
+  sex       = forms.ChoiceField(choices=sex_options,  required= False)
+  birthdate = forms.DateField(label='Fødseldato',     required=False)
+
+  cpr_confirm       = forms.BooleanField(required=False)  
+  name_confirm      = forms.BooleanField(required=False)
+  sex_confirm       = forms.BooleanField(required=False)
+  birthdate_confirm = forms.BooleanField(required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient1, self).__init__(*args, **kwargs)
+    self.fields['cpr'].widget.attrs['readonly']       = True
+    self.fields['name'].widget.attrs['readonly']      = True
+    self.fields['sex'].widget.attrs['readonly']       = True    
+    self.fields['birthdate'].widget.attrs['readonly'] = True
+
+class ControlPatient2(forms.Form):
+  height = forms.FloatField(label='Højde (cm)', min_value=0)
+  weight = forms.FloatField(label='Vægt (kg)',  min_value=0)
+
+
+  height_confirm = forms.BooleanField(required=False)
+  weight_confirm = forms.BooleanField(required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient2, self).__init__(*args, **kwargs)
+    self.fields['height'].widget.attrs['readonly'] = True
+    self.fields['weight'].widget.attrs['readonly'] = True
+
+class ControlPatient3(forms.Form):
+  vial_weight_before = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False)  
+  vial_weight_after  = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False)
+  injection_time     = forms.TimeField(label='Injektionstidspunkt', required=False)
+  injection_date     = forms.DateField(label='InjektionsDato',      required=False, input_formats=['%d-%m-%Y'])
+
+  vial_weight_before_confirm = forms.BooleanField(required=False, initial=False)
+  vial_weight_after_confirm  = forms.BooleanField(required=False, initial=False)  
+  injection_time_confirm     = forms.BooleanField(required=False, initial=False)
+  injection_date_confirm     = forms.BooleanField(required=False, initial=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient3, self).__init__(self, *args, **kwargs)
+    self.fields['vial_weight_before'].widget.attrs['readonly'] = True
+    self.fields['vial_weight_after'].widget.attrs['readonly'] = True
+    self.fields['injection_time'].widget.attrs['readonly'] = True
+    self.fields['injection_date'].widget.attrs['readonly'] = True    
+
+class ControlPatient4(forms.Form):
+  
+  types = [
+    (0, 'En blodprøve, voksen'),
+    (1, 'En blodprøve, barn'),
+    (2, 'Flere blodprøver')
+  ]
+
+  thin_fac   = forms.IntegerField(label='Fortyndingsfaktor', required=False, min_value = 0)
+  study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())  
+
+  thin_fac_confirm   = forms.BooleanField(required=False)
+  study_type_confirm = forms.BooleanField(required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient4, self).__init__(self, *args, **kwargs)
+    self.fields['thin_fac'].widget.attrs['readonly']   = True
+    self.fields['study_type'].widget.attrs['readonly'] = True
+  
+class ControlPatient5(forms.Form):
+  std_cnt = forms.FloatField(label='Standardtælletal', required=False)
+
+  std_cnt_confirm = forms.BooleanField(required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient5, self).__init__(self, *args, **kwargs)
+    self.fields['std_cnt'].widget.attrs['readonly'] = True
+
+class ControlPatient6(forms.Form):
+  sample_time = forms.TimeField(label='Blodprøve taget kl:',  required=False)
+  sample_date = forms.DateField(label='Blodprøve taget dato', required=False)
+  sample_cnt  = forms.FloatField(label='Blodprøve Resultat',  required=False)
+
+  sample_confirm = forms.BooleanField(required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(ControlPatient6, self).__init__(self, *args, **kwargs)
+    self.fields['sample_time'].widget.attrs['readonly'] = True    
+    self.fields['sample_date'].widget.attrs['readonly'] = True  
+    self.fields['sample_cnt' ].widget.attrs['readonly'] = True    
+
+class ControlPatientConfirm(forms.Form):
+  bamID = forms.CharField(max_length=8, required=False)
 
 class Fillpatient_1(forms.Form):
-  cpr = forms.CharField(label='Cpr-nr.', required=False)
-  name = forms.CharField(label='Navn', required=False)
+  cpr = forms.CharField(label='Cpr-nr.',  required=False)
+  name = forms.CharField(label='Navn',    required=False)
 
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   sex = forms.ChoiceField(choices=sex_options, label='Køn', required=False)

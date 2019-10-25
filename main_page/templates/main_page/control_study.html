@@ -1,0 +1,94 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_study.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/alerter.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/csv-row.css' %}">
+{% endblock head %}
+
+
+{% block content %}
+  <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
+
+  <form method="POST" id="Contorl-study-form">
+    {% csrf_token %}
+    
+    <!-- Add patient info -->
+    <div class="form-row">
+      <div class = "form-group col-md-3">
+        {% bootstrap_field PersonalInfo.name %}
+      </div>
+      <div class = "form-group col-md-3">
+        <!-- {% bootstrap_form PatientSize %} -->
+      </div>
+      <div class="form-group col-md-3">
+        <!--{% bootstrap_form SampleInit %}-->
+      </div>  
+      <div class = "form-group col-md-3">
+        <!--{% bootstrap_form ThinMethod %}-->
+
+      </div>
+    </div>
+    
+    <hr>
+
+    <!-- Second Half -->
+    <div class="row">
+      <!-- Left side-->
+      <div class="col-md-6">
+        <!-- Display test info -->
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <!-- {% bootstrap_form StdCnt %} -->
+          </div>
+        </div>
+        
+        <h5>Blodprøvedata</h5>
+        <div id="test-data-container">
+          <!-- Place where JS inserts new test data -->
+          <!-- {% bootstrap_form Samples %} -->
+          <!-- Insert previous tests -->
+          {% for psd, pst, psc in previous_samples %}
+            <div class="form-row">
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="study_date" value="0" readonly>
+              </div>
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="study_time" value="0" readonly>
+              </div>
+              <div class="form-group col-md-3 readonly-field">
+                <input type="text" class="form-control" name="test_value" value="0" readonly>
+              </div>
+              <!-- Add confirm row -->
+
+
+            </div>
+          {% endfor %}
+        </div>
+        <!-- Add test info -->     
+        {% buttons %}
+          <input type="submit" name="godkend" value="godkend" id="confirm">
+          <input type="submit" name="afvis"   value="afvis" id="deny">
+        {% endbuttons %}
+
+        <!-- Container for error/alert messages -->
+        <div id="error-message-container">
+  
+        </div>
+      <!-- Left Closing -->
+      </div>
+
+      <!-- Right side -->
+      
+      </div> <!-- Right closing-->
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'main_page/js/util/csrf.js' %}"></script>
+{% endblock %}

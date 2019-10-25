@@ -1,0 +1,16 @@
+#id_study_type > label {
+  display:block;
+}
+
+#right_side {
+  height: 495px;
+  overflow: auto
+}
+
+#id_dateofmessurement {
+  width: 50%;
+}
+
+#dynamic_generate_history {
+  display: none;
+}

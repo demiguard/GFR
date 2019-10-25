@@ -42,6 +42,7 @@
             <ul id="sidebar-list">
               {% if user.is_authenticated %}
               <li><a class="menu-item" href="{% url 'main_page:list_studies' %}">Åbn undersøgelse</a></li>
+              <li><a class="menu-item" href="{% url 'main_page:control_list_studies' %}">Kontrol</a></li>
               <li><a class="menu-item" href="{% url 'main_page:search' %}">Historiske undersøgelser</a></li>
               <li><a class="menu-item" href="{% url 'main_page:deleted_studies' %}">Slettede undersøgelser</a></li>
               <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
