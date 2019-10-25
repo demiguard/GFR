@@ -22,12 +22,14 @@ let enable_search_fields = function() {
 
 // Displays the loading spinner
 let show_loading = function() {
-
+  $('#loader').show();
+  $('#ss-wrapper .form-group').css('float', 'left');
 }
 
 // Removes the loading spinner
 let hide_loading = function() {
-
+  $('#loader').hide();
+  $('#ss-wrapper .form-group').css('float', '');
 }
 
 // Sends an ajax GET request with the entered search parameters
@@ -159,6 +161,9 @@ let init_datepickers = function() {
 $(function() {
   init_datepickers();
   
+  // hide_loading();
+  show_loading();
+
   // Perform initial search
   init_search_fields();
   ajax_search();
