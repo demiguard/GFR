@@ -14,3 +14,17 @@
 #dynamic_generate_history {
   display: none;
 }
+
+.confirm-checkbox {
+  margin-top: 45px;
+  margin-left: -10px;
+}
+
+.confirm-row-checkbox {
+  margin-top:  15px;
+  margin-left: -10px;
+}
+
+.form-input {
+  width: 100%;
+}
