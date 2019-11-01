@@ -48,35 +48,60 @@ class ControlView(LoginRequiredMixin, TemplateView):
     else:
       present_sex = 1
 
-
-
     FormPersonalInfo = forms.ControlPatient1(initial={
       'cpr'       : formatting.format_cpr(PatientDataset.PatientID),
-      'name'      : 'Bob',
+      'name'      : formatting.person_name_to_name(PatientDataset.PatientName.original_string.decode()),
       'sex'       : present_sex,
       'birthdate' : formatting.convert_date_to_danish_date(PatientDataset.PatientBirthDate, sep='-')
     })
   
-
     #ControlPatient2  
-    FormPatientSize = forms.ControlPatient2(initial={})
+    FormPatientSize = forms.ControlPatient2(initial={
+      'height' : PatientDataset.PatientSize * 100,
+      'weight' : PatientDataset.PatientWeight
+    })
     
     #ControlPatient3  
+    injeciton_date, injeciton_time = formatting.splitDateTimeStr( PatientDataset.injTime )
     FormSampleInit = forms.ControlPatient3(initial={
       'vial_weight_before' : PatientDataset.injbefore,      
       'vial_weight_after' : PatientDataset.injafter,      
-      'injection_time' : '00:00',      
-      'injection_date' : '12-23-2001'   
+      'injection_time' : injeciton_time,      
+      'injection_date' : injeciton_date
     })
     
     #ControlPatient4  
-    FormThinMethod = forms.ControlPatient4(initial={})
+    method =  PatientDataset.GFRMethod
+    if(method == 'En blodprøve, Voksen' ):
+      methodVal = 0
+    elif (method == 'En blodprøve, Børn'):
+      methodVal = 1
+    elif (method == 'Flere blodprøver'):
+      methodVal = 2
+    else:
+      raise AttributeError()
+
+
+    FormThinMethod = forms.ControlPatient4(initial={
+      'thin_fac'   : PatientDataset.thiningfactor,
+      'study_type' : methodVal
+    })
     
     #ControlPatient5  
-    FormStdCnt = forms.ControlPatient5(initial={})
+    FormStdCnt = forms.ControlPatient5(initial={
+      'stdCnt' : PatientDataset.stdcnt
+    })
     
     #ControlPatient6 
-    FormSamples = forms.ControlPatient6(initial={})
+    FormSamples = []
+    for sample in PatientDataset.ClearTest:
+      sample_date, sample_time = formatting.splitDateTimeStr(sample.SampleTime)
+      FormSample = forms.ControlPatient6({
+        'sample_time' : sample_time,
+        'sample_date' : sample_date,
+        'sample_cnt'  : sample.cpm
+      })
+      FormSamples.append(FormSample)
     
     #ControlPatientConfirm
     FormBamID = forms.ControlPatientConfirm(initial={})
@@ -100,9 +125,10 @@ class ControlView(LoginRequiredMixin, TemplateView):
     context = {
       'title'   : server_config.SERVER_NAME,
       'version' : server_config.SERVER_VERSION,
+      'AccessionNumber' : AccessionNumber
 
     }
-    #context.update(self.init_forms(dataset))
+    context.update(self.init_forms(dataset))
 
     return render(request, self.template_name, context=context)
 
@@ -116,7 +142,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     context = {
       'title'   : server_config.SERVER_NAME,
       'version' : server_config.SERVER_VERSION,
-
+      'AccessionNumber' : AccessionNumber
     }
     context.update(self.init_forms(dataset))
 

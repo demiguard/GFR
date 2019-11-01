@@ -404,3 +404,27 @@ def xstr(s: str) -> str:
     return ''
 
   return str(s)
+
+def splitDateTimeStr(input_str):
+  """
+    Converts a valid datestring from a dicom object to 2 strings on the format:
+    date :  DD-MM-YYYY
+    time :  tt:mm
+
+    Args:
+      input_str: string in on the format:
+
+    returns:
+      Date: See above
+      Time: See above
+  """
+  if(len(input_str) != 12 and input_str.isdigit()):
+    raise AttributeError('THIS IS NOT A VALID DATESTRING YOU BROKEN MY TRUST')
+
+  year  = input_str[:4]
+  month = input_str[4:6]
+  day   = input_str[6:8]
+  hour  = input_str[8:10]
+  minut = input_str[10:]
+
+  return f'{day}-{month}-{year}', f'{hour}:{minut}'

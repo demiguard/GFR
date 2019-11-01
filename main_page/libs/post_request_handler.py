@@ -305,6 +305,7 @@ def store_form(request, dataset, rigs_nr):
   dicomlib.fill_dicom(dataset,
     age=age,
     birthday=birthdate,
+    department=request.user.department,
     update_dicom = True,
     update_date = True,
     injection_time=injection_time,

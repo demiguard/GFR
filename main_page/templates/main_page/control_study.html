@@ -11,7 +11,7 @@
 
 
 {% block content %}
-  <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
+  <strong>Accession-nr.:</strong><p>{{ AccessionNumber }}</p>
 
   <form method="POST" id="Contorl-study-form">
     {% csrf_token %}
@@ -19,17 +19,62 @@
     <!-- Add patient info -->
     <div class="form-row">
       <div class = "form-group col-md-3">
-        {% bootstrap_field PersonalInfo.name %}
+        <div class = form-row>
+            {% bootstrap_field PersonalInfo.cpr %}
+            {% bootstrap_field PersonalInfo.cpr_confirm %}
+        </div>
+        <div class = "form-row">
+          {% bootstrap_field PersonalInfo.name %}
+          {% bootstrap_field PersonalInfo.name_confirm %}
+          
+        </div>
+        <div class="form-row">
+          {% bootstrap_field PersonalInfo.sex %}
+          {% bootstrap_field PersonalInfo.sex_confirm %}
+        </div>
+        <div class="form-row">
+          {% bootstrap_field PersonalInfo.birthdate %}
+          {% bootstrap_field PersonalInfo.birthdate_confirm %}
+        </div>
       </div>
       <div class = "form-group col-md-3">
-        <!-- {% bootstrap_form PatientSize %} -->
+        <div class = "form-row">
+          {% bootstrap_field PatientSize.height %}
+          {% bootstrap_field PatientSize.height_confirm %}
+        </div>
+        <div class = "form-row">
+          {% bootstrap_field PatientSize.weight %}
+          {% bootstrap_field PatientSize.weight_confirm %}
+        </div>
       </div>
       <div class="form-group col-md-3">
-        <!--{% bootstrap_form SampleInit %}-->
+        <div class="form-row">
+          {% bootstrap_field SampleInit.vial_weight_before %}
+          {% bootstrap_field SampleInit.vial_weight_before_confirm %}  
+        </div>
+        <div class="form-row">
+          {% bootstrap_field SampleInit.vial_weight_after %}
+          {% bootstrap_field SampleInit.vial_weight_after_confirm %}  
+        </div>
+        <div class="form-row">
+          {% bootstrap_field SampleInit.injection_time %}
+          {% bootstrap_field SampleInit.injection_time_confirm %}  
+        </div>
+        <div class="form-row">
+          {% bootstrap_field SampleInit.injection_date %}
+          {% bootstrap_field SampleInit.injection_date_confirm %}  
+        </div>
+
       </div>  
       <div class = "form-group col-md-3">
-        <!--{% bootstrap_form ThinMethod %}-->
-
+        <div class="form-row">
+          {% bootstrap_field ThinMethod.thin_fac %}
+          {% bootstrap_field ThinMethod.thin_fac_confirm %}  
+        </div>
+        <div class="form-row">
+          {% bootstrap_field ThinMethod.study_type %} <br>
+          {% bootstrap_field ThinMethod.study_type_confirm %}  
+        </div>
       </div>
     </div>
     
@@ -40,38 +85,39 @@
       <!-- Left side-->
       <div class="col-md-6">
         <!-- Display test info -->
+        Standardtælletal
         <div class="form-row">
-          <div class="form-group col-md-6">
-            <!-- {% bootstrap_form StdCnt %} -->
-          </div>
+            {% bootstrap_field StdCnt.stdCnt layout='inline' form_group_class='col-md-8 form-group' %}
+            {% bootstrap_field StdCnt.stdCnt_confirm form_group_class='col-md-1' %}
+          
         </div>
         
         <h5>Blodprøvedata</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
-          <!-- {% bootstrap_form Samples %} -->
-          <!-- Insert previous tests -->
-          {% for psd, pst, psc in previous_samples %}
-            <div class="form-row">
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_date" value="0" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_time" value="0" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="test_value" value="0" readonly>
-              </div>
-              <!-- Add confirm row -->
-
-
-            </div>
-          {% endfor %}
+          
+        <div class="form-row">
+          <div class="form-group col-md-3">PrøveDato</div>
+          <div class="form-group col-md-3">Prøvetidspunkt</div>
+          <div class="form-group col-md-3">Tælletal</div>
+        </div>     
+        {% for sample in Samples %}
+        <div class="form-group">
+          <div class="form-row">
+            {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-3' %}                            
+            {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-3' %}                        
+            {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-3' %}
+            {% bootstrap_field sample.sample_confirm              form_group_class='col-md-3' %}                        
+          </div>
         </div>
-        <!-- Add test info -->     
+        {% endfor %}
+        </div>
+        <!-- Add test info -->
+        <hr>     
+        {% bootstrap_field BamID.bamID layout='inline' %}
         {% buttons %}
-          <input type="submit" name="godkend" value="godkend" id="confirm">
-          <input type="submit" name="afvis"   value="afvis" id="deny">
+          <input type="submit" name="godkend" value="Godkend" id="confirm">
+          <input type="submit" name="afvis"   value="Afvis" id="deny">
         {% endbuttons %}
 
         <!-- Container for error/alert messages -->
