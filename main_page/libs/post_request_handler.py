@@ -104,14 +104,15 @@ def fill_study_post(request, rigs_nr, dataset):
     # Measured tec99 counts
     tec_counts = numpy.array([float(x) for x in request.POST.getlist('test_value')])
 
-    weight = float(request.POST['weight'])
-    height = float(request.POST['height'])
+    weight = float(request.POST['weight'].replace(',','.'))
+    height = float(request.POST['height'].replace(',','.'))
     
     # Compute surface area
     BSA = clearance_math.surface_area(height, weight)
 
-    inj_weight_before = float(request.POST['vial_weight_before'])
-    inj_weight_after = float(request.POST['vial_weight_after'])
+    tmp = request.POST['vial_weight_before'].replace(',', '.')
+    inj_weight_before = float(tmp)
+    inj_weight_after = float(request.POST['vial_weight_after'].replace(',', '.'))
     inj_weight = inj_weight_before - inj_weight_after
 
     STD_CNT = float(request.POST['std_cnt_text_box'])
@@ -249,11 +250,13 @@ def store_form(request, dataset, rigs_nr):
     gender = enums.Gender(int(gender_num))
 
   if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
-    injection_before = float(request.POST['vial_weight_before'])
+    tmp = request.POST['vial_weight_before'].replace(',', '.')
+    injection_before = float(tmp)
     injection_after  = float(request.POST['vial_weight_after'])
     injection_weight = injection_before - injection_after
   elif request.POST['vial_weight_before']:
-    injection_before = float(request.POST['vial_weight_before'])
+    tmp = request.POST['vial_weight_before'].replace(',', '.')
+    injection_before = float(tmp)
  
   if request.POST['weight']:
     weight = float(request.POST['weight']) 
