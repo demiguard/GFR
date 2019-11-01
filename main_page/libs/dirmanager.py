@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def __try_mkdir(dirpath: str) -> None:
@@ -23,6 +24,9 @@ def try_mkdir(dirpath: str, mk_parents: bool=False) -> None:
     mk_parents: if True will create all parent directories of the dirpath,
                 before trying to create the dirpath directory
   """
+  if isinstance(dirpath, Path): # Convert pathlib Paths to their string eq.
+    dirpath = str(dirpath)
+
   if mk_parents:
     # Remove any empty directories and dots
     dir_split = list(filter(lambda x: x, dirpath.split('/')))

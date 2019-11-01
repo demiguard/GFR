@@ -204,9 +204,12 @@ class SambaBackupEndpoint(LoginRequiredMixin, View):
     
     USED_COLUMNS = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
     for df in backup_data:
-      # Remove unused columns  
-      df = df[USED_COLUMNS]
- 
+      # Remove unused columns
+      try:
+        df = df[USED_COLUMNS]
+      except KeyError: # Ignore F-18 files
+        continue
+
       # Put in dict. Assuming 2 tests cannot be made at the exact same time. If they are, they will be overwritten
       _, time_of_messurement = df['Measurement date & time'][0].split(' ')
       context[time_of_messurement] = df.to_dict()
