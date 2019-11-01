@@ -1,7 +1,15 @@
 .restore-btn {
-  color: gray;
+  color: #55bf55;
 }
 
 .restore-btn:hover {
-  color: black;
+  color: green;
+}
+
+.purge-btn {
+  color: lightcoral;
+}
+
+.purge-btn:hover {
+  color: red;
 }
