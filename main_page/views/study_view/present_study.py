@@ -83,31 +83,16 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
 
   def post(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
     # Send information to PACS
-    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}/"
-    obj_path    = f"{obj_dir}{ris_nr}.dcm"
-    image_path  = f"{server_config.IMG_RESPONS_DIR}{request.user.department.hospital.short_name}/{ris_nr}.png"
+    hosp_sn = request.user.department.hospital.short_name
 
-    dicom_object = dicomlib.dcmread_wrapper(obj_path)
-
-    logger.info(f"User:{request.user.username} has finished examination: {ris_nr}")
-    success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
-    logger.info(f"User:{request.user.username} has stored {ris_nr} in PACS")
-    if success_rate:
-      # Remove the file + history
-      try:
-        shutil.rmtree(obj_dir)
-      except OSError as error:
-        logger.error(f'Could not remove directory: {obj_dir}')
-      try:
-        os.remove(image_path)
-      except:
-        logger.warn(f'Could not delete image: {image_path}')
-      # Store the RIS number in the HandleExaminations table
-      HE = models.HandledExaminations(accession_number=ris_nr)
-      HE.save()
-    else:
-      # Try again?
-      # Redirect to informative site, telling the user that the connection to PACS is down
-      logger.warn(f'Failed to store {ris_nr} in pacs, because:{error_message}')
+    control_dir = f"{server_config.CONTROL_STUDIES_DIR}{hosp_sn}/{ris_nr}/"
+    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{hosp_sn}/{ris_nr}/"
     
+    # Remove the file + history
+    try:
+      shutil.move(obj_dir, control_dir)
+      logger.debug(f"Successfully moved {obj_dir} to {control_dir}")
+    except OSError as error:
+      logger.error(f'Could not remove directory: {obj_dir} to {control_dir}')
+  
     return redirect('main_page:list_studies')
