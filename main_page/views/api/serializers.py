@@ -73,7 +73,7 @@ class JSONSerializer:
       try:
         obj_fields.append(field.name)
       except:
-        # Ignore weird internal django fields
+        # Ignore weird internal django fields, since they have no .name
         continue
     
     if fields:

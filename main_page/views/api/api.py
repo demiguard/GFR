@@ -10,6 +10,7 @@ import logging
 import time
 import os
 import shutil
+import json
 
 from typing import Type
 
@@ -155,7 +156,27 @@ class ProcedureMappingsEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndp
     'id',
     'config_id',
     'proceduretype_id',
+    'proceduretype.type_name'
   ]
+
+  foreign_fields = {
+    'proceduretype': models.ProcedureType
+  }
+
+  def get(self, request):
+    # Call generic base endpoint and inject additional response info
+    generic_resp = super().get(request)
+
+    json_resp = json.loads(generic_resp.content)
+    config_ids = [x['config_id'] for x in json_resp['config_accepted_procedures']]
+
+    for i, cid in enumerate(config_ids):
+      tmp_depart = models.Department.objects.get(config=cid)
+      json_resp['config_accepted_procedures'][i]['department'] = str(tmp_depart)
+
+    new_resp = JsonResponse(json_resp)
+
+    return new_resp
 
   def post(self, request):
     # Modify request to contain correct config id instead of department id
@@ -307,7 +328,6 @@ class StudyEndpoint(LoginRequiredMixin, View):
     user_hosp = request.user.department.hospital.short_name
     
     request_body = QueryDict(request.body)
-    print(request_body)
     resp = JsonResponse({ })
 
     if "purge" in request_body:
