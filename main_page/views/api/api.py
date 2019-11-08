@@ -305,42 +305,65 @@ class StudyEndpoint(LoginRequiredMixin, View):
       accession_number: accession_number of study to delete
     """
     user_hosp = request.user.department.hospital.short_name
-
-    logger.info(
-      "Attempting to move study to trash "
-      f"with accession number: {accession_number}"
-    )
     
+    request_body = QueryDict(request.body)
+    print(request_body)
     resp = JsonResponse({ })
 
-    # Create deleted studies directory if doesn't exist
-    deletion_dir = Path(
-      server_config.DELETED_STUDIES_DIR, 
-      user_hosp
-    )
-    try_mkdir(str(deletion_dir), mk_parents=True)
+    if "purge" in request_body:
+      if request_body["purge"] == "true":
+        # HANDLE COMPLETE PURGE (DELETE STUDY FROM THE SYSTEM)
+        deletion_dir = Path(
+          server_config.DELETED_STUDIES_DIR,
+          user_hosp,
+          accession_number
+        )
 
-    # Get src and dst, then move attempt to move
-    move_src = Path(
-      server_config.FIND_RESPONS_DIR,
-      user_hosp,
-      accession_number
-    )
+        try:
+          # This check if here to prevent anyone from sending a request
+          # containing an accession_number with e.g. "/", that could possibly
+          # remove the / directory of the server
+          if '.' in accession_number or '/' in accession_number:
+            raise FileNotFoundError()
 
-    move_dst = Path(
-      deletion_dir,
-      accession_number
-    )
-
-    try:
-      shutil.move(move_src, move_dst)
-
-      logger.info(f"Successfully moved study to trash can: {accession_number}")
-    except (FileNotFoundError, FileExistsError):
-      logger.error(
-        f"Unable to find dicom object for study to move to trash: '{move_src}'"
+          shutil.rmtree(deletion_dir)
+        except FileNotFoundError:
+          resp.status_code = HTTP_STATUS_NO_CONTENT
+    else:
+      # HANDLE MOVE TO TRASH
+      logger.info(
+        "Attempting to move study to trash "
+        f"with accession number: {accession_number}"
       )
-      resp.status_code = HTTP_STATUS_NO_CONTENT
+      
+      # Create deleted studies directory if doesn't exist
+      deletion_dir = Path(
+        server_config.DELETED_STUDIES_DIR, 
+        user_hosp
+      )
+      try_mkdir(str(deletion_dir), mk_parents=True)
+
+      # Get src and dst, then move attempt to move
+      move_src = Path(
+        server_config.FIND_RESPONS_DIR,
+        user_hosp,
+        accession_number
+      )
+
+      move_dst = Path(
+        deletion_dir,
+        accession_number
+      )
+
+      try:
+        shutil.move(move_src, move_dst)
+
+        logger.info(f"Successfully moved study to trash can: {accession_number}")
+      except (FileNotFoundError, FileExistsError):
+        logger.error(
+          f"Unable to find dicom object for study to move to trash: '{move_src}'"
+        )
+        resp.status_code = HTTP_STATUS_NO_CONTENT
 
     return resp
 
