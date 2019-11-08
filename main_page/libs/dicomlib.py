@@ -409,6 +409,7 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
 def fill_dicom(ds,
     age                 = None,
     birthday            = None,
+    bamid               = None,
     bsa_method          = None,
     clearance           = None,
     clearance_norm      = None,
@@ -513,6 +514,7 @@ def fill_dicom(ds,
     0x00101020 : ('DS', height),                                              # ds.PatientSize
     0x00101030 : ('DS', weight),                                              # ds.PatientWeight
     0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
+    0x00081070 : ('PN', bamid),                                               # ds.OperatorsName
                                                                               # ### PRIVATE TAGS START ###
     0x00231001 : ('LO', gfr),                                                 # ds.GFR
     0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion

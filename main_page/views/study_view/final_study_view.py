@@ -34,7 +34,7 @@ CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], Li
 
 logger = logging.getLogger()
 
-class PresentStudyView(LoginRequiredMixin, TemplateView):
+class FinalStudyView(LoginRequiredMixin, TemplateView):
   """
   Presenting the end result of an examination
 

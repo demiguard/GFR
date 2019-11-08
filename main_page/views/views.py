@@ -13,3 +13,4 @@ from main_page.views.study_view.control_study import ControlView
 from main_page.views.study_view.fill_study import FillStudyView
 from main_page.views.study_view.present_study import PresentStudyView
 from main_page.views.study_view.present_old_study import PresentOldStudyView
+from main_page.views.study_view.final_study_view import FinalStudyView

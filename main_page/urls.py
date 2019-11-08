@@ -3,7 +3,6 @@ from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 #Sooo WhY do we not just import api at this point?
 from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint
-
 import main_page.views.views as views
 
 
@@ -26,6 +25,7 @@ urlpatterns = [
   path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),
   path('present_old_study/<str:ris_nr>', views.PresentOldStudyView.as_view(), name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
+  path('final_present/<str:AccessionNumber>', views.FinalStudyView.as_view() , name='final_present'),
 
   # Admin panel
   path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),

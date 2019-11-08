@@ -15,11 +15,6 @@
       <input type="submit" name="control" value="Tilbage til redigering">
       <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
       <input type="submit" name="control" value="Send til PACS">
-
-      {% if show_QA_button %}
-        <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" ris_nr %}'">
-      {% endif %}
-
       </div>
   </form>
 {% endblock %}

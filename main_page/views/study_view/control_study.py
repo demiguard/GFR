@@ -131,15 +131,20 @@ class ControlView(LoginRequiredMixin, TemplateView):
     elif (post_req['control'] == 'Godkend'):
       print(post_req)
 
+      file_path = f'{dir_path}{AccessionNumber}.dcm'
+      dataset = dicomlib.dcmread_wrapper(file_path)
+      bamid = post_req['bamID'].lower().swapcase()
 
+      dicomlib.fill_dicom(dataset, bamid=bamid)
+      dicomlib.save_dicom(file_path, dataset)
+
+      return redirect('main_page:final_present', AccessionNumber=AccessionNumber)
 
     else:
       logger.error(f'Invalid Post request for control Study {AccessionNumber}!')
     
 
 
-    file_path = f'{dir_path}{AccessionNumber}.dcm'
-    dataset = dicomlib.dcmread_wrapper(file_path)
 
     context = {
       'title'   : server_config.SERVER_NAME,
