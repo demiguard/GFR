@@ -150,6 +150,8 @@ def fill_study_post(request, rigs_nr, dataset):
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
     birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
     
+        
+
     gender_num = int(request.POST['sex'])
     gender = enums.Gender(gender_num)
     gender_name = enums.GENDER_NAMINGS[gender.value]

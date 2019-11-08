@@ -24,8 +24,8 @@ class QAView(LoginRequiredMixin, TemplateView):
   def get(self, request, accession_number):
     logger.info('A user have used the QA plot for something')
     try:
-      logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}.dcm")
-      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}.dcm")
+      logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
+      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
       sample_times = []
       tch99_cnt = []
 

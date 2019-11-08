@@ -117,9 +117,24 @@ class ControlView(LoginRequiredMixin, TemplateView):
     }
 
   def post(self, request, AccessionNumber):
-    hopital_sn = request.user.department.hospital.short_name
 
-    filepath = f'{server_config.CONTROL_STUDIES_DIR}{hopital_sn}/{AccessionNumber}/{AccessionNumber}.dcm'
+    post_req = request.POST
+    hopital_sn = request.user.department.hospital.short_name
+    dir_path =f'{server_config.CONTROL_STUDIES_DIR}{hopital_sn}/{AccessionNumber}/'
+
+    if(post_req['control'] == 'Afvis'):
+      fill_study_dir = f'{server_config.FIND_RESPONS_DIR}{hopital_sn}/{AccessionNumber}'
+      shutil.move(dir_path, fill_study_dir)
+
+      return redirect('main_page:fill_study', ris_nr = AccessionNumber)
+    elif (post_req['control'] == 'Godkend'):
+      print(True)
+    else:
+      logger.error(f'Invalid Post request for control Study {AccessionNumber}!')
+    
+
+
+    file_path = f'{dir_path}{AccessionNumber}.dcm'
     dataset = dicomlib.dcmread_wrapper(filepath)
 
     context = {
