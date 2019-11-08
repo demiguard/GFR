@@ -110,4 +110,4 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
       # Redirect to informative site, telling the user that the connection to PACS is down
       logger.warn(f'Failed to store {ris_nr} in pacs, because:{error_message}')
     
-    return redirect('main_page:list_studies')
+    return redirect('main_page:control_list_studies')
