@@ -149,7 +149,7 @@ def fill_study_post(request, rigs_nr, dataset):
     name = request.POST['name']
     cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
     birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
-    
+    bamID = request.POST['bamID']
         
 
     gender_num = int(request.POST['sex'])
@@ -194,11 +194,12 @@ def fill_study_post(request, rigs_nr, dataset):
     # Insert plot (as byte string) into dicom object
     dicomlib.fill_dicom(
       dataset,
+      bamid          = bamID,
       gfr            = gfr_str,
       clearance      = clearance,
       clearance_norm = clearance_norm,
-      pixeldata = pixel_data,
-      exam_status = 2
+      pixeldata      = pixel_data,
+      exam_status    = 2
     )
 
     return dataset

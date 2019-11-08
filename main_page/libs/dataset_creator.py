@@ -107,7 +107,7 @@ def get_blank(
   """
   # Create dataset w/ meta data
   ds = create_empty_dataset(accession_number)
-
+  ds.RequestedProcedureDescription = 'GFR, Tc-99m-DTPA'
   # Fill out required examination data to allow the site to propperly use the dataset 
   method_str = 'GFR, Tc-99m-DTPA'
   
