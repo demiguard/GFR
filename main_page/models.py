@@ -45,6 +45,9 @@ class Config(models.Model):
   pacs_port = models.CharField(max_length=200, default='')
   pacs_calling = models.CharField(max_length=200, default='')
 
+  def __str__(self):
+    return str(self.id)
+
 
 class Department(models.Model):
   id = models.AutoField(primary_key=True)

@@ -354,6 +354,7 @@ class AddDepartmentForm(forms.ModelForm):
 
   # List available hospitals
   hospital = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Hospital.objects.all())
+  config = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Config.objects.all())
 
 
 class AddProcedureForm(forms.ModelForm):
