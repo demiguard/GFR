@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 
+import numpy as np
 import shutil
 import os
 import datetime
@@ -69,7 +70,7 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
     
-    pixel_arr = np.frombuffer(dicom_obj.PixelData, dtype=np.uint8)
+    pixel_arr = np.frombuffer(dicom_object.PixelData, dtype=np.uint8)
     pixel_arr = np.reshape(pixel_arr, (1920, 1080, 3))
     pixel_arr = np.reshape(pixel_arr, (1080, 1920, 3))
 
@@ -90,6 +91,22 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
 
   def post(self, request: Type[WSGIRequest], AccessionNumber: str) -> HttpResponse:
     
+    post_req = request.POST
+    hospital = request.user.department.hospital.short_name
+    object_dir = f'{server_config.CONTROL_STUDIES_DIR}/{hospital}/{AccessionNumber}/
+
+    if(post_req['control'] == 'Tilbage til redigering'):
+        dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/
+
+        shutil.move(object_dir, dst_dir)
+        redirect('main_page:fill_study', ris_nr = AccessionNumber)
+
+    elif (post_req['control'] == 'Send til PACS'):
+      pass
+    else:
+      logger.error('Invalid Post Request')
+      redirect('main_page:control_list_studies')
+
     hosp_sn = request.user.department.hospital.short_name
     obj_dir     = f"{server_config.CONTROL_STUDIES_DIR}{hosp_sn}/{AccessionNumber}/"
     obj_path    = f"{obj_dir}{AccessionNumber}.dcm"
@@ -97,9 +114,9 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
     dicom_object = dicomlib.dcmread_wrapper(obj_path)
 
     # We assume there's no threads on the network, we have a Great Firewall, that the hackers paid for!
-
+    
     # Send information to PACS
-    success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
+    #success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
     logger.info(f"User:{request.user.username} has stored {AccessionNumber} in PACS")
     if success_rate:
       # Remove the file + history
@@ -118,5 +135,5 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
       # Try again?
       # Redirect to informative site, telling the user that the connection to PACS is down
       logger.warn(f'Failed to store {AccessionNumber} in pacs, because:{error_message}')
-    
+
     return redirect('main_page:control_list_studies')
