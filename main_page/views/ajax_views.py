@@ -79,42 +79,42 @@ class LogoutView(LoginRequiredMixin, TemplateView):
     return self.logout_current_user(request)
 
 
-class AjaxSearch(LoginRequiredMixin, TemplateView):
-  """
-  Handles ajax search requests
-  """
-  def get(self, request):  
-    # Extract search parameters
-    search_name = request.GET['name']
-    search_cpr = request.GET['cpr']
-    search_accession_number = request.GET['accession_number']
-    search_date_from = request.GET['date_from']
-    search_date_to = request.GET['date_to']
+# class AjaxSearch(LoginRequiredMixin, TemplateView):
+#   """
+#   Handles ajax search requests
+#   """
+#   def get(self, request):  
+#     # Extract search parameters
+#     search_name = request.GET['name']
+#     search_cpr = request.GET['cpr']
+#     search_accession_number = request.GET['accession_number']
+#     search_date_from = request.GET['date_from']
+#     search_date_to = request.GET['date_to']
 
-    search_resp = pacs.search_query_pacs(
-      request.user,
-      name=search_name,
-      cpr=search_cpr,
-      accession_number=search_accession_number,
-      date_from=search_date_from,
-      date_to=search_date_to,
-    )
+#     search_resp = pacs.search_query_pacs(
+#       request.user,
+#       name=search_name,
+#       cpr=search_cpr,
+#       accession_number=search_accession_number,
+#       date_from=search_date_from,
+#       date_to=search_date_to,
+#     )
 
-    # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
-    serialized_results = []
-    for res in search_resp:
-      serialized_results.append({
-        'accession_number': res.rigs_nr,
-        'name': res.name,
-        'cpr': res.cpr,
-        'date': res.date
-      })
+#     # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
+#     serialized_results = []
+#     for res in search_resp:
+#       serialized_results.append({
+#         'accession_number': res.rigs_nr,
+#         'name': res.name,
+#         'cpr': res.cpr,
+#         'date': res.date
+#       })
 
-    data = {
-      'search_results': serialized_results
-    }
+#     data = {
+#       'search_results': serialized_results
+#     }
 
-    return JsonResponse(data) 
+#     return JsonResponse(data) 
 
 
 

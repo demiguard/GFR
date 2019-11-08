@@ -14,6 +14,7 @@ import json
 
 from typing import Type
 
+from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import samba_handler
 from main_page.libs import dicomlib
 from main_page.libs import server_config
@@ -446,3 +447,30 @@ class CsvEndpoint(LoginRequiredMixin, View):
     else:
       return HttpResponseNotFound()
 
+
+class SearchEndpoint(LoginRequiredMixin, View):
+  """
+  Handles search requests api
+  """
+  def get(self, request):  
+    # Extract search parameters
+    search_name = request.GET['name']
+    search_cpr = request.GET['cpr']
+    search_accession_number = request.GET['accession_number']
+    search_date_from = request.GET['date_from']
+    search_date_to = request.GET['date_to']
+
+    search_results = pacs.search_query_pacs(
+      request.user.department.config,
+      name=search_name,
+      cpr=search_cpr,
+      accession_number=search_accession_number,
+      date_from=search_date_from,
+      date_to=search_date_to,
+    )
+
+    data = {
+      'search_results': search_results
+    }
+
+    return JsonResponse(data)

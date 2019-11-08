@@ -15,6 +15,7 @@ import pandas
 import random
 import csv
 
+from main_page.libs import ae_controller
 from main_page.libs.dirmanager import try_mkdir
 from .. import dicomlib, dataset_creator
 from .. import server_config
@@ -358,43 +359,45 @@ def start_scp_server():
 
   return server_instance
 
-def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", date_to=""):
-  response_list = []
-
+def search_query_pacs(config, name="", cpr="", accession_number="", date_from="", date_to=""):
   # Construct Search Dataset
-  find_dataset = dataset_creator.create_search_dataset(
-      name,
-      cpr, 
-      date_from, 
-      date_to, 
-      accession_number
-    )  
+  search_dataset = dataset_creator.create_search_dataset(
+    name,
+    cpr, 
+    date_from,
+    date_to, 
+    accession_number
+  ) 
 
-  logger.info(f"{user} is Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
+  # Establish association to PACS
+  association = ae_controller.connect(
+    config.pacs_ip,
+    int(config.pacs_port),
+    server_config.SERVER_AE_TITLE,
+    config.pacs_aet,
+    ae_controller.FINDStudyRootQueryRetrieveInformationModel
+  )
 
-  # Construct AE
-  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
+  # Send find query and process successful responses
+  response_list = [ ]
+  def process_incoming_dataset(dataset):
+    try:
+      response_list.append({
+        'accession_number': dataset.AccessionNumber,
+        'name'            : formatting.person_name_to_name(str(dataset.PatientName)),
+        'cpr'             : formatting.format_cpr(dataset.PatientID),
+        'date'            : formatting.format_date(dataset.StudyDate)
+      })
+    except Exception as e:
+      logger.info(f"Failed to process incoming search dataset, got exception {e}")
 
-  # Connect with AE
-  assoc = ae.associate(user.department.config.pacs_ip, int(user.department.config.pacs_port), ae_title=user.department.config.pacs_aet)
-  
-  if assoc.is_established:
-    # Make Search Request
-    response = assoc.send_c_find(find_dataset, query_model='S')
-    for (status, dataset_from_response) in response:
-      if status.Status == 0xFF00:
-        exam_obj = examination_info.deserialize(dataset_from_response)
+  ae_controller.send_find(
+    association,
+    search_dataset,
+    process_incoming_dataset
+  )
 
-        response_list.append(exam_obj)
-      elif status.Status == 0x0000:
-        # Operation successfull
-        continue
-      else:
-        logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
-    assoc.release()
-  else:
-    logger.warn('Connection to pacs failed!')
+  association.release()
 
   return response_list
 

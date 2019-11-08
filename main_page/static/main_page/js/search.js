@@ -47,15 +47,19 @@ let ajax_search = function() {
     cpr = cpr.replace('-', '');
   }
   let accession_number = $('#id_accession_number').val();
-  let date_from = helper.convert_danish_date_to_date_format($('#id_from_date').val());
-  let date_to = helper.convert_danish_date_to_date_format($('#id_to_date').val());
+  
+  let dfa = $('#id_from_date').val().split('-');
+  let date_from = dfa[2] + "-" + dfa[1] + "-" + dfa[0];
+  
+  let dta = $('#id_to_date').val().split('-');
+  let date_to = dta[2] + "-" + dta[1] + "-" + dta[0];
 
   // Display loading element
   disable_search_fields();
   show_loading();
 
   $.get({
-    url: 'ajax/search',
+    url: 'api/search',
     data: {
       'name': name,
       'cpr': cpr,
@@ -64,6 +68,8 @@ let ajax_search = function() {
       'date_to': date_to
     },
     success: function(data) {
+      console.debug("Successful search");
+      
       // Insert search results into table
       search_results = data.search_results;
 
@@ -101,6 +107,8 @@ let ajax_search = function() {
       enable_search_fields();
     },
     error: function(data) {
+      console.debug("Failed search");
+
       var err_text = "";
       if (data.statusText == 'timeout') {
         err_text = "Fejl: Kunne ikke forbinde til PACS (timeout).";
@@ -125,8 +133,15 @@ let ajax_search = function() {
 let init_search_fields = function() {
   // Get current date
   let today = new Date();
-  let day = today.getDate();
-  let month = today.getMonth() + 1; // January is 0!
+  let day = today.getDate().toString();
+  if (day.length == 1) {
+    day = "0" + day;
+  }
+  let month = (today.getMonth() + 1).toString(); // January is 0!
+  if (month.length == 1) {
+    month = "0" + month;
+  }
+
   let year = today.getFullYear();
   
   let today_str = day + '-' + month + '-' + year;
@@ -134,8 +149,15 @@ let init_search_fields = function() {
   // Get date one week ago
   let week_ago = new Date();
   week_ago.setDate(week_ago.getDate() - 7);
-  let wday = week_ago.getDate();
-  let wmonth = week_ago.getMonth() + 1; // January is 0!
+  let wday = week_ago.getDate().toString();
+  if (wday.length == 1) {
+    wday = "0" + wday;
+  }
+
+  let wmonth = (week_ago.getMonth() + 1).toString(); // January is 0!
+  if (wmonth.length == 1) {
+    wmonth = "0" + wmonth;
+  }
   let wyear = week_ago.getFullYear();
   
   let week_ago_str = wday + '-' + wmonth + '-' + wyear;

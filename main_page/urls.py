@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 #Sooo WhY do we not just import api at this point?
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint
 
 import main_page.views.views as views
 
@@ -35,10 +35,10 @@ urlpatterns = [
   # Async ajax urls
   # TODO: Make all these conform to the new RESTful api design
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
-  path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
   
   # New RESTful api design
+  path('api/search', SearchEndpoint.as_view(), name='search_api'),
   path('api/user', UserEndpoint.as_view(), name='user'),
   path('api/user/<int:obj_id>', UserEndpoint.as_view(), name='user'),
   path('api/hospital', HospitalEndpoint.as_view(), name='hospital'),
