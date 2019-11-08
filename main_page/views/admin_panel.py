@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from main_page.libs import server_config
 from main_page.views.mixins import AdminRequiredMixin
 
 from main_page import models
@@ -18,7 +19,8 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
 
   def get(self, request):
     context = {
-
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
     }
 
     return render(request, self.template_name, context)
@@ -71,6 +73,8 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     edit_form = edit_form(instance=obj_instance)
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'model_name': model_name,
       'edit_form': edit_form,
     }
@@ -109,6 +113,8 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
       return HttpResponseNotFound(f"Unable to find corresponding form for model with key: '{model_name}'")
 
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'model_name': model_name,
       'add_form': add_form,
     }
