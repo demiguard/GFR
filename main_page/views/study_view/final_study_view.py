@@ -93,10 +93,10 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
     
     post_req = request.POST
     hospital = request.user.department.hospital.short_name
-    object_dir = f'{server_config.CONTROL_STUDIES_DIR}/{hospital}/{AccessionNumber}/
+    object_dir = f'{server_config.CONTROL_STUDIES_DIR}/{hospital}/{AccessionNumber}/'
 
     if(post_req['control'] == 'Tilbage til redigering'):
-        dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/
+        dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/'
 
         shutil.move(object_dir, dst_dir)
         redirect('main_page:fill_study', ris_nr = AccessionNumber)
