@@ -21,6 +21,8 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
+      'nuke_list_form': forms.NukeListStudiesForm(),
+      'nuke_deleted_form': forms.NukeDeletedStudiesForm(),
     }
 
     return render(request, self.template_name, context)
