@@ -9,8 +9,7 @@ from .libs import server_config
 global ris_thread
 
 
-def init_logger():  
-  # logfile = server_config.LOG_DIR + 'logging_file_' + str(datetime.date.today()).replace(' ','').replace('.','') + '.log'
+def init_logger():
   log_filepath = Path(server_config.LOG_DIR, server_config.LOG_FILENAME)
 
   try_mkdir(server_config.LOG_DIR)

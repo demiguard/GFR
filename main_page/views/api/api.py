@@ -388,6 +388,38 @@ class StudyEndpoint(LoginRequiredMixin, View):
 
     return resp
 
+
+class ListEndpoint(AdminRequiredMixin, LoginRequiredMixin, View):
+  """
+  Endpoint for handling performing actions on the directory for list_studies
+  and delete_studies (e.g. actions on all dicom objects in a directory)
+  """
+  def delete(self, request): # hard purge everything, e.g. nuke    
+    request_body = QueryDict(request.body)
+    hospital_shortname = ""
+    context = { 'action': 'failed' }
+
+    try:
+      hospital_shortname = request_body['hospital_shortname']
+    except KeyError:
+      pass
+
+    if hospital_shortname:
+      del_dir = ""
+      
+      if 'list_studies' in request_body:
+        del_dir = Path(server_config.FIND_RESPONS_DIR, hospital_shortname)
+      elif 'deleted_studies' in request_body:
+        del_dir = Path(server_config.DELETED_STUDIES_DIR, hospital_shortname)
+
+      try:
+        shutil.rmtree(del_dir)
+        context['action'] = 'success'
+      except (FileNotFoundError, NotADirectoryError):
+        pass
+
+    return JsonResponse(context)
+
 class CsvEndpoint(LoginRequiredMixin, View):
   def get(self, request, accession_number):
     """

@@ -409,3 +409,11 @@ class AddProcedureMapping(forms.ModelForm):
 
 class GetBackupDateForm(forms.Form):
   dateofmessurement = forms.DateField(label='Backup fra dato (DD-MM-ÅÅÅÅ)', required=False)
+
+class NukeListStudiesForm(forms.Form):
+  l_hospital = forms.ModelChoiceField(label='Hospital', required=True, widget=forms.Select, queryset=models.Hospital.objects.all().values_list('short_name', flat=True))
+  l_bamID = forms.CharField(label='Bam ID', max_length=8, required=True, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
+
+class NukeDeletedStudiesForm(forms.Form):
+  d_hospital = forms.ModelChoiceField(label='Hospital', required=True, widget=forms.Select, queryset=models.Hospital.objects.all().values_list('short_name', flat=True))
+  d_bamID = forms.CharField(label='Bam ID', max_length=8, required=True, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
