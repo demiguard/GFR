@@ -82,9 +82,9 @@ def move_from_pacs(user, accession_number):
     
     if len(find_dataset_from_response) > 1:
       #Soooo somehow we got more than one response to a unique AccessionNumber?
-      logger.warn(f"Move_from_pacs got multiple responses to AccessionNumber: {rigs_nr}. The responses was: {find_dataset_from_response}")
+      logger.warn(f"Move_from_pacs got multiple responses to AccessionNumber: {accession_number}. The responses was: {find_dataset_from_response}")
     elif len(find_dataset_from_response) == 0:
-      logger.info(f"Could not find any study under {rigs_nr}")
+      logger.info(f"Could not find any study under {accession_number}")
       find_assoc.release()
       move_assoc.release()
       return None
