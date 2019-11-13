@@ -298,6 +298,24 @@ def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
     ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
 
 
+def try_add_bamID(ds: Type[Dataset], bamID : str) -> None:
+  """
+  Adds Additional bamID to the operators
+
+  """
+  if 'OperatorsName' in ds:
+    current_operators = ds.OperatorsName
+    if not(isinstance(current_operators, list)):
+      current_operators = [current_operators]
+  else:
+    current_operators = []
+
+  if bamID and current_operators == []:
+    ds.OperatorsName = bamID
+  if bamID and len(current_operators) > 0:
+    if bamID not in current_operators:
+      current_operators.append(bamID)
+
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
   Attempts to add the exam status to the dataset
@@ -514,7 +532,6 @@ def fill_dicom(ds,
     0x00101020 : ('DS', height),                                              # ds.PatientSize
     0x00101030 : ('DS', weight),                                              # ds.PatientWeight
     0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
-    0x00081070 : ('PN', bamid),                                               # ds.OperatorsName
                                                                               # ### PRIVATE TAGS START ###
     0x00231001 : ('LO', gfr),                                                 # ds.GFR
     0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion
@@ -553,7 +570,8 @@ def fill_dicom(ds,
     try_add_pixeldata: [pixeldata],
     # ### PRIVATE TAGS START ###
     try_add_sample_sequence: [sample_seq],
-    try_add_dicom_history: [dicom_history]
+    try_add_dicom_history: [dicom_history],
+    try_add_bamID: [bamid]
   }
 
   for try_func, args in custom_try_adds.items():

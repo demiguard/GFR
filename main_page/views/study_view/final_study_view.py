@@ -96,10 +96,10 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
     object_dir = f'{server_config.CONTROL_STUDIES_DIR}/{hospital}/{AccessionNumber}/'
 
     if(post_req['control'] == 'Tilbage til redigering'):
-        dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/'
+      dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/'
 
-        shutil.move(object_dir, dst_dir)
-        redirect('main_page:fill_study', ris_nr = AccessionNumber)
+      shutil.move(object_dir, dst_dir)
+      return redirect('main_page:fill_study', ris_nr = AccessionNumber)
 
     elif (post_req['control'] == 'Send til PACS'):
       pass
@@ -116,7 +116,7 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
     # We assume there's no threads on the network, we have a Great Firewall, that the hackers paid for!
     
     # Send information to PACS
-    #success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
+    success_rate, error_message = pacs.store_dicom_pacs(dicom_object, request.user)
     logger.info(f"User:{request.user.username} has stored {AccessionNumber} in PACS")
     if success_rate:
       # Remove the file + history

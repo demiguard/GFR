@@ -157,14 +157,17 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     test_form = forms.FillStudyTest(initial={'study_date' : today.strftime('%d-%m-%Y')})
 
+    bamID_form = forms.ControlPatientConfirm()
+
     return {
-      'study_patient_form': study_patient_form,
-      'study_type_form': study_type_form,
+      'bamID_form'            : bamID_form,
+      'study_patient_form'    : study_patient_form,
+      'study_type_form'       : study_type_form,
       'study_examination_form': study_examination_form,
-      'get_backup_date_form': get_backup_date_form,
-      'study_patient_form_2': study_patient_form_2,
-      'study_dosis_form': study_dosis_form,
-      'test_form': test_form
+      'get_backup_date_form'  : get_backup_date_form,
+      'study_patient_form_2'  : study_patient_form_2,
+      'study_dosis_form'      : study_dosis_form,
+      'test_form'             : test_form
     }
 
   def get_previous_samples(self, exam: Type[examination_info.ExaminationInfo]):
