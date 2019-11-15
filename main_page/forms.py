@@ -1,4 +1,5 @@
 from django import forms
+from django.core.validators import RegexValidator
 
 import main_page.models as models
 import main_page.libs.server_config as server_config
@@ -40,8 +41,8 @@ class ControlPatient1(forms.Form):
     self.fields['birthdate'].widget.attrs['readonly'] = True
 
 class ControlPatient2(forms.Form):
-  height = forms.FloatField(label='Højde (cm)', min_value=0, widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  weight = forms.FloatField(label='Vægt (kg)',  min_value=0, widget=forms.TextInput(attrs={'class' : "col-md-12"}))
+  height = forms.CharField(label='Højde (cm)',  widget=forms.TextInput(attrs={'class' : "col-md-12"}))
+  weight = forms.CharField(label='Vægt (kg)',   widget=forms.TextInput(attrs={'class' : "col-md-12"}))
 
 
   height_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
@@ -78,7 +79,7 @@ class ControlPatient4(forms.Form):
     (2, 'Flere blodprøver')
   ]
 
-  thin_fac   = forms.IntegerField(label='Fortyndingsfaktor', required=False, widget=forms.TextInput(attrs={'class' : ""}))
+  thin_fac   = forms.IntegerField(label='Fortyndingsfaktor', required=False, widget=forms.TextInput(attrs={'class' : "", 'step': '1'}))
   study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect(), disabled=True)  
 
   thin_fac_confirm   = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
@@ -90,7 +91,7 @@ class ControlPatient4(forms.Form):
     self.fields['study_type'].widget.attrs['readonly'] = True
   
 class ControlPatient5(forms.Form):
-  stdCnt = forms.FloatField(label='Standardtælletal', required=False, widget=forms.TextInput(attrs={'class' : "col-md-5"}))
+  stdCnt = forms.DecimalField(label='Standardtælletal', max_digits=1 , required=False, widget=forms.TextInput(attrs={'class' : "col-md-5"}))
 
   stdCnt_confirm = forms.BooleanField(required=False, label="")
 
@@ -103,7 +104,7 @@ class ControlPatient5(forms.Form):
 class ControlPatient6(forms.Form):
   sample_time = forms.TimeField(label='Dato',  required=False)
   sample_date = forms.DateField(label='Tidpunkt',  required=False, input_formats=['%d-%m-%Y'])
-  sample_cnt  = forms.FloatField(label='Tælletal', required=False, widget=forms.TextInput(attrs={'class' : ""}))
+  sample_cnt  = forms.FloatField(label='Tælletal', required=False, widget=forms.TextInput(attrs={'class' : "sample_count"}))
 
   sample_confirm = forms.BooleanField(required=False, label='')
 
@@ -114,7 +115,7 @@ class ControlPatient6(forms.Form):
     self.fields['sample_cnt' ].widget.attrs['readonly'] = True
     self.fields['sample_time'].widget.attrs['class']    = 'form-input'    
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
-    self.fields['sample_cnt'].widget.attrs['class']     = 'form-input'
+    self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
     self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox' 
 
 class ControlPatientConfirm(forms.Form):
@@ -136,20 +137,38 @@ class Fillpatient_1(forms.Form):
 
 
 class Fillpatient_2(forms.Form):
-  height = forms.FloatField(label='Højde (cm)', required=False, min_value=0)
-  weight = forms.FloatField(label='Vægt (kg)', required=False, min_value=0)
+  height = forms.CharField(
+    label='Højde (cm)',
+    required=False,
+    validators=[
+      RegexValidator(
+        regex='^[0-9]+(\,[0-9]+)?$',
+        message='Feltet skal bestå af 0-9 og max 1 ,'
+      )
+    ])
+
+  weight = forms.CharField(
+    label='Vægt (kg)',
+    required=False,
+    validators=[
+      RegexValidator(
+        regex='^[0-9]+(\,[0-9]+)?$',
+        message='Feltet skal bestå af 0-9 og max 1 ,'
+      )
+    ]
+  )
 
 
 class Fillexamination(forms.Form):
-  vial_weight_before = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, min_value=0)
-  vial_weight_after = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, min_value=0)
+  vial_weight_before = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
+  vial_weight_after = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
   injection_date = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)  
 
 
 class Filldosis(forms.Form):
   #std_cnt = forms.IntegerField(label='Standard tælletal', required=False, min_value=0)
-  thin_fac = forms.IntegerField(label='Fortyndingsfaktor', required=False, min_value = 0)
+  thin_fac = forms.CharField(label='Fortyndingsfaktor', required=False)
   save_fac = forms.BooleanField(required=False, label='Gem')
 
 

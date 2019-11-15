@@ -44,7 +44,7 @@
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="standard-field">Standardtælletal</label>
-            <input type="number" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
+            <input type="text" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
           </div>
         </div>
         {% buttons %}
@@ -65,7 +65,7 @@
                 <input type="text" class="form-control" name="sample_time" value="{{ pst }}" readonly>
               </div>
               <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="sample_value" value="{{ psc }}" readonly>
+                <input type="text" class="form-control value-field" name="sample_value" value="{{ psc }}" readonly>
               </div>
               <div class="form-group col-md-1">
                 <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
@@ -175,9 +175,10 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{% static 'main_page/js/util/csrf.js' %}"></script>
-  <script src="{% static 'main_page/js/util/helpers.js' %}"></script>
-  <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
-  <script src="{% static 'main_page/js/util/csv_handler.js' %}"></script>
-  <script src="{% static 'main_page/js/fill_study.js' %}"></script>
+  <script src="{% static 'main_page/js/util/csrf.js'              %}"></script>
+  <script src="{% static 'main_page/js/util/bad_input_handler.js' %}"></script>
+  <script src="{% static 'main_page/js/util/helpers.js'           %}"></script>
+  <script src="{% static 'main_page/js/util/alerter.js'           %}"></script>
+  <script src="{% static 'main_page/js/util/csv_handler.js'       %}"></script>
+  <script src="{% static 'main_page/js/fill_study.js'             %}"></script>
 {% endblock %}

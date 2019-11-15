@@ -123,6 +123,35 @@ function initialize_time_fields() {
   helper.auto_char($("input[name='study_time']"), ':', 2);
 }
 
+
+/* 
+
+  This section handles the front end part of the comma problem.
+  Comma problem is simply that people for some reason REALLLY REALLYL LIKE ,'s
+  Let this comment be the angry be the deaththrows of a programmer, that wrote a specification, that specificy stated use .
+  ALSO WTB GLOBAL STANDARD, send summertime to a uptown farm and so fouth...
+
+*/
+function initialize_number_fields(){
+
+  var ids_with_comma = ['#id_height', '#id_weight', '#id_vial_weight_before', '#id_vial_weight_after'];
+  var ids_no_comma   = ['#id_thin_fac', '#standard-field'];
+
+  var ids_with_comma_lenght = ids_with_comma.length;
+  var ids_no_comma_length = ids_no_comma.length;
+
+  for(var i = 0; i < ids_with_comma_lenght; i++){
+    $(ids_with_comma[i]).val(bad_input_handler.replace_dots_with_commas($(ids_with_comma[i]).val()));
+    bad_input_handler.number($(ids_with_comma[i]));
+  }
+
+  for(var i = 0; i < ids_no_comma_length; i++){
+    $(ids_no_comma[i]).val(bad_input_handler.remove_decimal_values($(ids_no_comma[i]).val()));
+    bad_input_handler.number($(ids_no_comma[i]));
+  }
+
+}
+
 /*
 Performs initialization of required modules
 */
@@ -137,6 +166,7 @@ function initialize_modules() {
   csv_handler.init_add_standard($('#add-standard'));
   csv_handler.init_study_method();
 }
+
 
 
 function get_backup_measurements(){
@@ -304,6 +334,7 @@ function remove_backup_measurement(){
 // Wait until document ready
 $(function() {
   initialize_modules();
+  initialize_number_fields();
 
   initialize_date_fields();
   initialize_time_fields();
@@ -523,4 +554,5 @@ $(function() {
       return false; // I.e. break
     }
   });
+
 });
