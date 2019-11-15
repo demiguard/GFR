@@ -502,8 +502,8 @@ $(function() {
     }
 
     // Check that all test dates are after the injection date
-    var date_fields = $("#test-data-container [name='study_date']");
-    var time_fields = $("#test-data-container [name='study_time']");
+    var date_fields = $("#test-data-container [name='sample_date']");
+    var time_fields = $("#test-data-container [name='sample_time']");
 
     var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
     var inj_time_val = $('#id_injection_time').val();

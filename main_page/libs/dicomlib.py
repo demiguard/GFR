@@ -417,7 +417,7 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
     pixeldata: pixeldata to add if present
 
   Remark:
-    This function assumes the pixeldata was generated through generate_plot_text
+    This function assumes the pixeldata was generated through generate_gfr_plot
     function from clearance_math.py
 
     The dicom dataset should have TransferSyntax to Little Endian Explicit
@@ -506,7 +506,7 @@ def fill_dicom(ds,
     injection_time      : string on format 'YYYYMMDDHHMM', Describing when a sample was injected
     injection_weight    : float, Weight of injection
     name                : string, Name on format Firstname<1 space>Middlenames sperated by 1 space<1 space>Lastname
-    pixeldata           :
+    pixeldata           : image represented as byte-string
     ris_nr              : string, Accession number of dataset
     sample_seq          : list of lists where every list is on the format: 
       *List_elem_1      : string on format 'YYYYMMDDHHMM', describing sample taken time
@@ -518,10 +518,10 @@ def fill_dicom(ds,
     sop_instance_uid    :
     station_name        :
     study_datetime      : string, on format YYYYMMDD, describing study date
-    std_cnt             :
-    thiningfactor       :
-    update_date         :
-    update_dicom        :
+    std_cnt             : standard count for the study
+    thiningfactor       : thinning factor of the day
+    update_date         : whether or not to update the StudyDate
+    update_dicom        : whether or not to update dicom meta data
     update_version      : whether or not to update the software version
     weight              : float, Weight of patient wished to be stored
 

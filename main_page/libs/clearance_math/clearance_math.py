@@ -125,6 +125,7 @@ def calc_clearance(
 
   return clearance, clearance_normalized
 
+
 def dosis(inj, fac, stc):
   """Compute dosis based on args.
 
@@ -135,6 +136,7 @@ def dosis(inj, fac, stc):
 
   """
   return int(inj*fac*stc)
+
 
 def calculate_age(cprnr):
   """
@@ -190,6 +192,7 @@ def calculate_age(cprnr):
 
   return age
 
+
 def calculate_age_in_days(cpr):
   """
   Computes the age in days for a given cpr
@@ -209,6 +212,7 @@ def calculate_age_in_days(cpr):
 
   return (today - birthdate).days
 
+
 def calculate_sex(cprnr):
   """
   Determine wheter the patient is male or female
@@ -217,6 +221,7 @@ def calculate_sex(cprnr):
     return 'F'
   else:
     return 'M'
+
 
 def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Gender]) -> str:
   """
@@ -271,6 +276,7 @@ def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Ge
   else:
     return "Svært nedsat", index_GFR
 
+
 def compute_times(inj_time, times):
   """
   Calculates the times between the injection, and when samples are taken
@@ -283,6 +289,7 @@ def compute_times(inj_time, times):
     A np array of the difference in minutes
   """
   return np.array([(time - inj_time).seconds / 60 for time in times])
+
 
 def calculate_birthdate(cpr):
   """
@@ -316,8 +323,10 @@ def calculate_birthdate(cpr):
   return returnstring 
 
 
-def _age_string(day_of_birth):
+def _age_string(day_of_birth: str) -> str:
+  """
 
+  """
   logger.debug('Called with argument:{0}'.format(day_of_birth))
 
   today = datetime.datetime.today()
@@ -348,7 +357,7 @@ def _age_string(day_of_birth):
       return '{0} Dage'.format(diff.days)
 
 
-def generate_plot_text(
+def generate_gfr_plot(
   weight: float,
   height: float,
   BSA: float,
