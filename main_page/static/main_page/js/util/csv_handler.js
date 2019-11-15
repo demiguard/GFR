@@ -77,7 +77,7 @@ var csv_handler = (function() {
     }
 
 
-    console.log(sum / row_count);
+    
     var x = bad_input_handler.convert_float_to_comma( sum / row_count);
     return bad_input_handler.convert_float_to_comma( sum / row_count);
   };
@@ -215,6 +215,7 @@ var csv_handler = (function() {
   */
   var add_test = function(selected_avg_func) {
     // Check if time and date fields are correctly formatted
+    
     let study_time_field = $('#id_study_time');
     let study_date_field = $('#id_study_date');
 
@@ -319,7 +320,7 @@ var csv_handler = (function() {
     count_input.type = 'text';
     count_input.classList.add('form-control');
     count_input.name = 'sample_value';
-    count_input.value = bad_input_handler.convert_float_to_comma( helper.round_to(compute_selected_avg(), 3));
+    count_input.value = compute_selected_avg().split(',')[0];
     count_input.readOnly = true;
     count_field_div.appendChild(count_input);
 
@@ -387,7 +388,7 @@ var csv_handler = (function() {
       add_test(compute_selected_avg); 
     });
     
-    // 'Tilføj tom prøve'
+    // 'Tilføj tom prøve'28415,114999999998
     $('#add-empty-value').on('click', function() {
       add_test(function() {
         return 0;
@@ -427,7 +428,8 @@ var csv_handler = (function() {
       }
 
       // Add the computed avg. to the standard field
-      $('#standard-field').val(helper.round_to(compute_selected_avg(), 3));
+      var average = compute_selected_avg().split(',');
+      $('#standard-field').val(average[0]);
 
       // Remove selection
       clear_selected_rows();

@@ -150,6 +150,10 @@ function initialize_number_fields(){
     bad_input_handler.number($(ids_no_comma[i]));
   }
 
+  $(".value-field").each(function(){
+    this.value = bad_input_handler.remove_decimal_values(this.value);
+    bad_input_handler.number($(this));
+  });
 }
 
 /*
@@ -271,7 +275,12 @@ function get_backup_measurements(){
           // Generate entries for each corresponding table head
           for (i in DATASET_NAMES) {
             var td = document.createElement('td');
-            td.innerText = dataset[DATASET_NAMES[i]][datapoint];
+            
+            if (i == 2) {
+              td.innerText = bad_input_handler.convert_float_to_comma( dataset[DATASET_NAMES[i]][datapoint]);
+            } else {
+              td.innerText = dataset[DATASET_NAMES[i]][datapoint];
+            }
             
             tr.appendChild(td);
           }
