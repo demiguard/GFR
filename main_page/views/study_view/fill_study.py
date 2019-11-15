@@ -75,7 +75,10 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       csv_present_names.append( f'{measurement_time} - {measurement_date}')
       
       # Cast to int, as to remove dots when presenting on the site
-      csv_data.append([[int(rack), int(pos), cnt] for rack, pos, cnt in selected.to_numpy().tolist()])
+      csv_data.append(
+        [[int(rack), int(pos), formatting.convert_number_to_unreasonable_number_format(cnt)] 
+          for rack, pos, cnt in selected.to_numpy().tolist()]
+        )
       
       data_indicies.append(selected.index.tolist())
 

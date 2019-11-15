@@ -428,3 +428,11 @@ def splitDateTimeStr(input_str):
   minut = input_str[10:]
 
   return f'{day}-{month}-{year}', f'{hour}:{minut}'
+
+# #ShadeThrown
+# You may take my sparetime, but you never take my comments - William Wallice 1295!
+def convert_number_to_unreasonable_number_format(reasonable_number):
+  return str(reasonable_number).replace('.',',')
+
+def convert_unreasonable_number_str_to_float(unreasonable_number):
+  return float(unreasonable_number.replace(',','.'))

@@ -303,18 +303,34 @@ def try_add_bamID(ds: Type[Dataset], bamID : str) -> None:
   Adds Additional bamID to the operators
 
   """
+  curr_operators = [ ]
   if 'OperatorsName' in ds:
-    current_operators = ds.OperatorsName
-    if not(isinstance(current_operators, list)):
-      current_operators = [current_operators]
-  else:
-    current_operators = []
+    curr_operators = ds.OperatorsName
 
-  if bamID and current_operators == []:
-    ds.OperatorsName = bamID
-  if bamID and len(current_operators) > 0:
-    if bamID not in current_operators:
-      current_operators.append(bamID)
+    if not isinstance(curr_operators, pydicom.multival.MultiValue):
+      curr_operators = [curr_operators]
+
+  if bamID and not curr_operators:
+    curr_operators = [bamID]
+  elif bamID and curr_operators:
+    if bamID not in curr_operators:
+      curr_operators.append(bamID)  
+  
+  if curr_operators != []:
+    ds.OperatorsName = curr_operators
+
+  # if 'OperatorsName' in ds:
+  #   current_operators = ds.OperatorsName
+  #   if not(isinstance(current_operators, list)):
+  #     current_operators = [current_operators]
+  # else:
+  #   current_operators = []
+
+  # if bamID and current_operators == []:
+  #   ds.OperatorsName = [bamID]
+  # if bamID and len(current_operators) > 0:
+  #   if bamID not in current_operators:
+  #     current_operators.append(bamID)
 
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """

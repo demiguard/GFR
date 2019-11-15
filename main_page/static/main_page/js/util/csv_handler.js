@@ -56,8 +56,10 @@ var csv_handler = (function() {
     if (row_id[0] === '#') {
       clean_id = row_id.substring(1, row_id.length);
     }
+    var text = $('#' + clean_id).children().eq(COUNT_COLUMN_NUMBER).text().replace(',','.');
     
-    return parseFloat($('#' + clean_id).children().eq(COUNT_COLUMN_NUMBER).text());
+
+    return parseFloat(text);
   };
 
   /*
@@ -74,7 +76,10 @@ var csv_handler = (function() {
       sum += get_row_count(csv_row_ids[i]);
     }
 
-    return sum / row_count;
+
+    console.log(sum / row_count);
+    var x = bad_input_handler.convert_float_to_comma( sum / row_count);
+    return bad_input_handler.convert_float_to_comma( sum / row_count);
   };
 
   /*
@@ -314,7 +319,7 @@ var csv_handler = (function() {
     count_input.type = 'text';
     count_input.classList.add('form-control');
     count_input.name = 'test_value';
-    count_input.value = helper.round_to(compute_selected_avg(), 3);
+    count_input.value = bad_input_handler.convert_float_to_comma( helper.round_to(compute_selected_avg(), 3));
     count_input.readOnly = true;
     count_field_div.appendChild(count_input);
 
