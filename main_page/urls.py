@@ -14,7 +14,7 @@ urlpatterns = [
   path('list_studies', views.ListStudiesView.as_view(), name='list_studies'),
   path('control_list_studies', views.ControlListView.as_view(), name='control_list_studies'),
   path('control_study/<str:AccessionNumber>', views.ControlView.as_view(), name='control_study'),
-  path('fill_study/<str:ris_nr>', views.FillStudyView.as_view(), name='fill_study'),
+  path('fill_study/<str:accession_number>', views.FillStudyView.as_view(), name='fill_study'),
   path('search', views.SearchView.as_view(), name='search'),
   path('logout', views.LogoutView.as_view(), name='logout'),
   path('documentation', views.DocumentationView.as_view(), name='documentation'),
@@ -22,7 +22,7 @@ urlpatterns = [
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   
   # Images
-  path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),
+  path('present_study/<str:accession_number>', views.PresentStudyView.as_view(), name='present_study'),
   path('present_old_study/<str:ris_nr>', views.PresentOldStudyView.as_view(), name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
   path('final_present/<str:AccessionNumber>', views.FinalStudyView.as_view() , name='final_present'),

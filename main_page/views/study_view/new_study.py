@@ -84,7 +84,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         name,
         study_date,
         ris_nr,
-        request.user.department.hospital.short_name
+        hospital_sn
       )
       
       # Get history from pacs
@@ -97,7 +97,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         pass
 
       dicomlib.save_dicom( 
-        f'{study_directory}/{ris_nr}.dcm',
+        f'{study_directory}{ris_nr}.dcm',
         dataset
       )
 

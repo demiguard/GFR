@@ -59,13 +59,13 @@
           {% for psd, pst, psc in previous_samples %}
             <div class="form-row">
               <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_date" value="{{ psd }}" readonly>
+                <input type="text" class="form-control" name="sample_date" value="{{ psd }}" readonly>
               </div>
               <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_time" value="{{ pst }}" readonly>
+                <input type="text" class="form-control" name="sample_time" value="{{ pst }}" readonly>
               </div>
               <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="test_value" value="{{ psc }}" readonly>
+                <input type="text" class="form-control" name="sample_value" value="{{ psc }}" readonly>
               </div>
               <div class="form-group col-md-1">
                 <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
@@ -140,7 +140,7 @@
                               <td>{{ data_row.0 }}</td>
                               <td>{{ data_row.1 }}</td>
                               <td>{{ data_row.2 }}</td>
-                            </tr>  
+                            </tr>
                           {% endfor %}
                         </tbody>
                       </table>

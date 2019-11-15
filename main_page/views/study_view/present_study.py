@@ -40,19 +40,19 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
 
   Args:
     request: The HTTP request
-    ris_nr: accession number of the request examination
+    accession_number: accession number of the request examination
   """
 
   template_name = 'main_page/present_study.html'
 
-  def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+  def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
     base_resp_dir = server_config.FIND_RESPONS_DIR
     hospital = request.user.department.hospital.short_name
     
     DICOM_directory = f"{base_resp_dir}{hospital}/"
     try_mkdir(DICOM_directory, mk_parents=True)
 
-    exam = pacs.get_examination(request.user, ris_nr, DICOM_directory)
+    exam = pacs.get_examination(request.user, accession_number, DICOM_directory)
     
     # Determine whether QA plot should be displayable - i.e. the study has multiple
     # test values
@@ -65,28 +65,28 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
     pixel_arr = exam.image
     if pixel_arr.shape[0] != 0:
       Im = PIL.Image.fromarray(pixel_arr)
-      Im.save(f'{img_resp_dir}{ris_nr}.png')
+      Im.save(f'{img_resp_dir}{accession_number}.png')
     
-    plot_path = f"main_page/images/{hospital}/{ris_nr}.png" 
+    plot_path = f"main_page/images/{hospital}/{accession_number}.png" 
     
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'name': exam.name,
       'date': exam.date,
-      'ris_nr': ris_nr,
+      'ris_nr': accession_number,
       'image_path': plot_path,
       'show_QA_button': show_QA_button,
     }
 
     return render(request, self.template_name, context=context)
 
-  def post(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
+  def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
     # Send information to PACS
     hosp_sn = request.user.department.hospital.short_name
 
-    control_dir = f"{server_config.CONTROL_STUDIES_DIR}{hosp_sn}/{ris_nr}/"
-    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{hosp_sn}/{ris_nr}/"
+    control_dir = f"{server_config.CONTROL_STUDIES_DIR}{hosp_sn}/{accession_number}/"
+    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{hosp_sn}/{accession_number}/"
     
     # Remove the file + history
     try:

@@ -4,6 +4,8 @@ import re
 import logging
 from datetime import datetime
 
+from typing import Union
+
 logger = logging.getLogger()
 
 def person_name_to_name(name: str) -> str:
@@ -428,3 +430,76 @@ def splitDateTimeStr(input_str):
   minut = input_str[10:]
 
   return f'{day}-{month}-{year}', f'{hour}:{minut}'
+
+
+def float_safe(val: Union[str, int]) -> float:
+  """
+  Wrapper for safe conversion to float.
+  Safe: commas are replaced with dots to better localization support
+
+  Args:
+    val: value to be cast to float
+
+  Returns:
+    The value converted to a float
+  """
+  if isinstance(val, str):
+    val = val.replace(',', '.')
+
+  return float(val)
+
+
+def extract_request_parameters(
+  d: dict,
+  format_dict: dict
+) -> dict:
+  """
+  Extracts and type safely type converts the request parameters
+
+  Args:
+    d: dict. of key, value pairs to be converted.
+    format_dict: dict. of keys and their corresponding type to be converted to
+
+  Returns:
+    Dictionary containing the same key, value pair where the value has been
+    converted acording to the format_dict
+
+  Raises:
+    ValueError: if a value failed to be converted
+  """
+  ret = { }
+
+  for key, conv_type in format_dict.items():
+    # Find corresponding value
+    try:
+      value = d[key]
+    except KeyError:
+      ValueError(f"Key: '{key}', is not in dictionary of values.")
+
+    # Check if current entry should be processed as a list
+    is_multi_value = isinstance(conv_type, tuple)
+    if is_multi_value:
+      _, new_type = conv_type
+    else:
+      new_type = conv_type
+
+    # Convert every entry
+    new_value = [ ]
+    for sub_val in value:
+      _sub_val = sub_val.strip()
+
+      try:
+        if new_type == float:
+          new_value.append(float_safe(_sub_val)) # Handles dots and commas
+        else:
+          new_value.append(new_type(_sub_val))
+      except ValueError:
+        raise ValueError(f"Failed to convert key: '{key}', with value: '{_sub_val}'")
+    
+    # Only select first value if it's not a list
+    if is_multi_value:
+      ret[key] = new_value
+    else:
+      ret[key] = new_value[0]
+
+  return ret
