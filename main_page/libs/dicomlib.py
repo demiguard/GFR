@@ -100,6 +100,9 @@ def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_
   Returns:
     The read dicom object with corrected private tags
   """
+  if isinstance(filepath, Path):
+    filepath = str(filepath) # Convert to string, so pydicom can work with it
+
   update_private_tags()
 
   obj = pydicom.dcmread(filepath)
@@ -164,6 +167,9 @@ def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
     ValueError: No AccessionNumber was available when trying to resolve meta data issues
     ValueError: if the filepath is empty
   """
+  if isinstance(filepath, Path):
+    filepath = str(filepath) # Convert to string, to allow pydicom to work with it
+
   ds.is_implicit_VR = True
   ds.is_little_endian = True
 

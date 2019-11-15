@@ -17,14 +17,17 @@ from dateutil import parser as date_parser
 import pydicom
 from pydicom import uid
 import pandas
-import numpy
+import numpy as np
+from pathlib import Path
 
 from typing import Type, List, Tuple, Union, Generator, Dict
+# Custom type - for csv files
+CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
+
 
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
-# from main_page.libs import post_request_handler as PRH
 from main_page.libs import examination_info
 from main_page.libs import dataset_creator
 from main_page.libs import server_config
@@ -36,10 +39,30 @@ from main_page import forms
 from main_page import models
 from main_page.libs.clearance_math import clearance_math
 
-# Custom type
-CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
-
 logger = logging.getLogger()
+
+REQUEST_PARAMETER_TYPES = { 
+  'cpr': str,
+  'name': str,
+  'sex': int,
+  'birthdate': str,
+  'height': float,
+  'weight': float,
+  'vial_weight_before': float,
+  'vial_weight_after': float,
+  'injection_time': str,
+  'injection_date': str,
+  'thin_fac': float,
+  'study_type': int,
+  'std_cnt_text_box': float,
+  'sample_date': (list, str),
+  'sample_time': (list, str),
+  'sample_value': (list, float),
+  'study_date': str,
+  'study_time': str,
+  'bamID': str,
+  'dateofmessurement': str,
+}
 
 
 def store_form(request, dataset, rigs_nr):
@@ -121,7 +144,7 @@ def store_form(request, dataset, rigs_nr):
 
   sample_times = request.POST.getlist('sample_time')
 
-  sample_tec99 = numpy.array([float(x) for x in request.POST.getlist('sample_value')])
+  sample_tec99 = np.array([float(x) for x in request.POST.getlist('sample_value')])
   # There's Data to put in
   if len(sample_tec99) > 0:
     formated_sample_date = [date.replace('-','') for date in sample_dates]
@@ -406,17 +429,35 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     return render(request, self.template_name, context=context)
 
   def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
-    file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm"
+    hospital_shortname = request.user.department.hospital.short_name
 
-    dataset = dicomlib.dcmread_wrapper(file_path)
-    # dataset = PRH.fill_study_post(request, accession_number, dataset)
+    dataset_filepath = Path(
+      server_config.FIND_RESPONS_DIR,
+      hospital_shortname,
+      accession_number,
+      f"{accession_number}.dcm"
+    )
+    #file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm"
     
+    dataset = dicomlib.dcmread_wrapper(dataset_filepath)
+
     print("##### START REQUEST #####")
     print(request)
     print("##### END REQUEST #####")
     print("##### START REQUEST POST #####")
     print(request.POST)
     print("##### END REQUEST POST #####")
+    print("##### START FORMATTED POST #####")
+    # Extract POST request parameters with safer handling of special characters
+    try:
+      post_req = formatting.extract_request_parameters(
+        request.POST, 
+        REQUEST_PARAMETER_TYPES
+      )
+    except ValueError as e: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
+      return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
+    print(post_req)
+    print("##### END FORMATTED POST #####")
 
     #Save Without Redirect
     if 'save' in request.POST:
@@ -448,11 +489,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       sample_times = request.POST.getlist('sample_time')
       sample_dates = request.POST.getlist('sample_date')
       sample_dates = map(formatting.reverse_format_date, sample_dates)
-      sample_datetimes = numpy.array([date_parser.parse(f"{date} {time}") 
+      sample_datetimes = np.array([date_parser.parse(f"{date} {time}") 
                             for time, date in zip(sample_times, sample_dates)])
 
       # Measured tec99 counts
-      tec_counts = numpy.array([float(x) for x in request.POST.getlist('sample_value')])
+      tec_counts = np.array([float(x) for x in request.POST.getlist('sample_value')])
 
       weight = float(request.POST['weight'])
       height = float(request.POST['height'])
@@ -540,7 +581,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         name = name,
         procedure_description=dataset.RequestedProcedureDescription
       )
-          
+
       # Insert plot (as byte string) into dicom object
       dicomlib.fill_dicom(
         dataset,
@@ -552,7 +593,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         exam_status    = 2
       )
       
-    dicomlib.save_dicom(file_path, dataset)
+    dicomlib.save_dicom(dataset_filepath, dataset)
     
     if 'calculate' in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number) 

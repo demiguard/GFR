@@ -432,7 +432,7 @@ def splitDateTimeStr(input_str):
   return f'{day}-{month}-{year}', f'{hour}:{minut}'
 
 
-def float_safe(val: Union[str, int]) -> float:
+def float_safe(val: Union[str, int, float]) -> float:
   """
   Wrapper for safe conversion to float.
   Safe: commas are replaced with dots to better localization support
@@ -470,14 +470,18 @@ def extract_request_parameters(
   ret = { }
 
   for key, conv_type in format_dict.items():
-    # Find corresponding value
-    try:
-      value = d[key]
-    except KeyError:
-      ValueError(f"Key: '{key}', is not in dictionary of values.")
-
     # Check if current entry should be processed as a list
     is_multi_value = isinstance(conv_type, tuple)
+    
+    # Find corresponding value
+    try:
+      if is_multi_value:
+        value = d.getlist(key)
+      else:
+        value = [d.get(key)]
+    except KeyError:
+      ValueError(f"Key: '{key}', is not in dictionary of values.")
+    
     if is_multi_value:
       _, new_type = conv_type
     else:
