@@ -174,7 +174,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     injection_weight=inj_weight,
     weight=weight,
     height=height,
-    bsa_method="Haycock", # There is no way to change this from fill_study
+    bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
     thiningfactor=thin_fac,
     std_cnt=std_cnt,
     sample_seq=seq,
@@ -425,6 +425,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     hospital_shortname = request.user.department.hospital.short_name
     department = request.user.department
 
+    # Load in dataset to work with based on accession number
     dataset_filepath = Path(
       server_config.FIND_RESPONS_DIR,
       hospital_shortname,
@@ -434,34 +435,25 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     
     dataset = dicomlib.dcmread_wrapper(dataset_filepath)
 
-    # TO REMOVE START
-    print("##### START REQUEST #####")
-    print(request)
-    print("##### END REQUEST #####")
-    print("##### START REQUEST POST #####")
-    print(request.POST)
-    print("##### END REQUEST POST #####")
-    print("##### START FORMATTED POST #####")
     # Extract POST request parameters with safer handling of special characters
     try:
       post_req = formatting.extract_request_parameters(
         request.POST, 
         REQUEST_PARAMETER_TYPES
       )
-    except ValueError as e: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
-      print(e)
+    except ValueError: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
       return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
-    print(post_req)
-    print("##### END FORMATTED POST #####")
-    # TO REMOVE END
 
+    # Store form information in dataset regardless of submission type
     dataset = store_form(post_req, dataset)
 
-  # if 'save_fac' in request.POST and request.POST['thin_fac']: 
-  #   logger.info(f"{request.user.username} Updated thining factor to {request.POST['thin_fac']}")
-  #   request.user.department.thining_factor = float(request.POST['thin_fac'])
-  #   request.user.department.thining_factor_change_date = datetime.date.today()
-  #   request.user.department.save()
+    # Update department thinning factor if neccessary
+    thin_fac = post_req["thin_fac"]
+    if 'save_fac' in post_req and thin_fac: 
+      logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
+      department.thining_factor = thin_fac
+      department.thining_factor_change_date = datetime.date.today()
+      department.save()
 
     dicomlib.fill_dicom(
       dataset,
@@ -469,6 +461,110 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       station_name=department.config.ris_calling
     )
 
+    # Use parameters fillout in store_form to compute GFR of patient
+    if "calculate" in request.POST:
+      # Comupute body surface area
+      height = dataset.PatientSize
+      weight = dataset.PatientWeight
+      BSA = clearance_math.surface_area(height, weight)
+
+      # Compute dosis
+      inj_weight = dataset.injWeight
+      thin_fac = dataset.thiningfactor
+      std_cnt = dataset.stdcnt
+      dosis = clearance_math.dosis(inj_weight, thin_fac, std_cnt)
+
+      # Compute clearance and normalized clearance
+      inj_datetime = datetime.datetime.strptime(
+        dataset.injTime,
+        "%Y%m%d%H%M",
+      )
+      
+      sample_datetimes = [ ]
+      tec_counts = [ ]
+      for sample in dataset.ClearTest:
+        tmp_date = datetime.datetime.strptime(
+          sample.SampleTime,
+          "%Y%m%d%H%M"
+        ).date()
+        sample_datetimes.append(tmp_date)
+        
+        tec_counts.append(sample.cpm)
+
+      study_type = enums.StudyType(post_req["study_type"])
+
+      clearance, clearance_norm = clearance_math.calc_clearance(
+        inj_datetime.date(),
+        sample_datetimes,
+        tec_counts,
+        BSA,
+        dosis,
+        study_type
+      )
+
+      # Compute kidney function
+      birthdate = dataset.PatientBirthDate
+      gender_num = post_req["sex"]
+      gender = enums.Gender(gender_num)
+      gender_name = enums.GENDER_NAMINGS[gender.value]
+
+      gfr_str, gfr_index = clearance_math.kidney_function(
+        clearance_norm, 
+        birthdate.strftime("%Y-%m-%d"),
+        gender
+      )
+
+      # Get historical data from PACS
+      try:
+        history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
+        f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}')
+      except ValueError: # Handle empty AET for PACS connection
+        history_age = [ ]
+        history_clrN = [ ]
+        history_dates = [ ]
+
+      # Generate plot to display
+      cpr = dataset.PatientID
+      name = dataset.PatientName
+      study_type_name = dataset.GFRMethod
+
+      pixel_data = clearance_math.generate_gfr_plot(
+        weight,
+        height,
+        BSA,
+        clearance,
+        clearance_norm,
+        gfr_str,
+        birthdate.strftime("%Y-%m-%d"),
+        gender_name,
+        accession_number,
+        cpr=cpr,
+        index_gfr=gfr_index,
+        hosp_dir=request.user.department.hospital.short_name,
+        hospital_name=request.user.department.hospital.name,
+        history_age=history_age,
+        history_clr_n=history_clrN,
+        method=study_type_name,
+        injection_date=inj_datetime.strftime('%d-%b-%Y'),
+        name=name,
+        procedure_description=dataset.RequestedProcedureDescription
+      )
+
+      # Insert plot (as byte string) into dicom object
+      bam_id = post_req["bamID"]
+
+      dicomlib.fill_dicom(
+        dataset,
+        bamid          = bam_id,
+        gfr            = gfr_str,
+        clearance      = clearance,
+        clearance_norm = clearance_norm,
+        pixeldata      = pixel_data,
+        exam_status    = 2
+      )
+
+
+    # TODO: Move all the logging around everything into the functions themselves
     # # Compute GFR and related values, then store in dicom object
     # if 'calculate' in request.POST:
     #   logger.info(f"""
@@ -596,8 +692,10 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     #     exam_status    = 2
     #   )
 
+    # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
     
+    # Redirect to correct site based on which action was performed
     if 'calculate' in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number)
 
