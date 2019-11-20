@@ -40,7 +40,9 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'hospital': models.Hospital,
     'handled_examination': models.HandledExaminations,
     'proceduretype': models.ProcedureType,
-    'procedure_mapping': models.Config.accepted_procedures.through
+    'procedure_mapping': models.Config.accepted_procedures.through,
+    'address': models.Address,
+    'server_config': models.ServerConfiguration
   }
 
   EDIT_FORM_MAPPINGS = {
@@ -50,6 +52,8 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'hospital': forms.EditHospitalForm,
     'handled_examination': forms.EditHandledExaminationsForm,
     'proceduretype' : forms.EditProcedureForm,
+    'address': forms.EditAddressForm,
+    'server_config': forms.EditServerConfigurationForm
   }
 
   def get(self, request, model_name, obj_id):
@@ -94,7 +98,9 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'hospital': models.Hospital,
     'handled_examination': models.HandledExaminations,
     'proceduretype' : models.ProcedureType,
-    'procedure_mapping': models.Config.accepted_procedures.through
+    'procedure_mapping': models.Config.accepted_procedures.through,
+    'address' : models.Address,
+    'server_config' : models.ServerConfiguration
   }
 
   ADD_FORM_MAPPINGS = {
@@ -104,7 +110,9 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     'hospital': forms.AddHospitalForm,
     'handled_examination': forms.AddHandledExaminationsForm,
     'proceduretype': forms.AddProcedureForm,
-    'procedure_mapping': forms.AddProcedureMapping
+    'procedure_mapping': forms.AddProcedureMapping,
+    'address' : forms.AddAddressForm,
+    'server_config' : forms.AddServerConfigurationForm
   }
 
   def get(self, request, model_name):

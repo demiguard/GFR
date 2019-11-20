@@ -304,9 +304,33 @@ class EditHospitalForm(forms.ModelForm):
 class EditHandledExaminationsForm(forms.ModelForm):
   class Meta:
     model = models.HandledExaminations
-    fields =[
+    fields = [
       'accession_number'
     ]
+
+class EditAddressForm(forms.ModelForm):
+  class Meta:
+    model = models.Address
+    fields = [
+      'ae_title',
+      'ip',
+      'port',
+      'description'
+    ]
+
+class EditServerConfigurationForm(forms.ModelForm):
+  class Meta:
+    model = models.ServerConfiguration
+    fields = [
+      'samba_ip',
+      'samba_name',
+      'samba_user',
+      'samba_pass',
+      'samba_pc',
+      'samba_share',
+      'AE_title'
+    ]
+
 # --- EDIT FORMS END --- #
 
 
@@ -422,6 +446,29 @@ class AddProcedureMapping(forms.ModelForm):
 
   department = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
   proceduretype_id = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.ProcedureType.objects.all())
+
+class AddAddressForm(forms.ModelForm):
+  class Meta:
+    model = models.Address
+    fields = [
+      'ae_title',
+      'ip',
+      'port',
+      'description'
+    ]
+
+class AddServerConfigurationForm(forms.ModelForm):
+  class Meta:
+    model = models.ServerConfiguration
+    fields = [
+      'samba_ip',
+      'samba_name',
+      'samba_user',
+      'samba_pass',
+      'samba_pc',
+      'samba_share',
+      'AE_title'
+    ]
 
 # --- ADD FORMS END --- #
 

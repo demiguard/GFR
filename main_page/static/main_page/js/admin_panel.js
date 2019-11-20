@@ -1,12 +1,14 @@
 // Endpoint to access the model through
 MODEL_URL_MAPPINGS = {
-  'users': '/api/user',
-  'hospitals': '/api/hospital',
-  'departments': '/api/department',
+  'users'               : '/api/user',
+  'hospitals'           : '/api/hospital',
+  'departments'         : '/api/department',
   'handled_examinations': '/api/handled_examination',
-  'configs': '/api/config',
-  'procedures' : '/api/proceduretype',
-  'procedure_mapping': '/api/procedure_mapping',
+  'configs'             : '/api/config',
+  'procedures'          : '/api/proceduretype',
+  'procedure_mapping'   : '/api/procedure_mapping',
+  'address'             : '/api/address' ,
+  'server_config'       : '/api/server_config'
 };
 
 // Names to display to the user
@@ -18,6 +20,8 @@ MODEL_NAME_MAPPINGS = {
   'configs': 'konfiguration',
   'procedures' : 'proceduretype',
   'procedure_mapping': 'procedure filter',
+  'address' : 'addresse',
+  'server_config' : 'server konfiguration'
 };
 
 // Name of the underlying model
@@ -29,6 +33,8 @@ SELECTED_MODEL_NAMES = {
   'configs': 'config',
   'procedures' : 'proceduretype',
   'procedure_mapping': 'procedure_mapping',
+  'address' : 'address',
+  'server_config' : 'server_config'
 }
 
 function clear_table_headers() {

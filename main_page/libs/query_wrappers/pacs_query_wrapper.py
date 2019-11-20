@@ -34,7 +34,7 @@ def move_from_pacs(user, accession_number):
       None or Dataset - The dataset is always single
   """
 
-  ae_title = user.department.config.pacs_aet
+  ae_title = user.department.config.pacs_calling
 
   # # # Get file from pacs # # #
   find_dataset = dataset_creator.create_search_dataset(
@@ -167,7 +167,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
       Value error: If the dicom set doesn't contain required information to send
 
   """
-  ae = AE(ae_title=user.department.config.pacs_aet)
+  ae = AE(ae_title=user.department.config.pacs_calling)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
   assoc = ae.associate(
     user.department.config.pacs_ip,

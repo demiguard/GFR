@@ -26,6 +26,9 @@ from main_page import models
 
 logger = logging.getLogger()
 
+"""
+  TODO: Soooo Look at all these Class Names, do they look like a snake? No? Well my dear unlucky sod, this is where you come in
+"""
 
 class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.User
@@ -149,6 +152,30 @@ class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEnd
     'accession_number'
   ]
 
+class AddressEndpoint(AdminRequiredMixin, LoggingMixin, RESTEndpoint):
+  model = models.Address
+
+  fields = [
+    'id',
+    'ae_title',
+    'ip',
+    'port',
+    'description'
+  ]
+
+class ServerConfigurationEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
+  model = models.ServerConfiguration
+
+  fields = [
+    'id',
+    'samba_ip',
+    'samba_name',
+    'samba_user',
+    'samba_pass',
+    'samba_pc',
+    'samba_share',
+    'AE_title'
+  ]
 
 class ProcedureMappingsEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.Config.accepted_procedures.through # Retreive the underlying relation model
