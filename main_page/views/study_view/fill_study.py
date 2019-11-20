@@ -21,7 +21,7 @@ import numpy as np
 from pathlib import Path
 
 from typing import Type, List, Tuple, Union, Generator, Dict
-# Custom type - for csv files
+# Custom type - for representation of csv files to be loaded on to page
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
 
@@ -53,6 +53,7 @@ REQUEST_PARAMETER_TYPES = {
   'injection_time': str,
   'injection_date': str,
   'thin_fac': float,
+  'save_fac': str,
   'study_type': int,
   'std_cnt_text_box': float,
   'sample_date': (list, str),
@@ -65,97 +66,63 @@ REQUEST_PARAMETER_TYPES = {
 }
 
 
-def store_form(request, dataset, rigs_nr):
+def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   """
-  Stores information from the post request in a dicom file with the name
-  <rigs_nr>.dcm
+  Stores form information from a post request into a dicom object
 
   Args:
-    rigs_nr: rigs number of the examination to store in
+    post_req: dictionary of extracted and formatted post request content
+    dataset: dicom object to store information in
   """
-  base_resp_dir = server_config.FIND_RESPONS_DIR
-  hospital = request.user.department.hospital.short_name
+  # Get birthdate and compute the age to store
+  birthdate = post_req.get("birthdate")
 
-  try_mkdir(f"{base_resp_dir}{hospital}", mk_parents=True)
+  if birthdate:
+    birthdate = datetime.datetime.strptime(birthdate, "%d-%m-%Y").date()
+    age = (datetime.date.today() - birthdate).days // 365
 
-  #All Fields to be stored
-  birthdate = None
-  injection_time = None
-  gender = None
-  injection_before = None
-  injection_after  = None
-  injection_weight = None
-  weight = None
-  height = None
-  bsa_method = 'Haycock'
-  seq = None
-
-  # Store age
-  birthdate_str = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
+  # Get and format injection time and date to match required format for dicom object
+  inj_time = post_req.get("injection_time")
+  inj_date = post_req.get("injection_date")
   
-  if birthdate_str:    
-    birthdate = datetime.datetime.strptime(birthdate_str, '%Y-%m-%d').date()
-    age = (datetime.date.today() - birthdate).days // 365 
-
-  #Injection Date Time information
-  if len(request.POST['injection_date']) > 0:
-    inj_time = request.POST['injection_time']
-    inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
-    inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
-    injection_time = inj_datetime.strftime('%Y%m%d%H%M')
-
-  #Study Always exists
-  study_type = enums.StudyType(int(request.POST['study_type']))
-  study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
-
-  if request.POST['sex']:
-    gender_num = request.POST['sex']
-    gender = enums.Gender(int(gender_num))
-
-  if request.POST['vial_weight_before'] and request.POST['vial_weight_after']:
-    injection_before = float(request.POST['vial_weight_before'])
-    injection_after  = float(request.POST['vial_weight_after'])
-    injection_weight = injection_before - injection_after
-  elif request.POST['vial_weight_before']:
-    injection_before = float(request.POST['vial_weight_before'])
- 
-  if request.POST['weight']:
-    weight = float(request.POST['weight']) 
-
-  if 'save_fac' in request.POST and request.POST['thin_fac']: 
-    logger.info(f"{request.user.username} Updated thining factor to {request.POST['thin_fac']}")
-    request.user.department.thining_factor = float(request.POST['thin_fac'])
-    request.user.department.thining_factor_change_date = datetime.date.today()
-    request.user.department.save()
-
-  if request.POST['height']:
-    height = float(request.POST['height'])/100.0
-
-  thiningfactor = 0.0
-  std_cnt = 0.0
-  if request.POST['thin_fac']:
-    thiningfactor = float(request.POST['thin_fac'])
-  
-  if request.POST['std_cnt_text_box']:
-    std_cnt= float(request.POST['std_cnt_text_box'])
-
-  sample_dates = request.POST.getlist('sample_date')
-  sample_dates = map(formatting.reverse_format_date, sample_dates) # could oneline this
-
-  sample_times = request.POST.getlist('sample_time')
-
-  sample_tec99 = np.array([float(x) for x in request.POST.getlist('sample_value')])
-  # There's Data to put in
-  if len(sample_tec99) > 0:
-    formated_sample_date = [date.replace('-','') for date in sample_dates]
-    formated_sample_time = [time.replace(':','') for time in sample_times]
-    zip_obj_datetimes = zip(formated_sample_date,formated_sample_time)
-
-    sample_datetimes = [date + time for date,time in zip_obj_datetimes]  
-    zip_obj_seq = zip(sample_datetimes, sample_tec99)
-    seq = [(datetime, cnt) for datetime, cnt in zip_obj_seq]
+  if inj_time and inj_date:
+    tmp = datetime.datetime.strptime(
+      f"{inj_date} {inj_time}", 
+      "%d-%m-%Y %H:%M"
+    )
+    injection_datetime = tmp.strftime("%Y%m%d%H%M")
   else:
-    seq = []
+    injection_datetime = None
+
+  # Get study type
+  study_type_name = enums.STUDY_TYPE_NAMES[post_req["study_type"]]
+
+  # Get gender
+  gender = enums.Gender(post_req.get("sex"))
+
+  # Get weights before and after injection and difference between
+  inj_before = post_req.get("vial_weight_before")
+  inj_after = post_req.get("vial_weight_after")
+
+  if inj_before and inj_after:
+    inj_weight = inj_before - inj_after
+  else:
+    inj_weight = None
+
+  # Get weight and height
+  weight = post_req.get("weight")
+  height = post_req.get("height")
+  if height:
+    height = height / 100.0
+
+  # Get thinning factor and standard count
+  thin_fac = post_req.get("thin_fac")
+  if not thin_fac:
+    thin_fac = 0.0
+
+  std_cnt = post_req.get("std_cnt_text_box")
+  if not std_cnt:
+    std_cnt = 0.0
 
   # If exam_status is already higher than 1, don't change it
   exam_status = 0
@@ -165,24 +132,50 @@ def store_form(request, dataset, rigs_nr):
   else:
     exam_status = 1
 
-  dicomlib.fill_dicom(dataset,
+  # Get sample data
+  seq = [ ]
+  sample_dates = post_req.get("sample_date")
+  sample_times = post_req.get("sample_time")
+  sample_values = post_req.get("sample_value")
+  
+  if sample_dates and sample_times and sample_values:
+    # Resize to fit min., if shapes don't match to avoid problems with zip
+    dates_cnt = len(sample_dates)
+    times_cnt = len(sample_times)
+    values_cnt = len(sample_values)
+    
+    if dates_cnt != times_cnt or dates_cnt != values_cnt:
+      min_len = min(dates_cnt, times_cnt, values_cnt)
+      sample_dates = sample_dates[:min_len]
+      sample_times = sample_times[:min_len]
+      sample_values = sample_values[:min_len]
+    
+    # Combine dates and times to %Y%m%d%H%M format
+    for date, time, value in zip(sample_dates, sample_times, sample_values):
+      date_tmp = datetime.datetime.strptime(
+        f"{date} {time}", "%d-%m-%Y %H:%M"
+      ).strftime("%Y%m%d%H%M")
+
+      seq.append((date_tmp, value))
+  
+  # Store everything into dicom object
+  dicomlib.fill_dicom(
+    dataset,
     age=age,
     birthday=birthdate,
-    department=request.user.department,
     update_dicom = True,
     update_date = True,
-    injection_time=injection_time,
+    injection_time=injection_datetime,
     gfr_type=study_type_name,
-    series_number = 1,
-    station_name = request.user.department.config.ris_calling,
+    series_number=1,
     gender=gender,
-    injection_before = injection_before,
-    injection_after  = injection_after,
-    injection_weight = injection_weight,
+    injection_before=inj_before,
+    injection_after=inj_after,
+    injection_weight=inj_weight,
     weight=weight,
     height=height,
-    bsa_method=bsa_method,
-    thiningfactor=thiningfactor,
+    bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
+    thiningfactor=thin_fac,
     std_cnt=std_cnt,
     sample_seq=seq,
     exam_status=exam_status
@@ -430,100 +423,78 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
   def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
     hospital_shortname = request.user.department.hospital.short_name
+    department = request.user.department
 
+    # Load in dataset to work with based on accession number
     dataset_filepath = Path(
       server_config.FIND_RESPONS_DIR,
       hospital_shortname,
       accession_number,
       f"{accession_number}.dcm"
     )
-    #file_path = f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm"
     
     dataset = dicomlib.dcmread_wrapper(dataset_filepath)
 
-    print("##### START REQUEST #####")
-    print(request)
-    print("##### END REQUEST #####")
-    print("##### START REQUEST POST #####")
-    print(request.POST)
-    print("##### END REQUEST POST #####")
-    print("##### START FORMATTED POST #####")
     # Extract POST request parameters with safer handling of special characters
     try:
       post_req = formatting.extract_request_parameters(
         request.POST, 
         REQUEST_PARAMETER_TYPES
       )
-    except ValueError as e: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
+    except ValueError: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
       return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
-    print(post_req)
-    print("##### END FORMATTED POST #####")
 
-    #Save Without Redirect
-    if 'save' in request.POST:
-      return store_form(request, dataset, accession_number)
+    # Store form information in dataset regardless of submission type
+    dataset = store_form(post_req, dataset)
 
-    #Beregn
-    if 'calculate' in request.POST:
-      logger.info(f"""
-        User: {request.user.username}
-        calculated GFR on Examination number: {accession_number}
-        from ip: {request.META['REMOTE_ADDR']}
-        """
-      )
-      
-      dataset = store_form(request, dataset, accession_number) 
-      
-      # Construct datetime for injection time
-      inj_time = request.POST['injection_time']
-      inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
-      inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
+    # Update department thinning factor if neccessary
+    thin_fac = post_req["thin_fac"]
+    if 'save_fac' in post_req and thin_fac: 
+      logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
+      department.thining_factor = thin_fac
+      department.thining_factor_change_date = datetime.date.today()
+      department.save()
 
-      # Construct datetimes for study times
-      # Determine study type
-      study_type = enums.StudyType(int(request.POST['study_type']))
-      study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
+    dicomlib.fill_dicom(
+      dataset,
+      department=department,
+      station_name=department.config.ris_calling
+    )
 
-      # sample_times = request.POST.getlist('study_time')[:-1]
-      # sample_dates = request.POST.getlist('study_date')[:-1]
-      sample_times = request.POST.getlist('sample_time')
-      sample_dates = request.POST.getlist('sample_date')
-      sample_dates = map(formatting.reverse_format_date, sample_dates)
-      sample_datetimes = np.array([date_parser.parse(f"{date} {time}") 
-                            for time, date in zip(sample_times, sample_dates)])
-
-      # Measured tec99 counts
-      tec_counts = np.array([float(x) for x in request.POST.getlist('sample_value')])
-
-      weight = float(request.POST['weight'])
-      height = float(request.POST['height'])
-      
-      # Compute surface area
+    # Use parameters fillout in store_form to compute GFR of patient
+    if "calculate" in request.POST:
+      # Comupute body surface area
+      height = dataset.PatientSize
+      weight = dataset.PatientWeight
       BSA = clearance_math.surface_area(height, weight)
 
-      inj_weight_before = float(request.POST['vial_weight_before'])
-      inj_weight_after = float(request.POST['vial_weight_after'])
-      inj_weight = inj_weight_before - inj_weight_after
-
-      STD_CNT = float(request.POST['std_cnt_text_box'])
-      FACTOR = float(request.POST['thin_fac'])
-      
       # Compute dosis
-      dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
-
-      logger.info(f"""
-        Clearance calculation input:
-        injection time: {inj_datetime}
-        Sample Times: {sample_datetimes}
-        Tch99 cnt: {tec_counts}
-        Body Surface Area: {BSA}
-        Dosis: {dosis}
-        Method: {study_type_name}
-      """)
+      inj_weight = dataset.injWeight
+      thin_fac = dataset.thiningfactor
+      std_cnt = dataset.stdcnt
+      dosis = clearance_math.dosis(inj_weight, thin_fac, std_cnt)
 
       # Compute clearance and normalized clearance
+      inj_datetime = datetime.datetime.strptime(
+        dataset.injTime,
+        "%Y%m%d%H%M",
+      )
+      
+      sample_datetimes = [ ]
+      tec_counts = [ ]
+      for sample in dataset.ClearTest:
+        tmp_date = datetime.datetime.strptime(
+          sample.SampleTime,
+          "%Y%m%d%H%M"
+        ).date()
+        sample_datetimes.append(tmp_date)
+        
+        tec_counts.append(sample.cpm)
+
+      study_type = enums.StudyType(post_req["study_type"])
+
       clearance, clearance_norm = clearance_math.calc_clearance(
-        inj_datetime,
+        inj_datetime.date(),
         sample_datetimes,
         tec_counts,
         BSA,
@@ -531,71 +502,201 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         study_type
       )
 
-      logger.info(f"""
-      Clearance calculation result:
-        Clearnance: {clearance}
-        Clearence Normal: {clearance_norm}"""
-      )
-
-      name = request.POST['name']
-      cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
-      birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
-      bamID = request.POST['bamID']
-          
-
-      gender_num = int(request.POST['sex'])
+      # Compute kidney function
+      birthdate = dataset.PatientBirthDate
+      gender_num = post_req["sex"]
       gender = enums.Gender(gender_num)
       gender_name = enums.GENDER_NAMINGS[gender.value]
 
-      # Determine new kidney function
-      gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, birthdate, gender)
+      gfr_str, gfr_index = clearance_math.kidney_function(
+        clearance_norm, 
+        birthdate.strftime("%Y-%m-%d"),
+        gender
+      )
 
       # Get historical data from PACS
       try:
         history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
         f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}')
-      except ValueError: # Handle empty AET for PACS connection 
+      except ValueError: # Handle empty AET for PACS connection
         history_age = [ ]
         history_clrN = [ ]
         history_dates = [ ]
 
       # Generate plot to display
-      pixel_data = clearance_math.generate_plot_text(
+      cpr = dataset.PatientID
+      name = dataset.PatientName
+      study_type_name = dataset.GFRMethod
+
+      pixel_data = clearance_math.generate_gfr_plot(
         weight,
         height,
         BSA,
         clearance,
         clearance_norm,
         gfr_str,
-        birthdate,
+        birthdate.strftime("%Y-%m-%d"),
         gender_name,
         accession_number,
-        cpr = cpr,
+        cpr=cpr,
         index_gfr=gfr_index,
         hosp_dir=request.user.department.hospital.short_name,
         hospital_name=request.user.department.hospital.name,
         history_age=history_age,
         history_clr_n=history_clrN,
-        method = study_type_name,
+        method=study_type_name,
         injection_date=inj_datetime.strftime('%d-%b-%Y'),
-        name = name,
+        name=name,
         procedure_description=dataset.RequestedProcedureDescription
       )
 
       # Insert plot (as byte string) into dicom object
+      bam_id = post_req["bamID"]
+
       dicomlib.fill_dicom(
         dataset,
-        bamid          = bamID,
+        bamid          = bam_id,
         gfr            = gfr_str,
         clearance      = clearance,
         clearance_norm = clearance_norm,
         pixeldata      = pixel_data,
         exam_status    = 2
       )
+
+
+    # TODO: Move all the logging around everything into the functions themselves
+    # # Compute GFR and related values, then store in dicom object
+    # if 'calculate' in request.POST:
+    #   logger.info(f"""
+    #     User: {request.user.username}
+    #     calculated GFR on Examination number: {accession_number}
+    #     from ip: {request.META['REMOTE_ADDR']}
+    #     """
+    #   )
       
+    #   dataset = store_form(request, dataset, accession_number)
+      
+    #   # Construct datetime for injection time
+    #   inj_time = request.POST['injection_time']
+    #   inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
+    #   inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
+
+    #   # Construct datetimes for study times
+    #   # Determine study type
+    #   study_type = enums.StudyType(int(request.POST['study_type']))
+    #   study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
+
+    #   sample_times = request.POST.getlist('sample_time')
+    #   sample_dates = request.POST.getlist('sample_date')
+    #   sample_dates = map(formatting.reverse_format_date, sample_dates)
+    #   sample_datetimes = np.array([date_parser.parse(f"{date} {time}") 
+    #                         for time, date in zip(sample_times, sample_dates)])
+
+    #   # Measured tec99 counts
+    #   tec_counts = np.array([float(x) for x in request.POST.getlist('sample_value')])
+
+    #   weight = float(request.POST['weight'])
+    #   height = float(request.POST['height'])
+      
+    #   # Compute surface area
+    #   BSA = clearance_math.surface_area(height, weight)
+
+    #   inj_weight_before = float(request.POST['vial_weight_before'])
+    #   inj_weight_after = float(request.POST['vial_weight_after'])
+    #   inj_weight = inj_weight_before - inj_weight_after
+
+    #   STD_CNT = float(request.POST['std_cnt_text_box'])
+    #   FACTOR = float(request.POST['thin_fac'])
+      
+    #   # Compute dosis
+    #   dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
+
+    #   logger.info(f"""
+    #     Clearance calculation input:
+    #     injection time: {inj_datetime}
+    #     Sample Times: {sample_datetimes}
+    #     Tch99 cnt: {tec_counts}
+    #     Body Surface Area: {BSA}
+    #     Dosis: {dosis}
+    #     Method: {study_type_name}
+    #   """)
+
+    #   # Compute clearance and normalized clearance
+    #   clearance, clearance_norm = clearance_math.calc_clearance(
+    #     inj_datetime,
+    #     sample_datetimes,
+    #     tec_counts,
+    #     BSA,
+    #     dosis,
+    #     study_type
+    #   )
+
+    #   logger.info(f"""
+    #   Clearance calculation result:
+    #     Clearnance: {clearance}
+    #     Clearence Normal: {clearance_norm}"""
+    #   )
+
+    #   name = request.POST['name']
+    #   cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
+    #   birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
+    #   bamID = request.POST['bamID']
+
+    #   gender_num = int(request.POST['sex'])
+    #   gender = enums.Gender(gender_num)
+    #   gender_name = enums.GENDER_NAMINGS[gender.value]
+
+    #   # Determine new kidney function
+    #   gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, birthdate, gender)
+
+    #   # Get historical data from PACS
+    #   try:
+    #     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
+    #     f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}')
+    #   except ValueError: # Handle empty AET for PACS connection 
+    #     history_age = [ ]
+    #     history_clrN = [ ]
+    #     history_dates = [ ]
+
+    #   # Generate plot to display
+    #   pixel_data = clearance_math.generate_gfr_plot(
+    #     weight,
+    #     height,
+    #     BSA,
+    #     clearance,
+    #     clearance_norm,
+    #     gfr_str,
+    #     birthdate,
+    #     gender_name,
+    #     accession_number,
+    #     cpr = cpr,
+    #     index_gfr=gfr_index,
+    #     hosp_dir=request.user.department.hospital.short_name,
+    #     hospital_name=request.user.department.hospital.name,
+    #     history_age=history_age,
+    #     history_clr_n=history_clrN,
+    #     method = study_type_name,
+    #     injection_date=inj_datetime.strftime('%d-%b-%Y'),
+    #     name = name,
+    #     procedure_description=dataset.RequestedProcedureDescription
+    #   )
+
+    #   # Insert plot (as byte string) into dicom object
+    #   dicomlib.fill_dicom(
+    #     dataset,
+    #     bamid          = bamID,
+    #     gfr            = gfr_str,
+    #     clearance      = clearance,
+    #     clearance_norm = clearance_norm,
+    #     pixeldata      = pixel_data,
+    #     exam_status    = 2
+    #   )
+
+    # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
     
+    # Redirect to correct site based on which action was performed
     if 'calculate' in request.POST:
-      return redirect('main_page:present_study', accession_number=accession_number) 
+      return redirect('main_page:present_study', accession_number=accession_number)
 
     return self.get(request, accession_number)

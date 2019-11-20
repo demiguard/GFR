@@ -293,7 +293,7 @@ var csv_handler = (function() {
     var date_input = document.createElement('input');
     date_input.type = 'text';
     date_input.classList.add('form-control');
-    date_input.name = 'study_date';
+    date_input.name = 'sample_date';
     date_input.value = study_date_field.val();
     date_input.readOnly = true;
     date_field_div.appendChild(date_input);
@@ -306,7 +306,7 @@ var csv_handler = (function() {
     var time_input = document.createElement('input');
     time_input.type = 'text';
     time_input.classList.add('form-control');
-    time_input.name = 'study_time';
+    time_input.name = 'sample_time';
     time_input.value = study_time_field.val();
     time_input.readOnly = true;
     time_field_div.appendChild(time_input);
@@ -319,7 +319,7 @@ var csv_handler = (function() {
     var count_input = document.createElement('input');
     count_input.type = 'text';
     count_input.classList.add('form-control');
-    count_input.name = 'test_value';
+    count_input.name = 'sample_value';
     count_input.value = compute_selected_avg().split(',')[0];
     count_input.readOnly = true;
     count_field_div.appendChild(count_input);

@@ -22,5 +22,5 @@ STUDY_TYPE_NAMES = [
 
 class ExamStatus(Enum):
   NO_CHANGES = 0      # The study has not been edited yet
-  SAVED_CHANGES = 1   # Study was edited and is ready for review
-  READY = 2           # Study has been reviewed and is ready for PACS
+  SAVED_CHANGES = 1   # Study was edited
+  READY = 2           # Study and is ready for review
