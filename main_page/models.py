@@ -106,3 +106,16 @@ class ServerConfiguration(models.Model):
   samba_share = models.CharField(max_length=30)
 
   AE_title    = models.CharField(max_length=30)
+
+  def __str__(self):
+    return self.AE_title
+
+class Address(models.Model):
+  id          = models.AutoField(primary_key=True)
+  ae_title    = models.CharField(max_length=16, null=True, default=None)
+  ip          = models.CharField(max_length=20)
+  port        = models.CharField(max_length=5)
+  description = models.CharField(max_length=255, default='')
+
+  def __str__(self):
+    return self.description

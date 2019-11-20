@@ -22,7 +22,7 @@ var bad_input_handler = (function() {
 
 
   var number = function(field){
-    field.bind('keyup', function(key){
+    field.bind('input', function(key){
       var char = String.fromCharCode(key.which);
       var txt = field.val();
       field.val(txt.replace(/[^0-9\,]/g,''));

@@ -33,6 +33,9 @@ def move_from_pacs(user, accession_number):
     Returns:
       None or Dataset - The dataset is always single
   """
+
+  ae_title = user.department.config.pacs_aet
+
   # # # Get file from pacs # # #
   find_dataset = dataset_creator.create_search_dataset(
     '', #Name
@@ -42,11 +45,11 @@ def move_from_pacs(user, accession_number):
     accession_number
   )    
 
-  find_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  find_ae = AE(ae_title=ae_title)
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
   find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
 
-  move_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  move_ae = AE(ae_title=ae_title)
   MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
   move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
 
@@ -96,7 +99,7 @@ def move_from_pacs(user, accession_number):
     successfull_move = False
     move_response = move_assoc.send_c_move(
       move_query_dataset,
-      server_config.SERVER_AE_TITLE,
+      ae_title,
       query_model='S'
     )
     for (status, identifier) in move_response:
@@ -164,7 +167,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
       Value error: If the dicom set doesn't contain required information to send
 
   """
-  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  ae = AE(ae_title=user.department.config.pacs_aet)
   ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
   assoc = ae.associate(
     user.department.config.pacs_ip,
@@ -373,7 +376,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   association = ae_controller.connect(
     config.pacs_ip,
     int(config.pacs_port),
-    server_config.SERVER_AE_TITLE,
+    config.pacs_calling,
     config.pacs_aet,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
@@ -557,6 +560,9 @@ def get_history_for_csv(
 
   #End Helper Functions
 
+  ae_title = user.department.config.pacs_calling
+
+
   bounds = (
     date_bounds,
     clearance_bounds,
@@ -578,8 +584,8 @@ def get_history_for_csv(
     raise ValueError('Invalids Genders')
   #End checking bounds
 
-  find_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
-  move_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
+  find_ae = pynetdicom.AE(ae_title=ae_title)
+  move_ae = pynetdicom.AE(ae_title=ae_title)
 
   #Add different presentation contexts for the AE's
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.1'
@@ -619,7 +625,7 @@ def get_history_for_csv(
 
     for find_status, find_response_dataset in find_response:
       successfull_move = False
-      move_response = move_assoc.send_c_move(find_response_dataset, server_config.SERVER_AE_TITLE, query_model='S')
+      move_response = move_assoc.send_c_move(find_response_dataset, ae_title, query_model='S')
       for (status, identifier) in move_response:
         if status.Status == 0x0000:
           # Status code for C-move is successful
