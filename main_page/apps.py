@@ -25,12 +25,15 @@ class MainPageConfig(AppConfig):
     """
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import Startup
+    from . import models
+
+    ae_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
     Startup.init_logger()
     logger = logging.getLogger(name='ServerLogger')
     logger.info('Started Logger')
     try:
-      self.scp_server = pacs.start_scp_server()
+      self.scp_server = pacs.start_scp_server(ae_title)
       logger.info('Started SCP server')
     except Exception as e:
       logger.info('Failed to start SCP server because:{0}'.format(str(e)))
@@ -38,7 +41,7 @@ class MainPageConfig(AppConfig):
     from main_page.libs import ris_thread_config_gen 
     from main_page.libs import ris_thread
 
-    RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config())
+    RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config(), ae_title)
     RT.start()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")

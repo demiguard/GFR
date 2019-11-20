@@ -52,7 +52,7 @@ class RisFetcherThread(Thread):
   study information first being entered the day after the study was actually made
   """
 
-  def __init__(self, config):
+  def __init__(self, config, server_ae):
     """
     Initializes a fetcher thread instance
 
@@ -112,7 +112,7 @@ class RisFetcherThread(Thread):
       association = ae_controller.connect(
         ris_ip,
         ris_port,
-        server_config.SERVER_AE_TITLE,
+        server_ae,
         ris_AET,
         ae_controller.FINDStudyRootQueryRetrieveInformationModel
       )

@@ -188,7 +188,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   else: 
     return False , 'Kunne ikke forbinde til pacs'
   
-def start_scp_server():
+def start_scp_server(ae_title):
   """
     Problems:
       The server host multiple AE titles 
@@ -352,7 +352,7 @@ def start_scp_server():
 
   try_mkdir(server_config.SEARCH_DIR)
 
-  server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  server_ae = AE(ae_title=ae_title)
   server_ae.supported_contexts = StoragePresentationContexts
   #
   #server_ae.on_c_store = on_store 
