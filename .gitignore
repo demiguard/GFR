@@ -1,5 +1,7 @@
 # Cached dicom objects
 tmp/
+active_dicom_objects/
+deleted_dicom_objects/
 
 # Python cache
 __pycache__/
@@ -8,8 +10,11 @@ __pycache__/
 # Virtual environment
 venv/
 
-# Deployment socket
+# Deployment files
+uwsgi_params
 clairvoyance.sock
+clairvoyance_uwsgi.ini
+main_page/static/admin/
 
 # Logging files
 log/
