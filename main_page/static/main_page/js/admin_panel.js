@@ -26,15 +26,15 @@ MODEL_NAME_MAPPINGS = {
 
 // Name of the underlying model
 SELECTED_MODEL_NAMES = {
-  'users': 'user',
-  'hospitals': 'hospital',
-  'departments': 'department',
+  'users'               : 'user',
+  'hospitals'           : 'hospital',
+  'departments'         : 'department',
   'handled_examinations': 'handled_examination',
-  'configs': 'config',
-  'procedures' : 'proceduretype',
-  'procedure_mapping': 'procedure_mapping',
-  'address' : 'address',
-  'server_config' : 'server_config'
+  'configs'             : 'config',
+  'procedures'          : 'proceduretype',
+  'procedure_mapping'   : 'procedure_mapping',
+  'address'             : 'address',
+  'server_config'       : 'server_config'
 }
 
 function clear_table_headers() {

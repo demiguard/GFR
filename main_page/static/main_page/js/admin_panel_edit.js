@@ -17,6 +17,8 @@ $(function() {
     'handled_examination': 'behandlede undersøgelse',
     'proceduretype' : 'procedure',
     'procedure_mapping': 'procedure filter',
+    'server_config' : 'Server Konfiguration',
+    'address' : 'Addresse',
   };
 
   // Save button on click - update model using backend REST api

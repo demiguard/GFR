@@ -118,6 +118,7 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   def get(self, request, model_name):
     # Construct corresponding add form for the model
     try:
+      print(self.ADD_FORM_MAPPINGS[model_name]())
       add_form = self.ADD_FORM_MAPPINGS[model_name]()
     except KeyError:
       return HttpResponseNotFound(f"Unable to find corresponding form for model with key: '{model_name}'")

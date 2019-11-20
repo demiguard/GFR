@@ -8,7 +8,9 @@ $(function() {
     'hospital': 'hospital',
     'handled_examination': 'behandlede undersøgelse',
     'procedure': 'procedure',
-    'procedure_mapping': 'procedure filter'
+    'procedure_mapping': 'procedure filter',
+    'server_config' : 'Server Konfiguration',
+    'address' : 'Addresse',
   };
 
   alerter.init_alerter($('#error-msg-container'));
