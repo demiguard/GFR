@@ -74,7 +74,7 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
       'version'   : server_config.SERVER_VERSION,
       'name': exam.name,
       'date': exam.date,
-      'ris_nr': accession_number,
+      'accession_number': accession_number,
       'image_path': plot_path,
       'show_QA_button': show_QA_button,
     }

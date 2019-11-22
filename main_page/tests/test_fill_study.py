@@ -140,7 +140,7 @@ class FillStudyFullTests(LiveServerTestCase):
       'injection_date': '02-08-2017',
       'injection_time': '10:50',
       'thin_fac': '1242',
-      'std_cnt_text_box': '4569',
+      'standcount': '4569',
       'study_date': '02-08-2017',
       'study_time': '14:10',
     }

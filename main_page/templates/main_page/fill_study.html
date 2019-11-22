@@ -19,18 +19,25 @@
     <!-- Add patient info -->
     <div class="form-row">
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_patient_form %}
+        {% bootstrap_field grand_form.cpr %}
+        {% bootstrap_field grand_form.name %}
+        {% bootstrap_field grand_form.sex %}
+        {% bootstrap_field grand_form.birthdate %}
       </div>
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_patient_form_2 %}
+        {% bootstrap_field grand_form.height %}
+        {% bootstrap_field grand_form.weight %}
       </div>
       <div class="form-group col-md-3">
-        {% bootstrap_form study_examination_form %}
+        {% bootstrap_field grand_form.vial_weight_before %}
+        {% bootstrap_field grand_form.vial_weight_after %}
+        {% bootstrap_field grand_form.injection_time %}
+        {% bootstrap_field grand_form.injection_date %}
       </div>  
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_dosis_form %}
+        {% bootstrap_field grand_form.thin_fac %}
         <small><a id="reset_thin_fac" href="#">Hent fortyndingsfaktor</a></small>
-        {% bootstrap_form study_type_form %}
+        {% bootstrap_field grand_form.study_type %}
       </div>
     </div>
     
@@ -43,8 +50,7 @@
         <!-- Display test info -->
         <div class="form-row">
           <div class="form-group col-md-6">
-            <label for="standard-field">Standardtælletal</label>
-            <input type="text" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
+            {% bootstrap_field grand_form.standcount %}
           </div>
         </div>
         {% buttons %}
@@ -95,7 +101,7 @@
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>
-        {% bootstrap_form bamID_form %}
+        {% bootstrap_field grand_form.bamID %}
         {% buttons%}
           <input type="submit" name="calculate" value="Beregn" id="calculate">
           <input type="submit" name="save" value="Gem" id="save">

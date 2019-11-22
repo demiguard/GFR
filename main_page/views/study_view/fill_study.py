@@ -55,7 +55,7 @@ REQUEST_PARAMETER_TYPES = {
   'thin_fac': float,
   'save_fac': str,
   'study_type': int,
-  'std_cnt_text_box': float,
+  'standcount': float,
   'sample_date': (list, str),
   'sample_time': (list, str),
   'sample_value': (list, float),
@@ -120,7 +120,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   if not thin_fac:
     thin_fac = 0.0
 
-  std_cnt = post_req.get("std_cnt_text_box")
+  std_cnt = post_req.get("standcount")
   if not std_cnt:
     std_cnt = 0.0
 
@@ -241,20 +241,24 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
   def initialize_forms(self, request, exam: Type[examination_info.ExaminationInfo]) -> Dict:
     """
-    Initializes all the required forms for this view
+    Initializes all the required forms for this view.
+    There's 3 forms on fill study:
+      Grandfrom: This form is a merged serveral old forms
+      test_forms: This form is for Samples. Since you can have multiple samples per study,
+                    we need to replicate the sample form, else where
+      backup_form: This form is used by getting backup samples, and have nothing to do with the study.
+                  
 
     Returns:
       Dict containing the initialized forms
     """
+
+    #Grand form Initial
     try:
       study_type = enums.STUDY_TYPE_NAMES.index(exam.Method)
     except ValueError:
       # Default to StudyType(0)
       study_type = 0
-
-    study_type_form = forms.FillStudyType(initial={
-      'study_type': study_type
-    })
 
     if exam.sex == 'M':
       present_sex = 0
@@ -266,36 +270,12 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     except ValueError:
       patient_birthday = "00-00-0000"
     
-    study_patient_form = forms.Fillpatient_1(initial={
-      'cpr': exam.cpr,
-      'name': exam.name,
-      'sex': present_sex,
-      'birthdate': patient_birthday
-    })
-
     today = datetime.date.today()
-
     inj_time = None
     inj_date = today.strftime('%d-%m-%Y')
     if exam.inj_t:
       inj_date = exam.inj_t.strftime('%d-%m-%Y')
       inj_time = exam.inj_t.strftime('%H:%M')
-
-    study_examination_form = forms.Fillexamination(initial={
-      'vial_weight_before': exam.inj_before,
-      'vial_weight_after': exam.inj_after,
-      'injection_time': inj_time,
-      'injection_date': inj_date
-    })
-
-    get_backup_date_form = forms.GetBackupDateForm(initial={
-      'dateofmessurement' : today.strftime('%d-%m-%Y')
-    })
-
-    study_patient_form_2 = forms.Fillpatient_2(initial={
-      'height': exam.height,
-      'weight': exam.weight,
-    })
 
     thin_fac_save_inital = True
     if exam.thin_fact == 0.0 or exam.thin_fact == None:
@@ -310,23 +290,34 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       if exam.thin_fact != request.user.department.thining_factor:
         thin_fac_save_inital = False
 
-    study_dosis_form = forms.Filldosis(initial={
+    grand_form = forms.FillStudyGrandForm(initial={
+      'birthdate': patient_birthday,
+      'cpr': exam.cpr,
+      'height': exam.height,
+      'injection_date': inj_date,
+      'injection_time': inj_time,
+      'name': exam.name,
+      'save_fac' : thin_fac_save_inital,
+      'sex': present_sex,
+      'standcount' : str(exam.std_cnt),
+      'study_type': study_type,
       'thin_fac' : exam.thin_fact,
-      'save_fac' : thin_fac_save_inital
+      'vial_weight_after': exam.inj_after,
+      'vial_weight_before': exam.inj_before,
+      'weight': exam.weight,
     })
 
+    #Samples Form
     test_form = forms.FillStudyTest(initial={'study_date' : today.strftime('%d-%m-%Y')})
-
-    bamID_form = forms.ControlPatientConfirm()
+    
+    #Backup
+    get_backup_date_form = forms.GetBackupDateForm(initial={
+      'dateofmessurement' : today.strftime('%d-%m-%Y')
+    })
 
     return {
-      'bamID_form'            : bamID_form,
-      'study_patient_form'    : study_patient_form,
-      'study_type_form'       : study_type_form,
-      'study_examination_form': study_examination_form,
+      'grand_form'            : grand_form,
       'get_backup_date_form'  : get_backup_date_form,
-      'study_patient_form_2'  : study_patient_form_2,
-      'study_dosis_form'      : study_dosis_form,
       'test_form'             : test_form
     }
 
@@ -385,8 +376,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     """
     hospital = request.user.department.hospital.short_name
     hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
-
-    # Create dicom file cache directory
     try_mkdir(hospital_dir, mk_parents=True)
 
     # Retrieve counter data to display from Samba Share
@@ -398,9 +387,14 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       error_message = conn_err
 
     # Get previous information for the study
+    # TODO: REMOVE THIS FUNCTION CALL ITS BAD AND I FEEL BAD
     exam = pacs.get_examination(request.user, accession_number, hospital_dir)
 
+    print(exam.std_cnt)
+
     # Read previously entered samples
+    view_forms = self.initialize_forms(request, exam)
+    # Initialize forms - concat forms into the context
     previous_samples = self.get_previous_samples(exam)
 
     # Resolve field display issues
@@ -413,17 +407,22 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'previous_samples': previous_samples,
       'csv_data': csv_data,
       'csv_data_len': csv_data_len,
-      'error_message' : error_message,
-      'standard_count' : exam.std_cnt,
+      'error_message' : error_message
     }
-
-    # Initialize forms - concat forms into the context
-    view_forms = self.initialize_forms(request, exam)
     context.update(view_forms)
 
     return render(request, self.template_name, context=context)
 
   def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
+    """
+      This function handles the post request of /fill_study/accession_number
+
+      The purpose of the post request is the study have been made or is being saved
+      In other words the responsiblity for this function is:
+        Updating Department based thining factor
+        Handling different POST-request methods
+
+    """
     hospital_shortname = request.user.department.hospital.short_name
     department = request.user.department
 
@@ -548,7 +547,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         history_clr_n=history_clrN,
         method=study_type_name,
         injection_date=inj_datetime.strftime('%d-%b-%Y'),
-        name=name,
+        name=formatting.person_name_to_name(str(name)),
         procedure_description=dataset.RequestedProcedureDescription
       )
 
@@ -564,141 +563,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         pixeldata      = pixel_data,
         exam_status    = 2
       )
-
-
-    # TODO: Move all the logging around everything into the functions themselves
-    # # Compute GFR and related values, then store in dicom object
-    # if 'calculate' in request.POST:
-    #   logger.info(f"""
-    #     User: {request.user.username}
-    #     calculated GFR on Examination number: {accession_number}
-    #     from ip: {request.META['REMOTE_ADDR']}
-    #     """
-    #   )
-      
-    #   dataset = store_form(request, dataset, accession_number)
-      
-    #   # Construct datetime for injection time
-    #   inj_time = request.POST['injection_time']
-    #   inj_date = formatting.reverse_format_date(request.POST['injection_date'], sep='-')
-    #   inj_datetime = date_parser.parse(f"{inj_date} {inj_time}")
-
-    #   # Construct datetimes for study times
-    #   # Determine study type
-    #   study_type = enums.StudyType(int(request.POST['study_type']))
-    #   study_type_name = enums.STUDY_TYPE_NAMES[study_type.value]
-
-    #   sample_times = request.POST.getlist('sample_time')
-    #   sample_dates = request.POST.getlist('sample_date')
-    #   sample_dates = map(formatting.reverse_format_date, sample_dates)
-    #   sample_datetimes = np.array([date_parser.parse(f"{date} {time}") 
-    #                         for time, date in zip(sample_times, sample_dates)])
-
-    #   # Measured tec99 counts
-    #   tec_counts = np.array([float(x) for x in request.POST.getlist('sample_value')])
-
-    #   weight = float(request.POST['weight'])
-    #   height = float(request.POST['height'])
-      
-    #   # Compute surface area
-    #   BSA = clearance_math.surface_area(height, weight)
-
-    #   inj_weight_before = float(request.POST['vial_weight_before'])
-    #   inj_weight_after = float(request.POST['vial_weight_after'])
-    #   inj_weight = inj_weight_before - inj_weight_after
-
-    #   STD_CNT = float(request.POST['std_cnt_text_box'])
-    #   FACTOR = float(request.POST['thin_fac'])
-      
-    #   # Compute dosis
-    #   dosis = clearance_math.dosis(inj_weight, FACTOR, STD_CNT)
-
-    #   logger.info(f"""
-    #     Clearance calculation input:
-    #     injection time: {inj_datetime}
-    #     Sample Times: {sample_datetimes}
-    #     Tch99 cnt: {tec_counts}
-    #     Body Surface Area: {BSA}
-    #     Dosis: {dosis}
-    #     Method: {study_type_name}
-    #   """)
-
-    #   # Compute clearance and normalized clearance
-    #   clearance, clearance_norm = clearance_math.calc_clearance(
-    #     inj_datetime,
-    #     sample_datetimes,
-    #     tec_counts,
-    #     BSA,
-    #     dosis,
-    #     study_type
-    #   )
-
-    #   logger.info(f"""
-    #   Clearance calculation result:
-    #     Clearnance: {clearance}
-    #     Clearence Normal: {clearance_norm}"""
-    #   )
-
-    #   name = request.POST['name']
-    #   cpr = formatting.convert_cpr_to_cpr_number(request.POST['cpr'])
-    #   birthdate = formatting.reverse_format_date(request.POST['birthdate'], sep='-')
-    #   bamID = request.POST['bamID']
-
-    #   gender_num = int(request.POST['sex'])
-    #   gender = enums.Gender(gender_num)
-    #   gender_name = enums.GENDER_NAMINGS[gender.value]
-
-    #   # Determine new kidney function
-    #   gfr_str, gfr_index = clearance_math.kidney_function(clearance_norm, birthdate, gender)
-
-    #   # Get historical data from PACS
-    #   try:
-    #     history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
-    #     f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}')
-    #   except ValueError: # Handle empty AET for PACS connection 
-    #     history_age = [ ]
-    #     history_clrN = [ ]
-    #     history_dates = [ ]
-
-    #   # Generate plot to display
-    #   pixel_data = clearance_math.generate_gfr_plot(
-    #     weight,
-    #     height,
-    #     BSA,
-    #     clearance,
-    #     clearance_norm,
-    #     gfr_str,
-    #     birthdate,
-    #     gender_name,
-    #     accession_number,
-    #     cpr = cpr,
-    #     index_gfr=gfr_index,
-    #     hosp_dir=request.user.department.hospital.short_name,
-    #     hospital_name=request.user.department.hospital.name,
-    #     history_age=history_age,
-    #     history_clr_n=history_clrN,
-    #     method = study_type_name,
-    #     injection_date=inj_datetime.strftime('%d-%b-%Y'),
-    #     name = name,
-    #     procedure_description=dataset.RequestedProcedureDescription
-    #   )
-
-    #   # Insert plot (as byte string) into dicom object
-    #   dicomlib.fill_dicom(
-    #     dataset,
-    #     bamid          = bamID,
-    #     gfr            = gfr_str,
-    #     clearance      = clearance,
-    #     clearance_norm = clearance_norm,
-    #     pixeldata      = pixel_data,
-    #     exam_status    = 2
-    #   )
+    #END IF
 
     # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
     
     # Redirect to correct site based on which action was performed
-    if 'calculate' in request.POST:
+    if "calculate" in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number)
 
     return self.get(request, accession_number)

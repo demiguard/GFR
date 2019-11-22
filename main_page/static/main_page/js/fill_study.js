@@ -35,7 +35,7 @@ function add_threshold_checking() {
     {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
     {'id': '#id_std_cnt',             'min_val': 1000,  'max_val': 10000},
     {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 10000},
-    {'id': '#standard-field',         'min_val': 0,     'max_val': 100000}
+    {'id': '#id_standcount',         'min_val': 0,     'max_val': 100000}
   ];
   
   let id_thresholds_length = id_thresholds.length;
@@ -135,7 +135,7 @@ function initialize_time_fields() {
 function initialize_number_fields(){
 
   var ids_with_comma = ['#id_height', '#id_weight', '#id_vial_weight_before', '#id_vial_weight_after'];
-  var ids_no_comma   = ['#id_thin_fac', '#standard-field'];
+  var ids_no_comma   = ['#id_thin_fac', '#id_standcount'];
 
   var ids_with_comma_lenght = ids_with_comma.length;
   var ids_no_comma_length = ids_no_comma.length;
@@ -460,7 +460,7 @@ $(function() {
       "#id_injection_date",
       "#id_std_cnt",
       "#id_thin_fac",
-      '#standard-field'
+      '#id_standcount'
     ];
     
     is_valid = true;

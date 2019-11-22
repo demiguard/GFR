@@ -21,7 +21,13 @@ def person_name_to_name(name: str) -> str:
   Remark:
     Specification for person names: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     Examples at: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1
+
+    TODO: Pydicom have a special type for person name called PersonName3 in pydicom.valuerep.PersonName, 
+    it's not a string and it breaks if you try to put it in. Work around str(name) before function call.
+    I find this to be a suboptimal, since the function name is person_name_to_... indicating a personname class should pass through this
   """
+
+
   if '*' in name:
     raise ValueError(f"name: '{name}', contains a wildcard character: '*'")
 

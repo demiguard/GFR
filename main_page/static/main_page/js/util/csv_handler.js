@@ -429,7 +429,7 @@ var csv_handler = (function() {
 
       // Add the computed avg. to the standard field
       var average = compute_selected_avg().split(',');
-      $('#standard-field').val(average[0]);
+      $('#id_standcount').val(average[0]);
 
       // Remove selection
       clear_selected_rows();
