@@ -99,7 +99,7 @@ class FinalStudyView(LoginRequiredMixin, TemplateView):
       dst_dir = f'{server_config.FIND_RESPONS_DIR}/{hospital}/{AccessionNumber}/'
 
       shutil.move(object_dir, dst_dir)
-      return redirect('main_page:fill_study', ris_nr = AccessionNumber)
+      return redirect('main_page:fill_study', accession_number = AccessionNumber)
 
     elif (post_req['control'] == 'Send til PACS'):
       pass

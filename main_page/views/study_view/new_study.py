@@ -102,7 +102,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       )
 
       # redirect to fill_study/ris_nr
-      return redirect('main_page:fill_study', ris_nr=ris_nr)
+      return redirect('main_page:fill_study', accession_number=ris_nr)
     else:
       context['error_messages'] = error_messages
       return render(request, self.template_name, context)

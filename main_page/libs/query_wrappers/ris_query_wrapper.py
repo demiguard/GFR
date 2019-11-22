@@ -108,7 +108,7 @@ def move_to_deleted(
     accession_number
   )
 
-  shutil.move(active_file, deleted_file)
+  shutil.move(active_file.as_posix(), deleted_file.as_posix())
 
   return True
 

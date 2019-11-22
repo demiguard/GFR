@@ -95,7 +95,10 @@ class User(AbstractBaseUser):
 class HandledExaminations(models.Model):
   accession_number = models.CharField(primary_key=True, max_length=20)
 
-
+# So Stuff breaks if there's no ServerConfiguration with an id=1 !IMPORTANT !NOTICE
+# All server configs with an id differtn from 1 is ignored.
+# This is something YOU have to check and ensure
+# TODO: Put this in some more official documentation
 class ServerConfiguration(models.Model):
   id          = models.AutoField(primary_key=True)
   samba_ip    = models.CharField(max_length=20)

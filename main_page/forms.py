@@ -208,6 +208,36 @@ class SearchForm(forms.Form):
     for _, field in self.fields.items():
       field.widget.attrs['class'] = 'form-control'
 
+#This form is intented just to be one form containing all the other forms for fill study
+#Note that this cannot contain Fillstudy Test, since there may be multiple Tests
+class FillStudyGrandForm(forms.Form):
+  #init
+  types = [
+    (0, 'En blodprøve, voksen'),
+    (1, 'En blodprøve, barn'),
+    (2, 'Flere blodprøver')
+  ]
+  sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
+  
+  #Fields
+  bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
+  birthdate = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
+  cpr  = forms.CharField(label='Navn', required=False)
+  height = forms.CharField( label='Højde (cm)', required=False)
+  injection_time = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
+  injection_date = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)  
+  name = forms.CharField(label='Navn', required=False)
+  save_fac = forms.BooleanField(required=False, label='Gem')
+  sex = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
+  study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
+  thin_fac = forms.CharField(label='Fortyndingsfaktor', required=False)
+  vial_weight_after = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
+  vial_weight_before = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
+  weight = forms.CharField( label='Vægt (kg)', required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(FillStudyGrandForm, self).__init__(*args, **kwargs)
+
 
 # --- EDIT FORMS START --- #
 class EditUserForm(forms.ModelForm):

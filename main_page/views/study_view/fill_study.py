@@ -192,7 +192,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
   def get_counter_data(self, hospital: str) -> CsvDataType:
     """
-    Tries to retrieve counter data from the Samba Share to display on the site
+    Tries to retrieve counter data from the Samba Share to display on the site 
 
     Args:
       hospital: short name of the hospital to retrieve data from
@@ -204,7 +204,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       ConnectionError: if no connection to the Samba Share can be made
     """
     try:
-      data_files = samba_handler.smb_get_all_csv(hospital, timeout=10)
+      server_configuration = models.ServerConfiguration.objects.get(id=1)
+
+      data_files = samba_handler.smb_get_all_csv(hospital, server_configuration, timeout=10)
     except Exception as E:
       logger.warning(f'SMB Connection Failed: {E}')
       raise ConnectionError('Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.')

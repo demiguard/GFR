@@ -152,6 +152,7 @@ class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEnd
     'accession_number'
   ]
 
+
 class AddressEndpoint(AdminRequiredMixin, LoggingMixin, RESTEndpoint):
   model = models.Address
 
@@ -232,8 +233,11 @@ class SambaBackupEndpoint(LoginRequiredMixin, View):
     # Attempt to get backup data
     logger.info(f"Handling Ajax Get backup request with date: {date} and hospital: {hospital}")
 
+    #There always exists a server config with an id of 1, All other are ignored
+    model_server_config = models.ServerConfiguration.objects.get(id=1)
+
     try:
-      backup_data = samba_handler.get_backup_file(date, hospital)
+      backup_data = samba_handler.get_backup_file(date, hospital, model_server_config)
     except NotConnectedError as err: 
       logger.warn(f"Error during handling of Samba Share files, got error: {err}")
 

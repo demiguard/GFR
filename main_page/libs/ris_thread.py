@@ -69,6 +69,7 @@ class RisFetcherThread(Thread):
 
     self.config = config
     self.running = False
+    self.server_ae = server_ae
 
     # Thread is a daemon, i.e. background worker thread
     Thread.__init__(
@@ -112,7 +113,7 @@ class RisFetcherThread(Thread):
       association = ae_controller.connect(
         ris_ip,
         ris_port,
-        server_ae,
+        self.server_ae,
         ris_AET,
         ae_controller.FINDStudyRootQueryRetrieveInformationModel
       )

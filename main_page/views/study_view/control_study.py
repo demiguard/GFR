@@ -127,7 +127,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       fill_study_dir = f'{server_config.FIND_RESPONS_DIR}{hopital_sn}/{AccessionNumber}'
       shutil.move(dir_path, fill_study_dir)
 
-      return redirect('main_page:fill_study', ris_nr = AccessionNumber)
+      return redirect('main_page:fill_study', accession_number = AccessionNumber)
     elif (post_req['control'] == 'Godkend'):
       print(post_req)
 

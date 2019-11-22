@@ -66,9 +66,10 @@ def open_csv_file(temp_file: NamedTemporaryFile):
   return pandas_ds, datestring, protocol
 
 
-def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: str) -> None:
+def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: str, model_server_config) -> None:
   """
-  DOES SOMETHING....
+  Moves a file from the Samples file to the backup folder.
+  TODO: Try and reduce the amount of arguments
 
   Args:
     smb_conn: An Active SMBConnection
@@ -82,7 +83,7 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   """
   backup_folder = f"{server_config.samba_backup}/{hospital}"
   store_path = f"{backup_folder}/{filename}"
-  share_name = server_config.samba_share
+  share_name = model_server_config.samba_share
 
   try:
     smb_conn.createDirectory(share_name, u'/backup')
@@ -106,7 +107,7 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   logger.info(f"Moved file; '{fullpath}' , to back up")
 
 
-def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
+def smb_get_all_csv(hospital: str, model_server_config, timeout: int=5 ) -> List[pd.DataFrame]:
   """
   Retrieves file contents of all files presented as pandas DataFrames, for each
   file in a specific hospitals directory on the Samba Share
@@ -125,21 +126,21 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
   returnarray = []
 
   conn = SMBConnection(
-    server_config.samba_user, 
-    server_config.samba_pass, 
-    server_config.samba_pc, 
-    server_config.samba_name,
+    model_server_config.samba_user, 
+    model_server_config.samba_pass, 
+    model_server_config.samba_pc, 
+    model_server_config.samba_name,
   )
 
-  is_connected = conn.connect(server_config.samba_ip, timeout=timeout)
+  is_connected = conn.connect(model_server_config.samba_ip, timeout=timeout)
 
   logger.info(f'Samba Connection was succesful: {is_connected}')
   logger.debug(f'/{server_config.samba_Sample}/{hospital}/')
 
   hospital_sample_folder = f'/{server_config.samba_Sample}/{hospital}/'
   
-  logger.debug(f'Searching Share: {server_config.samba_share}, at: {hospital_sample_folder}')
-  samba_files = conn.listPath(server_config.samba_share, hospital_sample_folder)
+  logger.debug(f'Searching Share: {model_server_config.samba_share}, at: {hospital_sample_folder}')
+  samba_files = conn.listPath(model_server_config.samba_share, hospital_sample_folder)
   logger.debug(f'Got Files:{len(samba_files)}')
 
   for samba_file in samba_files:
@@ -150,7 +151,7 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
     fullpath =  hospital_sample_folder + samba_file.filename
     logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
 
-    conn.retrieveFile(server_config.samba_share, fullpath, temp_file)
+    conn.retrieveFile(model_server_config.samba_share, fullpath, temp_file)
 
     temp_file.seek(0)
     pandas_ds, datestring, protocol = open_csv_file(temp_file)
@@ -174,7 +175,7 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
     dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
     if (now - dt_examination).days > 0:
       logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
-      move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename)
+      move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename, model_server_config)
     else:
       returnarray.append(pandas_ds)
       
@@ -191,7 +192,8 @@ def smb_get_all_csv(hospital: str, timeout: int=5) -> List[pd.DataFrame]:
 def get_backup_file(
     date: Union[datetime, date], 
     hospital: str, 
-    timeout: int=30
+    model_server_config,
+    timeout: int=30,
   ) -> List[pd.DataFrame]:
   """
   Retreives a backup file from the Samba Share
@@ -212,17 +214,17 @@ def get_backup_file(
 
   # Establish Samba Share connection
   conn = SMBConnection(
-    server_config.samba_user, 
-    server_config.samba_pass, 
-    server_config.samba_pc, 
-    server_config.samba_name
+    model_server_config.samba_user, 
+    model_server_config.samba_pass, 
+    model_server_config.samba_pc, 
+    model_server_config.samba_name
   )
 
   conn.connect(server_config.samba_ip)
 
   # Check if each file in hospital sub directory has the specified date
   # if it does append the file contents as a pandas.DataFrame to the return list
-  share_name = server_config.samba_share
+  share_name = model_server_config.samba_share
   backup_folder = f"/{server_config.samba_backup}/{hospital}"
   samba_files = conn.listPath(share_name, backup_folder)
   
