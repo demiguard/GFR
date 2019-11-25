@@ -1,0 +1,18 @@
+#loader {
+  border: 8px solid #e0e0e0; /* Light grey */
+  border-top: 8px solid #76c6eb; /* Blue */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 2s linear infinite;
+  margin-left: 60px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#ss-wrapper .form-group {
+  margin-bottom: 0px;
+}

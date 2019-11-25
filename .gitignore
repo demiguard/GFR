@@ -1,7 +1,12 @@
+# Database related files
+db.sqlite3
+main_page/migrations/
+
 # Cached dicom objects
 tmp/
 active_dicom_objects/
 deleted_dicom_objects/
+control_dicom_objects/
 
 # Python cache
 __pycache__/
@@ -14,17 +19,39 @@ venv/
 clairvoyance.sock
 clairvoyance_uwsgi.ini
 uwsgi_params
+main_page/static/admin
 
 # Logging files
 log/
 
+# Data files
 *.dcm
+
 *.png
 *.jpeg
 *.jpg
+*.bmp
+
+*.xml
 *.csv
 *.log
+
+*.coverage
+
+# Latex files
+*.synctex.gz
 *.aux
 *.dvi
-*.coverage
 *.toc
+*.out
+
+# vscode hidden dir
+.vscode/
+
+# Test webdrivers
+main_page/tests/selenium_drivers/
+
+# Misc. files
+TODO.txt
+scripts/
+rigs_fetcher/
