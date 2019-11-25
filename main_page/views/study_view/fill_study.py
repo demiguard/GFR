@@ -390,7 +390,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # TODO: REMOVE THIS FUNCTION CALL ITS BAD AND I FEEL BAD
     exam = pacs.get_examination(request.user, accession_number, hospital_dir)
 
-    print(exam.std_cnt)
+    print(f"Initial height: {exam.height}")
+    print(f"Initial std_cnt: {exam.std_cnt}")
 
     # Read previously entered samples
     view_forms = self.initialize_forms(request, exam)
@@ -563,7 +564,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         pixeldata      = pixel_data,
         exam_status    = 2
       )
-    #END IF
+    # end "calculate" if
 
     # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
