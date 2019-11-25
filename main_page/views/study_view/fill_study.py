@@ -158,10 +158,14 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
 
       seq.append((date_tmp, value))
   
+  # Get and insert bam_id
+  bam_id = post_req["bamID"]
+
   # Store everything into dicom object
   dicomlib.fill_dicom(
     dataset,
     age=age,
+    bamid=bam_id,
     birthday=birthdate,
     update_dicom = True,
     update_date = True,
@@ -239,7 +243,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     return zip(csv_present_names, csv_data, data_indicies), len(data_indicies)
 
-  def initialize_forms(self, request, exam: Type[examination_info.ExaminationInfo]) -> Dict:
+  def initialize_forms(self, request, dataset: pydicom.Dataset) -> Dict:
     """
     Initializes all the required forms for this view.
     There's 3 forms on fill study:
@@ -248,69 +252,91 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
                     we need to replicate the sample form, else where
       backup_form: This form is used by getting backup samples, and have nothing to do with the study.
                   
-
     Returns:
       Dict containing the initialized forms
     """
-
-    #Grand form Initial
+    # Grand form Initial
     try:
-      study_type = enums.STUDY_TYPE_NAMES.index(exam.Method)
-    except ValueError:
+      study_type = enums.STUDY_TYPE_NAMES.index(dataset.get("GFRMethod"))
+    except (ValueError, AttributeError):
       # Default to StudyType(0)
       study_type = 0
 
-    if exam.sex == 'M':
+    if dataset.get("PatientSex") == 'M':
       present_sex = 0
     else:
       present_sex = 1
 
     try:
-      patient_birthday = formatting.convert_date_to_danish_date(exam.birthdate, sep='-')
+      patient_birthday = dataset.get("PatientBirthDate")
+      patient_birthday = datetime.datetime.strptime(
+        patient_birthday, "%Y%m%d"
+      ).strftime("%d-%m-%Y")
     except ValueError:
       patient_birthday = "00-00-0000"
     
     today = datetime.date.today()
     inj_time = None
     inj_date = today.strftime('%d-%m-%Y')
-    if exam.inj_t:
-      inj_date = exam.inj_t.strftime('%d-%m-%Y')
-      inj_time = exam.inj_t.strftime('%H:%M')
+    
+    ds_inj_time = dataset.get("injTime")
+    if ds_inj_time:
+      inj_date = ds_inj_time.strftime('%d-%m-%Y')
+      inj_time = ds_inj_time.strftime('%H:%M')
+    else:
+      inj_date = None
+      inj_time = None
 
     thin_fac_save_inital = True
-    if exam.thin_fact == 0.0 or exam.thin_fact == None:
-      if request.user.department.thining_factor_change_date == today and request.user.department.thining_factor != 0:
-        exam.thin_fact = request.user.department.thining_factor
+    ds_thin_fac = dataset.get("thiningfactor")
+    department_thin_fac = request.user.department.thining_factor
+
+    if ds_thin_fac:
+      if request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
+        ds_thin_fac = department_thin_fac
         thin_fac_save_inital = False
       else:
-        exam.thin_fact = None
+        ds_thin_fac = None
 
     # Check to avoid resetting the thining factor when clicking 'beregn'
-    if exam.thin_fact:
-      if exam.thin_fact != request.user.department.thining_factor:
+    if ds_thin_fac:
+      if ds_thin_fac != department_thin_fac:
         thin_fac_save_inital = False
 
+    # Get patient height
+    height = dataset.get("PatientSize")
+    if height:
+      height *= 100
+
+    # Get patient name
+    name = dataset.get("PatientName")
+    if name:
+      name = formatting.person_name_to_name(str(name))
+
     grand_form = forms.FillStudyGrandForm(initial={
-      'birthdate': patient_birthday,
-      'cpr': exam.cpr,
-      'height': exam.height,
-      'injection_date': inj_date,
-      'injection_time': inj_time,
-      'name': exam.name,
-      'save_fac' : thin_fac_save_inital,
-      'sex': present_sex,
-      'standcount' : str(exam.std_cnt),
-      'study_type': study_type,
-      'thin_fac' : exam.thin_fact,
-      'vial_weight_after': exam.inj_after,
-      'vial_weight_before': exam.inj_before,
-      'weight': exam.weight,
+      'bamID'             : dataset.get("OperatorsName"),
+      'birthdate'         : patient_birthday,
+      'cpr'               : dataset.get("PatientID"),
+      'height'            : height,
+      'injection_date'    : inj_date,
+      'injection_time'    : inj_time,
+      'name'              : name,
+      'save_fac'          : thin_fac_save_inital,
+      'sex'               : present_sex,
+      'standcount'        : dataset.get("stdcnt"),
+      'study_type'        : study_type,
+      'thin_fac'          : ds_thin_fac,
+      'vial_weight_after' : dataset.get("injafter"),
+      'vial_weight_before': dataset.get("injbefore"),
+      'weight'            : dataset.get("PatientWeight"),
     })
 
-    #Samples Form
-    test_form = forms.FillStudyTest(initial={'study_date' : today.strftime('%d-%m-%Y')})
+    # Samples Form
+    test_form = forms.FillStudyTest(initial={
+      'study_date': today.strftime('%d-%m-%Y')
+    })
     
-    #Backup
+    # Backup
     get_backup_date_form = forms.GetBackupDateForm(initial={
       'dateofmessurement' : today.strftime('%d-%m-%Y')
     })
@@ -321,50 +347,37 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'test_form'             : test_form
     }
 
-  def get_previous_samples(self, exam: Type[examination_info.ExaminationInfo]):
+  def get_previous_samples(self,
+    dataset: pydicom.Dataset
+  ) -> List[Tuple[str, str, float]]:
     """
     Retrieves the previous entered samples for study
 
     Args:
-      exam: Examination info object for the study
+      dataset: pydicom Dataset contaning previous study samples
     
     Returns:
-      zip of the previous sample data
+      list of the previous sample data
     """
-    previous_sample_times = [st.strftime('%H:%M') for st in exam.sam_t]
-    previous_sample_dates = [st.strftime('%d-%m-%Y') for st in exam.sam_t]
-    previous_sample_counts = exam.tch_cnt
+    previous_samples = [ ]
+    if "ClearTest" in dataset:
+      for sample in dataset.ClearTest:
+        sample_datetime = datetime.datetime.strptime(
+          sample.SampleTime,
+          "%Y%m%d%H%M"
+        )
+        
+        sample_date = sample_datetime.strftime("%d-%m-%Y")
+        sample_time = sample_datetime.strftime("%H:%M")
+        sample_cnt  = sample.cpm
+
+        previous_samples.append((
+          sample_date,
+          sample_time,
+          sample_cnt
+        ))
     
-    return zip(
-      previous_sample_dates,
-      previous_sample_times,
-      previous_sample_counts
-    )
-
-  def resolve_zero_fields(self, exam):
-    """
-    Resolve presentation issue for 0.0 values.
-
-    Args:
-      exam: Examination info object for the study
-
-    Remarks:
-      This is done by setting the value to None, so the field doesn't contain
-      any value once the page is displayed to the user.
-    """
-    FIELDS_TO_RESOLVE = (
-      'inj_before',
-      'inj_after',
-      'height',
-      'weight',
-      'std_cnt'
-    )
-
-    for field in FIELDS_TO_RESOLVE:
-      attr_val = getattr(exam, field)
-
-      if attr_val == 0.0:
-        setattr(exam, field, None)
+    return previous_samples
 
   def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
     """
@@ -376,30 +389,30 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     """
     hospital = request.user.department.hospital.short_name
     hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
-    try_mkdir(hospital_dir, mk_parents=True)
 
     # Retrieve counter data to display from Samba Share
-    error_message = 'Der er ikke lavet nogen prøver de sidste 24 timer'
+    error_message = "Der er ikke lavet nogen prøver de sidste 24 timer"
     try:
       csv_data, csv_data_len = self.get_counter_data(hospital)
     except ConnectionError as conn_err:
       csv_data, csv_data_len = [], 0
       error_message = conn_err
 
-    # Get previous information for the study
-    # TODO: REMOVE THIS FUNCTION CALL ITS BAD AND I FEEL BAD
-    exam = pacs.get_examination(request.user, accession_number, hospital_dir)
+    obj_filepath = Path(
+      hospital_dir,
+      accession_number,
+      f"{accession_number}.dcm"
+    )
 
-    print(f"Initial height: {exam.height}")
-    print(f"Initial std_cnt: {exam.std_cnt}")
+    dataset = dicomlib.dcmread_wrapper(obj_filepath)
+
+    # Get previous information for the study
+    previous_samples = self.get_previous_samples(dataset)
 
     # Read previously entered samples
-    view_forms = self.initialize_forms(request, exam)
-    # Initialize forms - concat forms into the context
-    previous_samples = self.get_previous_samples(exam)
+    view_forms = self.initialize_forms(request, dataset)
 
-    # Resolve field display issues
-    self.resolve_zero_fields(exam)
+    # Initialize forms - concat forms into the context
 
     context = {
       'title'     : server_config.SERVER_NAME,
@@ -553,11 +566,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       )
 
       # Insert plot (as byte string) into dicom object
-      bam_id = post_req["bamID"]
-
       dicomlib.fill_dicom(
         dataset,
-        bamid          = bam_id,
         gfr            = gfr_str,
         clearance      = clearance,
         clearance_norm = clearance_norm,

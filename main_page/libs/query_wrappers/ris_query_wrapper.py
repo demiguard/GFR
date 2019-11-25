@@ -19,7 +19,6 @@ from main_page.libs import dicomlib
 from main_page.libs import examination_info
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.clearance_math import clearance_math
-from main_page.libs.examination_info import ExaminationInfo
 
 
 logger = logging.getLogger()
