@@ -20,8 +20,6 @@ from main_page.libs.dirmanager import try_mkdir
 from .. import dicomlib, dataset_creator
 from .. import server_config
 from ..clearance_math import clearance_math
-from .. import examination_info
-from ..examination_info import ExaminationInfo
 from .. import formatting
 
 

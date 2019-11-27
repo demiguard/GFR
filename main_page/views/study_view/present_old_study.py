@@ -18,7 +18,6 @@ from typing import Type, List, Tuple, Union, Generator, Dict
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import examination_info
 from main_page.libs import dataset_creator
 from main_page.libs import server_config
 from main_page.libs import samba_handler
@@ -69,17 +68,19 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
       return HttpResponse(error_template.render(error_context,request))
 
-    exam = examination_info.deserialize(dataset)
-
     # Read in previous samples from examination info
-    previous_sample_times = []
-    previous_sample_dates = []
-    previous_sample_counts = exam.tch_cnt
+    previous_sample_times  = []
+    previous_sample_dates  = []
+    previous_sample_counts = []
 
-    for st in exam.sam_t:
-      previous_sample_dates.append(st.strftime('%Y-%m-%d'))
-      previous_sample_times.append(st.strftime('%H:%M'))
-    
+    if 'ClearTest' in dataset:
+      for test in dataset.ClearTest:
+
+        injection_datetime = datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M')
+        previous_sample_dates.append(injection_datetime.strftime('%Y-%m-%d'))
+        previous_sample_times.append(injection_datetime.strftime('%H:%M'))
+        previous_sample_counts.append(test.tch_cnt)
+
     previous_samples = zip(
       previous_sample_dates,
       previous_sample_times,
@@ -87,30 +88,16 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     )
 
     today = datetime.datetime.now()
-    inj_time = today.strftime('%H:%M')
-    inj_date = today.strftime('%Y-%m-%d')
-    if exam.inj_t:
-
-      inj_date = exam.inj_t.strftime('%Y-%m-%d')
-      inj_time = exam.inj_t.strftime('%H:%M')
-
-    study_type = 0
-    if exam.Method:
-      # TODO: The below strings that are checked for are used in multiple places. MOVE these into a config file
-      # TODO: or just store the study_type number instead of the entire string in the Dicom obj and exam info
-      if exam.Method == 'Et punkt voksen':
-        study_type = 0
-      elif exam.Method == 'Et punkt Barn':
-        study_type = 1
-      elif exam.Method == 'Flere prøve Voksen':
-        study_type = 2
 
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
     
-    pixel_arr = exam.image
-    if pixel_arr.shape[0] != 0:
+    if 'PixelData' in dataset:
+    # Reads DICOM conformant image to PIL displayable image
+      pixel_arr = = np.frombuffer(dataset.PixelData, dtype=np.uint8)
+      pixel_arr = = np.reshape(pixel_arr, (1080, 1920, 3))
+ 
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
       Im.save(f'{img_resp_dir}{accession_number}.png')
     
@@ -119,15 +106,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
-      'name': exam.name,
-      'date': exam.date,
       'image_path': plot_path,
-      'std_cnt': exam.std_cnt,
-      'thin_fac': exam.thin_fact,
-      'vial_weight_before': exam.inj_before,
-      'vial_weight_after': exam.inj_after,
-      'injection_time': inj_time,
-      'injection_date': inj_date,
       'study_type': study_type,
       'previous_samples': [previous_samples],
     }

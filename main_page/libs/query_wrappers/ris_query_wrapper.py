@@ -16,7 +16,6 @@ from main_page.libs import formatting
 from main_page.libs import server_config
 from main_page.libs import dataset_creator
 from main_page.libs import dicomlib
-from main_page.libs import examination_info
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.clearance_math import clearance_math
 
