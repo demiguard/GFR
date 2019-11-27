@@ -7,7 +7,7 @@ import logging
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import server_config
-from main_page import forms
+from main_page.forms import base_forms
 
 logger = logging.getLogger()
 
@@ -19,7 +19,7 @@ class SearchView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/search.html'
   
   def get(self, request):
-    search_form = forms.SearchForm()
+    search_form = base_forms.SearchForm()
 
     context = {
       'title'       : server_config.SERVER_NAME,

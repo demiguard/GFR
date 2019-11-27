@@ -35,7 +35,7 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
-from main_page import forms
+from main_page.forms import base_forms
 from main_page import models
 from main_page.libs.clearance_math import clearance_math
 
@@ -328,8 +328,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     if name:
       name = formatting.person_name_to_name(str(name))
 
-    grand_form = forms.FillStudyGrandForm(initial={
-      'bamID'             : dataset.get("OperatorsName"),
+    grand_form = base_forms.FillStudyGrandForm(initial={
       'birthdate'         : patient_birthday,
       'cpr'               : cpr,
       'height'            : height,
@@ -347,12 +346,12 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     })
 
     # Samples Form
-    test_form = forms.FillStudyTest(initial={
+    test_form = base_forms.FillStudyTest(initial={
       'study_date': today.strftime('%d-%m-%Y')
     })
     
     # Backup
-    get_backup_date_form = forms.GetBackupDateForm(initial={
+    get_backup_date_form = base_forms.GetBackupDateForm(initial={
       'dateofmessurement' : today.strftime('%d-%m-%Y')
     })
 

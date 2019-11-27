@@ -8,7 +8,7 @@ from main_page.libs import server_config
 from main_page.views.mixins import AdminRequiredMixin
 
 from main_page import models
-from main_page import forms
+from main_page.forms import model_add_forms, model_edit_forms, base_forms
 
 
 class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
@@ -21,8 +21,8 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
-      'nuke_list_form': forms.NukeListStudiesForm(),
-      'nuke_deleted_form': forms.NukeDeletedStudiesForm(),
+      'nuke_list_form': base_forms.NukeListStudiesForm(),
+      'nuke_deleted_form': base_forms.NukeDeletedStudiesForm(),
     }
 
     return render(request, self.template_name, context)
@@ -46,14 +46,14 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   }
 
   EDIT_FORM_MAPPINGS = {
-    'user': forms.EditUserForm,
-    'department': forms.EditDepartmentForm,
-    'config': forms.EditConfigForm,
-    'hospital': forms.EditHospitalForm,
-    'handled_examination': forms.EditHandledExaminationsForm,
-    'proceduretype' : forms.EditProcedureForm,
-    'address': forms.EditAddressForm,
-    'server_config': forms.EditServerConfigurationForm
+    'user': model_edit_forms.EditUserForm,
+    'department': model_edit_forms.EditDepartmentForm,
+    'config': model_edit_forms.EditConfigForm,
+    'hospital': model_edit_forms.EditHospitalForm,
+    'handled_examination': model_edit_forms.EditHandledExaminationsForm,
+    'proceduretype' : model_edit_forms.EditProcedureForm,
+    'address': model_edit_forms.EditAddressForm,
+    'server_config': model_edit_forms.EditServerConfigurationForm
   }
 
   def get(self, request, model_name, obj_id):
@@ -92,27 +92,27 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   template_name = "main_page/admin_panel_add.html"
 
   MODEL_NAME_MAPPINGS = {
-    'user': models.User,
-    'department': models.Department,
-    'config': models.Config,
-    'hospital': models.Hospital,
-    'handled_examination': models.HandledExaminations,
-    'proceduretype' : models.ProcedureType,
-    'procedure_mapping': models.Config.accepted_procedures.through,
-    'address' : models.Address,
-    'server_config' : models.ServerConfiguration
+    'user'                : models.User,
+    'department'          : models.Department,
+    'config'              : models.Config,
+    'hospital'            : models.Hospital,
+    'handled_examination' : models.HandledExaminations,
+    'proceduretype'       : models.ProcedureType,
+    'procedure_mapping'   : models.Config.accepted_procedures.through,
+    'address'             : models.Address,
+    'server_config'       : models.ServerConfiguration
   }
 
   ADD_FORM_MAPPINGS = {
-    'user': forms.AddUserForm,
-    'department': forms.AddDepartmentForm,
-    'config': forms.AddConfigForm,
-    'hospital': forms.AddHospitalForm,
-    'handled_examination': forms.AddHandledExaminationsForm,
-    'proceduretype': forms.AddProcedureForm,
-    'procedure_mapping': forms.AddProcedureMapping,
-    'address' : forms.AddAddressForm,
-    'server_config' : forms.AddServerConfigurationForm
+    'user'                : model_add_forms.AddUserForm,
+    'department'          : model_add_forms.AddDepartmentForm,
+    'config'              : model_add_forms.AddConfigForm,
+    'hospital'            : model_add_forms.AddHospitalForm,
+    'handled_examination' : model_add_forms.AddHandledExaminationsForm,
+    'proceduretype'       : model_add_forms.AddProcedureForm,
+    'procedure_mapping'   : model_add_forms.AddProcedureMapping,
+    'address'             : model_add_forms.AddAddressForm,
+    'server_config'       : model_add_forms.AddServerConfigurationForm
   }
 
   def get(self, request, model_name):

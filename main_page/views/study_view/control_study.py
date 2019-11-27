@@ -28,7 +28,7 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
-from main_page import forms
+from main_page.forms import base_forms
 from main_page import models
 
 # Custom type
@@ -59,7 +59,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     else:
       raise AttributeError()
   
-    GrandForm = forms.GrandControlPatient(initial={
+    GrandForm = base_forms.GrandControlPatient(initial={
       'cpr'                 : formatting.format_cpr(PatientDataset.PatientID),
       'name'                : formatting.person_name_to_name(PatientDataset.PatientName.original_string.decode()),
       'sex'                 : present_sex,
@@ -79,7 +79,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     FormSamples = []
     for sample in PatientDataset.ClearTest:
       sample_date, sample_time = formatting.splitDateTimeStr(sample.SampleTime)
-      FormSample = forms.ControlPatient6({
+      FormSample = base_forms.ControlPatient6({
         'sample_time' : sample_time,
         'sample_date' : sample_date,
         'sample_cnt'  : sample.cpm

@@ -309,25 +309,17 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
   Adds Additional bamID to the operators
 
   """
-  curr_operators = ds.get("OperatorsName")
-  if not curr_operators:
-    ds.OperatorsName = bamID
-  
-  # TODO: Resolve the encoding issue with the below code, as to allow for storage of multiple bam ids
-  # curr_operators = [ ]
-  # if 'OperatorsName' in ds:
-  #   curr_operators = ds.OperatorsName
+  if bamID:
+    curr_operators = ds.get("OperatorsName")
 
-  #   if not isinstance(curr_operators, pydicom.multival.MultiValue):
-  #     curr_operators = [curr_operators]
-
-  # if bamID and not curr_operators:
-  #   curr_operators = [bamID]
-  # elif bamID and curr_operators:
-  #   if bamID not in curr_operators:
-  #     curr_operators.append(bamID)  
-
-  # ds.OperatorsName = curr_operators
+    if type(curr_operators) == None:
+      ds.OperatorsName = bamID
+    elif type(curr_operators) == pydicom.multival.MultiValue:
+      if bamID not in curr_operators:
+        curr_operators.append(bamID)
+    elif type(curr_operators) == pydicom.valuerep.PersonName3:
+      if str(ds.OperatorsName) != bamID:
+        ds.OperatorsName = str(ds.OperatorsName) + f'\\{bamID}'
 
 
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:

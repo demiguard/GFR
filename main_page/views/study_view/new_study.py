@@ -25,7 +25,7 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
-from main_page import forms
+from main_page.forms import base_forms
 from main_page import models
 
 # Custom type
@@ -38,7 +38,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     context = {
-      'study_form': forms.NewStudy(initial={
+      'study_form': base_forms.NewStudy(initial={
           'study_date': datetime.date.today().strftime('%d-%m-%Y')
         }
       )
@@ -53,7 +53,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     study_date = request.POST['study_date'].strip()
     ris_nr = request.POST['rigs_nr'].strip()
 
-    new_study_form = forms.NewStudy(initial={
+    new_study_form = base_forms.NewStudy(initial={
       'cpr': cpr,
       'name': name,
       'study_date': study_date,

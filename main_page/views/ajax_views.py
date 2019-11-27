@@ -16,7 +16,7 @@ from main_page.libs import samba_handler
 from main_page.libs import server_config
 from main_page.libs.status_codes import *
 from main_page.libs.dirmanager import try_mkdir
-from main_page import forms
+from main_page.forms import base_forms
 
 
 logger = logging.getLogger()
@@ -29,7 +29,7 @@ class AjaxLogin(TemplateView):
   def post(self, request):
     signed_in = False
     
-    login_form = forms.LoginForm(data=request.POST)
+    login_form = base_forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
       user = authenticate(

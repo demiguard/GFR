@@ -25,7 +25,6 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
-from main_page import forms
 from main_page import models
 
 # Custom type
