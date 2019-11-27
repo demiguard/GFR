@@ -5,6 +5,7 @@ import os
 import time
 import datetime
 import random
+import glob
 from . import dicomlib
 from . import dataset_creator
 from . import server_config 
@@ -70,6 +71,7 @@ class RisFetcherThread(Thread):
     self.config = config
     self.running = False
     self.server_ae = server_ae
+    self.today = datetime.datetime.now().day
 
     # Thread is a daemon, i.e. background worker thread
     Thread.__init__(
@@ -136,7 +138,25 @@ class RisFetcherThread(Thread):
       # Re-read config for possible updates
       self.config = ris_thread_config_gen.read_config()
 
+      today = datetime.datetime.now().day
+      if today != self.today:
+        #Delete Temperary files
+        logger.info("Date changed, Removing Image Files")
+        self.today = today
+
+        hospitals = server_config.HOSPITALS.keys()
+        image_folder = server_config.IMG_RESPONS_DIR
+        for hospital in hospitals:
+          files = glob.glob(f'{image_folder}{hospital}/')
+          for f in files:
+            if os.path.exists(f):
+              if not os.path.isdir(f):
+                logging.info(f"Deleting image at {f}")
+                os.remove(f)
+
+
       time.sleep(delay)
+      #End while Loop
 
     logger.info("Terminated run loop")
 
