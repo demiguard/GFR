@@ -98,7 +98,8 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   study_type_name = enums.STUDY_TYPE_NAMES[post_req["study_type"]]
 
   # Get gender
-  gender = enums.Gender(post_req.get("sex"))
+  post_sex = post_req.get("sex")
+  gender = enums.Gender(post_sex)
 
   # Get weights before and after injection and difference between
   inj_before = post_req.get("vial_weight_before")
@@ -262,10 +263,18 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       # Default to StudyType(0)
       study_type = 0
 
-    if dataset.get("PatientSex") == 'M':
-      present_sex = 0
+    cpr = dataset.get("PatientID")
+
+    patient_sex = dataset.get("PatientSex")
+    if patient_sex:
+      present_sex = enums.GENDER_SHORT_NAMES.index(patient_sex)
     else:
-      present_sex = 1
+      # Only attempt to determine sex from cpr nr. if nothing about sex is present in the dicom dataset 
+      try:
+        present_sex = enums.GENDER_SHORT_NAMES.index(
+          clearance_math.calculate_sex(cpr))
+      except ValueError: # Failed to cast cpr nr. to int, i.e. weird cpr nr.
+        present_sex = 1
 
     try:
       patient_birthday = dataset.get("PatientBirthDate")
@@ -276,13 +285,16 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       patient_birthday = "00-00-0000"
     
     today = datetime.date.today()
-    inj_time = None
     inj_date = today.strftime('%d-%m-%Y')
+    inj_time = None
     
     ds_inj_time = dataset.get("injTime")
     if ds_inj_time:
-      inj_date = ds_inj_time.strftime('%d-%m-%Y')
-      inj_time = ds_inj_time.strftime('%H:%M')
+      ds_inj_datetime = datetime.datetime.strptime(
+        ds_inj_time, "%Y%m%d%H%M"
+      )
+      inj_date = ds_inj_datetime.strftime('%d-%m-%Y')
+      inj_time = ds_inj_datetime.strftime('%H:%M')
     else:
       inj_date = None
       inj_time = None
@@ -316,7 +328,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     grand_form = forms.FillStudyGrandForm(initial={
       'bamID'             : dataset.get("OperatorsName"),
       'birthdate'         : patient_birthday,
-      'cpr'               : dataset.get("PatientID"),
+      'cpr'               : cpr,
       'height'            : height,
       'injection_date'    : inj_date,
       'injection_time'    : inj_time,

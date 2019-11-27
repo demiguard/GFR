@@ -309,11 +309,11 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
   Adds Additional bamID to the operators
 
   """
-  print(f"KKKKKKKKKKKK: {bamID}")
   curr_operators = ds.get("OperatorsName")
   if not curr_operators:
     ds.OperatorsName = bamID
   
+  # TODO: Resolve the encoding issue with the below code, as to allow for storage of multiple bam ids
   # curr_operators = [ ]
   # if 'OperatorsName' in ds:
   #   curr_operators = ds.OperatorsName

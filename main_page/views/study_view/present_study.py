@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 
+import numpy as np
+from pathlib import Path
 import shutil
 import os
 import datetime
@@ -46,34 +48,43 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/present_study.html'
 
   def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
-    base_resp_dir = server_config.FIND_RESPONS_DIR
     hospital = request.user.department.hospital.short_name
-    
-    DICOM_directory = f"{base_resp_dir}{hospital}/"
-    try_mkdir(DICOM_directory, mk_parents=True)
 
-    exam = pacs.get_examination(request.user, accession_number, DICOM_directory)
-    
+    dataset = dicomlib.dcmread_wrapper(Path(
+      server_config.FIND_RESPONS_DIR,
+      hospital,
+      accession_number,
+      f"{accession_number}.dcm"
+    ))
+
     # Determine whether QA plot should be displayable - i.e. the study has multiple
     # test values
-    show_QA_button = (len(exam.tch_cnt) > 1)
+    n_len = lambda obj: 0 if not obj else len(obj) # Helper function which asigns length 0 to None objects
+
+    show_QA_button = (n_len(dataset.get("ClearTest")) > 1)
 
     # Display
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
     
-    pixel_arr = exam.image
-    if pixel_arr.shape[0] != 0:
-      Im = PIL.Image.fromarray(pixel_arr)
-      Im.save(f'{img_resp_dir}{accession_number}.png')
-    
+    pixel_data = dataset.get("PixelData")
+    if pixel_data:
+      pixel_data = np.frombuffer(dataset.PixelData, dtype=np.uint8)
+      pixel_data = np.reshape(pixel_data, (1080, 1920, 3)) # Reshape to presentable shape
+
+      img = PIL.Image.fromarray(pixel_data)
+      img.save(Path(
+        img_resp_dir,
+        f"{accession_number}.png"
+      ))
+
     plot_path = f"main_page/images/{hospital}/{accession_number}.png" 
     
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
-      'name': exam.name,
-      'date': exam.date,
+      'name': dataset.get("PatientName"),
+      'date': dataset.get("StudyDate"),
       'accession_number': accession_number,
       'image_path': plot_path,
       'show_QA_button': show_QA_button,

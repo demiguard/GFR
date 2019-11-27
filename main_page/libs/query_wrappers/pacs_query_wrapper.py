@@ -128,27 +128,6 @@ def move_from_pacs(user, accession_number):
     return None
 
 
-def get_examination(user, rigs_nr, resp_dir):
-  """
-  Retreive examination information based on a specified RIGS nr.
-
-  Args:
-    rigs_nr: RIGS nr of examination
-
-  Returns:
-    ExaminationInfo instance containing examination information for the specified
-    RIGS nr.
-  """
-  # Read after dictionary update
-  try:
-    obj = dicomlib.dcmread_wrapper(f'{resp_dir}{rigs_nr}/{rigs_nr}.dcm')
-  except FileNotFoundError:
-    # Get object from DCM4CHEE/PACS Database
-    obj = move_from_pacs(user, rigs_nr)
-
-  return examination_info.deserialize(obj)
-
-
 def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
   """
     Stores a dicom object in the user defined pacs (user.department.config)
