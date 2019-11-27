@@ -28,4 +28,4 @@ def init_logger():
   handler.suffix = "%Y-%m-%d"
   handler.extMatch = re.compile(r"^\d{8}$") 
   logger.addHandler(handler)
-  handler.doRollover()
+  # handler.doRollover()
