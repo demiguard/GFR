@@ -61,13 +61,6 @@ THREAD_LOG_LEVEL = logging.DEBUG
 
 
 # --- Samba Share --- #
-samba_ip = '10.49.144.2'
-samba_name = 'gfr'
-
-samba_user = 'gfr'
-samba_pass = 'gfr'
-samba_pc   = 'gfr'
-samba_share = 'data'
 
 samba_Sample = 'Samples'
 samba_backup = 'backup'

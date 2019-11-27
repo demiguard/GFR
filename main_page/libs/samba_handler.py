@@ -166,10 +166,10 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=5 ) -> List
       #Rename
       logger.info(f'Attempting to Rename {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
       try:
-        conn.rename(server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
+        conn.rename(model_server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
         logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
       except: 
-        conn.deleteFiles(server_config.samba_share, hospital_sample_folder + samba_file.filename)
+        conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + samba_file.filename)
         logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
 
     dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
@@ -220,7 +220,7 @@ def get_backup_file(
     model_server_config.samba_name
   )
 
-  conn.connect(server_config.samba_ip)
+  conn.connect(model_server_config.samba_ip)
 
   # Check if each file in hospital sub directory has the specified date
   # if it does append the file contents as a pandas.DataFrame to the return list

@@ -300,66 +300,6 @@ def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
 
-# def reverse_format_date(reverse_Date : str, sep='') -> str:
-#   """
-#     Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYY{sep}MM{sep}DD
-
-#     Args:
-#       reverse_Date: string of format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY
-
-#     Kwargs:
-#       sep: String, this string is put in between the time
-
-#     Returns
-#       dateformat : String on format YYYYMMDD
-#       Returns '' on input = ''
-
-#     Raises:
-#       ValueError : On invalid String
-#     """ 
-#   if reverse_Date == None or reverse_Date == '':
-#     return ''
-#   # Argument checking
-#   if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
-#     day, month, year = reverse_Date.split('-')
-
-#     if day.isdigit() and month.isdigit() and year.isdigit():
-#       try:
-#         #Create datetime object to see if it's a valid date
-#         datetime(int(year), int(month), int(day)) 
-#       except ValueError as  V:
-#         raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-#     else:
-#       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
-  
-#   elif reverse_Date.count('/') == 2 and len(reverse_Date) == 10:
-#     day, month, year = reverse_Date.split('/')
-
-#     if day.isdigit() and month.isdigit() and year.isdigit():
-#       try:
-#         #Create datetime object to see if it's a valid date
-#         datetime(int(year), int(month), int(day))  
-#       except ValueError as V:
-#         raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-#     else:
-#       raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
-  
-#   elif len(reverse_Date) == 8 and reverse_Date.isdigit():
-#     day = reverse_Date[:2]
-#     month = reverse_Date[2:4]
-#     year = reverse_Date[4:]
-
-#     try:
-#       #Create datetime object to see if it's a valid date
-#       datetime(int(year), int(month), int(day)) 
-#     except ValueError as V:
-#       raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-#   else:
-#     raise ValueError('Reverse_format_date: String is not on correct format')
-# # Converting format
-#   returnstring = year + sep + month + sep + day
-#   # Returning
-#   return returnstring
 
 def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
   """

@@ -21,7 +21,6 @@ from typing import Type, List, Tuple, Union, Generator, Dict
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import post_request_handler as PRH
 from main_page.libs import examination_info
 from main_page.libs import dataset_creator
 from main_page.libs import server_config

@@ -269,9 +269,12 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     try:
       patient_birthday = dataset.get("PatientBirthDate")
-      patient_birthday = datetime.datetime.strptime(
-        patient_birthday, "%Y%m%d"
-      ).strftime("%d-%m-%Y")
+      if not patient_birthday: #If birthday is not found
+        patient_birthday = formatting.convert_date_to_danish_date( clearance_math.calculate_birthdate(dataset.get("PatientID")), sep='-')
+      else:
+        patient_birthday = datetime.datetime.strptime(
+          patient_birthday, "%Y%m%d"
+        ).strftime("%d-%m-%Y")
     except ValueError:
       patient_birthday = "00-00-0000"
     
