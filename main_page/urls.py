@@ -23,7 +23,7 @@ urlpatterns = [
   
   # Images
   path('present_study/<str:accession_number>', views.PresentStudyView.as_view(), name='present_study'),
-  path('present_old_study/<str:ris_nr>', views.PresentOldStudyView.as_view(), name='present_old_study'),
+  path('present_old_study/<str:accession_number>', views.PresentOldStudyView.as_view(), name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
   path('final_present/<str:AccessionNumber>', views.FinalStudyView.as_view() , name='final_present'),
 

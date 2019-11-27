@@ -43,15 +43,15 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
   """
   template_name = 'main_page/present_old_study.html'
 
-  def get(self, request: Type[WSGIRequest], ris_nr: str) -> HttpResponse:
-    logger.info(f"Attempting to present old study with accession_number: {ris_nr}")
+  def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
+    logger.info(f"Attempting to present old study with accession_number: {accession_number}")
     current_user = request.user
     hospital = request.user.department.hospital.short_name
 
     # Search to find patient id - pick field response
     dataset = pacs.move_from_pacs(
       current_user,
-      ris_nr
+      accession_number
     )
 
     if dataset == None or not('GFR' in dataset):
@@ -64,7 +64,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       """)
       error_template = loader.get_template('main_page/present_old_study_error.html')
       error_context  = {
-        'AccessionNumber' : ris_nr
+        'AccessionNumber' : accession_number
       }
       if dataset != None:
         error_context['dataset'] = dataset
@@ -114,9 +114,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     pixel_arr = exam.image
     if pixel_arr.shape[0] != 0:
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
-      Im.save(f'{img_resp_dir}{ris_nr}.png')
+      Im.save(f'{img_resp_dir}{accession_number}.png')
     
-    plot_path = 'main_page/images/{0}/{1}.png'.format(hospital, ris_nr) 
+    plot_path = 'main_page/images/{0}/{1}.png'.format(hospital, accession_number) 
     
     context = {
       'title'     : server_config.SERVER_NAME,
