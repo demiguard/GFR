@@ -19,87 +19,65 @@ class NewStudy(forms.Form):
   study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)')
   rigs_nr = forms.CharField(label='Accession nummer')
 
-class ControlPatient1(forms.Form):
+#Form Control Study
+class GrandControlPatient(forms.Form):
+  #Init
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
-
-  cpr       = forms.CharField(label='Cpr-nr.',        required=False )
-  name      = forms.CharField(label='Navn',           required=False )
-  sex       = forms.ChoiceField(label='Køn', choices=sex_options,  required=False, disabled=True)
-  birthdate = forms.DateField(label='Fødseldato',     required=False)
-
-  cpr_confirm       = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
-  name_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  sex_confirm       = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  birthdate_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-
-
-  def __init__(self, *args, **kwargs):
-    super(ControlPatient1, self).__init__(*args, **kwargs)
-    self.fields['cpr'].widget.attrs['readonly']       = True
-    self.fields['name'].widget.attrs['readonly']      = True
-    self.fields['sex'].widget.attrs['readonly']       = True    
-    self.fields['birthdate'].widget.attrs['readonly'] = True
-
-class ControlPatient2(forms.Form):
-  height = forms.CharField(label='Højde (cm)',  widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  weight = forms.CharField(label='Vægt (kg)',   widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-
-
-  height_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  weight_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-
-  def __init__(self, *args, **kwargs):
-    super(ControlPatient2, self).__init__(*args, **kwargs)
-    self.fields['height'].widget.attrs['readonly'] = True
-    self.fields['weight'].widget.attrs['readonly'] = True
-
-class ControlPatient3(forms.Form):
-  vial_weight_before = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))  
-  vial_weight_after  = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  injection_time     = forms.TimeField(label='Injektionstidspunkt', required=False)
-  injection_date     = forms.DateField(label='InjektionsDato',      required=False, input_formats=['%d-%m-%Y'])
-
-  vial_weight_before_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  vial_weight_after_confirm  = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
-  injection_time_confirm     = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  injection_date_confirm     = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-# 
-  def __init__(self, *args, **kwargs):
-    super(ControlPatient3, self).__init__( *args, **kwargs)
-    self.fields['vial_weight_before'].widget.attrs['readonly'] = True
-    self.fields['vial_weight_after'].widget.attrs['readonly'] = True
-    self.fields['injection_time'].widget.attrs['readonly'] = True
-    self.fields['injection_date'].widget.attrs['readonly'] = True    
-
-class ControlPatient4(forms.Form):
-  
   types = [
     (0, 'En blodprøve, voksen'),
     (1, 'En blodprøve, barn'),
     (2, 'Flere blodprøver')
   ]
 
-  thin_fac   = forms.IntegerField(label='Fortyndingsfaktor', required=False, widget=forms.TextInput(attrs={'class' : "", 'step': '1'}))
-  study_type = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect(), disabled=True)  
+  #Standard fields
+  cpr                 = forms.CharField(label='Cpr-nr.',        required=False )
+  name                = forms.CharField(label='Navn',           required=False )
+  sex                 = forms.ChoiceField(label='Køn', choices=sex_options,  required=False, disabled=True)
+  birthdate           = forms.DateField(label='Fødseldato',     required=False)
+  height              = forms.CharField(label='Højde (cm)',  widget=forms.TextInput(attrs={'class' : "col-md-12"}))
+  weight              = forms.CharField(label='Vægt (kg)',   widget=forms.TextInput(attrs={'class' : "col-md-12"}))
+  vial_weight_before  = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))  
+  vial_weight_after   = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))
+  injection_time      = forms.TimeField(label='Injektionstidspunkt', required=False)
+  injection_date      = forms.DateField(label='InjektionsDato',      required=False, input_formats=['%d-%m-%Y'])
+  thin_fac            = forms.IntegerField(label='Fortyndingsfaktor', required=False, widget=forms.TextInput(attrs={'class' : "", 'step': '1'}))
+  study_type          = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect(), disabled=True)  
+  stdCnt              = forms.DecimalField(label='Standardtælletal', max_digits=1 , required=False, widget=forms.TextInput(attrs={'class' : "col-md-5"}))
+  bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
 
-  thin_fac_confirm   = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  study_type_confirm = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  #Confirmation Fields
+  cpr_confirm                 = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
+  name_confirm                = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  sex_confirm                 = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  birthdate_confirm           = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  height_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  weight_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  vial_weight_before_confirm  = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  vial_weight_after_confirm   = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
+  injection_time_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  injection_date_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  thin_fac_confirm            = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  study_type_confirm          = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
+  stdCnt_confirm              = forms.BooleanField(required=False, label="")
 
+  #Startup
   def __init__(self, *args, **kwargs):
-    super(ControlPatient4, self).__init__(*args, **kwargs)
-    self.fields['thin_fac'].widget.attrs['readonly']   = True
-    self.fields['study_type'].widget.attrs['readonly'] = True
-  
-class ControlPatient5(forms.Form):
-  stdCnt = forms.DecimalField(label='Standardtælletal', max_digits=1 , required=False, widget=forms.TextInput(attrs={'class' : "col-md-5"}))
-
-  stdCnt_confirm = forms.BooleanField(required=False, label="")
-
-  def __init__(self, *args, **kwargs):
-    super(ControlPatient5, self).__init__( *args, **kwargs)
-    self.fields['stdCnt'].widget.attrs['readonly'] = True
-    self.fields['stdCnt'].widget.attrs['class'] = 'form-input'
-    self.fields['stdCnt_confirm'].widget.attrs['class'] = 'confirm-row-checkbox'    
+    super(GrandControlPatient, self).__init__(*args, **kwargs)
+    self.fields['cpr'].widget.attrs['readonly']                 = True
+    self.fields['name'].widget.attrs['readonly']                = True
+    self.fields['sex'].widget.attrs['readonly']                 = True    
+    self.fields['birthdate'].widget.attrs['readonly']           = True
+    self.fields['height'].widget.attrs['readonly']              = True
+    self.fields['weight'].widget.attrs['readonly']              = True
+    self.fields['vial_weight_before'].widget.attrs['readonly']  = True
+    self.fields['vial_weight_after'].widget.attrs['readonly']   = True
+    self.fields['injection_time'].widget.attrs['readonly']      = True
+    self.fields['injection_date'].widget.attrs['readonly']      = True
+    self.fields['thin_fac'].widget.attrs['readonly']            = True
+    self.fields['study_type'].widget.attrs['readonly']          = True
+    self.fields['stdCnt'].widget.attrs['readonly']              = True
+    self.fields['stdCnt'].widget.attrs['class']                 = 'form-input'
+    self.fields['stdCnt_confirm'].widget.attrs['class']         = 'confirm-row-checkbox'    
 
 class ControlPatient6(forms.Form):
   sample_time = forms.TimeField(label='Dato',  required=False)
@@ -117,10 +95,6 @@ class ControlPatient6(forms.Form):
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
     self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox' 
-
-class ControlPatientConfirm(forms.Form):
-  bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
-
 
 class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Blodprøve taget kl:', required=False)

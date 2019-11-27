@@ -20,60 +20,60 @@
     <div class="form-row">
       <div class = "form-group col-md-3">
         <div class = form-row>
-            {% bootstrap_field PersonalInfo.cpr %}
-            {% bootstrap_field PersonalInfo.cpr_confirm %}
+            {% bootstrap_field GrandForm.cpr %}
+            {% bootstrap_field GrandForm.cpr_confirm %}
         </div>
         <div class = "form-row">
-          {% bootstrap_field PersonalInfo.name %}
-          {% bootstrap_field PersonalInfo.name_confirm %}
+          {% bootstrap_field GrandForm.name %}
+          {% bootstrap_field GrandForm.name_confirm %}
           
         </div>
         <div class="form-row">
-          {% bootstrap_field PersonalInfo.sex %}
-          {% bootstrap_field PersonalInfo.sex_confirm %}
+          {% bootstrap_field GrandForm.sex %}
+          {% bootstrap_field GrandForm.sex_confirm %}
         </div>
         <div class="form-row">
-          {% bootstrap_field PersonalInfo.birthdate %}
-          {% bootstrap_field PersonalInfo.birthdate_confirm %}
+          {% bootstrap_field GrandForm.birthdate %}
+          {% bootstrap_field GrandForm.birthdate_confirm %}
         </div>
       </div>
       <div class = "form-group col-md-3">
         <div class = "form-row">
-          {% bootstrap_field PatientSize.height %}
-          {% bootstrap_field PatientSize.height_confirm %}
+          {% bootstrap_field GrandForm.height %}
+          {% bootstrap_field GrandForm.height_confirm %}
         </div>
         <div class = "form-row">
-          {% bootstrap_field PatientSize.weight %}
-          {% bootstrap_field PatientSize.weight_confirm %}
+          {% bootstrap_field GrandForm.weight %}
+          {% bootstrap_field GrandForm.weight_confirm %}
         </div>
       </div>
       <div class="form-group col-md-3">
         <div class="form-row">
-          {% bootstrap_field SampleInit.vial_weight_before %}
-          {% bootstrap_field SampleInit.vial_weight_before_confirm %}  
+          {% bootstrap_field GrandForm.vial_weight_before %}
+          {% bootstrap_field GrandForm.vial_weight_before_confirm %}  
         </div>
         <div class="form-row">
-          {% bootstrap_field SampleInit.vial_weight_after %}
-          {% bootstrap_field SampleInit.vial_weight_after_confirm %}  
+          {% bootstrap_field GrandForm.vial_weight_after %}
+          {% bootstrap_field GrandForm.vial_weight_after_confirm %}  
         </div>
         <div class="form-row">
-          {% bootstrap_field SampleInit.injection_time %}
-          {% bootstrap_field SampleInit.injection_time_confirm %}  
+          {% bootstrap_field GrandForm.injection_time %}
+          {% bootstrap_field GrandForm.injection_time_confirm %}  
         </div>
         <div class="form-row">
-          {% bootstrap_field SampleInit.injection_date %}
-          {% bootstrap_field SampleInit.injection_date_confirm %}  
+          {% bootstrap_field GrandForm.injection_date %}
+          {% bootstrap_field GrandForm.injection_date_confirm %}  
         </div>
 
       </div>  
       <div class = "form-group col-md-3">
         <div class="form-row">
-          {% bootstrap_field ThinMethod.thin_fac %}
-          {% bootstrap_field ThinMethod.thin_fac_confirm %}  
+          {% bootstrap_field GrandForm.thin_fac %}
+          {% bootstrap_field GrandForm.thin_fac_confirm %}  
         </div>
         <div class="form-row">
-          {% bootstrap_field ThinMethod.study_type %} <br>
-          {% bootstrap_field ThinMethod.study_type_confirm %}  
+          {% bootstrap_field GrandForm.study_type %} <br>
+          {% bootstrap_field GrandForm.study_type_confirm %}  
         </div>
       </div>
     </div>
@@ -87,8 +87,8 @@
         <!-- Display test info -->
         Standardtælletal
         <div class="form-row">
-            {% bootstrap_field StdCnt.stdCnt layout='inline' form_group_class='col-md-8 form-group' %}
-            {% bootstrap_field StdCnt.stdCnt_confirm form_group_class='col-md-1' %}
+            {% bootstrap_field GrandForm.stdCnt layout='inline' form_group_class='col-md-8 form-group' %}
+            {% bootstrap_field GrandForm.stdCnt_confirm form_group_class='col-md-1' %}
           
         </div>
         
@@ -114,7 +114,7 @@
         </div>
         <!-- Add test info -->
         <hr>     
-        {% bootstrap_field BamID.bamID layout='inline' %}
+        {% bootstrap_field GrandForm.bamID layout='inline' %}
         {% buttons %}
           <input type="submit" name="control" value="Godkend" id="confirm">
           <input type="submit" name="control" value="Afvis" id="deny">

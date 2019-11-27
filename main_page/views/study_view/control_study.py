@@ -41,35 +41,14 @@ class ControlView(LoginRequiredMixin, TemplateView):
 
   def init_forms(self, PatientDataset : Dataset) -> Dict:
 
-    #ControlPatient1
+    #GrandControlPatient Initiation
     if PatientDataset.PatientSex == 'M':
       present_sex = 0
     else:
       present_sex = 1
-
-    FormPersonalInfo = forms.ControlPatient1(initial={
-      'cpr'       : formatting.format_cpr(PatientDataset.PatientID),
-      'name'      : formatting.person_name_to_name(PatientDataset.PatientName.original_string.decode()),
-      'sex'       : present_sex,
-      'birthdate' : formatting.convert_date_to_danish_date(PatientDataset.PatientBirthDate, sep='-')
-    })
-  
-    #ControlPatient2  
-    FormPatientSize = forms.ControlPatient2(initial={
-      'height' : PatientDataset.PatientSize * 100,
-      'weight' : PatientDataset.PatientWeight
-    })
-    
-    #ControlPatient3  
+      
     injeciton_date, injeciton_time = formatting.splitDateTimeStr( PatientDataset.injTime )
-    FormSampleInit = forms.ControlPatient3(initial={
-      'vial_weight_before' : PatientDataset.injbefore,      
-      'vial_weight_after' : PatientDataset.injafter,      
-      'injection_time' : injeciton_time,      
-      'injection_date' : injeciton_date
-    })
-    
-    #ControlPatient4  
+
     method =  PatientDataset.GFRMethod
     if(method == 'En blodprøve, Voksen' ):
       methodVal = 0
@@ -79,18 +58,23 @@ class ControlView(LoginRequiredMixin, TemplateView):
       methodVal = 2
     else:
       raise AttributeError()
-
-
-    FormThinMethod = forms.ControlPatient4(initial={
-      'thin_fac'   : PatientDataset.thiningfactor,
-      'study_type' : methodVal
+  
+    GrandForm = forms.GrandControlPatient(initial={
+      'cpr'                 : formatting.format_cpr(PatientDataset.PatientID),
+      'name'                : formatting.person_name_to_name(PatientDataset.PatientName.original_string.decode()),
+      'sex'                 : present_sex,
+      'birthdate'           : formatting.convert_date_to_danish_date(PatientDataset.PatientBirthDate, sep='-'),
+      'height'              : PatientDataset.PatientSize * 100,
+      'weight'              : PatientDataset.PatientWeight,
+      'vial_weight_before'  : PatientDataset.injbefore,      
+      'vial_weight_after'   : PatientDataset.injafter,      
+      'injection_time'      : injeciton_time,      
+      'injection_date'      : injeciton_date,
+      'thin_fac'            : PatientDataset.thiningfactor,
+      'study_type'          : methodVal,
+      'stdCnt'              : PatientDataset.stdcnt
     })
-    
-    #ControlPatient5  
-    FormStdCnt = forms.ControlPatient5(initial={
-      'stdCnt' : PatientDataset.stdcnt
-    })
-    
+
     #ControlPatient6 
     FormSamples = []
     for sample in PatientDataset.ClearTest:
@@ -101,18 +85,10 @@ class ControlView(LoginRequiredMixin, TemplateView):
         'sample_cnt'  : sample.cpm
       })
       FormSamples.append(FormSample)
-    
-    #ControlPatientConfirm
-    FormBamID = forms.ControlPatientConfirm(initial={})
 
     return {
-      'PersonalInfo' : FormPersonalInfo,
-      'PatientSize'  : FormPatientSize,      
-      'SampleInit'   : FormSampleInit,
-      'ThinMethod'   : FormThinMethod,
-      'StdCnt'       : FormStdCnt,
+      'GrandForm'    : GrandForm,
       'Samples'      : FormSamples,
-      'BamID'        : FormBamID 
     }
 
   def post(self, request, AccessionNumber):

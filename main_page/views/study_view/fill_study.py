@@ -494,7 +494,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Use parameters fillout in store_form to compute GFR of patient
     if "calculate" in request.POST:
       # Comupute body surface area
-      height = dataset.PatientSize
+      height = dataset.PatientSize * 100
       weight = dataset.PatientWeight
       BSA = clearance_math.surface_area(height, weight)
 
