@@ -95,8 +95,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     
     if 'PixelData' in dataset:
     # Reads DICOM conformant image to PIL displayable image
-      pixel_arr = = np.frombuffer(dataset.PixelData, dtype=np.uint8)
-      pixel_arr = = np.reshape(pixel_arr, (1080, 1920, 3))
+      pixel_arr = np.frombuffer(dataset.PixelData, dtype=np.uint8)
+      pixel_arr = np.reshape(pixel_arr, (1080, 1920, 3))
  
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
       Im.save(f'{img_resp_dir}{accession_number}.png')
