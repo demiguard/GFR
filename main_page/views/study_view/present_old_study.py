@@ -14,6 +14,7 @@ import PIL
 import glob
 from pandas import DataFrame
 from typing import Type, List, Tuple, Union, Generator, Dict
+import numpy as np
 
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
@@ -87,7 +88,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       previous_sample_counts
     )
 
-    today = datetime.datetime.now()
+    study_type = dataset.get("GFRMethod")
+    if study_type:
+      study_type = enums.STUDY_TYPE_NAMES.index(study_type)
 
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
