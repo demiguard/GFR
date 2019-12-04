@@ -15,6 +15,16 @@ class Alerter {
     Args:
       msg_container: container where alert messages will be placed (fetched via. jquery)
     */
+    if (msg_container.length == 0) {
+      console.error("Alerter error: got empty alert message container");
+      return;
+    }
+
+    if (!(msg_container.is("div"))) {
+      console.error("Alerter error: alert message container must be a div element");
+      return;
+    }
+
     this.msg_container = msg_container;
 
     /*
@@ -30,6 +40,7 @@ class Alerter {
     }
     */
     this.alerts = { };
+    this.to_delete = { }; // Dict of alerts which are to be permantly removed - i.e. remove their DOM element
   }
 
   add_alert(alert_id, msg, alert_type) {
@@ -73,6 +84,7 @@ class Alerter {
       return;
     }
 
+    this.to_delete[alert_id] = this.alerts[alert_id];
     delete this.alerts[alert_id];
   }
 
@@ -80,6 +92,7 @@ class Alerter {
     /*
     Remove all alerts
     */
+    this.to_delete = this.alerts;
     this.alerts = { };
   }
 
@@ -90,31 +103,39 @@ class Alerter {
     this.hide_alerts();
 
     for (var alert_id in this.alerts) {
-      let alert_dict = this.alerts[alert_id];
-      let msg = alert_dict["msg"];
-      let type = alert_dict["type"];
-
-      // Create strong indicator
-      var alert_indicator = document.createElement('strong');
-      var indicator_msg = '';
-      if (type == VALID_ALERT_TYPES[0]) {         // Warning
-        indicator_msg = 'Advarsel: ';
-      } else if (type == VALID_ALERT_TYPES[1]) {  // Danger
-        indicator_msg = 'Fejl: ';
-      } else if (type == VALID_ALERT_TYPES[2]) {  // Success
-        indicator_msg = 'Success: ';
+      let curr_alert = $("#" + alert_id);
+      if (curr_alert.length != 0) {
+        // Show alert element if previously created
+        curr_alert.show();
+      } else {
+        // Create the alert element if it hasn't been created before
+        let alert_dict = this.alerts[alert_id];
+        let msg = alert_dict["msg"];
+        let type = alert_dict["type"];
+  
+        // Create strong indicator
+        var alert_indicator = document.createElement('strong');
+        var indicator_msg = '';
+        if (type == VALID_ALERT_TYPES[0]) {         // Warning
+          indicator_msg = 'Advarsel: ';
+        } else if (type == VALID_ALERT_TYPES[1]) {  // Danger
+          indicator_msg = 'Fejl: ';
+        } else if (type == VALID_ALERT_TYPES[2]) {  // Success
+          indicator_msg = 'Success: ';
+        }
+        alert_indicator.innerHTML = indicator_msg;
+    
+        // Create alert
+        var alert_div = document.createElement('div');
+        alert_div.classList.add('alert');
+        alert_div.classList.add('alert-' + type);
+        alert_div.id = alert_id;
+        alert_div.innerHTML = msg;
+    
+        // Insert alert at top of container
+        alert_div.prepend(alert_indicator);
+        this.msg_container.prepend(alert_div);
       }
-      alert_indicator.innerHTML = indicator_msg;
-  
-      // Create alert
-      var alert_div = document.createElement('div');
-      alert_div.classList.add('alert');
-      alert_div.classList.add('alert-' + type);
-      alert_div.innerHTML = msg;
-  
-      // Insert alert at top of container
-      alert_div.prepend(alert_indicator);
-      this.msg_container.prepend(alert_div);
     }
   }
 
@@ -122,7 +143,16 @@ class Alerter {
     /*
     Clear the message container
     */
-    this.msg_container.empty();
+    // Permantly remove the DOM element if it's in this.to_delete
+    for (var alert_id in this.to_delete) {
+      $("#" + alert_id).remove();
+    }
+    this.to_delete = { };
+
+    // Hide the alert if it's present in this.alerts
+    for (var alert_id in this.alerts) {
+      $("#" + alert_id).hide();
+    }
   }
 }
 
@@ -135,6 +165,39 @@ const ALERT_CLASS_MAPPINGS = {
 }
 
 class FieldAlerter extends Alerter {
+  add_field_alert(field, alert_type) {
+    /*
+    Adds a field alert (color the field to indicate) to a specific field
+
+    Args:
+      field: jquery object of the field to add alert to
+      alert_type: type of alert to indicate on the field
+
+    Remark:
+      The field alerts are done by adding a class to the field
+      which then has CSS defined in alerter.css specifying the 
+      coloring of the field
+    */    
+    if (!(alert_type in ALERT_CLASS_MAPPINGS)) {
+      console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
+      return;
+    }
+    
+    field.addClass(ALERT_CLASS_MAPPINGS[alert_type]);
+  }
+
+  remove_field_alert(field) {
+    /*
+    Remove field alert classes from a field
+
+    Args:
+      field: jquery object of the field
+    */
+    for (var alert_type in ALERT_CLASS_MAPPINGS) {
+      field.removeClass(alert_type);
+    }
+  }
+  
   add_input_handler(field, alert_msg, alert_type, func, func_args) {
     /*
     Adds an input handler on the field which checks if an
@@ -166,7 +229,8 @@ class FieldAlerter extends Alerter {
     field.bind(
       'input', 
       {
-        "FA_class": this,
+        "FA_class": this,         // "this" when passed as an argument refers to the FieldAlerter instance
+                                  // it's passed on to the bind handler, since "this" in the handler will be different
         "alert_id": alert_id,
         "alert_msg": alert_msg,
         "alert_type": alert_type,
@@ -209,9 +273,17 @@ class FieldAlerter extends Alerter {
   }
 }
 
+
 function within_bound(val, args) {
   /*
+  Checks if given value is with a specified bound
 
+  Args:
+    val: integer or float value to check against
+    args: dict containing arguments "low" and "high"
+
+  Returns:
+    True, if val is within low and high. False otherwise
   */
   let low  = args["low"];
   let high = args["high"];
