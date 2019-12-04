@@ -10,6 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
+"""
+
+AUTH_LDAP_SERVER_URI = "ldap://ldap.forumsys.com"
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,dc=example,dc=com"
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+"""
+from ldap import SCOPE_SUBTREE
+from django_auth_ldap.config import LDAPSearch
+
 import os
 try:
     from key import SECRET_KEY # Imports sec. key
@@ -28,8 +40,29 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['gfr2.petnet.rh.dk', 'gfr2', '172.16.186.190', '193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
 
+AUTH_LDAP_SERVER_URI = "ldap://localhost:10389"
+#AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,dc=testpartition,dc=com"
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+# Below LDAP connection bind_dn (username) and bind_password are left intentially blank, since no administrative account is currently setup on the ldap server
+AUTH_LDAP_BIND_DN = ""
+AUTH_LDAP_BIND_PASSWORD = ""
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "ou=User,dc=testpartition,dc=com", SCOPE_SUBTREE, "sn=%(user)s"
+)
+
 AUTH_USER_MODEL = 'main_page.User'
-AUTHENTICATION_BACKENDS = ['main_page.backends.SimpleBackend']
+
+"""
+Order of below auth backends is important, since they are checkin the order
+they occur in.
+"""
+AUTHENTICATION_BACKENDS = [
+    'main_page.backends.SimpleBackend',
+    'django_auth_ldap.backend.LDAPBackend'
+]
+
 LOGIN_URL = '/'
 
 # Application definition

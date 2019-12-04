@@ -36,6 +36,12 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
   template_name = "main_page/list_studies.html"
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+    user = request.user
+
+    # Current handling of LDAP authenticated users
+    if not getattr(user, "hospital", None):
+      return HttpResponse(f"No hospital in user: {request.user}")
+
     # Fetch all registered studies
     curr_department = request.user.department
     hospital_shortname = curr_department.hospital.short_name

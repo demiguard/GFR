@@ -28,4 +28,10 @@ def init_logger():
   handler.suffix = "%Y-%m-%d"
   handler.extMatch = re.compile(r"^\d{8}$") 
   logger.addHandler(handler)
-  # handler.doRollover()
+  
+  # Django-auth-ldap logging for debugging connection to ApacheDS LDAP server
+  # This logger setup will output debugging information to the console and
+  # not the main GFR logging file
+  ldap_logger = logging.getLogger('django_auth_ldap')
+  ldap_logger.addHandler(logging.StreamHandler())
+  ldap_logger.setLevel(logging.DEBUG)
