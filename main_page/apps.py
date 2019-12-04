@@ -42,7 +42,7 @@ class MainPageConfig(AppConfig):
     from main_page.libs import ris_thread
 
     RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config(), ae_title)
-    RT.start()
+    #RT.start()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")
     
