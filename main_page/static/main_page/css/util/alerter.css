@@ -13,4 +13,5 @@
 /* Success fields */
 .success-field {
   border: 2px solid greenyellow;
+  background-color: lightgreen;
 }
