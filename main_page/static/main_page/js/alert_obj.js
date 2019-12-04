@@ -194,7 +194,7 @@ class FieldAlerter extends Alerter {
       field: jquery object of the field
     */
     for (var alert_type in ALERT_CLASS_MAPPINGS) {
-      field.removeClass(alert_type);
+      field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
     }
   }
   
@@ -219,7 +219,7 @@ class FieldAlerter extends Alerter {
     // Ensure that field has an id
     var alert_id;
     try {
-      alert_id = field.attr("id");
+      alert_id = "alert_" + field.attr("id"); // Prepend "alert_" as not to give the alert the same id as the field
     } catch (TypeError) {
       console.error("Alert error: Unable to add input handler, field doesn't have an id.");
       return;
@@ -263,10 +263,12 @@ class FieldAlerter extends Alerter {
       // Alert has been triggered
       if (!(alert_id in FA_class.alerts)) {
         FA_class.add_alert(alert_id, alert_msg, alert_type);
+        FA_class.add_field_alert($(this), alert_type);
       }
     } else {
       // Success - don't display an alert
       FA_class.remove_alert(alert_id);
+      FA_class.remove_field_alert($(this));
     }
 
     FA_class.show_alerts();
