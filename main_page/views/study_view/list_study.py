@@ -39,7 +39,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     user = request.user
 
     # Current handling of LDAP authenticated users
-    if not getattr(user, "hospital", None):
+    if not getattr(user, "department", None):
       return HttpResponse(f"No hospital in user: {request.user}")
 
     # Fetch all registered studies
