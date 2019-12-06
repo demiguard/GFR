@@ -4,14 +4,33 @@
   background-color: #FFEEBA;
 }
 
+.warn-field:focus {
+  border: 2px solid #F5DF9C;
+  background-color: #FFEEBA;
+  box-shadow: 0 0 0 0.2rem rgba(255, 238, 186, 0.20);;
+}
+
 /* Error fields */
 .danger-field {
   border: 2px solid lightcoral;
   background-color: #F7A9A9;
 }
 
+.danger-field:focus {
+  border: 2px solid lightcoral;
+  background-color: #F7A9A9;
+  box-shadow: 0 0 0 0.2rem rgba(244, 67, 54, 0.20);
+}
+
+
 /* Success fields */
 .success-field {
   border: 2px solid greenyellow;
-  background-color: lightgreen;
+  background-color: #e5ffe5;
+}
+
+.success-field:focus {
+  border: 2px solid greenyellow;
+  background-color: #e5ffe5;
+  box-shadow: 0 0 0 0.2rem rgba(229, 255, 229, 0.20);
 }
