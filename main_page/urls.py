@@ -39,6 +39,7 @@ urlpatterns = [
   
   # New RESTful api design
   path('api/search', SearchEndpoint.as_view(), name='search_api'),
+
   path('api/user', UserEndpoint.as_view(), name='user'),
   path('api/user/<int:obj_id>', UserEndpoint.as_view(), name='user'),
   path('api/hospital', HospitalEndpoint.as_view(), name='hospital'),
@@ -61,4 +62,5 @@ urlpatterns = [
   path('api/address/<int:obj_id>', AddressEndpoint.as_view(), name='address'),
   path('api/server_config', ServerConfigurationEndpoint.as_view(), name='server_config'),
   path('api/server_config/<int:obj_id>', ServerConfigurationEndpoint.as_view(), name='server_config'),
+ 
 ]

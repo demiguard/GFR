@@ -154,7 +154,12 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=5 ) -> List
     conn.retrieveFile(model_server_config.samba_share, fullpath, temp_file)
 
     temp_file.seek(0)
-    pandas_ds, datestring, protocol = open_csv_file(temp_file)
+    try:
+      pandas_ds, datestring, protocol = open_csv_file(temp_file)
+    except Exception as error_message:
+      logger.error(f"Encountered {error_message} at file: {fullpath}")
+      temp_file.close()
+      continue
 
     # File Cleanup
     logger.debug(datestring)
@@ -251,9 +256,12 @@ def get_backup_file(
         continue
 
       temp_file.seek(0)
-
-      df, _, _ = open_csv_file(temp_file)
-      file_contents.append(df)
+      try:
+        df, _, _ = open_csv_file(temp_file)
+        file_contents.append(df)
+      except: ParserError as error:
+        temp_file.close()
+        continue
 
       temp_file.close()
     else:

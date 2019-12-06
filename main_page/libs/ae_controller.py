@@ -9,6 +9,7 @@ from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs import dicomlib
 from main_page.libs import server_config
+from main_page.libs import dataset_creator
 from main_page import models
 
 logger = logging.getLogger()
@@ -82,7 +83,7 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
   return association
 
 
-def __handle_resp(resp, process, *args, **kwargs):
+def __handle_find_resp(resp, process, *args, **kwargs):
   """
   Passes each successful response on to the user defined process function
 
@@ -97,6 +98,24 @@ def __handle_resp(resp, process, *args, **kwargs):
       pass # Ignore, then release association
     else:
       logger.info(f"Failed to transfer dataset, with status: {status.Status}")
+
+
+def __handle_move_resp(resp, process, *args, **kwargs):
+  """
+  Passes each successful response on to the user defined process function
+
+  Args:
+    resp: response generator from e.g. C_FIND, C_MOVE, etc.
+    process: function for processing successful response identifiers (datasets)
+  """
+  for status, identifier in resp:
+    if status.Status == DATASET_AVAILABLE: #YEAH SO THIS IS CODE FOR FIND NOT MOVE
+      pass # C-move, regullary sends small updates about what is going on, these are not really useful
+    elif status.Status == TRANSFER_COMPLETE:
+      process(identifier, *args, **kwargs) #The file have been moved successfully
+    else:
+      logger.info(f"Failed to transfer dataset, with status: {status.Status}")
+
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
@@ -120,7 +139,7 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
   """
   logger.info("Sending C_FIND query")
   resp = association.send_c_find(query_ds, query_model=query_model)
-  __handle_resp(resp, process, *args, **kwargs)
+  __handle_find_resp(resp, process, *args, **kwargs)
 
 
 def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model='S', *args, **kwargs) -> None:
@@ -145,46 +164,4 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
   """
   logger.info("Sending C_MOVE query")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
-  __handle_resp(resp, process, *args, **kwargs)
-
-
-def save_resp_to_file(
-  dataset, 
-  active_studies_dir: str=server_config.FIND_RESPONS_DIR,
-  deleted_studies_dir: str=server_config.DELETED_STUDIES_DIR,
-  **kwargs) -> None:
-  """
-  Processing function for saving successful response to files
-
-  Args:
-    dataset: response dataset
-
-  Kwargs:
-    logger: logger to use
-    hospital_shortname: current hospital shortname e.g. RH
-  """
-  if 'active_studies_dir' in kwargs:
-    active_studies_dir = kwargs['active_studies_dir']
-
-  if 'deleted_studies_dir' in kwargs:
-    deleted_studies_dir = kwargs['deleted_studies_dir']
-
-  logger = kwargs['logger']
-  hospital_shortname = kwargs['hospital_shortname']
-
-  try:
-    dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}"  # Check if in active_dicom_objects
-    deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}" # Check if in deleted_studies
-
-    file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
-    file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
-
-    if not file_exists and not file_handled:
-      try_mkdir(dataset_dir, mk_parents=True)
-
-      dicomlib.save_dicom(f"{dataset_dir}/{dataset.AccessionNumber}.dcm", dataset)
-      logger.info(f"Successfully save dataset: {dataset_dir}")
-    else:
-      logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
-  except AttributeError as e:
-    logger.error(f"failed to load/save dataset, with error: {e}")
+  __handle_move_resp(resp, process, *args, **kwargs)

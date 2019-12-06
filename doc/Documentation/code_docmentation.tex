@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage[T1]{fontenc} %thanks's daleif
+\usepackage[utf8]{inputenc}
+\usepackage[danish]{babel}						% Dokumentets sprog
+
+
+\author{Christoffer Vilstrup Jensen, Simon Surland Andersen}
+\title{Brugervejledning}
+\begin{document}
+
+
+\section{Add a panel to admin panel / Database}
+
+\subsubsection*{Introduction}
+To enable database manipulation / editting without using tools like DB broswer and their like. There's a admin panel, that allows editting of DB entries. The following is a guide on how to edit the codebase s.t. it can display a new table
+
+\begin{enumerate}
+	\item Add the database schema by creating a model class in \textit{main\_page/models.py} file.
+	\item Update the database by calling the django commands make migration and migrate.
+	\item Create the class \textbf{Edit<model name>Form} corosponding to the edit form and the class \textbf{Add<Model name>Form} corosponding to the adding form in the \textit{main\_page/forms.py} file
+	\item Add an Endpoint by adding the class \textbf{<model name>EndPoint} in the \textit{main\_page/views/api/api.py} file.
+	\item Update \textit{main\_page/url.py} with the endpoint created in step 4, remember to create 2 endpoints for displaying and for accessing an object. 
+	\item In the classes \textbf{AdminPanelEditView} and \textbf{AdminPanelAddview} found in the \textit{main\_page/views/admin\_panel.py} file, add an entry with to the dictionary \textbf{MODEL\_NAME\_MAPPINGS} with the model from step one in both classes. Add an Entry to the dictionary in the:\\ \textbf{EDIT\_FORM\_MAPPINGS} / \textbf{ADD\_FORM\_MAPPING} in the respective classes with the form you created in step 3.
+	 \item Update the javascript in the files \textit{main\_page/static/main\_page/js/admin\_panel.js}, \textit{main\_page/static/main\_page/js/admin\_panel\_add.js} and\\ \textit{main\_page/static/main\_page/js/admin\_panel\_edit.js}
+	 \item Add the option to the button in the admin
+\end{enumerate} 
+Total list of files that require to be edittede 
+\begin{itemize}
+	\item[] main\_page/
+	\begin{itemize}
+		\item[] forms/
+		\begin{itemize}
+			\item model_add_forms.py
+			\item model_edit_forms.py
+		\end{itemize}	
+		\item models.py
+		\item urls.py
+		\item[] views/:
+		\begin{itemize}
+			\item admin\_panel.py
+			\item[] api/
+			\begin{itemize}
+				\item api.py
+			\end{itemize}
+		\end{itemize}
+		\item[] static/main\_page/js/
+		\begin{itemize}
+			\item admin\_panel.js
+			\item admin\_panel\_add.js
+			\item admin\_panel\_edit.js
+		\end{itemize}
+		\item[] template/main\_page/admin_panel.html
+	\end{itemize}
+	
+\end{itemize}
+\textbf{Author note:} Legends speak of a programmer who claim it's simple to add extra tables. Some even speak of the famous 'GOOD design'. HETETIC I say.
+\end{document}

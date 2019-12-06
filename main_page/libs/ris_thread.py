@@ -6,6 +6,7 @@ import time
 import datetime
 import random
 import glob
+import shutil
 from . import dicomlib
 from . import dataset_creator
 from . import server_config 
@@ -15,6 +16,7 @@ from . import ae_controller
 from main_page import models
 from .dirmanager import try_mkdir
 from threading import Thread
+from typing import Type
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
@@ -82,7 +84,113 @@ class RisFetcherThread(Thread):
     )
 
     logger.info("initialization done")
-  
+
+  def handle_c_move(dataset, *args, **kwargs):
+    """
+      This is the handler from pacs response C-move
+      REMEMBER a C-find doesn't return the file, but instead a status update when the reciever have recieved the file
+      In this case the reciever is this server
+    """
+    accession_number = kwargs['accession_number']
+    dataset_dir      = kwargs['dataset_dir']
+
+    target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
+    destination = f"{dataset_dir}{accession_number}.dcm"
+
+    shutil.move(target_file, destination)
+
+  def get_historic_examination(dataset, *args, **kwargs): 
+    """
+      This is handler for handling the C-find response from Pacs
+
+      NOTE: To designers, you might end up fucked since, if there's more than one response to the same study.
+      Now you may think, why would i get two studies for a unique identifier, however my sweet sweet summer child, world is cruel like that
+
+    """
+    move_association = kwargs['move_association']
+    department       = kwargs['department']
+    dataset_dir      = kwargs['dataset_dir'] 
+    accession_number = dataset.AccessionNumber
+
+    ae_controller.send_move(
+      move_association,
+      department.config.pacs_calling,
+      dataset,
+      self.handle_c_move,
+      accession_number=accession_number,
+      dataset_dir=dataset_dir
+    )
+
+  def save_resp_to_file(dataset, **kwargs) -> None:
+    """
+    Processing function for saving successful response to files
+
+    Args:
+      dataset: response dataset
+
+    Kwargs:
+      logger: logger to use
+      hospital_shortname: current hospital shortname e.g. RH
+
+    Throws:
+      Keyerror: When not called with correct parameters  
+    """
+
+    department        = kwargs['department'])
+    find_association  = kwargs['find_association']
+
+    hospital_shortname = department.hospital.short_name
+
+    active_studies_dir  = server_config.FIND_RESPONS_DIR
+    deleted_studies_dir = server_config.DELETED_STUDIES_DIR
+
+    try:
+      dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"  # Check if in active_dicom_objects
+      deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/" # Check if in deleted_studies
+
+      file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
+      file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+
+      if not file_exists and not file_handled:
+        try_mkdir(dataset_dir, mk_parents=True)
+
+        dicomlib.save_dicom(f"{dataset_dir}{dataset.AccessionNumber}.dcm", dataset)
+
+        #Here We need to retrieve History
+        move_association = ae_controller.connect(
+          department.configpacs_ip,
+          int(department.config.pacs_port),
+          department.config.pacs_calling,
+          department.config.pacs_aet,
+          MOVEStudyRootQueryRetrieveInformationModel
+        )
+
+        #Create the query dataset
+        history_query_set = dataset_creator.create_search_dataset(
+          '',
+          dataset.PatientID,
+          '',
+          ''
+        )
+        #Send the C-find to pacs
+        ae_controller.send_find(
+          find_association,
+          history_query_set,
+          self.get_historic_examination,
+          dataset_dir=dataset_dir,
+          department=department,
+          move_association=move_association
+        )
+
+        move_association.release()
+
+        logger.info(f"Successfully save dataset: {dataset_dir}")
+     else:
+        logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
+   except AttributeError as e:
+      logger.error(f"failed to load/save dataset, with error: {e}")
+
+
 
   def run(self):
     """
@@ -94,49 +202,53 @@ class RisFetcherThread(Thread):
     
     while self.running:
       logger.info("RIS thread sending response")
-      
-      # Extract configuration parameters
-      try:
-        ris_ip = self.config['ris_ip']
-        ris_port = int(self.config['ris_port'])
-        ris_AET = self.config['ris_AET']
-        delay_min = int(self.config['Delay_minimum'])
-        delay_max = int(self.config['Delay_maximum'])
-        AE_titles = self.config['AE_items']
+      hospitals = [] #This is filled later
 
-        assert delay_min <= delay_max
-      except KeyError as KE:
-        raise AttributeError(
-          f"""Unable to read from config, '{KE}'.
-          self.config={self.config}"""
+      # A bit of Documentation:
+      # So for each department, we want to query to see if there's any new studies
+      # For each Study we want to Retrieve the patient history from pacs,
+      # This process requires a C-find and a C-Move
+      for department in models.Department.objects.all():
+        if department.hospital.short_name:
+          hospitals.append(department.hospital.short_name) #This is used later for image deletion
+
+        # Send C-FIND requests to RIS
+        ris_association = ae_controller.connect(
+          department.config.ris_ip,
+          department.config.ris_port,
+          department.config.ris_calling,
+          department.config.ris_AET,
+          ae_controller.FINDStudyRootQueryRetrieveInformationModel
         )
 
-      # Send C-FIND requests to RIS
-      association = ae_controller.connect(
-        ris_ip,
-        ris_port,
-        self.server_ae,
-        ris_AET,
-        ae_controller.FINDStudyRootQueryRetrieveInformationModel
-      )
+        pacs_association = ae_controller.connect(
+          department.config.pacs_ip,
+          department.config.pacs_port,
+          department.config.pacs_calling,
+          department.config.pacs_AET,
+          ae_controller.FINDStudyRootQueryRetrieveInformationModel
+        )
 
-      for AET, hospital_shortname in AE_titles.items():
-        query_dataset = dataset_creator.generate_ris_query_dataset(AET)        
+        query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)        
 
         ae_controller.send_find(
-          association, 
+          ris_association, 
           query_dataset, 
-          ae_controller.save_resp_to_file,
+          self.save_resp_to_file,
           logger=logger,
-          hospital_shortname=hospital_shortname
+          department=department,
+          find_association=pacs_association
         )
+
+        ris_association.release()
+        pacs_association.release()
+      #End Department for loop
 
       # Sleep the thread
       delay = random.uniform(delay_min, delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay} sec.')
 
       # Re-read config for possible updates
-      self.config = ris_thread_config_gen.read_config()
 
       today = datetime.datetime.now().day
       if today != self.today:
@@ -144,10 +256,9 @@ class RisFetcherThread(Thread):
         logger.info("Date changed, Removing Image Files")
         self.today = today
 
-        hospitals = server_config.HOSPITALS.keys()
         image_folder = server_config.IMG_RESPONS_DIR
         for hospital in hospitals:
-          files = glob.glob(f'{image_folder}{hospital}/')
+          files = glob.glob(f'{image_folder}{hospital}/*')
           for f in files:
             if os.path.exists(f):
               if not os.path.isdir(f):
