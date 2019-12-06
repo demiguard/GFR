@@ -85,3 +85,10 @@ STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7', 'BFHKFN
 
 SERVER_NAME    = 'GFRCalc'
 SERVER_VERSION = 'v1.0.7'
+
+
+
+# --- ris_thread --- #
+# Minimum and maximum number of minutes to sleep ris_thread for
+SLEEP_DELAY_MIN = 10
+SLEEP_DELAY_MAX = 20

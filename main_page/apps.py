@@ -1,8 +1,9 @@
 from django.apps import AppConfig
 
+from main_page.libs import server_config
+
 import threading
 import logging
-
 
 
 class MainPageConfig(AppConfig):
@@ -27,9 +28,13 @@ class MainPageConfig(AppConfig):
     from . import Startup
     from . import models
 
+    # AET of the server (used as AET for SCP server for receiving studies 
+    # i.e. we move to this AET)
     ae_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
     Startup.init_logger()
+
+    # Setup SCP server logger
     logger = logging.getLogger(name='ServerLogger')
     logger.info('Started Logger')
     try:
@@ -38,10 +43,13 @@ class MainPageConfig(AppConfig):
     except Exception as e:
       logger.info('Failed to start SCP server because:{0}'.format(str(e)))
 
-    from main_page.libs import ris_thread_config_gen 
     from main_page.libs import ris_thread
 
-    RT = ris_thread.RisFetcherThread(ris_thread_config_gen.read_config(), ae_title)
+    RT = ris_thread.RisFetcherThread(
+      ae_title, 
+      server_config.SLEEP_DELAY_MIN, 
+      server_config.SLEEP_DELAY_MAX
+    )
     #RT.start()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")

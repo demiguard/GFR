@@ -259,7 +259,7 @@ def get_backup_file(
       try:
         df, _, _ = open_csv_file(temp_file)
         file_contents.append(df)
-      except ParserError as error:
+      except ParserError:
         temp_file.close()
         continue
 

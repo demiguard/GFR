@@ -38,6 +38,8 @@ var helper = (function() {
 
   Returns:
     true if the string is a number, false otherwise.
+
+  TODO: Make this use commas instread of dots (or both?)
   */
   var is_number = function(str) {
     let re_number = /-?\d+\.?\d*/;
@@ -45,19 +47,41 @@ var helper = (function() {
   };
 
   // Validates a given time string (format: tt:mm)
+  // TODO: Rename to is_iso8601_time
   var valid_time_format = function(time_str) {
     let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
     return TIME_FORMAT.test(time_str);
   };
 
-  // Validates a given date string (format: YYYY-MM-DD)
+  /*
+  Validates if a given date string is in the format: YYYY-MM-DD (ISO 8601)
+  
+  Args:
+    date_str: string to validate against
+
+  Remark:
+    For specific information see:
+    https://www.iso.org/iso-8601-date-and-time-format.html
+
+  TODO: Rename this to is_iso8601_date
+  */
   var valid_date_format = function(date_str) {
     let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
     return DATE_FORMAT.test(date_str);
   };
 
-  // Validates a given date string (format: DD-MM-YYYY)
-  var valid_danish_date_format = function(date_str) {
+  /*
+  Validates if a given date string is in the format: DD-MM-YYYY (danish format)
+
+  Args:
+    date_str: string to validate against
+
+  Remarks:
+    For specifications see ISO 8601:2005 or the section on
+    "Denmark" in the table on:
+    https://en.wikipedia.org/wiki/Date_format_by_country
+  */
+  var is_danish_date = function(date_str) {
     let DATE_FORMAT = /^([0-2][0-9]|[3][0-1])-([0][1-9]|[1][0-2])-[0-9]{4}$/;
     return DATE_FORMAT.test(date_str);
   };
@@ -110,7 +134,7 @@ var helper = (function() {
     is_number: is_number,
     valid_time_format: valid_time_format,
     valid_date_format: valid_date_format,
-    valid_danish_date_format: valid_danish_date_format,
+    is_danish_date: is_danish_date,
     auto_char: auto_char,
     convert_danish_date_to_date_format: convert_danish_date_to_date_format,
     convert_date_to_danish_date_format: convert_date_to_danish_date_format

@@ -97,7 +97,7 @@ function add_date_checking() {
       $(date_ids[i][0]),
       date_ids[i][1],
       function(field) {
-        return !helper.valid_danish_date_format(field.val());
+        return !helper.valid_date_format(field.val());
       }
     );
   }
@@ -180,7 +180,7 @@ function get_backup_measurements(){
   // Extract url parameters
   var date = helper.convert_danish_date_to_date_format($('#id_dateofmessurement').val());
   
-  if (helper.valid_danish_date_format(date)) {
+  if (helper.valid_date_format(date)) {
     console.log('Not a valid date format');
     return;
   }

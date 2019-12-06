@@ -1,25 +1,19 @@
 import pynetdicom
 from pydicom import Dataset
 
-import os
 import logging
-from typing import Type
+from typing import Type, Union
 
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
-from main_page.libs import dicomlib
-from main_page.libs import server_config
-from main_page.libs import dataset_creator
-from main_page import models
 
 logger = logging.getLogger()
-
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 
-def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
+def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str):
   """
   Establish a connection to an AET
 
@@ -39,6 +33,10 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
     This function doesn't handle releasing of the associations, this must be
     done by the caller.
   """
+  # Handle both integer and string ports
+  if isinstance(port, str):
+    port = int(port)
+
   try:
     ae = pynetdicom.AE(ae_title=calling_aet)
   except ValueError:
@@ -90,12 +88,17 @@ def __handle_find_resp(resp, process, *args, **kwargs):
   Args:
     resp: response generator from e.g. C_FIND, C_MOVE, etc.
     process: function for processing successful response identifiers (datasets)
+
+  Remarks:
+    TRANSFER_COMPLETE is the last thing received from a C-FIND, 
+    since it's empty we can just ignore it and 
+    release the association if no futher queries are to be made.
   """
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
       process(identifier, *args, **kwargs)
     elif status.Status == TRANSFER_COMPLETE:
-      pass # Ignore, then release association
+      pass
     else:
       logger.info(f"Failed to transfer dataset, with status: {status.Status}")
 
@@ -107,15 +110,20 @@ def __handle_move_resp(resp, process, *args, **kwargs):
   Args:
     resp: response generator from e.g. C_FIND, C_MOVE, etc.
     process: function for processing successful response identifiers (datasets)
+
+  Remarks:
+    C-move, regullary sends small updates about what is going on
+    this is processed under DATASET_AVAILABLE. Thus we just ignore them.
+
+    Once a TRANSFER_COMPLETE is received the file has been moved successfully
   """
   for status, identifier in resp:
-    if status.Status == DATASET_AVAILABLE: #YEAH SO THIS IS CODE FOR FIND NOT MOVE
-      pass # C-move, regullary sends small updates about what is going on, these are not really useful
+    if status.Status == DATASET_AVAILABLE:
+      pass
     elif status.Status == TRANSFER_COMPLETE:
-      process(identifier, *args, **kwargs) #The file have been moved successfully
+      process(identifier, *args, **kwargs)
     else:
       logger.info(f"Failed to transfer dataset, with status: {status.Status}")
-
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:

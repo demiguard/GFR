@@ -7,16 +7,17 @@ import datetime
 import random
 import glob
 import shutil
-from . import dicomlib
-from . import dataset_creator
-from . import server_config 
-from . import ris_thread_config_gen
-from . import ae_controller
-
-from main_page import models
-from .dirmanager import try_mkdir
+from pathlib import Path
 from threading import Thread
+
 from typing import Type
+
+from main_page.libs import dicomlib
+from main_page.libs import server_config
+from main_page.libs import ae_controller
+from main_page.libs import dataset_creator
+from main_page import models
+from main_page.libs.dirmanager import try_mkdir
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
@@ -41,7 +42,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 
   return logger
 
-# Get the ris threads logger
+# Get the ris threads logger in seperate file
 logger = setup_logger(
   "ris-thread-log", 
   f"{server_config.LOG_DIR}ris_thread.log", 
@@ -51,18 +52,40 @@ logger = setup_logger(
 
 class RisFetcherThread(Thread):
   """
-  Thread subclass for retreiving studies periodically, as to avoid problems with
-  study information first being entered the day after the study was actually made
+  Thread subclass for peridically retreiving studies from RIS 
+  to be shown on list_studies.
+
+  Once a study has been received it's prior history for GFR studies is 
+  retreieved aswell, since it takes a long time to fetch the previous history
+  for the patient, we do it here such that the history is ready once a new
+  study is to be computed. (we refer to this a "worklist-prefetching")
+
+  This class is meant to be used as a singleton class
   """
 
-  def __init__(self, config, server_ae):
+  __instance = None
+  @staticmethod
+  def get_instance(server_ae, delay_min, delay_max):
     """
-    Initializes a fetcher thread instance
+    Retreives or instantiates the thread (this is a singleton class)
 
     Args:
-      config: dictionary containing setup parameters for the thread to query RIS
+  
     """
-    logger.info("starting initialization of thread")
+    if RisFetcherThread.__instance == None:
+      RisFetcherThread(server_ae, delay_min, delay_max)
+    return RisFetcherThread.__instance
+
+  def __init__(self, server_ae: str, delay_min, delay_max):
+    """
+    Initializes the thread instance
+
+    Args:
+      server_ae: server AET (SCP server AET)
+      delay_min: min. number of minutes to sleep for
+      delay_max: max. number of minutes to sleep for
+    """
+    logger.info("Starting initialization of thread")
 
     # Ensure singleton pattern
     if RisFetcherThread.__instance != None:
@@ -70,12 +93,14 @@ class RisFetcherThread(Thread):
     else:
       RisFetcherThread.__instance = self
 
-    self.config = config
+    # Set instance variables
     self.running = False
     self.server_ae = server_ae
     self.today = datetime.datetime.now().day
+    self.delay_min = delay_min
+    self.delay_max = delay_max
 
-    # Thread is a daemon, i.e. background worker thread
+    # This is a daemon, i.e. background worker thread
     Thread.__init__(
       self,
       name='RisFetcherThread',
@@ -83,13 +108,13 @@ class RisFetcherThread(Thread):
       group=None
     )
 
-    logger.info("initialization done")
+    logger.info("Initialization done")
 
-  def handle_c_move(dataset, *args, **kwargs):
+  def handle_c_move(self, dataset, *args, **kwargs):
     """
-      This is the handler from pacs response C-move
-      REMEMBER a C-find doesn't return the file, but instead a status update when the reciever have recieved the file
-      In this case the reciever is this server
+      This is the handler from pacs response C-MOVE
+      REMEMBER a C-MOVE doesn't return the file, but instead a status update when the reciever have recieved the file
+      In this case the reciever is the SCP server which just stores it under server_config.SEARCH_DIR
     """
     accession_number = kwargs['accession_number']
     dataset_dir      = kwargs['dataset_dir']
@@ -97,23 +122,23 @@ class RisFetcherThread(Thread):
     target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
     destination = f"{dataset_dir}{accession_number}.dcm"
 
-    shutil.move(target_file, destination)
+    if not os.path.exists(destination):
+      shutil.move(target_file, destination)
+    else:
+      logger.critical(f"Got duplicate move response from PACS with accession number: {accession_number}")
 
-  def get_historic_examination(dataset, *args, **kwargs): 
+  def get_historic_examination(self, dataset, *args, **kwargs): 
     """
-      This is handler for handling the C-find response from Pacs
-
-      NOTE: To designers, you might end up fucked since, if there's more than one response to the same study.
-      Now you may think, why would i get two studies for a unique identifier, however my sweet sweet summer child, world is cruel like that
-
+    Handler for C-FIND query from PACS to get the historic data
     """
-    move_association = kwargs['move_association']
     department       = kwargs['department']
     dataset_dir      = kwargs['dataset_dir'] 
     accession_number = dataset.AccessionNumber
+    
+    pacs_move_association = kwargs['pacs_move_association']
 
     ae_controller.send_move(
-      move_association,
+      pacs_move_association,
       department.config.pacs_calling,
       dataset,
       self.handle_c_move,
@@ -121,7 +146,7 @@ class RisFetcherThread(Thread):
       dataset_dir=dataset_dir
     )
 
-  def save_resp_to_file(dataset, **kwargs) -> None:
+  def save_resp_to_file(self, dataset, **kwargs):
     """
     Processing function for saving successful response to files
 
@@ -135,9 +160,9 @@ class RisFetcherThread(Thread):
     Throws:
       Keyerror: When not called with correct parameters  
     """
-
-    department        = kwargs['department'])
-    find_association  = kwargs['find_association']
+    department = kwargs['department']
+    pacs_find_association = kwargs['pacs_find_association']
+    pacs_move_association = kwargs['pacs_move_association']
 
     hospital_shortname = department.hospital.short_name
 
@@ -145,52 +170,62 @@ class RisFetcherThread(Thread):
     deleted_studies_dir = server_config.DELETED_STUDIES_DIR
 
     try:
-      dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"  # Check if in active_dicom_objects
-      deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/" # Check if in deleted_studies
+      dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
+      deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
 
       file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
       file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
 
+      # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
       if not file_exists and not file_handled:
         try_mkdir(dataset_dir, mk_parents=True)
 
         dicomlib.save_dicom(f"{dataset_dir}{dataset.AccessionNumber}.dcm", dataset)
 
-        #Here We need to retrieve History
-        move_association = ae_controller.connect(
-          department.configpacs_ip,
-          int(department.config.pacs_port),
-          department.config.pacs_calling,
-          department.config.pacs_aet,
-          MOVEStudyRootQueryRetrieveInformationModel
-        )
-
-        #Create the query dataset
+        # Now retrieve the previous history
         history_query_set = dataset_creator.create_search_dataset(
           '',
           dataset.PatientID,
           '',
+          '',
           ''
         )
-        #Send the C-find to pacs
+
+        # Send the C-FIND to pacs
         ae_controller.send_find(
-          find_association,
+          pacs_find_association,
           history_query_set,
           self.get_historic_examination,
           dataset_dir=dataset_dir,
           department=department,
-          move_association=move_association
+          pacs_move_association=pacs_move_association,
         )
 
-        move_association.release()
-
         logger.info(f"Successfully save dataset: {dataset_dir}")
-     else:
+      else:
         logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
-   except AttributeError as e:
+    except AttributeError as e:
       logger.error(f"failed to load/save dataset, with error: {e}")
 
+  def try_delete_old_images(self, hospitals):
+    """
+    Delete old generated images if more than a day has passed
+    """
+    today = datetime.datetime.now().day
+    if today != self.today:
+      # Delete Temperary files
+      logger.info("Date changed, Removing Image Files")
+      self.today = today
 
+      for hospital in hospitals:
+        hosp_image_dir = Path(
+          server_config.IMG_RESPONS_DIR,
+          hospital
+        )
+
+        if hosp_image_dir.is_dir():
+          shutil.rmtree(hosp_image_dir)
+          logging.info(f"Deleting image directory: {hosp_image_dir}")
 
   def run(self):
     """
@@ -202,17 +237,18 @@ class RisFetcherThread(Thread):
     
     while self.running:
       logger.info("RIS thread sending response")
-      hospitals = [] #This is filled later
 
-      # A bit of Documentation:
-      # So for each department, we want to query to see if there's any new studies
-      # For each Study we want to Retrieve the patient history from pacs,
-      # This process requires a C-find and a C-Move
+      # For each hospital, we want to query to see if there's any new studies
+      # for each study we want to retrieve the patient history from pacs,
+      # this process requires a combination of C-FIND and C-MOVE queries
+      hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
+
       for department in models.Department.objects.all():
-        if department.hospital.short_name:
-          hospitals.append(department.hospital.short_name) #This is used later for image deletion
-
         # Send C-FIND requests to RIS
+        # All associations are established here, since moving them into each
+        # processing function would mean that a new connection is opened and
+        # closed after each dataset has been processed, thus putting
+        # unnecessary stress on PACS
         ris_association = ae_controller.connect(
           department.config.ris_ip,
           department.config.ris_port,
@@ -221,12 +257,20 @@ class RisFetcherThread(Thread):
           ae_controller.FINDStudyRootQueryRetrieveInformationModel
         )
 
-        pacs_association = ae_controller.connect(
+        pacs_find_association = ae_controller.connect(
           department.config.pacs_ip,
           department.config.pacs_port,
           department.config.pacs_calling,
           department.config.pacs_AET,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel
+        )
+
+        pacs_move_association = ae_controller.connect(
+          department.configpacs_ip,
+          department.config.pacs_port,
+          department.config.pacs_calling,
+          department.config.pacs_aet,
+          ae_controller.MOVEStudyRootQueryRetrieveInformationModel
         )
 
         query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)        
@@ -237,39 +281,23 @@ class RisFetcherThread(Thread):
           self.save_resp_to_file,
           logger=logger,
           department=department,
-          find_association=pacs_association
+          pacs_find_association=pacs_find_association,
+          pacs_move_association=pacs_move_association
         )
 
         ris_association.release()
-        pacs_association.release()
-      #End Department for loop
-
+        pacs_find_association.release()
+        pacs_move_association.release()
+      
+      self.try_delete_old_images(hospitals)
+      
       # Sleep the thread
-      delay = random.uniform(delay_min, delay_max) * 60
+      delay = random.uniform(self.delay_min, self.delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay} sec.')
-
-      # Re-read config for possible updates
-
-      today = datetime.datetime.now().day
-      if today != self.today:
-        #Delete Temperary files
-        logger.info("Date changed, Removing Image Files")
-        self.today = today
-
-        image_folder = server_config.IMG_RESPONS_DIR
-        for hospital in hospitals:
-          files = glob.glob(f'{image_folder}{hospital}/*')
-          for f in files:
-            if os.path.exists(f):
-              if not os.path.isdir(f):
-                logging.info(f"Deleting image at {f}")
-                os.remove(f)
-
-
+      
       time.sleep(delay)
-      #End while Loop
 
-    logger.info("Terminated run loop")
+    logger.info("Terminated ris_thread run loop")
 
   def apply_kill_to_self(self):
     """
@@ -277,16 +305,3 @@ class RisFetcherThread(Thread):
     """
     self.running = False
     logger.info("Killing self")
-
-  __instance = None
-  @staticmethod
-  def get_instance(config):
-    """
-    Retreives or instantiates the thread (this is a singleton class)
-
-    Args:
-      config: initial configuration for the thread to use
-    """
-    if RisFetcherThread.__instance == None:
-      RisFetcherThread(config)
-    return RisFetcherThread.__instance
