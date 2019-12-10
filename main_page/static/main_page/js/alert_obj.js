@@ -198,7 +198,28 @@ class FieldAlerter extends Alerter {
     }
   }
   
-  add_input_handler(field, alert_msg, alert_type, func, func_args) {
+  field_alert_exists(alert_type) {
+    /*
+    Checks if there exists a field with a given alert type
+
+    Args:
+      alert_type: type of alert to check if exists
+
+    Returns:
+      True, if there exists a field which has an alert. False, otherwise
+    */
+    if (!(alert_type in ALERT_CLASS_MAPPINGS)) {
+      console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
+      return;
+    }
+
+    let alert_class = ALERT_CLASS_MAPPINGS[alert_type];
+
+    let alert_objs = $("." + alert_class);
+    return (alert_objs.length != 0);
+  }
+
+  add_input_field_alert(field, alert_msg, alert_type, func, func_args) {
     /*
     Adds an input handler on the field which checks if an
     alert should be displayed
@@ -227,7 +248,7 @@ class FieldAlerter extends Alerter {
 
     // Add the bind handler
     field.bind(
-      'input', 
+      "input",
       {
         "FA_class": this,         // "this" when passed as an argument refers to the FieldAlerter instance
                                   // it's passed on to the bind handler, since "this" in the handler will be different
@@ -237,7 +258,11 @@ class FieldAlerter extends Alerter {
         "func": func, 
         "func_args": func_args
       },
-      this.input_handler);
+      this.input_handler
+    );
+
+    // Initial trigger of the newly registered event
+    field.trigger("input");
   }
 
   input_handler(event) {
@@ -273,22 +298,4 @@ class FieldAlerter extends Alerter {
 
     FA_class.show_alerts();
   }
-}
-
-
-function within_bound(val, args) {
-  /*
-  Checks if given value is with a specified bound
-
-  Args:
-    val: integer or float value to check against
-    args: dict containing arguments "low" and "high"
-
-  Returns:
-    True, if val is within low and high. False otherwise
-  */
-  let low  = args["low"];
-  let high = args["high"];
-
-  return (val >= low && val <= high);
 }

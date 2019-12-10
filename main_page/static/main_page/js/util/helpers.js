@@ -1,22 +1,20 @@
 var helper = (function() {
-  /*
-  Checks if a value is within a given threshold
-
-  Args:
-    val: value to check on
-    min_val: minimum value
-    max_val: maximum value
-
-  Returns:
-    true if the value is within the bounds, false otherwise
-  */
-  var is_within_threshold = function(val, min_val, max_val) {
-    if (val < min_val || val > max_val) {
-      return false;
-    }
-
-    return true;
-  };
+  var within_bound = function(val, args) {
+    /*
+    Checks if given value is with a specified bound
+  
+    Args:
+      val: integer or float value to check against
+      args: dict containing arguments "low" and "high"
+  
+    Returns:
+      True, if val is within low and high. False otherwise
+    */
+    let low  = args["low"];
+    let high = args["high"];
+  
+    return (val >= low && val <= high);
+  }
 
   /*
   Helper function to round of floating point numbers
@@ -128,8 +126,24 @@ var helper = (function() {
     });
   };
 
+  /*
+  Disables all enter key form submission if focused on a field
+  */
+  var disable_enter_form_submit = function() {
+    let ENTER_KEYCODE = 13;
+
+    $('input').on('keyup keypress', function(e) {
+      var keyCode = e.keyCode || e.which;
+      
+      if (keyCode === ENTER_KEYCODE) { 
+        e.preventDefault();
+        return false;
+      }
+    });
+  };
+
   return {
-    is_within_threshold: is_within_threshold,
+    within_bound: within_bound,
     round_to: round_to,
     is_number: is_number,
     valid_time_format: valid_time_format,
@@ -137,6 +151,7 @@ var helper = (function() {
     is_danish_date: is_danish_date,
     auto_char: auto_char,
     convert_danish_date_to_date_format: convert_danish_date_to_date_format,
-    convert_date_to_danish_date_format: convert_date_to_danish_date_format
+    convert_date_to_danish_date_format: convert_date_to_danish_date_format,
+    disable_enter_form_submit: disable_enter_form_submit
   };
 })();
