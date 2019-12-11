@@ -615,7 +615,7 @@ function add_threshold_checking(field_alerter) {
   let id_thresholds = [
     {'id': '#id_height',              'min_val': 40,    'max_val': 210},
     {'id': '#id_weight',              'min_val': 30,    'max_val': 150},
-    {'id': '#id_vial_weight_before',  'min_val': 3,     'max_val': 5},
+    {'id': '#id_vial_weight_before',  'min_val': 2,     'max_val': 5},
     {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
     {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 10000},
     {'id': '#id_standcount',          'min_val': 0,     'max_val': 100000}
@@ -629,14 +629,52 @@ function add_threshold_checking(field_alerter) {
       curr_field, 
       FIELD_NAME_MAPPINGS[curr_row.id] + " ligger udenfor det forventede interval.",
       "warning",
-      helper.within_bound,
-      {
-        "low": curr_row.min_val,
-        "high": curr_row.max_val
+      function(val) {
+        // Safely handle commas in the fields before checking
+        let f_val = helper.str_to_float(val);
+
+        return helper.within_bound(f_val, curr_row.min_val, curr_row.max_val);
       }
     );
   }
 }
+
+function add_inj_comparison(field_alerter) {
+  /*
+  Adds checking for injection weight fields
+  
+  Args:
+    field_alerter: field alerter used to register the input handler
+  */
+  field_alerter.add_input_field_alert(
+    $("#id_vial_weight_after"),
+    "Sprøjtevægt efter injektion kan ikke være større end eller lig med sprøjtevægt før.",
+    "danger",
+    function(val) {
+      // Safely handle commas in the fields before checking
+      let comp_field = $("#id_vial_weight_before");
+      let comp_val = helper.str_to_float(comp_field.val());
+      let f_val = helper.str_to_float(val);
+
+      return ((f_val < comp_val) || !val);
+    }
+  );
+
+  field_alerter.add_input_field_alert(
+    $("#id_vial_weight_before"),
+    "Sprøjtevægt før injektion kan ikke være mindre end eller lig med sprøjtevægt før.",
+    "danger",
+    function(val) {
+      // Safely handle commas in the fields before checking
+      let comp_field = $("#id_vial_weight_after");
+      let comp_val = helper.str_to_float(comp_field.val());
+      let f_val = helper.str_to_float(val);      
+
+      return ((f_val >= comp_val) || !val);
+    }
+  );
+}
+
 
 
 $(function() {
@@ -648,5 +686,7 @@ $(function() {
   let field_alerter = new FieldAlerter($("#error-message-container"));
 
   add_threshold_checking(field_alerter);
+
+  add_inj_comparison(field_alerter);
 
 });

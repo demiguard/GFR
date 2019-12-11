@@ -182,7 +182,7 @@ class FieldAlerter extends Alerter {
       console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
       return;
     }
-    
+
     field.addClass(ALERT_CLASS_MAPPINGS[alert_type]);
   }
 
@@ -219,7 +219,7 @@ class FieldAlerter extends Alerter {
     return (alert_objs.length != 0);
   }
 
-  add_input_field_alert(field, alert_msg, alert_type, func, func_args) {
+  add_input_field_alert(field, alert_msg, alert_type, func) {
     /*
     Adds an input handler on the field which checks if an
     alert should be displayed
@@ -230,7 +230,6 @@ class FieldAlerter extends Alerter {
       alert_type: type of alert to trigger
       func      : checking function, which takes the value of the field as input, 
                   returning false triggers the alert
-      func_args : arguments to pass to the checking function
     
     Remark:
       Uses the id of the field as the unique id for
@@ -255,8 +254,7 @@ class FieldAlerter extends Alerter {
         "alert_id": alert_id,
         "alert_msg": alert_msg,
         "alert_type": alert_type,
-        "func": func, 
-        "func_args": func_args
+        "func": func
       },
       this.input_handler
     );
@@ -275,6 +273,8 @@ class FieldAlerter extends Alerter {
     Remark:
       "this" is the field and not the class in this scope,
       seeing as this an event handler for fields
+
+
     */
     // Extract functions and corresponding args.
     let FA_class     = event.data.FA_class;
@@ -282,20 +282,19 @@ class FieldAlerter extends Alerter {
     let alert_msg    = event.data.alert_msg;
     let alert_type   = event.data.alert_type;
     let func         = event.data.func;
-    let func_args    = event.data.func_args;
 
-    if (!func($(this).val(), func_args)) {
-      // Alert has been triggered
-      if (!(alert_id in FA_class.alerts)) {
-        FA_class.add_alert(alert_id, alert_msg, alert_type);
-        FA_class.add_field_alert($(this), alert_type);
-      }
-    } else {
-      // Success - don't display an alert
-      FA_class.remove_alert(alert_id);
-      FA_class.remove_field_alert($(this));
-    }
+    // if (!func($(this).val())) {
+    //   // Alert has been triggered
+    //   if (!(alert_id in FA_class.alerts)) {
+    //     FA_class.add_alert(alert_id, alert_msg, alert_type);
+    //     FA_class.add_field_alert($(this), alert_type);
+    //   }
+    // } else {
+    //   // Success - don't display an alert
+    //   FA_class.remove_alert(alert_id);
+    //   FA_class.remove_field_alert($(this));
+    // }
 
-    FA_class.show_alerts();
+    // FA_class.show_alerts();
   }
 }

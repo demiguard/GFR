@@ -1,5 +1,5 @@
 var helper = (function() {
-  var within_bound = function(val, args) {
+  var within_bound = function(val, low, high) {
     /*
     Checks if given value is with a specified bound
   
@@ -8,12 +8,23 @@ var helper = (function() {
       args: dict containing arguments "low" and "high"
   
     Returns:
-      True, if val is within low and high. False otherwise
+      True, if val is within low and high or if val is empty. False otherwise
     */
-    let low  = args["low"];
-    let high = args["high"];
-  
-    return (val >= low && val <= high);
+    return ((val >= low && val <= high) || !val);
+  }
+
+  var str_to_float = function(str) {
+    /*
+    Casts strings to float (with comma handling)
+
+    Args:
+      str: string to convert
+
+    Returns:
+      The float value of the string, NaN if unable to parse
+    */
+    let new_str = str.replace(",", ".");
+    return parseFloat(new_str);
   }
 
   /*
@@ -29,15 +40,13 @@ var helper = (function() {
   };
 
   /*
-  Checks if a string only contains digits or '.' (floats)
+  Checks if a string only contains digits '.' or ',' (floats)
 
   Args:
     str: string to check on
 
   Returns:
     true if the string is a number, false otherwise.
-
-  TODO: Make this use commas instread of dots (or both?)
   */
   var is_number = function(str) {
     let re_number = /-?\d+\.?\d*/;
@@ -144,6 +153,7 @@ var helper = (function() {
 
   return {
     within_bound: within_bound,
+    str_to_float: str_to_float,
     round_to: round_to,
     is_number: is_number,
     valid_time_format: valid_time_format,
