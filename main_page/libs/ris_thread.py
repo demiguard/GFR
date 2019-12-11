@@ -266,7 +266,7 @@ class RisFetcherThread(Thread):
         )
 
         pacs_move_association = ae_controller.connect(
-          department.configpacs_ip,
+          department.config.pacs_ip,
           department.config.pacs_port,
           department.config.ris_calling,
           department.config.pacs_aet,
