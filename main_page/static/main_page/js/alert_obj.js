@@ -186,16 +186,18 @@ class FieldAlerter extends Alerter {
     field.addClass(ALERT_CLASS_MAPPINGS[alert_type]);
   }
 
-  remove_field_alert(field) {
+  remove_field_alert(field, alert_type) {
     /*
     Remove field alert classes from a field
 
     Args:
       field: jquery object of the field
+      alert_type: alert type to remove
     */
-    for (var alert_type in ALERT_CLASS_MAPPINGS) {
-      field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
-    }
+    // for (var alert_type in ALERT_CLASS_MAPPINGS) {
+    //   field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
+    // }
+    field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
   }
   
   field_alert_exists(alert_type) {
@@ -283,18 +285,22 @@ class FieldAlerter extends Alerter {
     let alert_type   = event.data.alert_type;
     let func         = event.data.func;
 
-    // if (!func($(this).val())) {
-    //   // Alert has been triggered
-    //   if (!(alert_id in FA_class.alerts)) {
-    //     FA_class.add_alert(alert_id, alert_msg, alert_type);
-    //     FA_class.add_field_alert($(this), alert_type);
-    //   }
-    // } else {
-    //   // Success - don't display an alert
-    //   FA_class.remove_alert(alert_id);
-    //   FA_class.remove_field_alert($(this));
-    // }
+    if (!func($(this).val())) {
+      // Alert has been triggered
+      if (alert_id in FA_class.alerts) {
+        if (alert_type == "danger" && $(this).hasClass(ALERT_CLASS_MAPPINGS["warning"])) {
+          FA_class.remove_alert(alert_id);
+          FA_class.remove_field_alert($(this));
+        }
+      }
+      FA_class.add_alert(alert_id, alert_msg, alert_type);
+      FA_class.add_field_alert($(this), alert_type);
+    } else {
+      // Success - don't display an alert the current alert
+      FA_class.remove_alert(alert_id);
+      FA_class.remove_field_alert($(this), alert_type);
+    }
 
-    // FA_class.show_alerts();
+    FA_class.show_alerts();
   }
 }

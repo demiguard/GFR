@@ -646,6 +646,12 @@ function add_inj_comparison(field_alerter) {
   Args:
     field_alerter: field alerter used to register the input handler
   */
+
+  // Variables used to handle the triggering states for interfield checking
+  // i.e. they're used to avoid infinite loops of triggering eachother
+  var trigger_after  = true;
+  var trigger_before = true;
+
   field_alerter.add_input_field_alert(
     $("#id_vial_weight_after"),
     "Sprøjtevægt efter injektion kan ikke være større end eller lig med sprøjtevægt før.",
@@ -655,6 +661,12 @@ function add_inj_comparison(field_alerter) {
       let comp_field = $("#id_vial_weight_before");
       let comp_val = helper.str_to_float(comp_field.val());
       let f_val = helper.str_to_float(val);
+
+      if (trigger_before) {
+        trigger_after = false;
+        comp_field.trigger("input");
+        trigger_after = true;
+      }
 
       return ((f_val < comp_val) || !val);
     }
@@ -669,6 +681,12 @@ function add_inj_comparison(field_alerter) {
       let comp_field = $("#id_vial_weight_after");
       let comp_val = helper.str_to_float(comp_field.val());
       let f_val = helper.str_to_float(val);      
+
+      if (trigger_after) {
+        trigger_before = false;
+        comp_field.trigger("input");
+        trigger_before = true;
+      }
 
       return ((f_val >= comp_val) || !val);
     }
