@@ -50,7 +50,7 @@ class MainPageConfig(AppConfig):
       server_config.SLEEP_DELAY_MIN, 
       server_config.SLEEP_DELAY_MAX
     )
-    RT.start()
+    #RT.start()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")
     
