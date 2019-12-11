@@ -253,7 +253,7 @@ class RisFetcherThread(Thread):
           department.config.ris_ip,
           department.config.ris_port,
           department.config.ris_calling,
-          department.config.ris_AET,
+          department.config.ris_aet,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel
         )
 
@@ -261,7 +261,7 @@ class RisFetcherThread(Thread):
           department.config.pacs_ip,
           department.config.pacs_port,
           department.config.ris_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
-          department.config.pacs_AET,
+          department.config.pacs_aet,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel
         )
 
