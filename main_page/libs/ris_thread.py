@@ -260,7 +260,7 @@ class RisFetcherThread(Thread):
         pacs_find_association = ae_controller.connect(
           department.config.pacs_ip,
           department.config.pacs_port,
-          department.config.pacs_calling,
+          department.config.ris_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
           department.config.pacs_AET,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel
         )
@@ -268,7 +268,7 @@ class RisFetcherThread(Thread):
         pacs_move_association = ae_controller.connect(
           department.configpacs_ip,
           department.config.pacs_port,
-          department.config.pacs_calling,
+          department.config.ris_calling,
           department.config.pacs_aet,
           ae_controller.MOVEStudyRootQueryRetrieveInformationModel
         )

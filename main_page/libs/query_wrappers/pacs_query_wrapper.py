@@ -32,7 +32,7 @@ def move_from_pacs(user, accession_number):
       None or Dataset - The dataset is always single
   """
 
-  ae_title = user.department.config.pacs_calling
+  ae_title = user.department.config.ris_calling #BAD CODE
 
   # # # Get file from pacs # # #
   find_dataset = dataset_creator.create_search_dataset(
@@ -54,12 +54,12 @@ def move_from_pacs(user, accession_number):
   find_assoc = find_ae.associate(
     user.department.config.pacs_ip,
     int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    ae_title=user.department.config.pacs_aet #TODO bad code, see ris thread
   )
   move_assoc = move_ae.associate(
     user.department.config.pacs_ip,
     int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    ae_title=user.department.config.pacs_aet #TODO bad code, see ris thread
   )
   if find_assoc.is_established and move_assoc.is_established:
     
@@ -353,7 +353,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   association = ae_controller.connect(
     config.pacs_ip,
     int(config.pacs_port),
-    config.pacs_calling,
+    config.ris_calling, 
     config.pacs_aet,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
