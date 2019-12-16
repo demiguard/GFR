@@ -54,8 +54,9 @@ var helper = (function() {
   };
 
   // Validates a given time string (format: tt:mm)
-  // TODO: Rename to is_iso8601_time
-  var valid_time_format = function(time_str) {
+  var is_valid_time = function(time_str) {
+    if (!time_str) { return true; }
+
     let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
     return TIME_FORMAT.test(time_str);
   };
@@ -69,10 +70,8 @@ var helper = (function() {
   Remark:
     For specific information see:
     https://www.iso.org/iso-8601-date-and-time-format.html
-
-  TODO: Rename this to is_iso8601_date
   */
-  var valid_date_format = function(date_str) {
+  var is_valid_date = function(date_str) {
     let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
     return DATE_FORMAT.test(date_str);
   };
@@ -89,6 +88,8 @@ var helper = (function() {
     https://en.wikipedia.org/wiki/Date_format_by_country
   */
   var is_danish_date = function(date_str) {
+    if (!date_str) { return true; }
+
     let DATE_FORMAT = /^([0-2][0-9]|[3][0-1])-([0][1-9]|[1][0-2])-[0-9]{4}$/;
     return DATE_FORMAT.test(date_str);
   };
@@ -156,8 +157,8 @@ var helper = (function() {
     str_to_float: str_to_float,
     round_to: round_to,
     is_number: is_number,
-    valid_time_format: valid_time_format,
-    valid_date_format: valid_date_format,
+    is_valid_time: is_valid_time,
+    is_valid_date: is_valid_date,
     is_danish_date: is_danish_date,
     auto_char: auto_char,
     convert_danish_date_to_date_format: convert_danish_date_to_date_format,

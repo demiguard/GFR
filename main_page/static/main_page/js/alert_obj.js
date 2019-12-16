@@ -5,6 +5,19 @@ const VALID_ALERT_TYPES = [
   'success'
 ]
 
+// Alert to class name mappings, i.e. classes assigned to fields whenever an alert is triggered
+const FIELD_ALERT_CLASS_MAPPINGS = {
+  'warning': 'warn-field',
+  'danger': 'danger-field',
+  'success': 'success-field',
+}
+
+const ALERT_CLASS_MAPPINGS = {
+  'warning': 'alert-warn',
+  'danger': 'alert-danger',
+  'success': 'alert-success',
+}
+
 
 class Alerter {
   /*
@@ -154,15 +167,40 @@ class Alerter {
       $("#" + alert_id).hide();
     }
   }
+
+  alert_type_exists(alert_type, check_container) {
+    /*
+    Checks if there is at least one alert of a given type
+
+    Args:
+      alert_type: type of alert to check if exists
+      check_container: if true, then the given msg_container is check as well
+
+    Returns:
+      True, if an alert of the given type exists. False, otherwise
+    */
+
+    // Check internal alert dict.
+    for (var key in this.alerts) {
+      let curr_alert = this.alerts[key];
+      if (curr_alert.type == alert_type) {
+        return true;
+      }
+    }
+
+    // Check container if specified
+    if (check_container) {
+      let ts = "#" + this.msg_container.attr("id") + " ." + ALERT_CLASS_MAPPINGS[alert_type];
+      console.debug(ts);
+      if ($(ts).length != 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
 
-
-// Alert to class name mappings, i.e. classes assigned to fields whenever an alert is triggered
-const ALERT_CLASS_MAPPINGS = {
-  'warning': 'warn-field',
-  'danger': 'danger-field',
-  'success': 'success-field',
-}
 
 class FieldAlerter extends Alerter {
   add_field_alert(field, alert_type) {
@@ -178,12 +216,12 @@ class FieldAlerter extends Alerter {
       which then has CSS defined in alerter.css specifying the 
       coloring of the field
     */    
-    if (!(alert_type in ALERT_CLASS_MAPPINGS)) {
+    if (!(alert_type in FIELD_ALERT_CLASS_MAPPINGS)) {
       console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
       return;
     }
 
-    field.addClass(ALERT_CLASS_MAPPINGS[alert_type]);
+    field.addClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
   }
 
   remove_field_alert(field, alert_type) {
@@ -194,10 +232,10 @@ class FieldAlerter extends Alerter {
       field: jquery object of the field
       alert_type: alert type to remove
     */
-    // for (var alert_type in ALERT_CLASS_MAPPINGS) {
-    //   field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
+    // for (var alert_type in FIELD_ALERT_CLASS_MAPPINGS) {
+    //   field.removeClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
     // }
-    field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
+    field.removeClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
   }
   
   field_alert_exists(alert_type) {
@@ -210,12 +248,12 @@ class FieldAlerter extends Alerter {
     Returns:
       True, if there exists a field which has an alert. False, otherwise
     */
-    if (!(alert_type in ALERT_CLASS_MAPPINGS)) {
+    if (!(alert_type in FIELD_ALERT_CLASS_MAPPINGS)) {
       console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
       return;
     }
 
-    let alert_class = ALERT_CLASS_MAPPINGS[alert_type];
+    let alert_class = FIELD_ALERT_CLASS_MAPPINGS[alert_type];
 
     let alert_objs = $("." + alert_class);
     return (alert_objs.length != 0);
@@ -288,7 +326,7 @@ class FieldAlerter extends Alerter {
     if (!func($(this).val())) {
       // Alert has been triggered
       if (alert_id in FA_class.alerts) {
-        if (alert_type == "danger" && $(this).hasClass(ALERT_CLASS_MAPPINGS["warning"])) {
+        if (alert_type == "danger" && $(this).hasClass(FIELD_ALERT_CLASS_MAPPINGS["warning"])) {
           FA_class.remove_alert(alert_id);
           FA_class.remove_field_alert($(this));
         }
