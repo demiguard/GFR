@@ -693,7 +693,38 @@ function add_inj_comparison(field_alerter) {
   );
 }
 
+function add_datetime_checking(field_alerter) {
+  /*
+  Adds checking on time fields to ensure that dates and timestamps are correctly formatted
+  
+  Args:
+    field_alerter: field alerter used to register the input handler
+  */
+  // Mappings from field ids to their danish display text for alert messages
+  let ID_NAME_MAPPINGS = { 
 
+  };
+
+  let time_ids = [
+    { "id": "#id_injection_time", "alert_type": "danger"},
+  ];
+
+  let date_ids = {
+
+  };
+  
+  for (var i = 0; i < time_ids.length; i++) {
+    
+    
+    // alerter.field_auto_warn(
+    //   $(time_ids[i][0]),
+    //   time_ids[i][1],
+    //   function(field) {
+    //     return !helper.valid_time_format(field.val());
+    //   }
+    // );
+  }
+}
 
 $(function() {
   console.log("Init.");
@@ -707,4 +738,6 @@ $(function() {
 
   add_inj_comparison(field_alerter);
 
+
+  add_datetime_checking(field_alerter);
 });
