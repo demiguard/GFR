@@ -9,7 +9,7 @@ logger = logging.getLogger()
 pacs_ip = '10.143.128.234'
 pacs_port = 104
 pacs_aet = 'VIPDICOM'
-my_ae = 'HVHFBERGHK7'
+my_ae = 'RHKFANMGFR2'
 
 ae = AE(ae_title=my_ae)
 
@@ -34,7 +34,7 @@ assoc = ae.associate(pacs_ip, pacs_port, ae_title=pacs_aet)
 if assoc.is_established:
   logger.info('Connection established')
 
-  response = assoc.send_c_move(ds, my_ae, query_model='S')
+  response = assoc.send_c_move(ds, 'RHKFANMGFR2', query_model='S')
 
   logger.info('Accepted Context')
   for context in assoc.accepted_contexts:

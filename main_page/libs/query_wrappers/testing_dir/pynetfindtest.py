@@ -17,16 +17,18 @@ ds.add_new(0x00080020, 'DA', '') #Study date
 ds.add_new(0x00080050, 'SH', '') #Accession Number
 ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
 ds.add_new(0x00100010, 'PN', '') #Patitent name
-ds.add_new(0x00100020, 'LO', 'QP-3841309') #PatientID / CPR NUMBER
+ds.add_new(0x00100020, 'LO', '') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
 #Create Sequences
 Sequenceset = pydicom.Dataset() # ScheduledProcedureStepSequence
 #Add Sequence Tags
 Sequenceset.add_new(0x00080060, 'CS', '')
-Sequenceset.add_new(0x00400001, 'AE', '')
+Sequenceset.add_new(0x00400001, 'AE', 'RH_EDTA')
 Sequenceset.add_new(0x00400002, 'DA', '')
-Sequenceset.add_new(0x00401005, 'LO', '')
+
+Sequenceset.add_new(0x00400006, 'PN', '')
+Sequenceset.add_new(0x00400009, 'LO', '')
 Sequenceset.add_new(0x00400011, 'SH','')
 
 #Done adding Sequence Tags
