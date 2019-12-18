@@ -72,6 +72,7 @@ var helper = (function() {
     https://www.iso.org/iso-8601-date-and-time-format.html
   */
   var is_valid_date = function(date_str) {
+    console.log(date_str);
     let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
     return DATE_FORMAT.test(date_str);
   };

@@ -1,19 +1,3 @@
-// /*
-// Performs initialization of required modules
-// */
-// function initialize_modules() {
-//   // Set the container to display errors in
-//   alerter.init_alerter($('#error-message-container'));
-
-//   csv_handler.initialize_handler(alerter);
-//   csv_handler.init_row_selector('.csv_row');
-//   csv_handler.init_add_test();
-//   csv_handler.init_reset_selected($('#reset-selected'));
-//   csv_handler.init_add_standard($('#add-standard'));
-//   csv_handler.init_study_method();
-// }
-
-
 
 // // Wait until document ready
 // $(function() {
@@ -212,7 +196,7 @@ function get_backup_measurements() {
       let history_container = $('#history_container');
 
       // Clear previous data
-      csv_handler.clear_selected_rows();
+      //csv_handler.clear_selected_rows();
       history_container.empty();
 
       // Generate New table
@@ -312,7 +296,7 @@ function get_backup_measurements() {
       }
 
       // Apply js to newly genereated Table
-      csv_handler.init_row_selector('.history_csv_row');
+      //csv_handler.init_row_selector('.history_csv_row');
 
       // Hide current table - if it was created
       let oldAccordion = document.getElementById("accordionContainer");
@@ -341,7 +325,7 @@ function remove_backup_measurement() {
   */
 
   // Reset Selection before we go back
-  csv_handler.clear_selected_rows();
+  //csv_handler.clear_selected_rows();
 
   // Display either the old accordion or the server generated error message
   let old_accordion = document.getElementById("accordionContainer");
@@ -654,9 +638,10 @@ Performs initialization of required modules
 */
 function initialize_csv_handler(alerter) {
   // Set the container to display errors in
-  csv_handler.initialize_handler(alerter);
-  csv_handler.init_row_selector('.csv_row');
-  csv_handler.init_add_test();
+  let csv_handler = new CSVHandler(alerter);
+
+  csv_handler.init_row_selector(".csv_row");
+  csv_handler.init_add_button_handler($('#add-test'), $('#add-empty-value'));
   csv_handler.init_reset_selected($('#reset-selected'));
   csv_handler.init_add_standard($('#add-standard'));
   csv_handler.init_study_method();

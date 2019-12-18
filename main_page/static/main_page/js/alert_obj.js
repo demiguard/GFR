@@ -93,7 +93,7 @@ class Alerter {
       alert_id: id if
     */
     if (!(alert_id in this.alerts)) {
-      console.error("Alert Error: Failed to delete alert. No alert with id '" + alert_id + "' was found");
+      console.warn("Alert Error: Failed to delete alert. No alert with id '" + alert_id + "' was found");
       return;
     }
 
