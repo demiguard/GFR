@@ -283,8 +283,7 @@ class RisFetcherThread(Thread):
           f"""
             ris_association       : {ris_association} 
             pacs_find_association : {pacs_find_association} 
-            pacs_move_association : {pacs_move_association} 
-          """
+            pacs_move_association : {pacs_move_association}"""
         )
 
         if not (ris_association and pacs_find_association and pacs_move_association):

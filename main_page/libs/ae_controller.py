@@ -58,8 +58,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
   except RuntimeError:
     logger.info(f"Got no or invalid context: '{context}'")
@@ -70,8 +69,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
 
   logger.info(
@@ -79,8 +77,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
         IP: '{ip}'
         port: '{port}'
         calling AET: '{calling_aet}'
-        AET: '{aet}'
-    """)
+        AET: '{aet}'""")
   return association
 
 
@@ -97,6 +94,9 @@ def __handle_find_resp(resp, process, *args, **kwargs):
     since it's empty we can just ignore it and 
     release the association if no futher queries are to be made.
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
       process(identifier, *args, **kwargs)
@@ -120,6 +120,9 @@ def __handle_move_resp(resp, process, *args, **kwargs):
 
     Once a TRANSFER_COMPLETE is received the file has been moved successfully
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
       pass
@@ -148,6 +151,9 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+
   logger.info("Sending C_FIND query")
   resp = association.send_c_find(query_ds, query_model=query_model)
   __handle_find_resp(resp, process, *args, **kwargs)
@@ -173,6 +179,9 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  
   logger.info("Sending C_MOVE query")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
   __handle_move_resp(resp, process, *args, **kwargs)
