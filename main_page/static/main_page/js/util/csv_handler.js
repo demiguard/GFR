@@ -47,7 +47,7 @@ class CSVHandler {
     // */
     let csv_handler = this;
     
-    add_test_btn.on('click', function() {
+    add_test_btn.on('click', function() {    
       // Check if zero datapoints have been selected
       if (!csv_handler.check_selected_count()) {
         return;
@@ -81,19 +81,17 @@ class CSVHandler {
     let study_time_field = $('#id_study_time');
     let study_date_field = $('#id_study_date');
 
-    if (!helper.is_valid_time(study_time_field.val())) {
-      // alerter.add_field_alert(study_time_field, 'danger');
-
+    if (study_time_field.hasClass("danger-field") || !study_time_field.val()) {
       return;
     }
-    
-    if (!helper.is_danish_date(study_date_field.val())) {
-      // alerter.add_field_alert(study_date_field, 'danger');
-      
+
+    if (study_date_field.hasClass("danger-field") || !study_date_field.val()) {
       return;
     }
 
     // Check if there is a large numerical difference between any two tests
+    alerter.remove_alert('diff_check');
+
     if (this.difference_check(MAX_DIFFERENCE)) {
       alerter.add_alert(
         'diff_check',
@@ -103,25 +101,39 @@ class CSVHandler {
     }
 
     // Check if time difference between injection time and test time is within a set threshold
-    let time_of_inj = new Date($('#id_injection_date').val() + 'T' + $('#id_injection_time').val() + ':00');
-    let time_of_study = new Date(study_date_field.val() + 'T' + study_time_field.val() + ':00');
+    let inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
+    let inj_time_val = $('#id_injection_time').val();
+    let inj_datetime_str = inj_date_val + 'T' + inj_time_val + ':00';
+
+    let time_of_inj = new Date(inj_datetime_str);
+    
+    let study_date_val = helper.convert_danish_date_to_date_format(study_date_field.val());
+    let study_time_val = study_time_field.val();
+    let study_datetime_str = study_date_val + 'T' + study_time_val + ':00';
+
+    let time_of_study = new Date(study_datetime_str);
+    
     let time_diff = time_of_study - time_of_inj;
+    console.debug("time_diff: " + time_diff);
 
     // Check if study date was before injection date - this shouldn't be possible...
+    alerter.remove_alert("inj_diff");
     if (time_of_study < time_of_inj) {
       // alerter.add_field_alert(study_date_field, 'danger');
       // alerter.add_field_alert(study_time_field, 'danger');
       
-      // alerter.add_alert(
-      //   'inj_diff'
-      //   'Prøve tidspunktet kan ikke være før injektionstidspunktet.',
-      //   'danger'
-      // );
+      alerter.add_alert(
+        'inj_diff',
+        'Prøve tidspunktet kan ikke være før injektionstidspunktet.',
+        'warning'
+      );
 
       return;
     }
 
     // Set threshold based on study type
+    alerter.remove_alert('time_korrig');
+
     var lower = 0;
     var upper = 0;
     if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
@@ -140,10 +152,11 @@ class CSVHandler {
         let lower_min = lower / 60 / 1000;
         let upper_min = upper / 60 / 1000;
 
-        // alerter.add_alert(
-        //   'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
-        //   'warning'
-        // );
+        alerter.add_alert(
+          'time_korrig',
+          'Prøven er foretaget udenfor det tidskorrigeret interval af metoden, prøven kan derfor være upræcis.<br>Det anbefalet interval er imellem ' + lower_min + ' minuter og ' + upper_min + ' minuter',
+          'warning'
+        );
       }
     }
 
@@ -236,6 +249,8 @@ class CSVHandler {
     this.check_test_count();
 
     this.test_count++;
+
+    alerter.show_alerts();
   }
 
   difference_check(threshold) {
@@ -416,13 +431,16 @@ class CSVHandler {
       This function might set alerts based on the number of selected rows.
     */
     if (this.selected_row_ids.length == 0) {
-      // alerter.add_alert('Der skal vælges min. 1 datapunkt for at kunne tilføje en prøve.', 'danger');
+      this.alerter.add_alert('r1', 'Der skal vælges min. 1 datapunkt for at kunne tilføje en prøve.', 'danger');
+      this.alerter.show_alerts();
       return false;
     }
     
     if (this.selected_row_ids.length == 1) {
-      // alerter.add_alert('Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
+      this.alerter.add_alert('r2', 'Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
     }
+
+    this.alerter.show_alerts();
 
     return true;
   }
@@ -466,18 +484,20 @@ class CSVHandler {
 
       // Check if there is a large numerical difference between any two selected rows
       if (csv_handler.difference_check(MAX_DIFFERENCE)) {
-        // alerter.add_alert(
-        //   'Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 
-        //   'warning'
-        // );
+        csv_handler.alerter.add_alert(
+          'standard_diff',
+          'Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 
+          'warning'
+        );
       }
 
       // Add the computed avg. to the standard field
-      let average = csv_handler.compute_selected_avg();//.split(',');
+      let average = csv_handler.compute_selected_avg();
       $('#id_standcount').val(average);
 
       // Remove selection
       csv_handler.clear_selected_rows();
+      csv_handler.alerter.show_alerts();
     });
   }
 
