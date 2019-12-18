@@ -154,7 +154,7 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
   if 'logger' in kwargs:
     logger = kwargs['logger']
 
-  logger.info("Sending C_FIND query")
+  logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
   resp = association.send_c_find(query_ds, query_model=query_model)
   __handle_find_resp(resp, process, *args, **kwargs)
 
@@ -182,6 +182,6 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
   if 'logger' in kwargs:
     logger = kwargs['logger']
   
-  logger.info("Sending C_MOVE query")
+  logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
   __handle_move_resp(resp, process, *args, **kwargs)
