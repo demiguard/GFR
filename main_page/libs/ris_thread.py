@@ -287,6 +287,11 @@ class RisFetcherThread(Thread):
           """
         )
 
+        if not (ris_association and pacs_find_association and pacs_move_association):
+          logger.info(f"Skipping config: {department.config.id}")
+          continue
+
+
         query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)        
 
         ae_controller.send_find(
