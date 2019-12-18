@@ -277,17 +277,30 @@ class RisFetcherThread(Thread):
           )
         except Exception as Error:
           logger.error(f"Could not connect for department config : {department.config.id}")
-          continue
 
-        logger.info(
-          f"""
-            ris_association       : {ris_association} 
-            pacs_find_association : {pacs_find_association} 
-            pacs_move_association : {pacs_move_association}"""
-        )
+          #Unsure if I need the outer if-statement, but it's need if you just run it in the interpredritor
+          if 'ris_association' in dir(): 
+            if ris_association:
+              ris_association.release()
+          if 'pacs_find_association' in dir():
+            if pacs_find_association:
+              pacs_find_association.release()
+          if 'pacs_move_association' in dir():
+            if pacs_move_association:
+              pacs_move_association.release()
+
+          continue
 
         if not (ris_association and pacs_find_association and pacs_move_association):
           logger.info(f"Skipping config: {department.config.id}")
+
+          if ris_association:
+            ris_association.release()
+          if pacs_find_association:
+            pacs_find_association.release()
+          if pacs_move_association:
+            pacs_move_association.release()
+
           continue
 
 
