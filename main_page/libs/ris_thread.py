@@ -249,36 +249,39 @@ class RisFetcherThread(Thread):
         # processing function would mean that a new connection is opened and
         # closed after each dataset has been processed, thus putting
         # unnecessary stress on PACS
-        ris_association = ae_controller.connect(
-          department.config.ris_ip,
-          department.config.ris_port,
-          department.config.ris_calling,
-          department.config.ris_aet,
-          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
-          logger = logger
-        )
+        try:
+          ris_association = ae_controller.connect(
+            department.config.ris_ip,
+            department.config.ris_port,
+            department.config.ris_calling,
+            department.config.ris_aet,
+            ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+            logger = logger
+          )
+          pacs_find_association = ae_controller.connect(
+            department.config.pacs_ip,
+            department.config.pacs_port,
+            department.config.ris_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
+            department.config.pacs_aet,
+            ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+            logger = logger
+          )
 
-        pacs_find_association = ae_controller.connect(
-          department.config.pacs_ip,
-          department.config.pacs_port,
-          department.config.ris_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
-          department.config.pacs_aet,
-          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
-          logger = logger
-        )
-
-        pacs_move_association = ae_controller.connect(
-          department.config.pacs_ip,
-          department.config.pacs_port,
-          department.config.ris_calling,
-          department.config.pacs_aet,
-          ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
-          logger = logger
-        )
+          pacs_move_association = ae_controller.connect(
+            department.config.pacs_ip,
+            department.config.pacs_port,
+            department.config.ris_calling,
+            department.config.pacs_aet,
+            ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
+            logger = logger
+          )
+        except Exception as Error:
+          logger.error(f"Could not connect for department config : {department.config.id}")
+          continue
 
         logger.info(
           f"""
-            ris_association : {ris_association} 
+            ris_association       : {ris_association} 
             pacs_find_association : {pacs_find_association} 
             pacs_move_association : {pacs_move_association} 
           """
