@@ -13,7 +13,7 @@ FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 
-def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str):
+def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str, args*, kwargs**):
   """
   Establish a connection to an AET
 
@@ -33,6 +33,9 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     This function doesn't handle releasing of the associations, this must be
     done by the caller.
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+
   # Handle both integer and string ports
   if isinstance(port, str):
     port = int(port)

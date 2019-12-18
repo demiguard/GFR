@@ -254,7 +254,8 @@ class RisFetcherThread(Thread):
           department.config.ris_port,
           department.config.ris_calling,
           department.config.ris_aet,
-          ae_controller.FINDStudyRootQueryRetrieveInformationModel
+          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+          logger = logger
         )
 
         pacs_find_association = ae_controller.connect(
@@ -262,7 +263,8 @@ class RisFetcherThread(Thread):
           department.config.pacs_port,
           department.config.ris_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
           department.config.pacs_aet,
-          ae_controller.FINDStudyRootQueryRetrieveInformationModel
+          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+          logger = logger
         )
 
         pacs_move_association = ae_controller.connect(
@@ -270,7 +272,16 @@ class RisFetcherThread(Thread):
           department.config.pacs_port,
           department.config.ris_calling,
           department.config.pacs_aet,
-          ae_controller.MOVEStudyRootQueryRetrieveInformationModel
+          ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
+          logger = logger
+        )
+
+        logger.info(
+          f"""
+            ris_association : {ris_association} 
+            pacs_find_association : {pacs_find_association} 
+            pacs_move_association : {pacs_move_association} 
+          """
         )
 
         query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)        
@@ -289,6 +300,9 @@ class RisFetcherThread(Thread):
         pacs_find_association.release()
         pacs_move_association.release()
       
+      #End department 
+
+
       self.try_delete_old_images(hospitals)
       
       # Sleep the thread
