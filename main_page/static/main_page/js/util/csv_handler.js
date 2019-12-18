@@ -13,6 +13,23 @@ class CSVHandler {
     this.selected_row_ids = [ ]; // List of which rows have been currently selected
 
     this.test_count = 0; // Counter of how many tests have been added
+  
+    // Set click events and test_count
+    let old_locks = $('.row-lock-btn');
+    let old_locks_len = old_locks.length;
+    for (var i = 0; i < old_locks_len; i++) {
+      this.add_lock_functionality($('#' + old_locks[i].id));
+    }
+
+    let old_rmvs = $('.row-remove-btn');
+    let old_rmvs_len = old_rmvs.length;
+    for (var i = 0; i < old_rmvs_len; i++) {
+      this.add_remove_functionality($('#' + old_rmvs[i].id));
+    }
+
+    this.test_count = old_locks_len;
+
+    this.check_test_count();
   }
 
   init_row_selector(row_class) {

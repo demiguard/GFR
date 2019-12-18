@@ -624,6 +624,11 @@ function initialize_thin_fac() {
 function initialize_save_button(alerter) {
   // 'Gem' on click event
   $('#save').click(function() {
+    alerter.remove_alert('no_tests');
+    alerter.remove_alert('model_tests_selected');
+    alerter.remove_alert('missing_fields');
+    alerter.show_alerts();
+
     // Disable the 'beforeunload' event as to not trigger it
     $(window).off("beforeunload");
 
@@ -650,6 +655,145 @@ function initialize_csv_handler(alerter) {
   $("#remove-backup-btn").on("click", remove_backup_measurement);
 }
 
+function initialize_calculate_button(alerter) {
+  // 'Beregn' on click event
+  $('#calculate').click(function() {
+    // Disable the 'beforeunload' event as to not trigger it
+    $(window).off("beforeunload");
+
+    // alerter.clear_alerts();
+    alerter.hide_alerts();
+
+    // Check if any tests have been added
+    alerter.remove_alert('no_tests');
+    alerter.remove_alert('model_tests_selected');
+    alerter.remove_alert('missing_fields');
+    alerter.remove_alert('inj_future');
+    alerter.remove_alert('inj_weight_too_large');
+    alerter.remove_alert('test_before');
+
+    let test_count = $('#test-data-container .form-row').length;
+    if (test_count == 0) {
+      alerter.add_alert(
+        'no_tests',
+        'Kan ikke beregne uden prøver.',
+        'danger'
+      );
+
+      alerter.show_alerts();
+      return false;
+    } else if (test_count == 1 && $('id_study_type_2').is(":checked")) {
+      alerter.add_alert(
+        'model_tests_selected',
+        'Flere Prøve modellen er valgt, men der er kun tilføjet en prøve',
+        'danger'
+      );
+
+      alerter.show_alerts();
+      return false;
+    }
+
+    // Check that all fields are filled out or has a danger alert
+    let ids_to_check = [
+      "#id_cpr",
+      "#id_name",
+      "#id_sex",
+      "#id_age",
+      "#id_height",
+      "#id_weight",
+      "#id_vial_weight_before",
+      "#id_vial_weight_after",
+      "#id_injection_time",
+      "#id_injection_date",
+      "#id_std_cnt",
+      "#id_thin_fac",
+      '#id_standcount'
+    ];
+    
+    is_valid = true;
+    failed_id = "";
+    for (var i = 0; i < ids_to_check.length; i++) {
+      // if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
+      if ($(ids_to_check[i]).val() == "") {
+        is_valid = false;
+        failed_id = ids_to_check[i];
+        break;
+      }
+    };
+
+    if (!is_valid) {
+      alerter.add_alert(
+        'missing_fields',
+        'Et eller flere felter er ikke udfyldt korrekt.',
+        'danger'
+      );
+    
+      // alerter.add_field_alert($(failed_id), 'danger');
+      alerter.show_alerts();
+      return false;
+    }
+
+    // Check that injection date isn't in the future
+    var now = new Date();
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
+    var inj_time_val = $('#id_injection_time').val();
+    var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
+    var dt = Date.parse(dt_str);
+
+    if (dt > now) {
+      alerter.add_alert(
+        'inj_future',
+        'Injektionstidspunkt kan ikke være i fremtiden.',
+        'danger'
+      );
+      alerter.show_alerts();
+      return false;
+    }
+
+    // Check that the difference between the injection before and after isn't negative
+    var weight_before = $('#id_vial_weight_before').val();
+    var weight_after = $('#id_vial_weight_after').val();
+    if (weight_before - weight_after <= 0) {
+      alerter.add_alert(
+        'inj_weight_too_large',
+        'Injektionsvægt efter kan ikke være større end den før.',
+        'danger'
+      );
+      alerter.show_alerts();
+      return false;
+    }
+
+    // Check that all test dates are after the injection date
+    var date_fields = $("#test-data-container [name='sample_date']");
+    var time_fields = $("#test-data-container [name='sample_time']");
+
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
+    var inj_time_val = $('#id_injection_time').val();
+    var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
+    var dt = Date.parse(dt_str);
+
+    for (var i = 0; i < date_fields.length; i++) {
+      var t_date = helper.convert_danish_date_to_date_format(date_fields[i].value);
+      var t_str = t_date + ' ' + time_fields[i].value + ':00';
+
+      var t = Date.parse(t_str);
+
+      if (dt >= t) { // injection timestamp >= test timestamp
+        alerter.add_alert(
+          'test_before',
+          'Prøvetidspunkter kan ikke være før injektionstidspunkter.',
+          'danger'
+        );
+        alerter.show_alerts();
+        return false;
+      }
+    }
+
+    alerter.show_alerts();
+    return true;
+  });
+}
+
 $(function() {
   let field_alerter = new FieldAlerter($("#error-message-container"));
   
@@ -668,6 +812,8 @@ $(function() {
 
   initialize_save_button(field_alerter);
 
+  initialize_calculate_button(field_alerter);
+  
   initialize_csv_handler(field_alerter);
 
   // Initialize alerters
@@ -678,121 +824,4 @@ $(function() {
 
   add_datetime_checking(field_alerter);
 
-
-
-
-
-  //   // 'Beregn' on click event
-//   $('#calculate').click(function() {
-//     // Disable the 'beforeunload' event as to not trigger it
-//     $(window).off("beforeunload");
-  
-//     alerter.clear_alerts();
-
-//     // Check if any tests have been added
-//     let test_count = $('#test-data-container .form-row').length;
-//     if (test_count == 0) {
-//       alerter.add_alert(
-//         'Kan ikke beregne uden prøver.',
-//         'danger'
-//       );
-//       return false;
-//     } else if (test_count == 1 && $('id_study_type_2').is(":checked")) {
-//       alerter.add_alert(
-//         'Flere Prøve modellen er valgt, men der er kun tilføjet en prøve',
-//         'danger'
-//       );
-//       return false;
-//     }
-
-//     // Check that all fields are filled out or has a danger alert
-//     let ids_to_check = [
-//       "#id_cpr",
-//       "#id_name",
-//       "#id_sex",
-//       "#id_age",
-//       "#id_height",
-//       "#id_weight",
-//       "#id_vial_weight_before",
-//       "#id_vial_weight_after",
-//       "#id_injection_time",
-//       "#id_injection_date",
-//       "#id_std_cnt",
-//       "#id_thin_fac",
-//       '#id_standcount'
-//     ];
-    
-//     is_valid = true;
-//     failed_id = "";
-//     for (var i = 0; i < ids_to_check.length; i++) {
-//       if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
-//         is_valid = false;
-//         failed_id = ids_to_check[i];
-//         break;
-//       }
-//     };
-
-//     if (!is_valid) {
-//       alerter.add_alert(
-//         'Et eller flere felter er ikke udfyldt korrekt.',
-//         'danger'
-//       );
-     
-//       alerter.add_field_alert($(failed_id), 'danger');
-
-//       return false;
-//     }
-
-//     // Check that injection date isn't in the future
-//     var now = new Date();
-//     var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
-//     var inj_time_val = $('#id_injection_time').val();
-//     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
-//     var dt = Date.parse(dt_str);
-
-//     if (dt > now) {
-//       alerter.add_alert(
-//         'Injektionstidspunkt kan ikke være i fremtiden.',
-//         'danger'
-//       );
-//       return false;
-//     }
-
-//     // Check that the difference between the injection before and after isn't negative
-//     var weight_before = $('#id_vial_weight_before').val();
-//     var weight_after = $('#id_vial_weight_after').val();
-//     if (weight_before - weight_after <= 0) {
-//       alerter.add_alert(
-//         'Injektionsvægt efter kan ikke være større end den før.',
-//         'danger'
-//       )
-//       return false;
-//     }
-
-//     // Check that all test dates are after the injection date
-//     var date_fields = $("#test-data-container [name='sample_date']");
-//     var time_fields = $("#test-data-container [name='sample_time']");
-
-//     var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
-//     var inj_time_val = $('#id_injection_time').val();
-//     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
-//     var dt = Date.parse(dt_str);
-
-//     for (var i = 0; i < date_fields.length; i++) {
-//       var t_date = helper.convert_danish_date_to_date_format(date_fields[i].value);
-//       var t_str = t_date + ' ' + time_fields[i].value + ':00';
-
-//       var t = Date.parse(t_str);
-
-//       if (dt >= t) { // injection timestamp >= test timestamp
-//         alerter.add_alert(
-//           'Prøvetidspunkter kan ikke være før injektionstidspunkter.',
-//           'danger'
-//         );
-//         return false;
-//       }
-//     }
-
-//     return true;
-//   });
 });
