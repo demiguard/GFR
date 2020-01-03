@@ -473,6 +473,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
 
     # Store form information in dataset regardless of submission type
+    print(post_req)
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
@@ -514,7 +515,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         tmp_date = datetime.datetime.strptime(
           sample.SampleTime,
           "%Y%m%d%H%M"
-        ).date()
+        )
         sample_datetimes.append(tmp_date)
         
         tec_counts.append(sample.cpm)
@@ -522,7 +523,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       study_type = enums.StudyType(post_req["study_type"])
 
       clearance, clearance_norm = clearance_math.calc_clearance(
-        inj_datetime.date(),
+        inj_datetime,
         sample_datetimes,
         tec_counts,
         BSA,

@@ -54,22 +54,25 @@ class FillStudyFullTests(LiveServerTestCase):
   @classmethod
   def tearDownClass(cls):
     # Correctly close and deallocated driver resources once test is done
-    cls.driver.quit()
+    # cls.driver.quit()
 
-    super().tearDownClass()
+    # super().tearDownClass()
+    pass
 
   def setUp(self):
     self.test_hospital = models.Hospital.objects.get(pk=1)
 
     # Create testing directory and corresponding dicom datasets and files
     hosp_dir = f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}"
-    try_mkdir(hosp_dir, mk_parents=True)
-    
+
     cpr = "1206830057"
     name = "test person testerson"
     study_date = datetime.date.today().strftime('%Y-%m-%d')
     self.accession_number = "REGH12345678"
     hospital_aet = ""
+
+    obj_dir  = f"{hosp_dir}/{self.accession_number}"
+    try_mkdir(obj_dir, mk_parents=True)
 
     ds = dataset_creator.get_blank(
       cpr,
@@ -79,7 +82,7 @@ class FillStudyFullTests(LiveServerTestCase):
       hospital_aet
     )
 
-    self.test_filepath = f"{hosp_dir}/{self.accession_number}.dcm"
+    self.test_filepath = f"{obj_dir}/{self.accession_number}.dcm"
 
     dicomlib.save_dicom(
       self.test_filepath,
@@ -111,6 +114,7 @@ class FillStudyFullTests(LiveServerTestCase):
   def tearDown(self):
     # Remove generated dicom objects
     os.remove(self.test_filepath)
+    os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}/{self.accession_number}")
     os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}")
 
     # Remove any generated images
@@ -135,8 +139,8 @@ class FillStudyFullTests(LiveServerTestCase):
     field_val_dict = {
       'height': '178',
       'weight': '60',
-      'vial_weight_before': '5.2020',
-      'vial_weight_after': '3.5100',
+      'vial_weight_before': '5,2020',
+      'vial_weight_after': '3,5100',
       'injection_date': '02-08-2017',
       'injection_time': '10:50',
       'thin_fac': '1242',
@@ -151,7 +155,7 @@ class FillStudyFullTests(LiveServerTestCase):
       field.send_keys(value)
 
     # Add empty test - click somewhere else on the page before to remove focus from the datepickers
-    save_thin_fac_check = self.driver.find_element_by_id("id_save_fac")
+    save_thin_fac_check = self.driver.find_element_by_id("id_thin_fac")
     save_thin_fac_check.click()
 
     add_empty_btn = self.driver.find_element_by_id("add-empty-value")
@@ -161,9 +165,13 @@ class FillStudyFullTests(LiveServerTestCase):
     lock_btn = self.driver.find_element_by_id("lock0")
     lock_btn.click()
 
-    count_field = self.driver.find_element_by_name("test_value")
+    count_field = self.driver.find_element_by_name("sample_value")
     count_field.clear()
     count_field.send_keys("175")
+
+    # Fill in "testtest" as the bamid
+    bam_id_field = self.driver.find_element_by_id("id_bamID")
+    bam_id_field.send_keys("testtest")
 
     # Click calculate
     calculate_btn = self.driver.find_element_by_id("calculate")
@@ -190,7 +198,7 @@ class FillStudyFullTests(LiveServerTestCase):
       0x00101010: ('AS', '036'),
       0x00101020: ('DS', 1.78),
       0x00101030: ('DS', 60.0),
-      0x00181020: ('LO', f"{server_config.SERVER_NAME} - {SERVER_VERSION}"),
+      0x00181020: ('LO', f"{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}"),
       0x0020000d: ('UI', '1.3.114945357800429515625009469064908297373491801971184852245298'),
       0x0020000e: ('UI', '1.3.189436844292697631030767924811106592584694046171693622243254'),
       0x00200010: ('SH', 'GFR#12345678'),

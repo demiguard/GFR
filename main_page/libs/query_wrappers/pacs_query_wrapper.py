@@ -535,10 +535,9 @@ def get_history_for_csv(
     
     return returnlist
 
-  #End Helper Functions
+  # End Helper Functions
 
   ae_title = user.department.config.pacs_calling
-
 
   bounds = (
     date_bounds,
@@ -629,7 +628,7 @@ def get_history_for_csv(
       else:
         logger.info(f'Could not successfully move {find_response_dataset.AccessionNumber}')
 
-    #Finallize Association
+    # Finallize Association
     find_assoc.release()
     move_assoc.release()
   else:
