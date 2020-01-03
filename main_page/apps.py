@@ -35,11 +35,11 @@ class MainPageConfig(AppConfig):
     Startup.init_logger()
 
     # Setup SCP server logger
-    logger = logging.getLogger(name='ServerLogger')
+    logger = logging.getLogger()
     logger.info('Started Logger')
     try:
       self.scp_server = pacs.start_scp_server(ae_title)
-      logger.info('Started SCP server')
+      logger.info(f'Started SCP server with AE_title: {ae_title}')
     except Exception as e:
       logger.info('Failed to start SCP server because:{0}'.format(str(e)))
 
@@ -50,7 +50,7 @@ class MainPageConfig(AppConfig):
       server_config.SLEEP_DELAY_MIN, 
       server_config.SLEEP_DELAY_MAX
     )
-    #RT.start()
+    RT.start()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")
     

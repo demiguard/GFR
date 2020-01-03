@@ -8,7 +8,7 @@ logger = logging.getLogger()
 
 datasets = []
 
-rigs_calling = 'HVHFBERGHK7'
+rigs_calling = 'RHKFANMGFR2'
 rigs_aet     = 'VIPDICOM' #PACS
 rigs_ip      = '10.143.128.234'
 rigs_port    = 104
@@ -28,7 +28,7 @@ ds.add_new(0x00080050, 'SH', '') #Accession Number
 ds.add_new(0x00080060, 'CS' ,'OT')
 ds.add_new(0x00080052, 'CS', 'STUDY') #Root SOP Class level
 ds.add_new(0x00100010, 'PN', '') #Patitent name
-ds.add_new(0x00100020, 'LO', 'QP-3849995') #PatientID / CPR NUMBER
+ds.add_new(0x00100020, 'LO', '') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
 #Create Sequences
@@ -37,7 +37,7 @@ ds.add_new(0x00321060, 'LO', '')
 #Done adding Sequence Tags
 
 ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
-ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
+#ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.2')
 
 assoc = ae.associate(rigs_ip,rigs_port, ae_title=rigs_aet)
 

@@ -7,13 +7,13 @@ from typing import Type, Union
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 
-logger = logging.getLogger()
+# logger = logging.getLogger()
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 
-def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str):
+def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str, *args, **kwargs):
   """
   Establish a connection to an AET
 
@@ -33,6 +33,11 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     This function doesn't handle releasing of the associations, this must be
     done by the caller.
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
+
   # Handle both integer and string ports
   if isinstance(port, str):
     port = int(port)
@@ -55,8 +60,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
   except RuntimeError:
     logger.info(f"Got no or invalid context: '{context}'")
@@ -67,8 +71,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
 
   logger.info(
@@ -76,8 +79,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
         IP: '{ip}'
         port: '{port}'
         calling AET: '{calling_aet}'
-        AET: '{aet}'
-    """)
+        AET: '{aet}'""")
   return association
 
 
@@ -94,6 +96,11 @@ def __handle_find_resp(resp, process, *args, **kwargs):
     since it's empty we can just ignore it and 
     release the association if no futher queries are to be made.
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
+
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
       process(identifier, *args, **kwargs)
@@ -117,6 +124,11 @@ def __handle_move_resp(resp, process, *args, **kwargs):
 
     Once a TRANSFER_COMPLETE is received the file has been moved successfully
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
+
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
       pass
@@ -145,7 +157,18 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
-  logger.info("Sending C_FIND query")
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_find call")
+
+  # Retrieve logger if given
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
+
+  # Perform query
+  logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
   resp = association.send_c_find(query_ds, query_model=query_model)
   __handle_find_resp(resp, process, *args, **kwargs)
 
@@ -170,6 +193,17 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
-  logger.info("Sending C_MOVE query")
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_move call")
+
+  # Retrieve logger if given
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
+  
+  # Perform query
+  logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
   __handle_move_resp(resp, process, *args, **kwargs)
