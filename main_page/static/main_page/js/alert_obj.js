@@ -5,6 +5,19 @@ const VALID_ALERT_TYPES = [
   'success'
 ]
 
+// Alert to class name mappings, i.e. classes assigned to fields whenever an alert is triggered
+const FIELD_ALERT_CLASS_MAPPINGS = {
+  'warning': 'warn-field',
+  'danger': 'danger-field',
+  'success': 'success-field',
+}
+
+const ALERT_CLASS_MAPPINGS = {
+  'warning': 'alert-warn',
+  'danger': 'alert-danger',
+  'success': 'alert-success',
+}
+
 
 class Alerter {
   /*
@@ -80,7 +93,7 @@ class Alerter {
       alert_id: id if
     */
     if (!(alert_id in this.alerts)) {
-      console.error("Alert Error: Failed to delete alert. No alert with id '" + alert_id + "' was found");
+      console.warn("Alert Error: Failed to delete alert. No alert with id '" + alert_id + "' was found");
       return;
     }
 
@@ -154,15 +167,40 @@ class Alerter {
       $("#" + alert_id).hide();
     }
   }
+
+  alert_type_exists(alert_type, check_container) {
+    /*
+    Checks if there is at least one alert of a given type
+
+    Args:
+      alert_type: type of alert to check if exists
+      check_container: if true, then the given msg_container is check as well
+
+    Returns:
+      True, if an alert of the given type exists. False, otherwise
+    */
+
+    // Check internal alert dict.
+    for (var key in this.alerts) {
+      let curr_alert = this.alerts[key];
+      if (curr_alert.type == alert_type) {
+        return true;
+      }
+    }
+
+    // Check container if specified
+    if (check_container) {
+      let ts = "#" + this.msg_container.attr("id") + " ." + ALERT_CLASS_MAPPINGS[alert_type];
+      console.debug(ts);
+      if ($(ts).length != 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
 
-
-// Alert to class name mappings, i.e. classes assigned to fields whenever an alert is triggered
-const ALERT_CLASS_MAPPINGS = {
-  'warning': 'warn-field',
-  'danger': 'danger-field',
-  'success': 'success-field',
-}
 
 class FieldAlerter extends Alerter {
   add_field_alert(field, alert_type) {
@@ -178,27 +216,50 @@ class FieldAlerter extends Alerter {
       which then has CSS defined in alerter.css specifying the 
       coloring of the field
     */    
-    if (!(alert_type in ALERT_CLASS_MAPPINGS)) {
+    if (!(alert_type in FIELD_ALERT_CLASS_MAPPINGS)) {
       console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
       return;
     }
-    
-    field.addClass(ALERT_CLASS_MAPPINGS[alert_type]);
+
+    field.addClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
   }
 
-  remove_field_alert(field) {
+  remove_field_alert(field, alert_type) {
     /*
     Remove field alert classes from a field
 
     Args:
       field: jquery object of the field
+      alert_type: alert type to remove
     */
-    for (var alert_type in ALERT_CLASS_MAPPINGS) {
-      field.removeClass(ALERT_CLASS_MAPPINGS[alert_type]);
-    }
+    // for (var alert_type in FIELD_ALERT_CLASS_MAPPINGS) {
+    //   field.removeClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
+    // }
+    field.removeClass(FIELD_ALERT_CLASS_MAPPINGS[alert_type]);
   }
   
-  add_input_handler(field, alert_msg, alert_type, func, func_args) {
+  field_alert_exists(alert_type) {
+    /*
+    Checks if there exists a field with a given alert type
+
+    Args:
+      alert_type: type of alert to check if exists
+
+    Returns:
+      True, if there exists a field which has an alert. False, otherwise
+    */
+    if (!(alert_type in FIELD_ALERT_CLASS_MAPPINGS)) {
+      console.error("Alert error: got invalid alert type with no alert class mapping, '" + alert_type + "'");
+      return;
+    }
+
+    let alert_class = FIELD_ALERT_CLASS_MAPPINGS[alert_type];
+
+    let alert_objs = $("." + alert_class);
+    return (alert_objs.length != 0);
+  }
+
+  add_input_field_alert(field, alert_msg, alert_type, func) {
     /*
     Adds an input handler on the field which checks if an
     alert should be displayed
@@ -209,7 +270,6 @@ class FieldAlerter extends Alerter {
       alert_type: type of alert to trigger
       func      : checking function, which takes the value of the field as input, 
                   returning false triggers the alert
-      func_args : arguments to pass to the checking function
     
     Remark:
       Uses the id of the field as the unique id for
@@ -227,17 +287,20 @@ class FieldAlerter extends Alerter {
 
     // Add the bind handler
     field.bind(
-      'input', 
+      "input",
       {
         "FA_class": this,         // "this" when passed as an argument refers to the FieldAlerter instance
                                   // it's passed on to the bind handler, since "this" in the handler will be different
         "alert_id": alert_id,
         "alert_msg": alert_msg,
         "alert_type": alert_type,
-        "func": func, 
-        "func_args": func_args
+        "func": func
       },
-      this.input_handler);
+      this.input_handler
+    );
+
+    // Initial trigger of the newly registered event
+    field.trigger("input");
   }
 
   input_handler(event) {
@@ -250,6 +313,8 @@ class FieldAlerter extends Alerter {
     Remark:
       "this" is the field and not the class in this scope,
       seeing as this an event handler for fields
+
+
     */
     // Extract functions and corresponding args.
     let FA_class     = event.data.FA_class;
@@ -257,38 +322,23 @@ class FieldAlerter extends Alerter {
     let alert_msg    = event.data.alert_msg;
     let alert_type   = event.data.alert_type;
     let func         = event.data.func;
-    let func_args    = event.data.func_args;
 
-    if (!func($(this).val(), func_args)) {
+    if (!func($(this).val())) {
       // Alert has been triggered
-      if (!(alert_id in FA_class.alerts)) {
-        FA_class.add_alert(alert_id, alert_msg, alert_type);
-        FA_class.add_field_alert($(this), alert_type);
+      if (alert_id in FA_class.alerts) {
+        if (alert_type == "danger" && $(this).hasClass(FIELD_ALERT_CLASS_MAPPINGS["warning"])) {
+          FA_class.remove_alert(alert_id);
+          FA_class.remove_field_alert($(this));
+        }
       }
+      FA_class.add_alert(alert_id, alert_msg, alert_type);
+      FA_class.add_field_alert($(this), alert_type);
     } else {
-      // Success - don't display an alert
+      // Success - don't display an alert the current alert
       FA_class.remove_alert(alert_id);
-      FA_class.remove_field_alert($(this));
+      FA_class.remove_field_alert($(this), alert_type);
     }
 
     FA_class.show_alerts();
   }
-}
-
-
-function within_bound(val, args) {
-  /*
-  Checks if given value is with a specified bound
-
-  Args:
-    val: integer or float value to check against
-    args: dict containing arguments "low" and "high"
-
-  Returns:
-    True, if val is within low and high. False otherwise
-  */
-  let low  = args["low"];
-  let high = args["high"];
-
-  return (val >= low && val <= high);
 }

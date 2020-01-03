@@ -163,7 +163,7 @@
         {% endif %}
 
         <div id="dynamic_generate_history">
-          <input type="button" value="Tilbage til dagens målinger" onclick="remove_backup_measurement()">
+          <input type="button" value="Tilbage til dagens målinger" id="remove-backup-btn">
           
           <br><br>
           
@@ -173,7 +173,7 @@
         </div> <!-- dynamic_generate_history Closing-->
         
         {% bootstrap_form get_backup_date_form %}
-        <input type="button" value="Hent målinger" onclick="get_backup_measurements()">
+        <input type="button" value="Hent målinger" id="get-backup-btn">
       </div> <!-- Right closing-->
     </div>
   </form>
@@ -184,8 +184,7 @@
   <script src="{% static 'main_page/js/util/csrf.js'              %}"></script>
   <script src="{% static 'main_page/js/util/bad_input_handler.js' %}"></script>
   <script src="{% static 'main_page/js/util/helpers.js'           %}"></script>
-  <script src="{% static 'main_page/js/util/alerter.js'           %}"></script>
   <script src="{% static 'main_page/js/util/csv_handler.js'       %}"></script>
   <script src="{% static 'main_page/js/fill_study.js'             %}"></script>
-  <!-- <script src="{% static 'main_page/js/alert_obj.js'              %}"></script> -->
+  <script src="{% static 'main_page/js/alert_obj.js'              %}"></script>
 {% endblock %}
