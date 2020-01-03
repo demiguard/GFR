@@ -54,10 +54,9 @@ class FillStudyFullTests(LiveServerTestCase):
   @classmethod
   def tearDownClass(cls):
     # Correctly close and deallocated driver resources once test is done
-    # cls.driver.quit()
+    cls.driver.quit()
 
-    # super().tearDownClass()
-    pass
+    super().tearDownClass()
 
   def setUp(self):
     self.test_hospital = models.Hospital.objects.get(pk=1)
