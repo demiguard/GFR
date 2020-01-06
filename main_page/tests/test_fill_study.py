@@ -55,9 +55,9 @@ class FillStudyFullTests(LiveServerTestCase):
   @classmethod
   def tearDownClass(cls):
     # Correctly close and deallocated driver resources once test is done
-    # cls.driver.quit()
+    cls.driver.quit()
 
-    # super().tearDownClass()
+    super().tearDownClass()
     pass
 
   def setUp(self):
