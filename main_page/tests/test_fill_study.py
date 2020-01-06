@@ -14,6 +14,7 @@ from selenium.webdriver.firefox import options as FirefoxOptions
 import datetime
 import shutil
 import os
+from pydicom import Dataset, Sequence
 
 from main_page import models
 from main_page.libs import server_config
@@ -54,39 +55,13 @@ class FillStudyFullTests(LiveServerTestCase):
   @classmethod
   def tearDownClass(cls):
     # Correctly close and deallocated driver resources once test is done
-    cls.driver.quit()
+    # cls.driver.quit()
 
-    super().tearDownClass()
+    # super().tearDownClass()
+    pass
 
   def setUp(self):
     self.test_hospital = models.Hospital.objects.get(pk=1)
-
-    # Create testing directory and corresponding dicom datasets and files
-    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}"
-
-    cpr = "1206830057"
-    name = "test person testerson"
-    study_date = datetime.date.today().strftime('%Y-%m-%d')
-    self.accession_number = "REGH12345678"
-    hospital_aet = ""
-
-    obj_dir  = f"{hosp_dir}/{self.accession_number}"
-    try_mkdir(obj_dir, mk_parents=True)
-
-    ds = dataset_creator.get_blank(
-      cpr,
-      name,
-      study_date,
-      self.accession_number,
-      hospital_aet
-    )
-
-    self.test_filepath = f"{obj_dir}/{self.accession_number}.dcm"
-
-    dicomlib.save_dicom(
-      self.test_filepath,
-      ds
-    )
 
     # Login to the site or go to the fill_study page if already logged in
     if not self.is_logged_in:
@@ -112,9 +87,10 @@ class FillStudyFullTests(LiveServerTestCase):
 
   def tearDown(self):
     # Remove generated dicom objects
-    os.remove(self.test_filepath)
-    os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}/{self.accession_number}")
-    os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}")
+    # os.remove(self.test_filepath)
+    # os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}/{self.accession_number}")
+    # os.rmdir(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}")
+    shutil.rmtree(f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}", ignore_errors=True)
 
     # Remove any generated images
     shutil.rmtree(f"{server_config.STATIC_DIR}images/UNIT_TEST", ignore_errors=True)
@@ -130,6 +106,35 @@ class FillStudyFullTests(LiveServerTestCase):
       The existance of required fields in the corresponding dicom object
       The existance of a generated study image on disk
     """
+    # Create testing directory and corresponding dicom datasets and files
+    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}"
+
+    cpr = "1206830057"
+    name = "test person testerson"
+    study_date = datetime.date.today().strftime('%Y-%m-%d')
+    accession_number = "REGH12345678"
+    hospital_aet = ""
+
+    obj_dir  = f"{hosp_dir}/{accession_number}"
+    try_mkdir(obj_dir, mk_parents=True)
+
+    ds = dataset_creator.get_blank(
+      cpr,
+      name,
+      study_date,
+      accession_number,
+      hospital_aet
+    )
+
+    test_filepath = f"{obj_dir}/{accession_number}.dcm"
+
+    dicomlib.save_dicom(
+      test_filepath,
+      ds
+    )
+
+    self.driver.refresh()
+
     # Click on first table entry - goto fill_study page
     first_table_item = self.driver.find_element_by_css_selector("#new_studies tbody tr:first-child td:first-child")
     first_table_item.click()
@@ -177,8 +182,8 @@ class FillStudyFullTests(LiveServerTestCase):
     calculate_btn.click()
 
     # Assert dicom object fields
-    self.assertEqual(os.path.exists(self.test_filepath), True)
-    ds = dicomlib.dcmread_wrapper(self.test_filepath)
+    self.assertEqual(os.path.exists(test_filepath), True)
+    ds = dicomlib.dcmread_wrapper(test_filepath)
     
     tag_dict = {
       0x00080005: ('CS', 'ISO_IR 100'),
@@ -268,8 +273,118 @@ class FillStudyFullTests(LiveServerTestCase):
     self.assertEqual(ds[0x00231020][0][0x00231022].value, 175.0)
 
     # Ensure that an image was generated
-    generated_image_path = f"{server_config.STATIC_DIR}images/UNIT_TEST/{self.accession_number}.png"
+    generated_image_path = f"{server_config.STATIC_DIR}images/UNIT_TEST/{accession_number}.png"
     self.assertEqual(os.path.exists(generated_image_path), True)
+
+  def test_loading_saved_study(self):
+    # Create dicom object to load
+    hosp_dir = f"{server_config.FIND_RESPONS_DIR}{self.test_hospital.short_name}"
+
+    cpr = "0101010101"
+    name = "test test test"
+    study_date = "2020-01-06"
+    accession_number = "REGH87654321"
+    hospital_aet = ""
+
+    obj_dir  = f"{hosp_dir}/{accession_number}"
+    try_mkdir(obj_dir, mk_parents=True)
+
+    ds = dataset_creator.get_blank(
+      cpr,
+      name,
+      study_date,
+      accession_number,
+      hospital_aet
+    )
+
+    test_filepath = f"{obj_dir}/{accession_number}.dcm"
+
+    ds.add_new(0x00100030, "DA", "19470412")          # PatientBirthDate
+    ds.add_new(0x00100040, "CS", "F")                 # PatientSex
+    ds.add_new(0x00101010, "AS", "072")               # PatientAge
+    ds.add_new(0x00101020, "DS", "1.7")               # PatientSize
+    ds.add_new(0x00101030, "DS", "70.0")              # PatientWeight
+    ds.add_new(0x0023101B, "DS", "4.142")             # injbefore
+    ds.add_new(0x0023101C, "DS", "3.141")             # injafter
+    ds.add_new(0x00231018, "DT", "202001060808")      # injTime
+    ds.add_new(0x00231028, "DS", "8000.88")           # thiningfactor
+    ds.add_new(0x00231024, "DS", "35001.13")          # stdcnt
+    ds.add_new(0x00231010, "LO", "Flere blodprøver")  # BSAmethod
+
+    # Insert two samples
+    sample_ds1 = Dataset()
+    sample_ds1.add_new(0x00231021, "DT", "202001061010")
+    sample_ds1.add_new(0x00231022, "DS", "888.88")
+
+    sample_ds2 = Dataset()
+    sample_ds2.add_new(0x00231021, "DT", "202001061212")
+    sample_ds2.add_new(0x00231022, "DS", "1777.76")
+
+    sample_seq = Sequence([sample_ds1, sample_ds2])
+
+    ds.add_new(0x00231020, 'SQ', sample_seq)
+
+    dicomlib.save_dicom(
+      test_filepath,
+      ds
+    )
+
+    # Ensure that the dicom object was loaded and displayed correctly on the site 
+    self.driver.refresh()
+
+    # Click on first table entry - goto fill_study page
+    first_table_item = self.driver.find_element_by_css_selector("#new_studies tbody tr:first-child td:first-child")
+    first_table_item.click()
+
+    cpr_value = self.driver.find_element_by_id("id_cpr").get_attribute("value")
+    name_value = self.driver.find_element_by_id("id_name").get_attribute("value")
+    sex_value = self.driver.find_element_by_id("id_sex").get_attribute("value")
+    birthdate_value = self.driver.find_element_by_id("id_birthdate").get_attribute("value")
+    height_value = self.driver.find_element_by_id("id_height").get_attribute("value")
+    weight_value = self.driver.find_element_by_id("id_weight").get_attribute("value")
+    vial_before_value = self.driver.find_element_by_id("id_vial_weight_before").get_attribute("value")
+    vial_after_value = self.driver.find_element_by_id("id_vial_weight_after").get_attribute("value")
+    inj_time_value = self.driver.find_element_by_id("id_injection_time").get_attribute("value")
+    inj_date_value = self.driver.find_element_by_id("id_injection_date").get_attribute("value")
+    thin_fac_value = self.driver.find_element_by_id("id_thin_fac").get_attribute("value")
+    stdcnt_value = self.driver.find_element_by_id("id_standcount").get_attribute("value")
+
+    study_type_value = self.driver.find_elements_by_css_selector("#id_study_type input[type=radio]:checked")[0].get_attribute("value")
+    
+    sample_container = self.driver.find_element_by_id("test-data-container")
+    sample_rows = sample_container.find_elements_by_class_name("form-row")
+
+    samples = [ ]
+    for sample_row in sample_rows:
+      date = sample_row.find_element_by_name("sample_date").get_attribute("value")
+      time = sample_row.find_element_by_name("sample_time").get_attribute("value")
+      cnt  = sample_row.find_element_by_name("sample_value").get_attribute("value")
+
+      samples.append((date, time, cnt))
+
+    self.assertEqual(cpr_value, "0101010101")
+    self.assertEqual(name_value, "test test test")
+    self.assertEqual(sex_value, '1')
+    self.assertEqual(birthdate_value, "12-04-1947")
+    self.assertEqual(height_value, "170")
+    self.assertEqual(weight_value, "70")
+    self.assertEqual(vial_before_value, "4,142")
+    self.assertEqual(vial_after_value, "3,141")
+    self.assertEqual(inj_time_value, "08:08")
+    self.assertEqual(inj_date_value, "06-01-2020")
+    self.assertEqual(thin_fac_value, "8000")
+    self.assertEqual(stdcnt_value, "35001")
+    self.assertEqual(study_type_value, '2')
+    
+    expected_samples = [
+      ('06-01-2020', '10:10', '888'), 
+      ('06-01-2020', '12:12', '1777')
+    ]
+
+    for i, exp_sample in enumerate(expected_samples):
+      self.assertEqual(samples[i][0], exp_sample[0]) # Date
+      self.assertEqual(samples[i][1], exp_sample[1]) # Time
+      self.assertEqual(samples[i][2], exp_sample[2]) # Count
 
   # def test_partial_study_calculate(self):
   #   # This should assert that (together with other similar tests) that the correct
