@@ -52,7 +52,7 @@ def handle_find(dataset, *args, **kwargs ):
   accession_number = dataset.AccessionNumber
   ae_controller.send_move(
     pacs_move_association,
-    serverConfig.AE_title
+    serverConfig.AE_title,
     dataset,
     handle_move,
     logger=logger,
