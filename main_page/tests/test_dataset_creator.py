@@ -2,6 +2,7 @@ import unittest
 
 import pydicom
 from pydicom import Dataset
+import datetime
 
 from main_page.libs import dataset_creator
 
@@ -141,7 +142,7 @@ class GenerateRisQueryDatasetTests(unittest.TestCase):
     self.assertEqual(len(ds[0x00400100].value), 1)
     self.assertEqual(ds[0x00400100][0][0x00080060].value, '')
     self.assertEqual(ds[0x00400100][0][0x00400001].value, ris_calling)
-    self.assertEqual(ds[0x00400100][0][0x00400002].value, '')
+    self.assertEqual(ds[0x00400100][0][0x00400002].value, datetime.date.today().strftime("%Y%m%d"))
     self.assertEqual(ds[0x00400100][0][0x00400003].value, '')
     self.assertEqual(ds[0x00400100][0][0x00400007].value, '')
     self.assertEqual(ds[0x00400100][0][0x00400009].value, '')

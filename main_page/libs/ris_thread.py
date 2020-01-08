@@ -118,6 +118,7 @@ class RisFetcherThread(Thread):
     """
     accession_number = kwargs['accession_number']
     dataset_dir      = kwargs['dataset_dir']
+    logger           = kwargs['logger']
 
     target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
     destination = f"{dataset_dir}{accession_number}.dcm"
@@ -133,6 +134,7 @@ class RisFetcherThread(Thread):
     """
     department       = kwargs['department']
     dataset_dir      = kwargs['dataset_dir'] 
+    logger           = kwargs['logger']
     accession_number = dataset.AccessionNumber
     
     pacs_move_association = kwargs['pacs_move_association']
@@ -164,6 +166,7 @@ class RisFetcherThread(Thread):
     department = kwargs['department']
     pacs_find_association = kwargs['pacs_find_association']
     pacs_move_association = kwargs['pacs_move_association']
+    logger = kwargs['logger']
 
     hospital_shortname = department.hospital.short_name
 
@@ -322,8 +325,7 @@ class RisFetcherThread(Thread):
         pacs_find_association.release()
         pacs_move_association.release()
       
-      #End department 
-
+      # End of department for-loop
 
       self.try_delete_old_images(hospitals)
       

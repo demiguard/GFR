@@ -2,12 +2,45 @@
 \usepackage[T1]{fontenc} %thanks's daleif
 \usepackage[utf8]{inputenc}
 \usepackage[danish]{babel}						% Dokumentets sprog
+\usepackage{graphicx}							% contains the "includegraphics" command for inserting images
 
+% Highlighted comments
+\usepackage{color}
+\newcommand{\makecomment}[1]{{\color{red} \bf Comment: #1}}
 
-\author{Christoffer Vilstrup Jensen, Simon Surland Andersen}
-\title{Brugervejledning}
+\title{Code Documentation}
+\author{By: Christoffer Vilstrup Jensen \& Simon Surland Andersen}
 \begin{document}
+\maketitle
 
+\section{Project overview}
+\makecomment{Insert list of all files and directories and possibly a small description of each one.}
+
+\section{Structure of stored data}
+
+
+\section{Private DICOM tags}
+
+
+\section{Formatting specifications}
+\subsection{Commas and Dots (presenting floats)}
+
+
+\subsection{Dates and timestamps}
+
+
+\section{ae\_controller}
+
+
+\section{API}
+\makecomment{REST design}
+
+\section{Database design}
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.5]{images/gfr_database.png}
+	\caption{Database relationship diagram}
+\end{figure}
 
 \section{Add a panel to admin panel / Database}
 
@@ -30,8 +63,8 @@ Total list of files that require to be edittede
 	\begin{itemize}
 		\item[] forms/
 		\begin{itemize}
-			\item model_add_forms.py
-			\item model_edit_forms.py
+			\item model\_add\_forms.py
+			\item model\_edit\_forms.py
 		\end{itemize}	
 		\item models.py
 		\item urls.py
@@ -49,9 +82,7 @@ Total list of files that require to be edittede
 			\item admin\_panel\_add.js
 			\item admin\_panel\_edit.js
 		\end{itemize}
-		\item[] template/main\_page/admin_panel.html
+		\item[] template/main\_page/admin\_panel.html
 	\end{itemize}
-	
 \end{itemize}
-\textbf{Author note:} Legends speak of a programmer who claim it's simple to add extra tables. Some even speak of the famous 'GOOD design'. HETETIC I say.
 \end{document}

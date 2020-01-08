@@ -7,7 +7,7 @@ from typing import Type, Union
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 
-logger = logging.getLogger()
+# logger = logging.getLogger()
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
@@ -35,6 +35,8 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
   """
   if 'logger' in kwargs:
     logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
 
   # Handle both integer and string ports
   if isinstance(port, str):
@@ -96,6 +98,8 @@ def __handle_find_resp(resp, process, *args, **kwargs):
   """
   if 'logger' in kwargs:
     logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
 
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
@@ -122,6 +126,8 @@ def __handle_move_resp(resp, process, *args, **kwargs):
   """
   if 'logger' in kwargs:
     logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
 
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
@@ -151,9 +157,17 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_find call")
+
+  # Retrieve logger if given
   if 'logger' in kwargs:
     logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
 
+  # Perform query
   logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
   resp = association.send_c_find(query_ds, query_model=query_model)
   __handle_find_resp(resp, process, *args, **kwargs)
@@ -179,9 +193,17 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_move call")
+
+  # Retrieve logger if given
   if 'logger' in kwargs:
     logger = kwargs['logger']
+  else:
+    logger = logging.getLogger()
   
+  # Perform query
   logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
   __handle_move_resp(resp, process, *args, **kwargs)

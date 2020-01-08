@@ -309,8 +309,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       if request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
         ds_thin_fac = department_thin_fac
         thin_fac_save_inital = False
-      else:
-        ds_thin_fac = None
 
     # Check to avoid resetting the thining factor when clicking 'beregn'
     if ds_thin_fac:
@@ -476,7 +474,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
-    thin_fac = post_req["thin_fac"]
+    thin_fac = dataset.thiningfactor
     if 'save_fac' in post_req and thin_fac: 
       logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
       department.thining_factor = thin_fac
@@ -514,7 +512,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         tmp_date = datetime.datetime.strptime(
           sample.SampleTime,
           "%Y%m%d%H%M"
-        ).date()
+        )
         sample_datetimes.append(tmp_date)
         
         tec_counts.append(sample.cpm)
@@ -522,7 +520,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       study_type = enums.StudyType(post_req["study_type"])
 
       clearance, clearance_norm = clearance_math.calc_clearance(
-        inj_datetime.date(),
+        inj_datetime,
         sample_datetimes,
         tec_counts,
         BSA,
