@@ -24,13 +24,62 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
+from main_page.libs import ae_controller
 from main_page.forms import base_forms
 from main_page import models
 
-# Custom type
-CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
 logger = logging.getLogger()
+
+def handle_find(dataset, *args, **kwargs ):
+  # This function is handling the response from a find send to pacs
+  #Check
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  if 'pacs_move_association' in kwargs:
+    pacs_move_association = kwargs['pacs_move_association']
+  else:
+    raise Exception('handlefind requires a pacs_move_association as a kwarg')
+  if 'serverConfig' in kwargs:
+    serverConfig = kwargs['serverConfig']
+  else:
+    raise Exception('handlefind requires a serverConfig as a kwarg')
+  if 'study_directory' in kwargs:
+    study_directory = kwargs['study_directory']
+  else:
+    raise Exception('handlefind requires a study_directory as a kwarg')
+
+  accession_number = dataset.AccessionNumber
+  ae_controller.send_move(
+    pacs_move_association,
+    serverConfig.AE_title
+    dataset,
+    handle_move,
+    logger=logger,
+    study_directory=study_directory,
+    accession_number=accession_number
+  )
+
+
+
+def handle_move(dataset, *args, **kwargs):
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  if 'study_directory' in kwargs:
+    study_directory = kwargs['study_directory']
+  else:
+    raise Exception('handlefind requires a study_directory as a kwarg')
+  if 'hospital_sn' in kwargs:
+    hospital_sn = kwargs['hospital_sn']
+  else:
+    raise Exception('handlefind requires a hospital_sn as a kwargs')
+  if 'accession_number' in kwargs:
+    accession_number = kwargs['accession_number']
+
+  target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
+  destination = f"{study_directory}{accession_number}.dcm"
+  shutil.move(target_file, destination)
+
 
 class NewStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/new_study.html'
@@ -89,9 +138,51 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       if formatting.check_cpr(cpr):
         #CPR is valid, so we can retrieve history from pacs
         #TODO: Get history from pacs
-        pass
+        # So there's a serverConfig(database entry) and server_config(file)
+        # See models for explination
+        serverConfig = models.ServerConfiguration.objects.get(id=1)
+        user_config = request.user.department.config
+        pacs_find_association = ae_controller.connect(
+          user_config.pacs_ip,
+          user_config.pacs_port,
+          user_config.pacs_calling, #This should be changed to serverConfig.AE_title
+          user_config.pacs_aet,
+          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+          logger=logger
+        )
+        
+        pacs_move_association = ae_controller.connect(
+          user_config.pacs_ip,
+          user_config.pacs_port,
+          user_config.pacs_calling, #This should be changed to serverConfig.AE_title
+          user_config.pacs_aet,
+          ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
+          logger=logger
+        )
+
+        find_query_dataset = dataset_creator.create_search_dataset(
+          '',
+          cpr,
+          '',
+          '',
+          ''
+        )
+        ae_controller.send_find(
+          pacs_find_association,
+          find_query_dataset, 
+          handle_find,
+          logger=logger,
+          pacs_move_association=pacs_move_association,
+          serverConfig=serverConfig,
+          study_directory=study_directory,
+        )
+
+
+        pacs_find_association.release()
+        pacs_move_association.release()
+
       else:
-        #Error
+        #Error Message should be handled by front end
         pass
 
       dicomlib.save_dicom( 
