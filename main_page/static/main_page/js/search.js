@@ -49,10 +49,18 @@ let ajax_search = function() {
   let accession_number = $('#id_accession_number').val();
   
   let dfa = $('#id_from_date').val().split('-');
-  let date_from = dfa[2] + "-" + dfa[1] + "-" + dfa[0];
-  
   let dta = $('#id_to_date').val().split('-');
-  let date_to = dta[2] + "-" + dta[1] + "-" + dta[0];
+  var date_from, date_to;
+  if(dfa.length === 3) {
+    date_from = dfa[2] + "-" + dfa[1] + "-" + dfa[0];
+  } else {
+    date_from = "";
+  }
+  if(dta.length === 3) {
+    date_to = dta[2] + "-" + dta[1] + "-" + dta[0];
+  } else {
+    date_to = "";
+  }
 
   // Display loading element
   disable_search_fields();

@@ -530,8 +530,6 @@ class SearchEndpoint(LoginRequiredMixin, View):
 
     logger.info(f'search_date_from:{search_date_from}, search_date_to:{search_date_to}')
 
-
-
     search_results = pacs.search_query_pacs(
       request.user.department.config,
       name=search_name,
