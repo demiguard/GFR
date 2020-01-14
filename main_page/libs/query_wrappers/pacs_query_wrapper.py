@@ -353,7 +353,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   association = ae_controller.connect(
     config.pacs_ip,
     int(config.pacs_port),
-    config.ris_calling, 
+    config.pacs_calling, 
     config.pacs_aet,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
