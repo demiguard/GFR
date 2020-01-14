@@ -519,7 +519,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
     # Extract search parameters
 
 
-    logger.info(f'\nReceived Search request by {request.user.username} by {request.META.REMOTE_ADDR}')
+    logger.info(f'\nReceived Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
 
 
     search_name = request.GET['name']
