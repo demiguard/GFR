@@ -80,7 +80,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
         injection_datetime = datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M')
         previous_sample_dates.append(injection_datetime.strftime('%Y-%m-%d'))
         previous_sample_times.append(injection_datetime.strftime('%H:%M'))
-        previous_sample_counts.append(test.tch_cnt)
+        previous_sample_counts.append(test.cpm)
 
     previous_samples = zip(
       previous_sample_dates,
