@@ -517,11 +517,19 @@ class SearchEndpoint(LoginRequiredMixin, View):
   """
   def get(self, request):  
     # Extract search parameters
+
+
+    logger.info(f'\nReceived Search request by {request.user.username} by {request.META.REMOTE_ADDR}')
+
+
     search_name = request.GET['name']
     search_cpr = request.GET['cpr']
     search_accession_number = request.GET['accession_number']
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
+
+
+
 
     search_results = pacs.search_query_pacs(
       request.user.department.config,

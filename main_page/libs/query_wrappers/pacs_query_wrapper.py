@@ -381,6 +381,8 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
 
   association.release()
 
+  logger.info(f'Returning search list of {len(response_dataset)}')
+
   return response_list
 
 
