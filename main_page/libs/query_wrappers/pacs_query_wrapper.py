@@ -28,11 +28,13 @@ logger = logging.getLogger()
 
 def move_from_pacs(user, accession_number):
   """
+    TODO: overhaul this with AE controller
+
     Returns:
       None or Dataset - The dataset is always single
   """
 
-  ae_title = user.department.config.ris_calling #BAD CODE
+  ae_title = user.department.config.pacs_calling #BAD CODE
 
   # # # Get file from pacs # # #
   find_dataset = dataset_creator.create_search_dataset(
