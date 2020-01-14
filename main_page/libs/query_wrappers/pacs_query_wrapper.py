@@ -362,7 +362,9 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
 
   # Send find query and process successful responses
   response_list = [ ]
-  def process_incoming_dataset(dataset):
+  def process_incoming_dataset(dataset, *args, **kwargs):
+    if 'logger' in kwargs:
+      logger = kwargs['logger']
     try:
       response_list.append({
         'accession_number': dataset.AccessionNumber,
@@ -376,7 +378,8 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   ae_controller.send_find(
     association,
     search_dataset,
-    process_incoming_dataset
+    process_incoming_dataset,
+    logger=logger
   )
 
   association.release()

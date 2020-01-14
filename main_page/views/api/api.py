@@ -519,7 +519,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
     # Extract search parameters
 
 
-    logger.info(f'\nReceived Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
+    logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
 
 
     search_name = request.GET['name']
@@ -528,6 +528,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
     search_date_from = request.GET['date_from']
     search_date_to = request.GET['date_to']
 
+    logger.info(f'search_date_from:{search_date_from}, search_date_to:{search_date_to}')
 
 
 
