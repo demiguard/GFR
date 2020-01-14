@@ -518,7 +518,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
   def get(self, request):  
     # Extract search parameters
 
-
+    logger = logging.getLogger()
     logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
 
 
