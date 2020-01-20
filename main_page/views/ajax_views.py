@@ -79,7 +79,7 @@ class LogoutView(LoginRequiredMixin, TemplateView):
     return self.logout_current_user(request)
 
 
-class AjaxUpdateThiningFactor(TemplateView):
+class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
   def post(self, request):
     """
       Ajax from list_studies, called from list_studies.js
