@@ -55,6 +55,8 @@ To allow hosts on the local network to access the debug test site, run the comma
 (venv)> python manage.py runserver 0.0.0.0:8000
 ```
 
+Now the site should be accessible via.: http://<YOUR_IP_ADDRESS>:8000
+
 ## Deploying with nginx
 The following steps is a minor rewrite of https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html, if any problems occur this tutorial can possibly of help.
 
