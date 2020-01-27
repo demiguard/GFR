@@ -92,6 +92,12 @@ Most code for the project is found under the directory \texttt{GFR/main\_page}, 
 	\item \texttt{GFR/main\_page/urls.py} - Defines available endpoints and their corresponding views.
 \end{itemize}
 
+\subsection{Changelog}
+The changelog describing added, changed, removed and/or fixed features of previous versions can be found under: \texttt{GFR/doc/CHANGELOG.md}.
+
+\subsection{Adding new libraries, frameworks, etc.}
+If adding any new libraries or frameworks becomes a necessity don't \underline{ever} use external CDNs, as the application must still be able to run internally, even if connection to the outside internet is down.
+
 \section{Structure of stored data}
 \subsection{DICOM files}
 This project stores dicom objects in nested directories based on the accession number of a study, e.g. accession number is "REGH12345678": \\ \texttt{GFR/active\_dicom\_objects/REGH12345678/REGH12345678.dcm} \\
