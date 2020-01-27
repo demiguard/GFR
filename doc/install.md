@@ -137,3 +137,21 @@ Edit the file /etc/nginx/default, so that nginx runs on port 8081 by default.
 > uwsgi --socket clairvoyance.sock --module clairvoyance.wsgi --chmod-socket=666
 ```
 Now you should be able to go to 'localhost' in a browser and see the server running (we can use just 'localhost' since we are running on port 80)
+
+---
+
+## Running tests
+The following script will run the tests and generate reports using ```coverage.py```. The reports are ```xml``` files and can be interpreted with e.g. the VS Code extension; Coverage Gutter
+```
+(venv)> ./run-tests.sh
+```
+
+The script comes with help information for more advanced usage:
+```
+(venv)> ./run-tests.sh --help
+```
+
+Remember to make the script executable using:
+```
+(venv)> chmod a+x ./run-tests.sh
+```
