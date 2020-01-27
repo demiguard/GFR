@@ -7,6 +7,7 @@ tmp/
 active_dicom_objects/
 deleted_dicom_objects/
 control_dicom_objects/
+deleted_studies/
 
 # Python cache
 __pycache__/
