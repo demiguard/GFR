@@ -16,3 +16,8 @@
 #ss-wrapper .form-group {
   margin-bottom: 0px;
 }
+
+/* Make studies 'seem' clickable */
+tr:hover {
+  cursor: pointer;
+}

@@ -28,3 +28,8 @@
 .form-input {
   width: 100%;
 }
+
+/* Make studies 'seem' clickable */
+tr:hover {
+  cursor: pointer;
+}

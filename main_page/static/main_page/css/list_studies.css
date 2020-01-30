@@ -22,3 +22,8 @@
 .exam-status-2 {
   color: lightgreen;
 }
+
+/* Make studies 'seem' clickable */
+tr:hover {
+  cursor: pointer;
+}
