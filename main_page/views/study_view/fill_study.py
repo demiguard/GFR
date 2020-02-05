@@ -306,15 +306,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     department_thin_fac = request.user.department.thining_factor
 
     if ds_thin_fac:
-      if request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
-        ds_thin_fac = department_thin_fac
-        thin_fac_save_inital = False
+      thin_fac_save_inital = False
+    elif: request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
+      ds_thin_fac = department_thin_fac
+      thin_fac_save_inital = False
 
     # Check to avoid resetting the thining factor when clicking 'beregn'
-    if ds_thin_fac:
-      if ds_thin_fac != department_thin_fac:
-        thin_fac_save_inital = False
-
+    
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
