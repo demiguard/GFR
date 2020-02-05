@@ -307,7 +307,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     if ds_thin_fac:
       thin_fac_save_inital = False
-    elif: request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
+    elif request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
       ds_thin_fac = department_thin_fac
       thin_fac_save_inital = False
 
