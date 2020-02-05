@@ -32,7 +32,6 @@ class MainPageConfig(AppConfig):
     # i.e. we move to this AET)
     ae_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
-    Startup.init_logger()
 
     # Setup SCP server logger
     logger = logging.getLogger()
@@ -51,6 +50,7 @@ class MainPageConfig(AppConfig):
       server_config.SLEEP_DELAY_MAX
     )
     RT.start()
+    Startup.init_logger()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")
     
