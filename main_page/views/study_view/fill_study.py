@@ -52,7 +52,7 @@ REQUEST_PARAMETER_TYPES = {
   'injection_time': str,
   'injection_date': str,
   'thin_fac': float,
-  'save_fac': str,
+  'save_fac': bool,
   'study_type': int,
   'standcount': float,
   'sample_date': (list, str),
@@ -474,6 +474,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
+    logger.info(post_req)
     if 'save_fac' in post_req and 'thining_factor' in dataset: 
       thin_fac = dataset.thiningfactor
       logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
