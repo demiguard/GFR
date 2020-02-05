@@ -150,6 +150,7 @@ class FillStudyGrandForm(forms.Form):
   vial_weight_before = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
   weight = forms.CharField( label='Vægt (kg)', required=False)
 
+
   def __init__(self, *args, **kwargs):
     super(FillStudyGrandForm, self).__init__(*args, **kwargs)
     self.fields['cpr'].widget.attrs['readonly'] = True

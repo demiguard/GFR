@@ -298,7 +298,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       inj_date = ds_inj_datetime.strftime('%d-%m-%Y')
       inj_time = ds_inj_datetime.strftime('%H:%M')
     else:
-      inj_date = None
+      inj_date = today.strftime('%d-%m-%Y')
       inj_time = None
 
     thin_fac_save_inital = True
@@ -474,8 +474,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
-    thin_fac = dataset.thiningfactor
-    if 'save_fac' in post_req and thin_fac: 
+    if 'save_fac' in post_req and 'thining_factor' in dataset: 
+      thin_fac = dataset.thiningfactor
       logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
       department.thining_factor = thin_fac
       department.thining_factor_change_date = datetime.date.today()
@@ -589,9 +589,10 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
-    
     # Redirect to correct site based on which action was performed
     if "calculate" in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number)
+    else: 
+      return redirect('main_page:list_study')
 
     return self.get(request, accession_number)
