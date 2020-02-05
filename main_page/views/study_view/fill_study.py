@@ -325,7 +325,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     grand_form = base_forms.FillStudyGrandForm(initial={
       'birthdate'         : patient_birthday,
-      'cpr'               : cpr,
+      'cpr'               : formatting.format_cpr(cpr),
       'height'            : height,
       'injection_date'    : inj_date,
       'injection_time'    : inj_time,

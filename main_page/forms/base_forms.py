@@ -134,7 +134,6 @@ class FillStudyGrandForm(forms.Form):
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   
   #Fields
-  bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
   birthdate = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
   cpr  = forms.CharField(label='Cpr-nr', required=False)
   height = forms.CharField(label='Højde (cm)', required=False)
