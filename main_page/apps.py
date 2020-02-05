@@ -44,12 +44,12 @@ class MainPageConfig(AppConfig):
 
     from main_page.libs import ris_thread
 
-    RT = ris_thread.RisFetcherThread(
-      ae_title, 
-      server_config.SLEEP_DELAY_MIN, 
-      server_config.SLEEP_DELAY_MAX
-    )
-    RT.start()
+    #RT = ris_thread.RisFetcherThread(
+    #  ae_title, 
+    #  server_config.SLEEP_DELAY_MIN, 
+    #  server_config.SLEEP_DELAY_MAX
+    #)
+    #RT.start()
     Startup.init_logger()
     # logger.info(f"Thread: is running with daemon={RT.daemon}")
     # logger.info(f"Thread: current number of threads={threading.active_count()}")
