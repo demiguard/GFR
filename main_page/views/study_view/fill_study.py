@@ -474,9 +474,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
-    logger.info(post_req)
-    if 'save_fac' in post_req and 'thining_factor' in dataset: 
-      thin_fac = dataset.thiningfactor
+    
+    if 'save_fac' in post_req and 'thin_fac' in post_req:
+      thin_fac = post_req['thin_fac']
       logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
       department.thining_factor = thin_fac
       department.thining_factor_change_date = datetime.date.today()
