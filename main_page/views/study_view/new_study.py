@@ -29,7 +29,9 @@ from main_page.forms import base_forms
 from main_page import models
 
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 def handle_find(dataset, *args, **kwargs ):
   # This function is handling the response from a find send to pacs

@@ -14,7 +14,9 @@ from smb.base import OperationFailure, NotConnectedError
 from . import formatting
 
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 def open_csv_file(temp_file: NamedTemporaryFile):

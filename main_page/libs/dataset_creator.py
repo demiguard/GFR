@@ -8,9 +8,9 @@ from datetime import datetime, date
 from . import dicomlib
 from . import server_config
 from . import formatting
+from main_page import log_util
 
-
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 # TODO: Possibly put this decorator function in a seperate file so it can be reused in other places

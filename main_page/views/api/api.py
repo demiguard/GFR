@@ -24,11 +24,10 @@ from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, Pos
 from main_page.views.mixins import AdminRequiredMixin, LoggingMixin
 from main_page import models
 
-logger = logging.getLogger()
+from main_page import log_util
 
-"""
-  TODO: Soooo Look at all these Class Names, do they look like a snake? No? Well my dear unlucky sod, this is where you come in
-"""
+logger = log_util.get_logger(__name__)
+
 
 class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.User
@@ -517,10 +516,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
   """
   def get(self, request):  
     # Extract search parameters
-
-    logger = logging.getLogger()
     logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
-
 
     search_name = request.GET['name']
     search_cpr = request.GET['cpr']

@@ -8,7 +8,9 @@ pacs_AET = 'RHKFANMGFR2'
 
 
 logging.basicConfig(level =logging.DEBUG, filename = 'storelogfile.log')
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 ae = pynetdicom.AE(ae_title=pacs_calling)

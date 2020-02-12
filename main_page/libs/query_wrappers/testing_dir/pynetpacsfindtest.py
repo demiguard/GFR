@@ -4,7 +4,9 @@ import logging
 from pydicom import uid
 
 logging.basicConfig(level =logging.DEBUG, filename = 'pacsfindlogfile.log')
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 datasets = []
 

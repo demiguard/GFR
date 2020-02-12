@@ -9,6 +9,7 @@ import glob
 import shutil
 from pathlib import Path
 from threading import Thread
+import re
 
 from typing import Type
 
@@ -18,35 +19,13 @@ from main_page.libs import ae_controller
 from main_page.libs import dataset_creator
 from main_page import models
 from main_page.libs.dirmanager import try_mkdir
+from main_page import log_util
 
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-
-def setup_logger(name, log_file, level=logging.INFO):
-  """
-  Generates loggers
-
-  Args:
-    name: name of the logger 
-          (a logger can be retreived by calling logging.getLogger(<LOGGER_NAME>))
-    log_file: filepath to placement of the logfile on the system
-  
-  Kwargs:
-    level: which level should the logger log on (default=INFO)
-  """
-  handler = logging.FileHandler(log_file)        
-  handler.setFormatter(formatter)
-
-  logger = logging.getLogger(name)
-  logger.setLevel(level)
-  logger.addHandler(handler)
-
-  return logger
-
-# Get the ris threads logger in seperate file
-logger = setup_logger(
-  "ris-thread-log", 
-  f"{server_config.LOG_DIR}ris_thread.log", 
-  level=server_config.THREAD_LOG_LEVEL
+# Create a logger just for the ris_thread
+logger = log_util.get_logger(
+  __name__, 
+  log_filename="ris_thread.log", 
+  log_level=server_config.THREAD_LOG_LEVEL
 )
 
 

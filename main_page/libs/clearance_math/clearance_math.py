@@ -15,8 +15,9 @@ from ..query_wrappers import pacs_query_wrapper as pacs
 from .. import server_config
 from .. import dicomlib
 from main_page.libs import enums
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 def surface_area(height: float, weight: float, method: str="Haycock") -> float:

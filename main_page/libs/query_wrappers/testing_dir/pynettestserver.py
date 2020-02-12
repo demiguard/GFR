@@ -5,7 +5,9 @@ logging.basicConfig(filename='testlogfile.log', level = logging.DEBUG)
 
 
 def on_store(dataset, context, info):
-  logger = logging.getLogger()
+  from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
   logger.info('\n')  
   logger.info(dataset)
@@ -23,7 +25,9 @@ def on_move(dataset, move_aet, context, info):
 
 
   """
-  logger = logging.getLogger()
+  from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
   logger.info('\n')
   logger.info(dataset)
@@ -38,7 +42,9 @@ def on_move(dataset, move_aet, context, info):
   return 0xA801
 
 def log_event(event):
-  logger = logging.getLogger()
+  from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
   logger.info('\n New Event Logged!\n')
   logger.info(event.name)
@@ -62,7 +68,9 @@ server_ae.supported_contexts = StoragePresentationContexts
 server_ae.on_c_move = on_move
 server_ae.on_c_store = on_store
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 logger.info('Starting Server!')
 server_instance = server_ae.start_server(('', 104), evt_handlers=handlers)
 

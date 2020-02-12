@@ -23,7 +23,9 @@ from ..clearance_math import clearance_math
 from .. import formatting
 
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 def move_from_pacs(user, accession_number):
@@ -185,7 +187,7 @@ def start_scp_server(ae_title):
       However Saving in subdirectories are difficult 
 
   """
-  logger = logging.getLogger()
+  logger = log_util.get_logger(__name__)
   logger.info('Starting Server')
   def on_store(dataset, context, info):
     """

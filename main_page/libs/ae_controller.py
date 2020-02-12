@@ -7,7 +7,7 @@ from typing import Type, Union
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 
-# logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
@@ -36,7 +36,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
 
   # Handle both integer and string ports
   if isinstance(port, str):
@@ -99,7 +99,7 @@ def __handle_find_resp(resp, process, *args, **kwargs):
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
 
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
@@ -127,7 +127,7 @@ def __handle_move_resp(resp, process, *args, **kwargs):
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
 
   for status, identifier in resp:
     if status.Status == DATASET_AVAILABLE:
@@ -165,7 +165,7 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
 
   # Perform query
   logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
@@ -201,7 +201,7 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
   
   # Perform query
   logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")

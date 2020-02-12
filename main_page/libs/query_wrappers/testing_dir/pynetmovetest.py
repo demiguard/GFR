@@ -4,7 +4,9 @@ from pydicom import Dataset
 from pynetdicom import AE, StoragePresentationContexts
 
 logging.basicConfig(level =logging.DEBUG, filename = 'movelogfile.log')
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 pacs_ip = '10.143.128.234'
 pacs_port = 104

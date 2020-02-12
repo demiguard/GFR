@@ -9,7 +9,9 @@ Creates a local SCP server, conects to it and stores it
 
 
 logging.basicConfig(filename='logfile.log', level=logging.INFO)
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 

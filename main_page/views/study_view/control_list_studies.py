@@ -29,7 +29,9 @@ from main_page import models
 # Custom type
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 class ControlListView(LoginRequiredMixin, TemplateView):
   template_name = "main_page/control_list_studies.html"

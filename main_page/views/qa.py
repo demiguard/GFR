@@ -12,7 +12,9 @@ from main_page.libs import server_config
 from main_page.libs import dicomlib
 from main_page.libs.clearance_math import clearance_math
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class QAView(LoginRequiredMixin, TemplateView):

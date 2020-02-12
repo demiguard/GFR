@@ -19,7 +19,9 @@ from main_page.libs.dirmanager import try_mkdir
 from main_page.forms import base_forms
 
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class AjaxLogin(TemplateView):

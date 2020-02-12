@@ -15,8 +15,9 @@ from main_page.libs import enums
 from .server_config import new_dict_items
 from . import server_config
 from . import formatting
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 def update_private_tags() -> None:

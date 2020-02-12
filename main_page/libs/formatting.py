@@ -6,7 +6,9 @@ from datetime import datetime
 
 from typing import Union
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 def person_name_to_name(name: str) -> str:
   """

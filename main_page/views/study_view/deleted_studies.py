@@ -26,7 +26,9 @@ from main_page.libs import dicomlib
 from main_page.libs import enums
 from main_page import models
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class DeletedStudiesView(LoginRequiredMixin, TemplateView):

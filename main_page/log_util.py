@@ -6,15 +6,20 @@ from pathlib import Path
 from main_page.libs.dirmanager import try_mkdir
 from .libs import server_config
 
-global ris_thread
 
+def get_logger(
+  name, 
+  log_filename=server_config.LOG_FILENAME, 
+  log_level=server_config.LOG_LEVEL
+  ):
+  """
 
-def init_logger():
-  log_filepath = Path(server_config.LOG_DIR, server_config.LOG_FILENAME)
+  """
+  log_filepath = Path(server_config.LOG_DIR, log_filename)
 
   try_mkdir(server_config.LOG_DIR)
-
-  logger = logging.getLogger()
+  
+  logger = logging.getLogger(name) # Get the root logger
   log_format = "%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s"
   handler = logging.handlers.TimedRotatingFileHandler(
     log_filepath, 
@@ -28,4 +33,9 @@ def init_logger():
   handler.suffix = "%Y-%m-%d"
   handler.extMatch = re.compile(r"^\d{8}$") 
   logger.addHandler(handler)
-  # handler.doRollover()
+
+  # Set the root logging level - required for child loggers to have this or
+  # higher effective log level
+  logger.setLevel(server_config.LOG_LEVEL)
+
+  return logger

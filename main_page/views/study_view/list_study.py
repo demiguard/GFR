@@ -25,8 +25,9 @@ from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
 from main_page import models
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 class ListStudiesView(LoginRequiredMixin, TemplateView):
@@ -39,7 +40,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     # Fetch all registered studies
     curr_department = request.user.department
     hospital_shortname = curr_department.hospital.short_name
-    
+
     registered_datasets = ris.get_studies(
       f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}"
     )

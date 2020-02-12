@@ -37,9 +37,11 @@ from main_page.libs import enums
 from main_page.forms import base_forms
 from main_page import models
 from main_page.libs.clearance_math import clearance_math
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
+# Dict. used for extraction of large request parameters in fill_study.post
 REQUEST_PARAMETER_TYPES = { 
   'cpr': str,
   'name': str,
@@ -400,6 +402,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     """
     hospital = request.user.department.hospital.short_name
     hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
+
+    logger.info(f"Accessing study with accession_number: {accession_number}")
 
     # Retrieve counter data to display from Samba Share
     error_message = "Der er ikke lavet nogen prøver de sidste 24 timer"

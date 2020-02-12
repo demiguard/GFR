@@ -9,7 +9,9 @@ from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import server_config
 from main_page.forms import base_forms
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class SearchView(LoginRequiredMixin, TemplateView):
