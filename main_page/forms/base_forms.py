@@ -134,7 +134,6 @@ class FillStudyGrandForm(forms.Form):
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   
   #Fields
-  bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
   birthdate = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
   cpr  = forms.CharField(label='Cpr-nr', required=False)
   height = forms.CharField(label='Højde (cm)', required=False)
@@ -149,6 +148,7 @@ class FillStudyGrandForm(forms.Form):
   vial_weight_after = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   vial_weight_before = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
   weight = forms.CharField( label='Vægt (kg)', required=False)
+
 
   def __init__(self, *args, **kwargs):
     super(FillStudyGrandForm, self).__init__(*args, **kwargs)

@@ -54,7 +54,7 @@ REQUEST_PARAMETER_TYPES = {
   'injection_time': str,
   'injection_date': str,
   'thin_fac': float,
-  'save_fac': str,
+  'save_fac': bool,
   'study_type': int,
   'standcount': float,
   'sample_date': (list, str),
@@ -300,7 +300,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       inj_date = ds_inj_datetime.strftime('%d-%m-%Y')
       inj_time = ds_inj_datetime.strftime('%H:%M')
     else:
-      inj_date = None
+      inj_date = today.strftime('%d-%m-%Y')
       inj_time = None
 
     thin_fac_save_inital = True
@@ -308,15 +308,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     department_thin_fac = request.user.department.thining_factor
 
     if ds_thin_fac:
-      if request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
-        ds_thin_fac = department_thin_fac
-        thin_fac_save_inital = False
+      thin_fac_save_inital = False
+    elif request.user.department.thining_factor_change_date == today and department_thin_fac != 0:
+      ds_thin_fac = department_thin_fac
+      thin_fac_save_inital = False
 
     # Check to avoid resetting the thining factor when clicking 'beregn'
-    if ds_thin_fac:
-      if ds_thin_fac != department_thin_fac:
-        thin_fac_save_inital = False
-
+    
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
@@ -329,7 +327,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     grand_form = base_forms.FillStudyGrandForm(initial={
       'birthdate'         : patient_birthday,
-      'cpr'               : cpr,
+      'cpr'               : formatting.format_cpr(cpr),
       'height'            : height,
       'injection_date'    : inj_date,
       'injection_time'    : inj_time,
@@ -478,8 +476,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
-    thin_fac = dataset.thiningfactor
-    if 'save_fac' in post_req and thin_fac: 
+    
+    if 'save_fac' in post_req and 'thin_fac' in post_req:
+      thin_fac = post_req['thin_fac']
       logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
       department.thining_factor = thin_fac
       department.thining_factor_change_date = datetime.date.today()
@@ -593,9 +592,10 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     # Save the filled out dataset
     dicomlib.save_dicom(dataset_filepath, dataset)
-    
     # Redirect to correct site based on which action was performed
     if "calculate" in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number)
+    else: 
+      return redirect('main_page:list_studies')
 
     return self.get(request, accession_number)

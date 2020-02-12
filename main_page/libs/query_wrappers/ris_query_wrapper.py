@@ -297,7 +297,7 @@ def extract_list_info(
     try:
       registered_studies.append({
         'accession_number': dataset.AccessionNumber,
-        'cpr'             : dataset.PatientID,
+        'cpr'             : formatting.format_cpr(dataset.PatientID),
         'study_date'      : study_date,
         'procedure'       : procedure,
         'name'            : formatting.person_name_to_name(str(dataset.PatientName)),

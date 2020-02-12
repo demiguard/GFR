@@ -35,7 +35,8 @@
         {% bootstrap_field grand_form.injection_date %}
       </div>  
       <div class = "form-group col-md-3">
-        {% bootstrap_field grand_form.thin_fac %}
+        {% bootstrap_field grand_form.thin_fac  %}
+        {% bootstrap_field grand_form.save_fac %}
         <small><a id="reset_thin_fac" href="#">Hent fortyndingsfaktor</a></small>
         {% bootstrap_field grand_form.study_type %}
       </div>
@@ -101,7 +102,6 @@
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>
-        {% bootstrap_field grand_form.bamID %}
         {% buttons%}
           <input type="submit" name="calculate" value="Beregn" id="calculate">
           <input type="submit" name="save" value="Gem" id="save">
