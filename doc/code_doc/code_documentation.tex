@@ -85,8 +85,8 @@ Most code for the project is found under the directory \texttt{GFR/main\_page}, 
 	\begin{itemize}
 		\item \texttt{GFR/main\_page/views/api/} - Class-based views for REST api endpoints
 	\end{itemize}
-	\item \texttt{GFR/main\_page/Startup.py} - Code to be ran once on startup of the Django server.
-	\item \texttt{GFR/main\_page/apps.py} - Calls \texttt{Startup.py} on start of the server.
+	\item \texttt{GFR/main\_page/log\_util.py} - Utility for handling of logging to multiple files, s.t. the \texttt{ris\_thread} and main thread of the server can log to separate files without overlap.
+	\item \texttt{GFR/main\_page/apps.py} - Code to be ran once on startup of the Django server (this is responsible for e.g. starting the background RIS thread for retrieving historic studies).
 	\item \texttt{GFR/main\_page/backends.py} - Defines the authentication process for simple User login.
 	\item \texttt{GFR/main\_page/models.py} - Defines database models.
 	\item \texttt{GFR/main\_page/urls.py} - Defines available endpoints and their corresponding views.

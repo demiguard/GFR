@@ -6,6 +6,12 @@ from pathlib import Path
 from main_page.libs.dirmanager import try_mkdir
 from .libs import server_config
 
+"""
+### WARNING ###
+This logging utility was created as to resolve potential issues related to
+having multiple loggers in different threads. Please refrain from editting
+this module and it's functions as it will effect logging in all other modules!
+"""
 
 def get_logger(
   name, 
@@ -13,7 +19,17 @@ def get_logger(
   log_level=server_config.LOG_LEVEL
   ):
   """
+  Creates a new logger
 
+  Args:
+    name: name of the logger (generally this should just be called with __name__)
+
+  Kwargs:
+    log_filename: filename of file to log to in main_page/log/
+    log_level: logging level to use for the logger
+
+  Remark:
+    Allow for logging to multiple files without overlap.
   """
   log_filepath = Path(server_config.LOG_DIR, log_filename)
 
