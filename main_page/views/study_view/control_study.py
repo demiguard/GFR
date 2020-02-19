@@ -62,7 +62,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
   
     GrandForm = base_forms.GrandControlPatient(initial={
       'cpr'                 : formatting.format_cpr(PatientDataset.PatientID),
-      'name'                : formatting.person_name_to_name(PatientDataset.PatientName.original_string.decode()),
+      'name'                : formatting.person_name_to_name(str(PatientDataset.PatientName)),
       'sex'                 : present_sex,
       'birthdate'           : formatting.convert_date_to_danish_date(PatientDataset.PatientBirthDate, sep='-'),
       'height'              : PatientDataset.PatientSize * 100,

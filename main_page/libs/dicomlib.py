@@ -313,7 +313,7 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
   if bamID:
     curr_operators = ds.get("OperatorsName")
 
-    if type(curr_operators) == None:
+    if not curr_operators:
       ds.OperatorsName = bamID
     elif type(curr_operators) == pydicom.multival.MultiValue:
       if bamID not in curr_operators:
@@ -322,6 +322,7 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
       if str(ds.OperatorsName) != bamID:
         ds.OperatorsName = str(ds.OperatorsName) + f'\\{bamID}'
 
+  print(ds)
 
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
