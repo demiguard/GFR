@@ -146,6 +146,8 @@
 
 // ############################ NEW JS BELOW
 
+var csv_handler;
+
 /*
 Initializes the correct sizing of the select test div on window resizing
 
@@ -309,6 +311,9 @@ function get_backup_measurements() {
 
       // display newly generated table
       document.getElementById("dynamic_generate_history").style.display = 'block';
+
+      // Ensure that the now history rows are clickable
+      csv_handler.init_row_selector(".history_csv_row");
     },
     error: function() {
       alerter.add_alert('Kunne ikke forbinde til serveren', 'warning');
@@ -643,7 +648,7 @@ Performs initialization of required modules
 */
 function initialize_csv_handler(alerter) {
   // Set the container to display errors in
-  let csv_handler = new CSVHandler(alerter);
+  csv_handler = new CSVHandler(alerter);
 
   csv_handler.init_row_selector(".csv_row");
   csv_handler.init_add_button_handler($('#add-test'), $('#add-empty-value'));
