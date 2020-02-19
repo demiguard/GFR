@@ -5,7 +5,7 @@ function remove_decimal_values(Value){
 
 function replace_dots_with_commas(Value){
   var string = Value.split(".");
-  var reeeeeeeee = /0+/;
+  var reeeeeeeee = /^0+$/;
   if (reeeeeeeee.test(string[1])) {
     return string[0];
   } else {
