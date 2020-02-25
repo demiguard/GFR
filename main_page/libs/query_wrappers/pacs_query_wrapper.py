@@ -66,7 +66,6 @@ def move_from_pacs(user, accession_number):
     ae_title=user.department.config.pacs_aet #TODO bad code, see ris thread
   )
   if find_assoc.is_established and move_assoc.is_established:
-    
     find_dataset_from_response = []
     find_response = find_assoc.send_c_find(find_dataset, query_model='S')
     for (status, dataset_from_find) in find_response:

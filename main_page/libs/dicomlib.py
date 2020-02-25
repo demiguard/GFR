@@ -322,8 +322,6 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
       if str(ds.OperatorsName) != bamID:
         ds.OperatorsName = str(ds.OperatorsName) + f'\\{bamID}'
 
-  print(ds)
-
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
   Attempts to add the exam status to the dataset

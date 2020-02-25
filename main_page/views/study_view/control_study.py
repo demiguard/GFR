@@ -105,8 +105,6 @@ class ControlView(LoginRequiredMixin, TemplateView):
 
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
     elif (post_req['control'] == 'Godkend'):
-      print(post_req)
-
       file_path = f'{dir_path}{AccessionNumber}.dcm'
       dataset = dicomlib.dcmread_wrapper(file_path)
       bamid = post_req['bamID'].lower().swapcase()

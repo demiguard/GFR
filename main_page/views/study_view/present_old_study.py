@@ -26,13 +26,13 @@ from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
 from main_page import models
+from main_page import log_util
 
 # Custom type
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
-from main_page import log_util
-
 logger = log_util.get_logger(__name__)
+
 
 class PresentOldStudyView(LoginRequiredMixin, TemplateView):
   """
@@ -94,6 +94,16 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     if study_type:
       study_type = enums.STUDY_TYPE_NAMES.index(study_type)
 
+    # Extract standard count, thinning factor, injection before/after weight, etc.
+    study_date = dataset.StudyDate
+    study_time = dataset.StudyTime
+    study_datetime = datetime.datetime.strptime(f"{study_date}{study_time}", "%Y%m%d%H%M%S")
+
+    std_cnt = dataset.stdcnt
+    thin_fac = dataset.thiningfactor
+    inj_weight_before = dataset.injbefore
+    inj_weight_after = dataset.injafter
+
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
@@ -114,6 +124,12 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'image_path': plot_path,
       'study_type': study_type,
       'previous_samples': [previous_samples],
+      'std_cnt': std_cnt,
+      'thin_fac': thin_fac,
+      'inj_weight_before': inj_weight_before,
+      'inj_weight_after': inj_weight_after,
+      'study_date': study_datetime.strftime("%d-%m-%Y"),
+      'study_time': study_datetime.strftime("%H:%M"),
     }
 
     return render(request, self.template_name, context=context)

@@ -11,9 +11,17 @@
 <img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
 
 <div class="col-md-4">
-  <h3>Prøve data:</h3>
+  <h5>Undersøgelse data:</h5>
+  <p><strong>Injektionsdato: </strong>{{ study_date }}</p>
+  <p><strong>Injektionstidspunkt: </strong>{{ study_time }}</p>
+  <p><strong>Standardtælletal: </strong>{{ std_cnt }}</p>
+  <p><strong>Fortyndingsfaktor: </strong>{{ thin_fac }}</p>
+  <p><strong>Sprøjtevægt før injektion (g): </strong>{{ inj_weight_before }}</p>
+  <p><strong>Sprøjtevægt efter injektion (g): </strong>{{ inj_weight_after }}</p>
+
+  <h5>Prøver:</h5>
   {% for previous_test in previous_samples %}
-    <h5>Prøve nr. {{ forloop.counter }}</h5>
+    <!-- <h5>Prøve nr. {{ forloop.counter }}</h5> -->
 
     <table class="table table-bordered">
       <thead>
