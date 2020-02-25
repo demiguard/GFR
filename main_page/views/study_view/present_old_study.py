@@ -103,6 +103,10 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     thin_fac = dataset.thiningfactor
     inj_weight_before = dataset.injbefore
     inj_weight_after = dataset.injafter
+    
+    birthdate_str = dataset.PatientBirthDate
+    birthdate = datetime.datetime.strptime(birthdate_str, "%Y%m%d")
+
     operators = formatting.xstr(dataset.get("OperatorsName"))
 
     # Extract the image
@@ -132,6 +136,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'study_date': study_datetime.strftime("%d-%m-%Y"),
       'study_time': study_datetime.strftime("%H:%M"),
       'operators': operators,
+      'birthdate': birthdate.strftime("%d-%m-%Y"),
     }
 
     return render(request, self.template_name, context=context)
