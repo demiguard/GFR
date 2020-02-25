@@ -108,7 +108,6 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     if isinstance(operators, pydicom.valuerep.PersonName3):
       operators = str(operators)
     elif isinstance(operators, pydicom.multival.MultiValue):
-      print("ENTERED HERE!")
       operators = ', '.join([str(x) for x in operators])
     elif not operators:
       operators = ""
