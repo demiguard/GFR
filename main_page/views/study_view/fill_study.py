@@ -234,7 +234,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       
       # Cast to int, as to remove dots when presenting on the site
       csv_data.append(
-        [[int(rack), int(pos), formatting.convert_number_to_unreasonable_number_format(cnt)] 
+        [[int(rack), int(pos), int(cnt)]
           for rack, pos, cnt in selected.to_numpy().tolist()]
         )
       

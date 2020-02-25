@@ -466,7 +466,7 @@ class CsvEndpoint(LoginRequiredMixin, View):
     hospital_sn = user.department.hospital.short_name
     csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
     csv_file_path = f'{csv_dir}{accession_number}.csv'
-    dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}.dcm'
+    dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}/{accession_number}.dcm'
     
     try:
       dataset = dicomlib.dcmread_wrapper(dataset_file_path)

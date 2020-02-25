@@ -471,6 +471,7 @@ def convert_unreasonable_number_str_to_float(unreasonable_number):
 
 
 def format_number(floating_num):
+  #converts 3.7 to 3,7
   string_num = convert_number_to_unreasonable_number_format(floating_num)
   whole_num, decimal_num = string_num.split(',')
 
