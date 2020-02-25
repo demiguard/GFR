@@ -28,19 +28,6 @@ class GrandControlPatient(forms.Form):
   ]
 
   #Standard fields
-  cpr                 = forms.CharField(label='Cpr-nr.',        required=False )
-  name                = forms.CharField(label='Navn',           required=False )
-  sex                 = forms.ChoiceField(label='Køn', choices=sex_options,  required=False, disabled=True)
-  birthdate           = forms.DateField(label='Fødseldato',     required=False)
-  height              = forms.CharField(label='Højde (cm)',  widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  weight              = forms.CharField(label='Vægt (kg)',   widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  vial_weight_before  = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))  
-  vial_weight_after   = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, widget=forms.TextInput(attrs={'class' : "col-md-12"}))
-  injection_time      = forms.TimeField(label='Injektionstidspunkt', required=False)
-  injection_date      = forms.DateField(label='InjektionsDato',      required=False, input_formats=['%d-%m-%Y'])
-  thin_fac            = forms.IntegerField(label='Fortyndingsfaktor', required=False, widget=forms.TextInput(attrs={'class' : "", 'step': '1'}))
-  study_type          = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect(), disabled=True)  
-  stdCnt              = forms.DecimalField(label='Standardtælletal', max_digits=1 , required=False, widget=forms.TextInput(attrs={'class' : "col-md-5"}))
   bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
 
   #Confirmation Fields
@@ -61,21 +48,6 @@ class GrandControlPatient(forms.Form):
   #Startup
   def __init__(self, *args, **kwargs):
     super(GrandControlPatient, self).__init__(*args, **kwargs)
-    self.fields['cpr'].widget.attrs['readonly']                 = True
-    self.fields['name'].widget.attrs['readonly']                = True
-    self.fields['sex'].widget.attrs['readonly']                 = True    
-    self.fields['birthdate'].widget.attrs['readonly']           = True
-    self.fields['height'].widget.attrs['readonly']              = True
-    self.fields['weight'].widget.attrs['readonly']              = True
-    self.fields['vial_weight_before'].widget.attrs['readonly']  = True
-    self.fields['vial_weight_after'].widget.attrs['readonly']   = True
-    self.fields['injection_time'].widget.attrs['readonly']      = True
-    self.fields['injection_date'].widget.attrs['readonly']      = True
-    self.fields['thin_fac'].widget.attrs['readonly']            = True
-    self.fields['study_type'].widget.attrs['readonly']          = True
-    self.fields['stdCnt'].widget.attrs['readonly']              = True
-    self.fields['stdCnt'].widget.attrs['class']                 = 'form-input'
-    self.fields['stdCnt_confirm'].widget.attrs['class']         = 'confirm-row-checkbox'    
 
 
 class ControlPatient6(forms.Form):

@@ -460,3 +460,22 @@ def extract_request_parameters(
       ret[key] = new_value[0]
 
   return ret
+
+# #ShadeThrown
+# You may take my sparetime, but you never take my comments - William Wallice 1295!
+def convert_number_to_unreasonable_number_format(reasonable_number):
+  return str(reasonable_number).replace('.',',')
+
+def convert_unreasonable_number_str_to_float(unreasonable_number):
+  return float(unreasonable_number.replace(',','.'))
+
+
+def format_number(floating_num):
+  #converts 3.7 to 3,7
+  string_num = convert_number_to_unreasonable_number_format(floating_num)
+  whole_num, decimal_num = string_num.split(',')
+
+  if re.match('^0+$', decimal_num):
+    return whole_num
+  else:
+    return string_num
