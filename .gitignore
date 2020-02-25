@@ -8,6 +8,7 @@ active_dicom_objects/
 deleted_dicom_objects/
 control_dicom_objects/
 deleted_studies/
+search_dir/
 
 # Python cache
 __pycache__/
