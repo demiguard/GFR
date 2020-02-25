@@ -153,15 +153,15 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'name'                : formatting.person_name_to_name(dataset.PatientName.original_string.decode()),
       'sex'                 : enums.GENDER_NAMINGS[present_sex],
       'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
-      'height'              : formatting.format_number( dataset.PatientSize * 100),
-      'weight'              : formatting.format_number(dataset.PatientWeight),
-      'vial_weight_before'  : formatting.format_number(dataset.injbefore),      
-      'vial_weight_after'   : formatting.format_number(dataset.injafter),      
+      'height'              : formatting.float_dec_to_comma(dataset.PatientSize * 100),
+      'weight'              : formatting.float_dec_to_comma(dataset.PatientWeight),
+      'vial_weight_before'  : formatting.float_dec_to_comma(dataset.injbefore),      
+      'vial_weight_after'   : formatting.float_dec_to_comma(dataset.injafter),      
       'injection_time'      : injeciton_time,      
       'injection_date'      : injeciton_date,
-      'thin_fac'            : formatting.format_number(dataset.thiningfactor),
+      'thin_fac'            : formatting.float_dec_to_comma(dataset.thiningfactor),
       'study_type'          : dataset.GFRMethod,
-      'stdCnt'              : formatting.format_number(dataset.stdcnt)
+      'stdCnt'              : formatting.float_dec_to_comma(dataset.stdcnt)
     }
 
     context = {

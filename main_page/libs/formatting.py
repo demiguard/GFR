@@ -461,18 +461,22 @@ def extract_request_parameters(
 
   return ret
 
-# #ShadeThrown
-# You may take my sparetime, but you never take my comments - William Wallice 1295!
-def convert_number_to_unreasonable_number_format(reasonable_number):
-  return str(reasonable_number).replace('.',',')
 
-def convert_unreasonable_number_str_to_float(unreasonable_number):
-  return float(unreasonable_number.replace(',','.'))
+def float_dec_to_comma(floating_num: float) -> str:
+  """
+  Converts floating points with decimal to comma
 
+  Args:
+    floating_num: floating-point number
 
-def format_number(floating_num):
-  #converts 3.7 to 3,7
-  string_num = convert_number_to_unreasonable_number_format(floating_num)
+  Returns:
+    String representing the number using comma
+
+  Example:
+    >>> float_dec_to_comma(3.7)
+    "3,7"
+  """
+  string_num = str(floating_num).replace('.',',')
   whole_num, decimal_num = string_num.split(',')
 
   if re.match('^0+$', decimal_num):

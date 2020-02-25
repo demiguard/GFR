@@ -103,36 +103,21 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     thin_fac = dataset.thiningfactor
     inj_weight_before = dataset.injbefore
     inj_weight_after = dataset.injafter
+    operators = formatting.xstr(dataset.get("OperatorsName"))
 
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
     
     if 'PixelData' in dataset:
-    # Reads DICOM conformant image to PIL displayable image
+      # Reads DICOM conformant image to PIL displayable image
       pixel_arr = np.frombuffer(dataset.PixelData, dtype=np.uint8)
       pixel_arr = np.reshape(pixel_arr, (1080, 1920, 3))
  
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
       Im.save(f'{img_resp_dir}{accession_number}.png')
     
-    plot_path = f'main_page/images/{hospital}/{accession_number}.png' 
-    
-    InfoDir = {
-      'cpr'                 : formatting.format_cpr(dataset.PatientID),
-      'name'                : formatting.person_name_to_name(dataset.PatientName.original_string.decode()),
-      'sex'                 : enums.GENDER_NAMINGS[present_sex],
-      'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
-      'height'              : formatting.format_number( dataset.PatientSize * 100),
-      'weight'              : formatting.format_number(dataset.PatientWeight),
-      'vial_weight_before'  : formatting.format_number(dataset.injbefore),      
-      'vial_weight_after'   : formatting.format_number(dataset.injafter),      
-      'injection_time'      : injeciton_time,      
-      'injection_date'      : injeciton_date,
-      'thin_fac'            : formatting.format_number(dataset.thiningfactor),
-      'study_type'          : dataset.GFRMethod,
-      'stdCnt'              : formatting.format_number(dataset.stdcnt)
-    }
+    plot_path = f'main_page/images/{hospital}/{accession_number}.png'
 
     context = {
       'title'     : server_config.SERVER_NAME,
@@ -146,6 +131,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'inj_weight_after': inj_weight_after,
       'study_date': study_datetime.strftime("%d-%m-%Y"),
       'study_time': study_datetime.strftime("%H:%M"),
+      'operators': operators,
     }
 
     return render(request, self.template_name, context=context)
