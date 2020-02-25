@@ -16,20 +16,26 @@
 }
 
 .confirm-checkbox {
-  margin-top: 45px;
-  margin-left: -10px;
+  position :relative;
+  margin-right: 5px;
 }
 
 .confirm-row-checkbox {
-  margin-top:  15px;
-  margin-left: -10px;
+  margin-top:  12px;
+  margin-left: 0px;
 }
 
 .form-input {
   width: 100%;
 }
 
-/* Make studies 'seem' clickable */
-tr:hover {
-  cursor: pointer;
+.form-super-group{
+  margin-bottom: 0rem;
+}
+
+.study_table{
+  padding: 15px !important;
+  border: 5px;
+  border-color: rgb(38, 38, 150); 
+  /*border-style: solid;*/
 }

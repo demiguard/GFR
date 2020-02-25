@@ -106,8 +106,24 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
       Im.save(f'{img_resp_dir}{accession_number}.png')
     
-    plot_path = 'main_page/images/{0}/{1}.png'.format(hospital, accession_number) 
+    plot_path = f'main_page/images/{hospital}/{accession_number}.png' 
     
+    InfoDir = {
+      'cpr'                 : formatting.format_cpr(dataset.PatientID),
+      'name'                : formatting.person_name_to_name(dataset.PatientName.original_string.decode()),
+      'sex'                 : enums.GENDER_NAMINGS[present_sex],
+      'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
+      'height'              : formatting.format_number( dataset.PatientSize * 100),
+      'weight'              : formatting.format_number(dataset.PatientWeight),
+      'vial_weight_before'  : formatting.format_number(dataset.injbefore),      
+      'vial_weight_after'   : formatting.format_number(dataset.injafter),      
+      'injection_time'      : injeciton_time,      
+      'injection_date'      : injeciton_date,
+      'thin_fac'            : formatting.format_number(dataset.thiningfactor),
+      'study_type'          : dataset.GFRMethod,
+      'stdCnt'              : formatting.format_number(dataset.stdcnt)
+    }
+
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,

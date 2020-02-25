@@ -17,81 +17,84 @@
     {% csrf_token %}
     
     <!-- Add patient info -->
-    <div class="form-row">
-      <div class = "form-group col-md-3">
-        <div class = form-row>
-            {% bootstrap_field GrandForm.cpr %}
-            {% bootstrap_field GrandForm.cpr_confirm %}
-        </div>
-        <div class = "form-row">
-          {% bootstrap_field GrandForm.name %}
-          {% bootstrap_field GrandForm.name_confirm %}
-          
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.sex %}
-          {% bootstrap_field GrandForm.sex_confirm %}
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.birthdate %}
-          {% bootstrap_field GrandForm.birthdate_confirm %}
-        </div>
-      </div>
-      <div class = "form-group col-md-3">
-        <div class = "form-row">
-          {% bootstrap_field GrandForm.height %}
-          {% bootstrap_field GrandForm.height_confirm %}
-        </div>
-        <div class = "form-row">
-          {% bootstrap_field GrandForm.weight %}
-          {% bootstrap_field GrandForm.weight_confirm %}
-        </div>
-      </div>
-      <div class="form-group col-md-3">
-        <div class="form-row">
-          {% bootstrap_field GrandForm.vial_weight_before %}
-          {% bootstrap_field GrandForm.vial_weight_before_confirm %}  
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.vial_weight_after %}
-          {% bootstrap_field GrandForm.vial_weight_after_confirm %}  
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.injection_time %}
-          {% bootstrap_field GrandForm.injection_time_confirm %}  
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.injection_date %}
-          {% bootstrap_field GrandForm.injection_date_confirm %}  
-        </div>
+    <div class="form-row">   
+      <table class="study_table col-md-4">
+        <tr>
+        </tr>
+          <td>{% bootstrap_field GrandForm.cpr_confirm form_group_class='.form-super-group' %}</td>
+          <td>CPR:</td>
+          <td>{{ info.cpr }}</td>
+        <tr>
+          <td>{% bootstrap_field GrandForm.name_confirm form_group_class='.form-super-group' %}</td>
+          <td>Navn: </td>
+          <td>{{ info.name }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.sex_confirm form_group_class='.form-super-group' %}</td>
+          <td>Køn: </td>
+          <td>{{ info.sex }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.birthdate_confirm form_group_class='.form-super-group' %}</td>
+          <td>Fødselsdagdato: </td>
+          <td>{{ info.birthdate }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.height_confirm form_group_class='.form-super-group' %}</td>
+          <td>Højde: </td>
+          <td>{{ info.height }} cm</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.weight_confirm form_group_class='.form-super-group' %}</td>
+          <td>Vægt: </td>
+          <td>{{ info.weight }} kg</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.vial_weight_before_confirm form_group_class='.form-super-group' %}</td>
+          <td>Sprøjtevægt før inj:</td>
+          <td>{{ info.vial_weight_before }}g</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.vial_weight_after_confirm form_group_class='.form-super-group' %}</td>
+          <td>Sprøjtevægt efter inj: </td>
+          <td>{{ info.vial_weight_after }}g</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.injection_time_confirm form_group_class='.form-super-group' %}</td>
+          <td>Injektion Tidspunkt:</td>
+          <td>{{ info.injection_time }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.injection_date_confirm form_group_class='.form-super-group' %}</td>
+          <td>Injektion Dato: </td>
+          <td>{{ info.injection_date }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.thin_fac_confirm form_group_class='.form-super-group' %}</td>
+          <td>Fortyndingsfaktor: </td>
+          <td>{{ info.thin_fac }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.stdCnt_confirm form_group_class='.form-super-group' %}</td>
+          <td>Standardtælletal: </td>
+          <td>{{ info.stdCnt }}</td>
+        </tr>
+        <tr>
+          <td>{% bootstrap_field GrandForm.study_type_confirm form_group_class='.form-super-group' %}</td>
+          <td>Undersøgelses type: </td>
+          <td>{{ info.study_type }}</td>
+        </tr>
 
-      </div>  
-      <div class = "form-group col-md-3">
-        <div class="form-row">
-          {% bootstrap_field GrandForm.thin_fac %}
-          {% bootstrap_field GrandForm.thin_fac_confirm %}  
-        </div>
-        <div class="form-row">
-          {% bootstrap_field GrandForm.study_type %} <br>
-          {% bootstrap_field GrandForm.study_type_confirm %}  
-        </div>
+      </table>
+      <div class="col-md-8">
+        <img class="PresentationImage" width="100%" src="{% static static_path %}" alt="Image not generated, {{ image_path }}" >
       </div>
     </div>
-    
-    <hr>
-
     <!-- Second Half -->
     <div class="row">
       <!-- Left side-->
-      <div class="col-md-6">
+      <div class="col-md-4">
         <!-- Display test info -->
-        Standardtælletal
-        <div class="form-row">
-            {% bootstrap_field GrandForm.stdCnt layout='inline' form_group_class='col-md-8 form-group' %}
-            {% bootstrap_field GrandForm.stdCnt_confirm form_group_class='col-md-1' %}
-          
-        </div>
-        
         <h5>Blodprøvedata</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
@@ -116,7 +119,7 @@
         <hr>     
         {% bootstrap_field GrandForm.bamID layout='inline' %}
         {% buttons %}
-          <input type="submit" name="control" value="Godkend" id="confirm">
+          <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
           <input type="submit" name="control" value="Afvis" id="deny">
         {% endbuttons %}
 
@@ -124,11 +127,10 @@
         <div id="error-message-container">
   
         </div>
-      <!-- Left Closing -->
       </div>
-
+      <!-- Left Closing -->
       <!-- Right side -->
-      
+
       </div> <!-- Right closing-->
     </div>
   </form>
