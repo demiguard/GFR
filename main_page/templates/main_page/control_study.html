@@ -20,10 +20,10 @@
     <div class="form-row">   
       <table class="study_table col-md-4">
         <tr>
-        </tr>
           <td>{% bootstrap_field GrandForm.cpr_confirm form_group_class='.form-super-group' %}</td>
           <td>CPR:</td>
           <td>{{ info.cpr }}</td>
+        </tr>
         <tr>
           <td>{% bootstrap_field GrandForm.name_confirm form_group_class='.form-super-group' %}</td>
           <td>Navn: </td>
@@ -52,12 +52,12 @@
         <tr>
           <td>{% bootstrap_field GrandForm.vial_weight_before_confirm form_group_class='.form-super-group' %}</td>
           <td>Sprøjtevægt før inj:</td>
-          <td>{{ info.vial_weight_before }}g</td>
+          <td>{{ info.vial_weight_before }} g</td>
         </tr>
         <tr>
           <td>{% bootstrap_field GrandForm.vial_weight_after_confirm form_group_class='.form-super-group' %}</td>
           <td>Sprøjtevægt efter inj: </td>
-          <td>{{ info.vial_weight_after }}g</td>
+          <td>{{ info.vial_weight_after }} g</td>
         </tr>
         <tr>
           <td>{% bootstrap_field GrandForm.injection_time_confirm form_group_class='.form-super-group' %}</td>

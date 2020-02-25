@@ -90,24 +90,41 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       previous_sample_counts
     )
 
-    study_type = dataset.get("GFRMethod")
-    if study_type:
-      study_type = enums.STUDY_TYPE_NAMES.index(study_type)
-
-    # Extract standard count, thinning factor, injection before/after weight, etc.
+    # Extract study data to present
     study_date = dataset.StudyDate
     study_time = dataset.StudyTime
     study_datetime = datetime.datetime.strptime(f"{study_date}{study_time}", "%Y%m%d%H%M%S")
 
-    std_cnt = dataset.stdcnt
-    thin_fac = dataset.thiningfactor
-    inj_weight_before = dataset.injbefore
-    inj_weight_after = dataset.injafter
-    
     birthdate_str = dataset.PatientBirthDate
-    birthdate = datetime.datetime.strptime(birthdate_str, "%Y%m%d")
+    birthdate = formatting.convert_date_to_danish_date(birthdate_str, sep='-')
+
+    if dataset.PatientSex == 'M':
+      present_sex = 0
+    else:
+      present_sex = 1
 
     operators = formatting.xstr(dataset.get("OperatorsName"))
+
+    patient_height = formatting.float_dec_to_comma(dataset.PatientSize * 100)
+    patient_weight = formatting.float_dec_to_comma(dataset.PatientWeight)
+    inj_weight_before = formatting.float_dec_to_comma(dataset.injbefore)
+    inj_weight_after = formatting.float_dec_to_comma(dataset.injafter)
+
+    study_data = [
+      ('CPR:', formatting.format_cpr(dataset.PatientID)),
+      ('Navn:', formatting.person_name_to_name(str(dataset.PatientName))),
+      ('Køn:', enums.GENDER_NAMINGS[present_sex]),
+      ('Fødselsdagdato:', birthdate),
+      ('Højde:', f"{patient_height} cm"),
+      ('Vægt:', f"{patient_weight} kg"),
+      ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
+      ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
+      ('Injektion Tidspunkt:', study_datetime.strftime("%H:%M")),
+      ('Injektion Dato:', study_datetime.strftime("%d-%m-%Y")),
+      ('Fortyndingsfaktor:', formatting.float_dec_to_comma(dataset.thiningfactor)),
+      ('Standardtælletal:', formatting.float_dec_to_comma(dataset.stdcnt)),
+      ('Undersøgelses type:', dataset.GFRMethod)
+    ]
 
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
@@ -127,16 +144,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'image_path': plot_path,
-      'study_type': study_type,
       'previous_samples': [previous_samples],
-      'std_cnt': std_cnt,
-      'thin_fac': thin_fac,
-      'inj_weight_before': inj_weight_before,
-      'inj_weight_after': inj_weight_after,
-      'study_date': study_datetime.strftime("%d-%m-%Y"),
-      'study_time': study_datetime.strftime("%H:%M"),
-      'operators': operators,
-      'birthdate': birthdate.strftime("%d-%m-%Y"),
+      'accession_number': accession_number,
+      'study_data': study_data,
     }
 
     return render(request, self.template_name, context=context)

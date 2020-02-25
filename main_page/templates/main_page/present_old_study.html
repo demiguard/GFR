@@ -8,39 +8,49 @@
 {% endblock head %}
 
 {% block content %}
-<img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+<strong>Accession-nr.:</strong><p>{{ accession_number }}</p>
 
-<div class="col-md-4">
-  <h5>Undersøgelse data:</h5>
-  <p><strong>Fødselsdato: </strong>{{ birthdate }}</p>
-  <p><strong>Injektionsdato: </strong>{{ study_date }}</p>
-  <p><strong>Injektionstidspunkt: </strong>{{ study_time }}</p>
-  <p><strong>Standardtælletal: </strong>{{ std_cnt }}</p>
-  <p><strong>Fortyndingsfaktor: </strong>{{ thin_fac }}</p>
-  <p><strong>Sprøjtevægt før injektion (g): </strong>{{ inj_weight_before }}</p>
-  <p><strong>Sprøjtevægt efter injektion (g): </strong>{{ inj_weight_after }}</p>
-  <p><strong>BamID'er: </strong>{{ operators }}</p>
-
-  <h5>Prøver:</h5>
-  {% for previous_test in previous_samples %}
-    <!-- <h5>Prøve nr. {{ forloop.counter }}</h5> -->
-
-    <table class="table table-bordered">
-      <thead>
-        <th>Dato</th>
-        <th>Tidspunkt</th>
-        <th>Tælletal</th>
-      </thead>
+<div class="row">
+  <div class="col-md-4">
+    
+    <table class="col-md-12">
       <tbody>
-      {% for psd, pst, psc in previous_test %}
-        <tr>
-          <td>{{ psd }}</td>
-          <td>{{ pst }}</td>
-          <td>{{ psc }}</td>
-        </tr>
-      {% endfor %}
+        {% for present_name, value in study_data %}
+          <tr>
+            <td>{{ present_name }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
-  {% endfor %}
+
+    <br>
+
+    <h5>Prøver:</h5>
+    {% for previous_test in previous_samples %}
+      <!-- <h5>Prøve nr. {{ forloop.counter }}</h5> -->
+  
+      <table class="table table-bordered">
+        <thead>
+          <th>Dato</th>
+          <th>Tidspunkt</th>
+          <th>Tælletal</th>
+        </thead>
+        <tbody>
+        {% for psd, pst, psc in previous_test %}
+          <tr>
+            <td>{{ psd }}</td>
+            <td>{{ pst }}</td>
+            <td>{{ psc }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
+  </div>
+  
+  <div class="col-md-8">
+    <img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+  </div>
 </div>
 {% endblock %}
