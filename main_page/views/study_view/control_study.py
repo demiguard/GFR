@@ -76,7 +76,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
     elif (post_req['control'] == 'Godkend og Send til Pacs'):
       file_path = f'{dir_path}{AccessionNumber}.dcm'
-      image_path  = f"{server_config.IMG_RESPONS_DIR}{hosp_sn}/{AccessionNumber}.png"
+      image_path  = f"{server_config.IMG_RESPONS_DIR}{hopital_sn}/{AccessionNumber}.png"
 
       dataset = dicomlib.dcmread_wrapper(file_path)
       bamid = post_req['bamID'].lower().swapcase()
