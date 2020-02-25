@@ -13,6 +13,7 @@ import logging
 import PIL
 import glob
 from pandas import DataFrame
+import pydicom
 from typing import Type, List, Tuple, Union, Generator, Dict
 import numpy as np
 
@@ -103,7 +104,14 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     else:
       present_sex = 1
 
-    operators = formatting.xstr(dataset.get("OperatorsName"))
+    operators = dataset.get("OperatorsName")
+    if isinstance(operators, pydicom.valuerep.PersonName3):
+      operators = str(operators)
+    elif isinstance(operators, pydicom.multival.MultiValue):
+      print("ENTERED HERE!")
+      operators = ', '.join([str(x) for x in operators])
+    elif not operators:
+      operators = ""
 
     patient_height = formatting.float_dec_to_comma(dataset.PatientSize * 100)
     patient_weight = formatting.float_dec_to_comma(dataset.PatientWeight)
@@ -123,7 +131,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Injektion Dato:', study_datetime.strftime("%d-%m-%Y")),
       ('Fortyndingsfaktor:', formatting.float_dec_to_comma(dataset.thiningfactor)),
       ('Standardtælletal:', formatting.float_dec_to_comma(dataset.stdcnt)),
-      ('Undersøgelses type:', dataset.GFRMethod)
+      ('Undersøgelses type:', dataset.GFRMethod),
+      ('Operatør:', operators)
     ]
 
     # Extract the image
