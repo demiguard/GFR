@@ -13,7 +13,6 @@ function replace_dots_with_commas(Value){
   }
 }
 
-
 function Check(){
   var is_valid = true;
   var checkboxes = $('input[type=checkbox]');
@@ -36,8 +35,4 @@ $(function() {
   samples.each(function(){
     this.value = remove_decimal_values(this.value);
   })
-
-  
-  
-
 })
