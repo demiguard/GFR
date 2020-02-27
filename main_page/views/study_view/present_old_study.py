@@ -93,7 +93,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     # Extract study data to present
     study_date = dataset.StudyDate
-    study_time = dataset.StudyTime
+    study_time = dataset.StudyTime.split('.')[0] #This is a bug
     study_datetime = datetime.datetime.strptime(f"{study_date}{study_time}", "%Y%m%d%H%M%S")
 
     birthdate_str = dataset.PatientBirthDate
