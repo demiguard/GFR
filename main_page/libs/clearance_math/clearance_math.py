@@ -88,13 +88,22 @@ def calc_clearance(
     clearance_normalized = (0.213 * delta_times[0] - 104) * np.log(tec99_cnt[0] * BSA / dosis ) + 1.88 * delta_times[0] - 928
 
   elif study_type == enums.StudyType.ONE_SAMPLE_CHILD:
-    two_hours_min = 120
-    ml_per_liter = 1000
+    time_from_injection = delta_times[0]
+    g_of_t              = 1.01*np.exp(-0.00011*time_from_injection) + 0.538*np.exp(-0.0178*time_from_injection)
+    C_t                 = tec99_cnt[0]
+    ECV                 = 5867 * (BSA ** 1.1792)
+    Q_0                 = dosis
 
-    P120 = tec99_cnt[0] * np.exp(0.008 * (delta_times[0] - two_hours_min))
-    V120 = dosis / (P120 * ml_per_liter)
+    GFR                 = -np.log(C_t * ECV / Q_0) * ECV /(time_from_injection * g_of_t)
 
-    GFR = ((2.602 * V120) - 0.273)
+    ##Old Method
+    #two_hours_min = 120
+    #ml_per_liter = 1000
+
+    #P120 = tec99_cnt[0] * np.exp(0.008 * (delta_times[0] - two_hours_min))
+    #V120 = dosis / (P120 * ml_per_liter)
+
+    #GFR = ((2.602 * V120) - 0.273)
 
     normalizing_constant = 1.73
 
