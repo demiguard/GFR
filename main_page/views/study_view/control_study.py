@@ -30,13 +30,13 @@ from main_page.libs import dicomlib
 from main_page.libs import enums
 from main_page.forms import base_forms
 from main_page import models
+from main_page import log_util
 
 # Custom type
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
-from main_page import log_util
-
 logger = log_util.get_logger(__name__)
+
 
 class ControlView(LoginRequiredMixin, TemplateView):
   template_name = "main_page/control_study.html"
@@ -63,20 +63,19 @@ class ControlView(LoginRequiredMixin, TemplateView):
     }
 
   def post(self, request, AccessionNumber):
-
     post_req = request.POST
     hopital_sn = request.user.department.hospital.short_name
     dir_path =f'{server_config.CONTROL_STUDIES_DIR}{hopital_sn}/{AccessionNumber}/'
     file_path = f'{dir_path}{AccessionNumber}.dcm'
 
-    if(post_req['control'] == 'Afvis'):
+    if post_req['control'] == 'Afvis':
       fill_study_dir = f'{server_config.FIND_RESPONS_DIR}{hopital_sn}/{AccessionNumber}'
       shutil.move(dir_path, fill_study_dir)
 
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
-    elif (post_req['control'] == 'Godkend og Send til Pacs'):
+    elif post_req['control'] == 'Godkend og Send til Pacs':
       file_path = f'{dir_path}{AccessionNumber}.dcm'
-      image_path  = f"{server_config.IMG_RESPONS_DIR}{hosp_sn}/{AccessionNumber}.png"
+      image_path  = f"{server_config.IMG_RESPONS_DIR}{hopital_sn}/{AccessionNumber}.png"
 
       dataset = dicomlib.dcmread_wrapper(file_path)
       bamid = post_req['bamID'].lower().swapcase()
@@ -104,21 +103,10 @@ class ControlView(LoginRequiredMixin, TemplateView):
         # Try again?
         # Redirect to informative site, telling the user that the connection to PACS is down
         logger.warn(f'Failed to store {AccessionNumber} in pacs, because:{error_message}')
-      return redirect('main_page:control_list_studies')
-
     else:
       logger.error(f'Invalid Post request for control Study {AccessionNumber}!')
 
-
-    context = {
-      'title'   : server_config.SERVER_NAME,
-      'version' : server_config.SERVER_VERSION,
-      'AccessionNumber' : AccessionNumber
-
-    }
-    context.update(self.init_forms(dataset))
-
-    return render(request, self.template_name, context=context)
+    return redirect('main_page:control_list_studies')
 
   def get(self, request, AccessionNumber):
     hospital   = request.user.department.hospital.short_name
@@ -153,15 +141,15 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'name'                : formatting.person_name_to_name(dataset.PatientName.original_string.decode()),
       'sex'                 : enums.GENDER_NAMINGS[present_sex],
       'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
-      'height'              : formatting.format_number( dataset.PatientSize * 100),
-      'weight'              : formatting.format_number(dataset.PatientWeight),
-      'vial_weight_before'  : formatting.format_number(dataset.injbefore),      
-      'vial_weight_after'   : formatting.format_number(dataset.injafter),      
+      'height'              : formatting.float_dec_to_comma(dataset.PatientSize * 100),
+      'weight'              : formatting.float_dec_to_comma(dataset.PatientWeight),
+      'vial_weight_before'  : formatting.float_dec_to_comma(dataset.injbefore),      
+      'vial_weight_after'   : formatting.float_dec_to_comma(dataset.injafter),      
       'injection_time'      : injeciton_time,      
       'injection_date'      : injeciton_date,
-      'thin_fac'            : formatting.format_number(dataset.thiningfactor),
+      'thin_fac'            : formatting.float_dec_to_comma(dataset.thiningfactor),
       'study_type'          : dataset.GFRMethod,
-      'stdCnt'              : formatting.format_number(dataset.stdcnt)
+      'stdCnt'              : formatting.float_dec_to_comma(dataset.stdcnt)
     }
 
     context = {

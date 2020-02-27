@@ -745,7 +745,7 @@ class PixelDataTests(unittest.TestCase):
   def test_add_pixeldata(self):
     # NOTE: The following input data has been randomly picked, and doesn't
     # and doesn't represent an actual study that took place.
-    pixeldata = clearance_math.generate_plot_text(
+    pixeldata = clearance_math.generate_gfr_plot(
       weight = 90.0,
       height = 123.0,
       BSA = 1.838274248431286,
