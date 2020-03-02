@@ -298,6 +298,10 @@ def convert_cpr_to_cpr_number(cpr):
     return cpr
 
 def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
+  """
+  returns:
+    Reasonable time format: YYYY-MM-DD HH:MM
+  """
   month, day, yearandtimestamp = unreasonable_time_format.split('/')
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
