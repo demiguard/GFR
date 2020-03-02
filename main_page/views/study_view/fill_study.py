@@ -430,6 +430,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get History
     historic_studies = [study.split('/')[-1].split('.')[0] for study in glob.glob(f'{hospital_dir}/{accession_number}/*')]
     historic_studies = list(filter(lambda study: not(study == accession_number), historic_studies))
+    historic_studies = ", ".join(historic_studies)
 
     context = {
       'title'     : server_config.SERVER_NAME,
