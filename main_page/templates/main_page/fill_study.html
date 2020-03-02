@@ -14,13 +14,7 @@
   <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
   {% if historic_studies %}
     Tidligere undersøgelser:
-    {% for study in historic_studies %}
-      {% if True %}
-        {{ study }}
-      {% else %}
-        {{ study }}
-      {% endif %}
-    {% endfor %}
+    {{ ", ".join(historic_studies) }}
   {% endif %}
 
   <form method="POST" id="fill-study-form">
