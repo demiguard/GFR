@@ -15,7 +15,7 @@
   {% if historic_studies %}
     Tidligere undersøgelser
     {% for study in historic_studies %}
-      {% if loop.last() %}
+      {% if historic_studies.last %}
         {{ study }}
       {% else %}
         {{ study }},
