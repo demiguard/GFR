@@ -13,12 +13,12 @@
 {% block content %}
   <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
   {% if historic_studies %}
-    Tidligere undersøgelser
+    Tidligere undersøgelser:
     {% for study in historic_studies %}
-      {% if historic_studies.last %}
+      {% if True %}
         {{ study }}
       {% else %}
-        {{ study }},
+        {{ study }}
       {% endif %}
     {% endfor %}
   {% endif %}
