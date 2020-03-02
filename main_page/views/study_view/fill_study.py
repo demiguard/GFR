@@ -427,11 +427,16 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     # Initialize forms - concat forms into the context
 
+    # Get History
+    historic_studies = [study.split('/')[-1].split('.')[0] in glob.glob(f'{hospital_dir}/{accession_number}/*')]
+    historic_studies = list(filter(lambda study: not(study == accession_number), historic_studies))
+
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'rigsnr': accession_number,
       'previous_samples': previous_samples,
+      'historic_studies': historic_studies,
       'csv_data': csv_data,
       'csv_data_len': csv_data_len,
       'error_message' : error_message

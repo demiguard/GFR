@@ -12,6 +12,12 @@
 
 {% block content %}
   <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
+  {% if historic_studies %}
+    Tidligere undersøgelser
+    {% for study in historic_studies %}
+    {{ study }},
+    {% endfor %}
+  {% endif %}
 
   <form method="POST" id="fill-study-form">
     {% csrf_token %}
