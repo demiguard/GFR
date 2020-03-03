@@ -2,6 +2,7 @@ from django.apps import AppConfig
 
 from main_page.libs import server_config
 
+import sys
 import threading
 import logging
 
@@ -24,6 +25,11 @@ class MainPageConfig(AppConfig):
       For more about these types of problems see:
       https://docs.djangoproject.com/en/2.2/ref/applications/
     """
+    # Only allow server to be ran in virtualenv
+    if not hasattr(sys, "real_prefix"):
+      print("Error: This web server must be ran in a virtual environment!", file=sys.stderr)
+      exit(999)
+
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import log_util
     from . import models
