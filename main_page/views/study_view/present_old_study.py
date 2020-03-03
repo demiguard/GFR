@@ -158,3 +158,47 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     }
 
     return render(request, self.template_name, context=context)
+
+  def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
+    """
+      This function provides the functionality of creating a dicom file, from the already existing files
+
+      Retrieves dicom object Updates the dicom files:
+        Series Number
+        SeriesUID
+
+      To Do:
+        [] Assign a the correct Series number at getting them from RIS
+        [x] Write this function
+        [] Ensure that Series number is not edited by other functions incorrecly 
+          {} dicomlib.fill_dicom
+          {} fillstudy.Post
+        [] Ensure that other functions can handle, existance of multiple studies
+          {} pacs_query_wrapper.move_from_pacs
+  
+      Returns:
+        Redirects to fill_study for matching accession Number
+    """ 
+    current_user = request.user
+    hospital_sn  = current_user.department.hospital.short_name
+    study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}'
+    try_mkdir(study_directory)
+    #Retrives Dicom object
+    dataset = pacs.move_from_pacs(
+      current_user,
+      accession_number
+    )  
+    
+    #Updates Tags
+    dicomlib.fill_dicom(
+      dataset,
+      series_number=dataset.SeriesNumber
+      #New UID maybe, could build it into Series Number function
+      )
+    dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', dataset)
+    #Retrives History
+    for study in dataset.clearancehistory:
+      study_dataset = pacs.move_from_pacs(current_user, dataset.AccessionNumber)
+      dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', study_dataset)
+
+    return redirect('main_page:fill_study', accession_number = accession_number)
