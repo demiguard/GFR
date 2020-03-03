@@ -7,6 +7,8 @@ import datetime
 import logging
 import datetime
 from pathlib import Path
+from pydicom import uid
+import random
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import server_config
@@ -56,11 +58,9 @@ class SearchView(LoginRequiredMixin, TemplateView):
     if not hist_filepath.exists():
       dataset = pacs.move_from_pacs(user, hist_accession_number)
 
-      # TODO: Overwrite study uid - as to not conflict in PACS
-      dicomlib.fill_dicom(
-        dataset,
-        series_number=dataset.SeriesNumber # Just use the current one
-      )
+      # Overwrite study uid - as to not conflict in PACS
+      entropy_hash = random.getrandbits(64)
+      dataset.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[entropy_hash, 'SOP'])
 
       dicomlib.save_dicom(hist_filepath, dataset)
       
