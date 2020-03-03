@@ -59,17 +59,11 @@
         <th onclick="sort_table(1,'result_table')">Cpr-nr.</th>
         <th onclick="sort_table(2,'result_table')">undersøgelsesdato</th>
         <th onclick="sort_table(3,'result_table')">Accessionnr</th>
+        <th></th> <!-- Empty column for action buttons -->
       </tr>
     </thead>
     <tbody id="search-table-body">
-      {% for resp in responses %}
-      <tr onclick="document.location='{% url "main_page:present_old_study" resp.rigs_nr %}'">
-        <td>{{ resp.name }}</td>
-        <td>{{ resp.cpr }}</td>
-        <td>{{ resp.date }}</td>
-        <td>{{ resp.rigs_nr }}</td>
-      </tr>
-      {% endfor %}
+
     </tbody>
   </table>
 {% endblock %}

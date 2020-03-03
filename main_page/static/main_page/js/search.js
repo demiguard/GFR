@@ -88,28 +88,70 @@ let ajax_search = function() {
 
         var td_name = document.createElement('td');
         td_name.innerHTML = search_results[i].name;
+        td_name.classList.add("redirect-present");
 
         var td_cpr = document.createElement('td');
         td_cpr.innerHTML = search_results[i].cpr;
+        td_cpr.classList.add("redirect-present");
 
         var td_date = document.createElement('td');
         td_date.innerHTML = search_results[i].date;
+        td_date.classList.add("redirect-present");
 
         var td_accession_number = document.createElement('td');
         td_accession_number.innerHTML = search_results[i].accession_number;
+        td_accession_number.classList.add("redirect-present");
+
+        var td_create_new = document.createElement('td');
+        var create_new_btn = document.createElement("button");
+        create_new_btn.type = "button";
+        create_new_btn.classList.add("new-hist-btn");
+        create_new_btn.classList.add("btn");
+        create_new_btn.classList.add("btn-link");
+        var create_new_span = document.createElement("spam");
+        create_new_span.classList.add("oi");
+        create_new_span.classList.add("oi-document"); // Choose which icon to use for the button
+        create_new_span.setAttribute("aria-hidden", "true");
+        create_new_span.setAttribute("title", "Ny undersøgelse fra historisk");
+        
+        create_new_btn.appendChild(create_new_span);
+        td_create_new.appendChild(create_new_btn);
 
         // Insert table entry into the table
         trow.appendChild(td_name);
         trow.appendChild(td_cpr);
         trow.appendChild(td_date);
         trow.appendChild(td_accession_number);
+        trow.appendChild(td_create_new);
         $('#search-table-body').append(trow);
 
         // Make rows redirect to present_old_study page on click
-        $('#' + search_results[i].accession_number).on('click', function() {
-          document.location = '/present_old_study/' + $(this).attr('id');
+        // $('#' + search_results[i].accession_number).on('click', function() {
+        //   document.location = '/present_old_study/' + $(this).attr('id');
+        // });
+        $(".redirect-present").on('click', function() {
+          let accession_number = $(this).parent().attr('id');
+          document.location = '/present_old_study/' + accession_number;
         });
       }
+
+      // Make create new buttons send POST request to the page
+      $(".new-hist-btn").on("click", function() {
+        // Get accession number of clicked historical study
+        let hist_accession_number = $(this).parent().parent().children()[3].innerHTML;
+
+        $.post({
+          url: "/search",
+          data: {
+            "hist_accession_number": hist_accession_number
+          },
+          success: function(data) {
+            // Redirect to the new study copy
+            console.debug("Should redirect to: " + data.redirect_url);
+            window.location.href = data.redirect_url;
+          }
+        });
+      });
 
       hide_loading();
       enable_search_fields();
