@@ -58,9 +58,9 @@ class SearchView(LoginRequiredMixin, TemplateView):
     if not hist_filepath.exists():
       dataset = pacs.move_from_pacs(user, hist_accession_number)
 
-      # Overwrite study uid - as to not conflict in PACS
-      entropy_hash = random.getrandbits(64)
-      dataset.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[entropy_hash, 'SOP'])
+      # Increament InstanceNumber counter, s.t. the generated SeriesInstanceUID doesn't conlict in PACS
+      # See dicomlib.py/try_update_exam_meta_data function for more
+      dataset.InstanceNumber = str(int(dataset.InstanceNumber) + 1)
 
       dicomlib.save_dicom(hist_filepath, dataset)
       

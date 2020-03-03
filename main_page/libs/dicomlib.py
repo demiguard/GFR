@@ -225,16 +225,19 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # Our PrivateCreator tag (0x00230010)
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
     ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
-    ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
+    
+    # Don't write InstanceNumber if already present, as it might be set for new studies created from prior historical ones
+    if "InstanceNumber" not in ds:
+      ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
     
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
 
-    # Don't write SOPInstanceUID if already present, as it might be set for new studies created from prior historical ones
-    SOPuid = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
-    if "SOPInstanceUID" not in ds:
-      ds.SOPInstanceUID = SOPuid
+    if int(ds.InstanceNumber) == 1: # Legacy support
+      ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
+    else: # use InstanceNumber as counter to generate SeriesInstanceUIDs, s.t. they are reversible
+      ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, ds.InstanceNumber, 'SOP'])
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
 
