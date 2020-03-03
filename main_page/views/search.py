@@ -57,7 +57,10 @@ class SearchView(LoginRequiredMixin, TemplateView):
       dataset = pacs.move_from_pacs(user, hist_accession_number)
 
       # TODO: Overwrite study uid - as to not conflict in PACS
-
+      dicomlib.fill_dicom(
+        dataset,
+        series_number=dataset.SeriesNumber # Just use the current one
+      )
 
       dicomlib.save_dicom(hist_filepath, dataset)
       
@@ -65,6 +68,13 @@ class SearchView(LoginRequiredMixin, TemplateView):
       recovery_file = Path(hist_dir, server_config.RECOVERED_FILENAME)
       with recovery_file.open("w") as fp:
         fp.write(datetime.datetime.now().strftime('%Y%m%d'))
+
+      # Retreive the study history as well
+      if "clearancehistory" in dataset:
+        for study in dataset.clearancehistory:
+          study_accession_number = study.AccessionNumber
+          study_dataset = pacs.move_from_pacs(user, study_accession_number)
+          dicomlib.save_dicom(Path(hist_dir, f"{study_accession_number}.dcm"), study_dataset)
 
     return JsonResponse({
       "redirect_url": f"/fill_study/{hist_accession_number}" # URL of new study to redirect to
