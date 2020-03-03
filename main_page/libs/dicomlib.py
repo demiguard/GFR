@@ -230,7 +230,11 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
-    ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
+
+    # Don't write SOPInstanceUID if already present, as it might be set for new studies created from prior historical ones
+    SOPuid = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
+    if "SOPInstanceUID" not in ds:
+      ds.SOPInstanceUID = SOPuid
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
 
 
