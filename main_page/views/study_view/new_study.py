@@ -63,7 +63,6 @@ def handle_find(dataset, *args, **kwargs ):
   )
 
 
-
 def handle_move(dataset, *args, **kwargs):
   if 'logger' in kwargs:
     logger = kwargs['logger']

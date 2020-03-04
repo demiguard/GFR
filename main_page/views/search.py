@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
 
 import datetime
 import logging
@@ -57,6 +57,9 @@ class SearchView(LoginRequiredMixin, TemplateView):
     # Get historical dataset from PACS - if not already there
     if not hist_filepath.exists():
       dataset = pacs.move_from_pacs(user, hist_accession_number)
+
+      if isinstance(dataset, type(None)):
+        return HttpResponseNotFound()
 
       # Increament InstanceNumber counter, s.t. the generated SeriesInstanceUID doesn't conlict in PACS
       # See dicomlib.py/try_update_exam_meta_data function for more

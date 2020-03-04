@@ -149,6 +149,10 @@ let ajax_search = function() {
             // Redirect to the new study copy
             console.debug("Should redirect to: " + data.redirect_url);
             window.location.href = data.redirect_url;
+          },
+          error: function() {
+            console.debug("Failed to create new study from historical.");
+            $("#newFailedModal").modal("toggle");
           }
         });
       });

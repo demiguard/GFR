@@ -327,8 +327,14 @@ def get_studies(
 
   for dataset_dir in Path(directory).glob('*'):
     accession_number = dataset_dir.name
-    dataset_filepath = f"{directory}/{accession_number}/{accession_number}.dcm"
+    dataset_dir = f"{directory}/{accession_number}"
+    dataset_filepath = f"{dataset_dir}/{accession_number}.dcm"
     
-    datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
+    try:
+      datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
+    except FileNotFoundError:
+      # The sub file doesn't exist, delete the directory
+      logger.info(f"Deleting directory, due to missing dicom file in dataset directory: \"{dataset_dir}\"")
+      shutil.rmtree(dataset_dir)
 
   return datasets

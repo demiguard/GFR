@@ -343,6 +343,9 @@ def start_scp_server(ae_title):
   return server_instance
 
 def search_query_pacs(config, name="", cpr="", accession_number="", date_from="", date_to=""):
+  """
+  Return list of responses, None if PACS connection failed
+  """
   # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(
     name,
@@ -376,12 +379,16 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
     except Exception as e:
       logger.info(f"Failed to process incoming search dataset, got exception {e}")
 
-  ae_controller.send_find(
-    association,
-    search_dataset,
-    process_incoming_dataset,
-    logger=logger
-  )
+  try:
+    ae_controller.send_find(
+      association,
+      search_dataset,
+      process_incoming_dataset,
+      logger=logger
+    )
+  except ValueError:
+    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs_ip}, pacs_port: {config.pacs_port}, pacs_calling: {config.pacs_calling}, pacs_aet: {config.pacs_aet}")
+    return None
 
   association.release()
 
