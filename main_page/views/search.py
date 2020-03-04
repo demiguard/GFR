@@ -61,10 +61,6 @@ class SearchView(LoginRequiredMixin, TemplateView):
       if isinstance(dataset, type(None)):
         return HttpResponseNotFound()
 
-      # Increament InstanceNumber counter, s.t. the generated SeriesInstanceUID doesn't conlict in PACS
-      # See dicomlib.py/try_update_exam_meta_data function for more
-      dataset.InstanceNumber = str(int(dataset.InstanceNumber) + 1)
-
       dicomlib.save_dicom(hist_filepath, dataset)
       
       # Create recovery file, such that the dicom file isn't immediately deleted from list_studies
