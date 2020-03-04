@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Git hook which checks that all added and modified python files 
-# can correctly compile before allowing to commit
+# can correctly compile before allowing to commit (this is a
+# pre-commit hook)
 #
 # Install by running (from this directory)
 # cp python-compile-hook ../.git/hooks/pre-commit

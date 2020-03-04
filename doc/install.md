@@ -41,6 +41,16 @@ Whenever a new package is added the ```requirements.txt``` must be updated. This
 ```
 and then adding it to git (with a ```git add``` and ```git commit```).
 
+## Installing Git Hooks
+All custom git hooks are located in the directory ```git_hooks```. To install a git hook run (from the ```git_hooks``` directory):
+```
+> cp <HOOK> ../.git/hooks/<HOOK_NAME>
+```
+Example for ```python-compile-hook``` which is a pre-commit hook, it checks if all staged python files can be correctly compiled/interpreted, before allowing you to commit the files:
+```
+> cp python-compile-hook ../.git/hooks/pre-commit
+```
+
 ## Running in debug mode
 The Django comes with a development/debugging minimal web server, which can be ran by setting the variable ```debug=True```, under the ```settings.py``` file in the main project directory.
 
