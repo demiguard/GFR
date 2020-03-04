@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Git hook which checks that all added and modified python files 
+# can correctly compile before allowing to commit
+#
+# Install by running (from this directory)
+# cp python-compile-hook ../.git/hooks/pre-commit
+
+# Get staged python files
+py_files=$(git diff --cached --name-status | grep "\.py$")
+
+# Only keep added ('A') and changed ('C') files
+check_files=()
+t=0
+for file in $py_files; do
+	if [ "$file" = "A" ] || [ "$file" = "C" ]; then
+		t=1
+		continue
+	fi
+
+	if [ "$t" -eq 1 ]; then
+		check_files+=($file)
+		t=0
+	fi
+done
+
+# Test if python scripts correctly compile without running
+for file in ${check_files[@]}; do
+	python3 -m py_compile "$file"
+	if [ $? -ne 0 ]; then
+		echo "pre-commit check - Error: Unable to compile file \"$file\". Please resolve the compilation issue before committing."
+		exit 1
+	fi
+done
