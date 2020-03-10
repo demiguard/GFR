@@ -192,6 +192,24 @@ In the code private DICOM tags are defined in \texttt{GFR/main\_page/libs/server
 
 \section{\texttt{ae\_controller.py} library}
 
+\subsection{Dicom communication}
+The dicom protocol also includes a method for transfering dicomfiles between workstations such as GFR, PACS and RIS, each workstation have their own name, this is called an application Entity title (AE_title). To save the reader some time, this section also includes
+A mini-introduction to dicom communication. All dicom communication is running over TCP, and works by sending different messages between stations. Each message is a dicom object.
+The following dicom messages are relevant for GFR:
+\begin{itemize}
+		\item \texttt{C-FIND}:  This message is send a partially filled dicom header, that returns all dicom files, that match the header. This used for finding new studies and finding history
+		\item \texttt{C-STORE}: This message is a request to store the dicomfile, send with the message. It returns a dicom file indicating success.
+		\item \texttt{C-Move}:  This message is a request to one AE to send a dicom specified in the message to another AE. Note that the recieving AE can be yourself.
+		 A C-move message consists of two parts. In the first part the recieving at AE may send the move message to another AE, that may know where the requested dicom objects.
+		 This continues until the message reaches the AE, that have access to the request Dicom file, at this point it sends a C-store with the file to the target of the message
+\end{itemize}
+Note that you can receive multiple messages from sending a single message, therefore the pynetdicom implementation handles this by introducting iterator objects,
+this means you end up with a large amount of for loops, the AE controller is there to conact this trend by hiding the loops for you.\\
+C-finds multiple studies can return based on the search criteria This is not the case with C-Stores so the AE doesn't have thing for this.
+C-moves sends you updates how the message is doing, as it have successfully been send onwards, and the final c-store was successfull.\\ 
+The AE controller modules handles establishing communication, and sending the accually request, however to each 
+
+
 
 \section{API}
 For dynamic content on the site, such as search, admin panel, and retrieval of old sample data, we use a set of custom defined api endpoints, which uses a REST design to make it easy to work with on the Javascript frontend.
@@ -251,8 +269,8 @@ To enable database manipulation / editting without using tools like DB broswer a
 	\item Add an Endpoint by adding the class \textbf{<model name>EndPoint} in the \textit{main\_page/views/api/api.py} file.
 	\item Update \textit{main\_page/url.py} with the endpoint created in step 4, remember to create 2 endpoints for displaying and for accessing an object. 
 	\item In the classes \textbf{AdminPanelEditView} and \textbf{AdminPanelAddview} found in the \textit{main\_page/views/admin\_panel.py} file, add an entry with to the dictionary \textbf{MODEL\_NAME\_MAPPINGS} with the model from step one in both classes. Add an Entry to the dictionary in the:\\ \textbf{EDIT\_FORM\_MAPPINGS} / \textbf{ADD\_FORM\_MAPPING} in the respective classes with the form you created in step 3.
-	 \item Update the javascript in the files \textit{main\_page/static/main\_page/js/admin\_panel.js}, \textit{main\_page/static/main\_page/js/admin\_panel\_add.js} and\\ \textit{main\_page/static/main\_page/js/admin\_panel\_edit.js}
-	 \item Add the option to the button in the admin
+	\item Update the javascript in the files \textit{main\_page/static/main\_page/js/admin\_panel.js}, \textit{main\_page/static/main\_page/js/admin\_panel\_add.js} and\\ \textit{main\_page/static/main\_page/js/admin\_panel\_edit.js}
+	\item Add the option to the button in the admin
 \end{enumerate} 
 Total list of files that require to be edited
 \begin{itemize}
