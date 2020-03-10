@@ -163,7 +163,12 @@ class RisFetcherThread(Thread):
       if not file_exists and not file_handled:
         try_mkdir(dataset_dir, mk_parents=True)
 
-        dicomlib.save_dicom(f"{dataset_dir}{dataset.AccessionNumber}.dcm", dataset)
+        file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
+        try:
+          dicomlib.save_dicom(file_path, dataset)
+        except ValueError:
+          logger.error(f"Failed to save received dicom file: {file_path}")
+          return
 
         # Now retrieve the previous history
         history_query_set = dataset_creator.create_search_dataset(

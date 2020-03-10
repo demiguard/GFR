@@ -17,7 +17,7 @@
   margin-bottom: 0px;
 }
 
-/* Make studies 'seem' clickable */
-tr:hover {
+/* Make studies 'seem' clickable - but not the rd of the action button */
+.redirect-present:hover {
   cursor: pointer;
 }

@@ -535,6 +535,10 @@ class SearchEndpoint(LoginRequiredMixin, View):
       date_to=search_date_to,
     )
 
+    # If None as search_results, we got an error
+    if isinstance(search_results, type(None)):
+      return HttpResponseServerError()
+
     data = {
       'search_results': search_results
     }

@@ -58,7 +58,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     ]
 
     registered_datasets = ris.procedure_filter(
-      registered_datasets,
+      registered_studies,
       procedure_blacklist
     )
 

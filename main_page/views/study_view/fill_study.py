@@ -428,7 +428,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Initialize forms - concat forms into the context
 
     # Get History
-    historic_studies = [study.split('/')[-1].split('.')[0] for study in glob.glob(f'{hospital_dir}/{accession_number}/*')]
+    historic_studies = [study.split('/')[-1].split('.')[0] for study in glob.glob(f'{hospital_dir}/{accession_number}/*') if server_config.RECOVERED_FILENAME not in study]
     historic_studies = list(filter(lambda study: not(study == accession_number), historic_studies))
     historic_studies = ", ".join(historic_studies)
 

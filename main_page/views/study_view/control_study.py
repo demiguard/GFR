@@ -73,7 +73,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       shutil.move(dir_path, fill_study_dir)
 
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
-    elif post_req['control'] == 'Godkend og Send til Pacs':
+    elif post_req['control'] == 'Godkend og send til PACS':
       file_path = f'{dir_path}{AccessionNumber}.dcm'
       image_path  = f"{server_config.IMG_RESPONS_DIR}{hopital_sn}/{AccessionNumber}.png"
 
@@ -104,7 +104,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
         # Redirect to informative site, telling the user that the connection to PACS is down
         logger.warn(f'Failed to store {AccessionNumber} in pacs, because:{error_message}')
     else:
-      logger.error(f'Invalid Post request for control Study {AccessionNumber}!')
+      logger.error(f'Invalid Post request for control Study {AccessionNumber}')
 
     return redirect('main_page:control_list_studies')
 

@@ -7,6 +7,7 @@ from pydicom import uid
 
 from pathlib import Path
 import numpy as np
+import datetime
 
 from typing import Type, Tuple, List, IO, Any
 
@@ -230,8 +231,8 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
-    ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
-    ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
+    now = datetime.datetime.now().strftime("%Y%m%d%H%M")
+    ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
 
 
 def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -> None:
