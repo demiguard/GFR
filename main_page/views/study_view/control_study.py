@@ -138,7 +138,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
   
     InfoDir = {
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
-      'name'                : formatting.person_name_to_name(dataset.PatientName.original_string.decode()),
+      'name'                : formatting.person_name_to_name(str(dataset.PatientName)),
       'sex'                 : enums.GENDER_NAMINGS[present_sex],
       'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
       'height'              : formatting.float_dec_to_comma(dataset.PatientSize * 100),
