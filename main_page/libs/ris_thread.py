@@ -161,13 +161,14 @@ class RisFetcherThread(Thread):
 
       # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
       if not file_exists and not file_handled:
-        try_mkdir(dataset_dir, mk_parents=True)
+        try_mkdir(dataset_dir, mk_parents=True) # This should be removed on failure, so we can try again
 
         file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
         try:
           dicomlib.save_dicom(file_path, dataset)
-        except ValueError:
-          logger.error(f"Failed to save received dicom file: {file_path}")
+        except ValueError as e:
+          logger.error(f"Failed to save received dicom file: {file_path}, got exception {e}")
+          shutil.rmtree(dataset_dir) # Remove created dir. so file_handled is false in next try
           return
 
         # Now retrieve the previous history
