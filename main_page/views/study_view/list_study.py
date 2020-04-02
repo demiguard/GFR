@@ -112,7 +112,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
       registered_datasets, 
       hospital_shortname,
       ris.move_to_deleted,
-      threshold=1
+      threshold=0
     )
 
     return redirect("main_page:list_studies")
