@@ -43,7 +43,7 @@ class GrandControlPatient(forms.Form):
   injection_date_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   thin_fac_confirm            = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   study_type_confirm          = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  stdCnt_confirm              = forms.BooleanField(required=False, label="")
+  stdCnt_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
 
   #Startup
   def __init__(self, *args, **kwargs):
@@ -65,7 +65,7 @@ class ControlPatient6(forms.Form):
     self.fields['sample_time'].widget.attrs['class']    = 'form-input'    
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
-    self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox' 
+    self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox confirm-checkbox' 
 
 class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Blodprøve taget kl:', required=False)
