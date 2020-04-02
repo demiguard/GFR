@@ -274,4 +274,4 @@ def get_backup_file(
   conn.close()
 
   return file_contents
-  
+
