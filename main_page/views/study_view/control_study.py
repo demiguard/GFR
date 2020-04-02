@@ -161,6 +161,4 @@ class ControlView(LoginRequiredMixin, TemplateView):
     }
     context.update(self.init_forms(dataset))
 
-
-
     return render(request, self.template_name, context=context)
