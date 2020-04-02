@@ -157,39 +157,39 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
           logger.info(f"Unable to create pacs_find_association for retreiving new study history.")
           failed_connection |= True
 
-        pacs_move_association = ae_controller.connect(
-          user_config.pacs_ip,
-          user_config.pacs_port,
-          user_config.pacs_calling, #This should be changed to serverConfig.AE_title
-          user_config.pacs_aet,
-          ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
-          logger=logger
-        )
-
-        if not pacs_move_association:
-          logger.info(f"Unable to create pacs_move_association for retreiving new study history.")
-          failed_connection |= True
-
-        if not failed_connection: # Only send find if connection was established
-          find_query_dataset = dataset_creator.create_search_dataset(
-            '',
-            cpr,
-            '',
-            '',
-            ''
-          )
-          ae_controller.send_find(
-            pacs_find_association,
-            find_query_dataset, 
-            handle_find,
-            logger=logger,
-            pacs_move_association=pacs_move_association,
-            serverConfig=serverConfig,
-            study_directory=study_directory,
+          pacs_move_association = ae_controller.connect(
+            user_config.pacs_ip,
+            user_config.pacs_port,
+            user_config.pacs_calling, #This should be changed to serverConfig.AE_title
+            user_config.pacs_aet,
+            ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
+            logger=logger
           )
 
-          pacs_find_association.release()
-          pacs_move_association.release()
+          if not pacs_move_association:
+            logger.info(f"Unable to create pacs_move_association for retreiving new study history.")
+            failed_connection |= True
+
+          if not failed_connection: # Only send find if connection was established
+            find_query_dataset = dataset_creator.create_search_dataset(
+              '',
+              cpr,
+              '',
+              '',
+              ''
+            )
+            ae_controller.send_find(
+              pacs_find_association,
+              find_query_dataset, 
+              handle_find,
+              logger=logger,
+              pacs_move_association=pacs_move_association,
+              serverConfig=serverConfig,
+              study_directory=study_directory,
+            )
+
+            pacs_find_association.release()
+            pacs_move_association.release()
       else:
         #Error Message should be handled by front end
         pass
