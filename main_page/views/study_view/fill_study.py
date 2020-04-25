@@ -503,10 +503,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     
     if 'save_fac' in post_req and 'thin_fac' in post_req:
       thin_fac = post_req['thin_fac']
-      logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
-      department.thining_factor = thin_fac
-      department.thining_factor_change_date = datetime.date.today()
-      department.save()
+      if thin_fac:
+        logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
+        department.thining_factor = thin_fac
+        department.thining_factor_change_date = datetime.date.today()
+        department.save()
 
     dicomlib.fill_dicom(
       dataset,
