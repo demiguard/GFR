@@ -218,13 +218,15 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     #Updates Tags
     dicomlib.fill_dicom(
       dataset,
+      sop_instance_uid=pydicom.uid.generate_uid(prefix='1.3.'),
       series_number=dataset.SeriesNumber
       #New UID maybe, could build it into Series Number function
       )
     dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', dataset)
     #Retrives History
-    for study in dataset.clearancehistory:
-      study_dataset = pacs.move_from_pacs(current_user, dataset.AccessionNumber)
-      dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', study_dataset)
+    if 'clearancehistory' in dataset:
+      for study in dataset.clearancehistory:
+        study_dataset = pacs.move_from_pacs(current_user, dataset.AccessionNumber)
+        dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', study_dataset)
 
     return redirect('main_page:fill_study', accession_number = accession_number)
