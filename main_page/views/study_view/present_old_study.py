@@ -120,6 +120,10 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     inj_weight_before = formatting.float_dec_to_comma(dataset.injbefore)
     inj_weight_after = formatting.float_dec_to_comma(dataset.injafter)
 
+    # Extract the image
+    img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
+    try_mkdir(img_resp_dir)
+
     if dataset.GFRMethod == enums.STUDY_TYPE_NAMES[2]:  # "Flere blodprøver"
       #Generate QA plot for Study
       # Get injection time
@@ -132,9 +136,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       delta_times = [(time - qa_inj_time).seconds / 60 + 86400 * (time - qa_inj_time).days for time in previous_datetime_injections]
     
       qa_image_bytes = clearance_math.generate_QA_plot(delta_times, previous_sample_counts, thin_fact, accession_number)
-      qa_plot_path = f"main_page/images/{hospital}/QA_{accession_number}.png"
+      qa_plot_path = f"{server_config.IMG_RESPONS_DIR}/QA_{accession_number}.png"
       qa_image = PIL.Image.frombytes('RGB', (1920,1080), qa_image_bytes)
-      qa_image.save(qa_plot_path)
+      qa_image.save(f'{qa_plot_path}')
 
 
     study_data = [
@@ -155,9 +159,6 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     ]
 
 
-    # Extract the image
-    img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
-    try_mkdir(img_resp_dir)
     
     if 'PixelData' in dataset:
       # Reads DICOM conformant image to PIL displayable image
