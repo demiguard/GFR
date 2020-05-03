@@ -139,6 +139,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       qa_plot_path = f"{img_resp_dir}/QA_{accession_number}.png"
       qa_image = PIL.Image.frombytes('RGB', (1920,1080), qa_image_bytes)
       qa_image.save(f'{qa_plot_path}')
+      qa_plot_path = f"main_page/images/{hospital}/QA_{accession_number}.png"
 
 
     study_data = [
