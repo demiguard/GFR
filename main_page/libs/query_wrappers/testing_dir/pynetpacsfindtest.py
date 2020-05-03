@@ -3,10 +3,6 @@ import pydicom
 import logging
 from pydicom import uid
 
-logging.basicConfig(level =logging.DEBUG, filename = 'pacsfindlogfile.log')
-from main_page import log_util
-
-logger = log_util.get_logger(__name__)
 
 datasets = []
 
@@ -33,6 +29,8 @@ ds.add_new(0x00100010, 'PN', '') #Patitent name
 ds.add_new(0x00100020, 'LO', '') #PatientID / CPR NUMBER
 ds.add_new(0x00100030, 'DA', '') #Patient Birthday #Why? do we query this, it's in CPR Number?
 ds.add_new(0x00321060, 'LO', '')
+ds.add_new(0x0008103e, 'LO', '')
+ds.add_new(0x00400100, 'SQ', '')
 #Create Sequences
 #Add Sequence Tags
 
@@ -51,7 +49,9 @@ if assoc.is_established:
     #Show Status
     if status.Status == 0xFF00:
       #Save dataset
+      print('\n')
       print(dataset_from_rigs)  
+      print('\n')
       #mov_response = assoc.send_c_move(dataset_from_rigs, rigs_calling, query_model='S')
 
       #for (mov_status, mov_identifyer) in mov_response:
