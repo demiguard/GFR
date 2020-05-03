@@ -143,10 +143,9 @@ var helper = (function() {
   var disable_enter_form_submit = function() {
     let ENTER_KEYCODE = 13;
 
-    $('input').on('keyup keypress', function(e) {
-      var keyCode = e.keyCode || e.which;
-      
-      if (keyCode === ENTER_KEYCODE) { 
+    $('#fill-study-form').on('keyup keypress', function(e) {
+      var key_code = e.keyCode || e.which;
+      if (key_code === ENTER_KEYCODE) {
         e.preventDefault();
         return false;
       }
