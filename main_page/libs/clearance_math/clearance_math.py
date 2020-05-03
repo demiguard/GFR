@@ -586,7 +586,7 @@ def generate_QA_plot(
   ax[0].axes.set_yscale('log')
   ax[0].grid(axis='y')
   ax[0].set_xlim(0,max(delta_times) + 10)
-  ax[0].set_ylim(min(500, min(tec99_cnt)) ,max(y)*1.1)
+  ax[0].set_ylim( min(tec99_cnt)*0.9, max(y)*1.1)
 
   #for i, val in enumerate(log_tec99_cnt):
   for i, val in enumerate(tec99_cnt):
