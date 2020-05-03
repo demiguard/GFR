@@ -179,7 +179,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'accession_number': accession_number,
       'study_data': study_data,
     }
-    if qa_plot_path:
+    if dataset.GFRMethod == enums.STUDY_TYPE_NAMES[2]:  # "Flere blodprøver"
       context['qa_plot_path'] = qa_plot_path
 
     return render(request, self.template_name, context=context)
