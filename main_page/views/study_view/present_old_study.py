@@ -26,6 +26,7 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
+from main_page.libs.clearance_math import clearance_math
 from main_page import models
 from main_page import log_util
 
@@ -76,11 +77,13 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     previous_sample_times  = []
     previous_sample_dates  = []
     previous_sample_counts = []
+    previous_datetime_injections = [] #Used for generating QA plot
 
     if 'ClearTest' in dataset:
       for test in dataset.ClearTest:
 
         injection_datetime = datetime.datetime.strptime(test.SampleTime, '%Y%m%d%H%M')
+        previous_datetime_injections.append(injection_datetime)
         previous_sample_dates.append(injection_datetime.strftime('%d-%m-%Y'))
         previous_sample_times.append(injection_datetime.strftime('%H:%M'))
         previous_sample_counts.append(test.cpm)
@@ -117,6 +120,23 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     inj_weight_before = formatting.float_dec_to_comma(dataset.injbefore)
     inj_weight_after = formatting.float_dec_to_comma(dataset.injafter)
 
+    if dataset.GFRMethod == enums.STUDY_TYPE_NAMES[2]:  # "Flere blodprøver"
+      #Generate QA plot for Study
+      # Get injection time
+      qa_inj_time = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M') 
+    
+      # Get Thining Factor
+      thin_fact = dataset.thiningfactor
+
+      # Create list of timedeltas from timedates
+      delta_times = [(time - qa_inj_time).seconds / 60 + 86400 * (time - qa_inj_time).days for time in previous_datetime_injections]
+    
+      qa_image_bytes = clearance_math.generate_QA_plot(delta_times, previous_sample_counts, thin_fact, accession_number)
+      qa_plot_path = f"main_page/images/{request.user.department.hospital.short_name}/QA-{accession_number}.png"
+      qa_image = PIL.Image.frombytes('RGB', (1920,1080), qa_image_bytes)
+      qa_image.save(qa_plot_path)
+
+
     study_data = [
       ('CPR:', formatting.format_cpr(dataset.PatientID)),
       ('Navn:', formatting.person_name_to_name(str(dataset.PatientName))),
@@ -133,6 +153,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Undersøgelses type:', dataset.GFRMethod),
       ('Operatør:', operators)
     ]
+
 
     # Extract the image
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
@@ -156,6 +177,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'accession_number': accession_number,
       'study_data': study_data,
     }
+    if qa_plot_path:
+      context['qa_plot_path'] = qa_plot_path
 
     return render(request, self.template_name, context=context)
 
