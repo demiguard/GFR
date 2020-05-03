@@ -318,7 +318,25 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
-      height *= 100
+      height = height * 1000 / 10
+      """
+      we use:
+        height = height * 1000 / 10
+      as opposed to 
+        height *= 100
+      As Python does some weird things with floating-point numbers in specific
+      cases, e.g. if height = 1.16, then
+      height = height * 1000 / 10, becomes:
+      height = 1.16 * 1000 / 10 = 1160.0 / 10 = 116.0
+      whilst, height *= 100, becomes:
+      height = 1.16 * 100 = 115.99999999999999
+      
+      The multiplication has to be done as the DICOM standard and pydicom
+      expects PatientSize to be stored in meters.
+
+      For details on the floating-point issue see:
+      https://docs.python.org/3.6/tutorial/floatingpoint.html
+      """
 
     # Get patient name
     name = dataset.get("PatientName")
@@ -485,10 +503,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     
     if 'save_fac' in post_req and 'thin_fac' in post_req:
       thin_fac = post_req['thin_fac']
-      logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
-      department.thining_factor = thin_fac
-      department.thining_factor_change_date = datetime.date.today()
-      department.save()
+      if thin_fac:
+        logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
+        department.thining_factor = thin_fac
+        department.thining_factor_change_date = datetime.date.today()
+        department.save()
 
     dicomlib.fill_dicom(
       dataset,
@@ -499,7 +518,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Use parameters fillout in store_form to compute GFR of patient
     if "calculate" in request.POST:
       # Comupute body surface area
-      height = dataset.PatientSize * 100
+      height = dataset.PatientSize * 1000 / 10
+      """
+      we use: height * 1000 / 10, as height * 100 results in floating-point
+      errors, due to weird Python behavior 
+      (for details see: https://docs.python.org/3.6/tutorial/floatingpoint.html)
+      """
+
       weight = dataset.PatientWeight
       BSA = clearance_math.surface_area(height, weight)
 

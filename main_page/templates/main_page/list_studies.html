@@ -8,7 +8,19 @@
 {% endblock head %}
 
 {% block content %}
-<h2>Vælg undersøgelse</h2> <br>
+  <div class="row">
+    <div class="col-md-11">
+      <h2>Vælg undersøgelse</h2> <br>
+    </div>
+    <div class="col-md-1">
+      <br>
+      <form>
+        <button type="button" id="del-day-olds-btn" class="del-day-olds btn btn-sm btn-danger">
+          Fjern gamle undersøgelser
+        </button>
+      </form>
+    </div>
+  </div>
   {% if error_message %}
     <div class="row">
       <div class="col-md-4">
@@ -66,7 +78,7 @@
         </div>
         <div class="modal-body">
           <p>Slettede undersøgelser bliver bevaret i 21 dage, og kan gendannes via. menu punktet 'Slettede undersøgelser'.</p>
-          <p>Du er ved at slette undersøgelse med accession nummer: <span id="modal-accession-number"></span></p>
+          <p>Du er ved at slette undersøgelse med accessiodeleten nummer: <span id="modal-accession-number"></span></p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
@@ -75,6 +87,33 @@
       </div>
     </div>
   </div>
+
+
+  <!-- Modal for accepting deletion of all studies which are more than a day old -->
+  <div class="modal fade" id="dayOldModal" tabindex="-1" role="dialog" aria-labelledby="dayOldLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dayOldLabel">Vil du slette alle undersøgelser som er mere end en dag gammel?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Slettede undersøgelser bliver bevaret i 21 dage, og kan gendannes via. menu punktet 'Slettede undersøgelser'.</p>
+          <p>Du er ved at slette ALLE undersøgelser som er mere end en dag gammel.</p>
+        </div>
+        <div class="modal-footer">
+          <form method="POST">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
+            <input type="submit" value="Slet undersøgelser" id="dayold-modal-accept" class="btn btn-danger">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 {% endblock %}
 

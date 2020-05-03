@@ -96,3 +96,23 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     }
 
     return render(request, self.template_name, context)
+
+  def post(self, request):
+    """
+    This is used for deleting all studies which are more than a day old
+    """
+    curr_department = request.user.department
+    hospital_shortname = curr_department.hospital.short_name
+
+    registered_datasets = ris.get_studies(
+      f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}"
+    )
+      
+    _, _ = ris.check_if_old(
+      registered_datasets, 
+      hospital_shortname,
+      ris.move_to_deleted,
+      threshold=0
+    )
+
+    return redirect("main_page:list_studies")

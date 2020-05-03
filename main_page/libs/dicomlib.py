@@ -233,6 +233,7 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
     now = datetime.datetime.now().strftime("%Y%m%d%H%M")
     ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
+    ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
 
 
 def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -> None:

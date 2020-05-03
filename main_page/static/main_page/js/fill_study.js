@@ -371,7 +371,7 @@ function initialize_date_fields() {
   $('#id_dateofmessurement').datepicker({format:'dd-mm-yyyy'});
 }
 
-function initialize_number_fields(){
+function initialize_number_fields() {
   /*
   Initialize number fields:
 
@@ -380,10 +380,10 @@ function initialize_number_fields(){
   var ids_with_comma = ['#id_height', '#id_weight', '#id_vial_weight_before', '#id_vial_weight_after'];
   var ids_no_comma   = ['#id_thin_fac', '#id_standcount'];
 
-  var ids_with_comma_lenght = ids_with_comma.length;
+  var ids_with_comma_length = ids_with_comma.length;
   var ids_no_comma_length = ids_no_comma.length;
 
-  for(var i = 0; i < ids_with_comma_lenght; i++){
+  for (var i = 0; i < ids_with_comma_length; i++) {
     $(ids_with_comma[i]).val(bad_input_handler.replace_dots_with_commas($(ids_with_comma[i]).val()));
     bad_input_handler.number($(ids_with_comma[i]));
   }

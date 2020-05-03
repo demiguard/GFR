@@ -27,3 +27,7 @@
 tr:hover {
   cursor: pointer;
 }
+
+#del-day-olds-btn {
+  float: right;
+}

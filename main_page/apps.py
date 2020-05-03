@@ -56,3 +56,9 @@ class MainPageConfig(AppConfig):
       server_config.SLEEP_DELAY_MAX
     )
     RT.start()
+
+    # Spawn threads for sending files in PACS queue to PACS
+    # the import has to be done here, and not at top of file, since
+    # certain django apps haven't been loaded yet
+    from main_page.libs.query_wrappers import pacs_query_wrapper
+    pacs_query_wrapper.send_queue_to_PACS()

@@ -18,6 +18,7 @@
 .confirm-checkbox {
   position :relative;
   margin-right: 5px;
+  transform: scale(1.5);
 }
 
 .confirm-row-checkbox {

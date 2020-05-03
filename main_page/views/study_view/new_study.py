@@ -138,7 +138,6 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       # Get history from pacs
       if formatting.check_cpr(cpr):
         #CPR is valid, so we can retrieve history from pacs
-        #TODO: Get history from pacs
         # So there's a serverConfig(database entry) and server_config(file)
         # See models for explination
         serverConfig = models.ServerConfiguration.objects.get(id=1)
@@ -152,36 +151,45 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
           logger=logger
         )
         
-        pacs_move_association = ae_controller.connect(
-          user_config.pacs_ip,
-          user_config.pacs_port,
-          user_config.pacs_calling, #This should be changed to serverConfig.AE_title
-          user_config.pacs_aet,
-          ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
-          logger=logger
-        )
+        failed_connection = False
 
-        find_query_dataset = dataset_creator.create_search_dataset(
-          '',
-          cpr,
-          '',
-          '',
-          ''
-        )
-        ae_controller.send_find(
-          pacs_find_association,
-          find_query_dataset, 
-          handle_find,
-          logger=logger,
-          pacs_move_association=pacs_move_association,
-          serverConfig=serverConfig,
-          study_directory=study_directory,
-        )
+        if not pacs_find_association:
+          logger.info(f"Unable to create pacs_find_association for retreiving new study history.")
+          failed_connection |= True
 
+          pacs_move_association = ae_controller.connect(
+            user_config.pacs_ip,
+            user_config.pacs_port,
+            user_config.pacs_calling, #This should be changed to serverConfig.AE_title
+            user_config.pacs_aet,
+            ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
+            logger=logger
+          )
 
-        pacs_find_association.release()
-        pacs_move_association.release()
+          if not pacs_move_association:
+            logger.info(f"Unable to create pacs_move_association for retreiving new study history.")
+            failed_connection |= True
 
+          if not failed_connection: # Only send find if connection was established
+            find_query_dataset = dataset_creator.create_search_dataset(
+              '',
+              cpr,
+              '',
+              '',
+              ''
+            )
+            ae_controller.send_find(
+              pacs_find_association,
+              find_query_dataset, 
+              handle_find,
+              logger=logger,
+              pacs_move_association=pacs_move_association,
+              serverConfig=serverConfig,
+              study_directory=study_directory,
+            )
+
+            pacs_find_association.release()
+            pacs_move_association.release()
       else:
         #Error Message should be handled by front end
         pass

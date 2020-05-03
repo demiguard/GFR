@@ -14,6 +14,9 @@ import numpy
 import pandas
 import random
 import csv
+import threading
+import time
+import json
 
 from main_page.libs import ae_controller
 from main_page.libs.dirmanager import try_mkdir
@@ -129,62 +132,144 @@ def move_from_pacs(user, accession_number):
     return None
 
 
-def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
+def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   """
-    Stores a dicom object in the user defined pacs (user.department.config)
-    It uses a C-store message
+  Stores a dicom object in the user defined pacs (user.department.config)
+  It uses a C-store message
 
-    Args:
-      dicom_object : pydicom dataset, the dataset to be stored
-      user : a django model user, the user that stores 
+  Args:
+    dicom_object : pydicom dataset, the dataset to be stored
+    user : a django model user, the user that stores 
 
-    KWargs:
-      ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
-    Returns:
-      Success : Bool, returns true on a success full storage, false on failed storage
-      Failure Message : String, A user friendly message of what went wrong. Empty on success. 
-    Raises
-      Value error: If the dicom set doesn't contain required information to send
-
+  KWargs:
+    ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
+  Returns:
+    Success : Bool, returns true on a success full storage, false on failed storage
+    Failure Message : String, A user friendly message of what went wrong. Empty on success. 
+  Raises
+    Value error: If the dicom set doesn't contain required information to send
   """
-  ae = AE(ae_title=user.department.config.pacs_calling)
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
-  assoc = ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_aet
-  )
+  accession_number = dicom_object.AccessionNumber
 
-  if assoc.is_established:
-    status = assoc.send_c_store(dicom_object)
-    if status.Status == 0x0000:
-      return True, ''
-    elif status.Status == 0x0124:
-      return False, 'Duplikeret Argument'
-    elif status.Status >= 0xA700 and status.Status <= 0xA7FF:
-      return False, 'Pacs har ikke hukommelse til at gemme undersøgelsen'
-    else:
-      return False, 'Fejlede at gemme i pacs med ukendt fejlkode:{0}'.format(hex(status.Status))
-  else: 
-    return False , 'Kunne ikke forbinde til pacs'
+  # Save the dicom file to be sent to PACS
+  try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
+  store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
   
+  dicomlib.save_dicom(store_file, dicom_object)
+
+  # Write file with connection configurations
+  with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
+    fp.write(json.dumps({
+      "pacs_calling": user.department.config.pacs_calling,
+      "pacs_ip": user.department.config.pacs_ip,
+      "pacs_port": user.department.config.pacs_port,
+      "pacs_aet": user.department.config.pacs_aet,
+    }))
+
+  # Spawn background thread to send study
+  store_thread = threading.Thread(
+    target=thread_store,
+    args=(
+      accession_number,
+      server_config.PACS_QUEUE_WAIT_TIME
+    )
+  )
+  store_thread.start()
+
+  return True, ""
+
+
+def thread_store(accession_number, wait_time, max_attempts=5):
+  """
+  Send a study to PACS
+
+  Args:
+    accession_number: accession number of study to send
+    wait_time: time to wait before attempting to send again if failed
+
+  Kwargs:
+    max_attempts: max number of attempts to try and send to PACS
+
+  TODO: Implement the max cap for attempts
+  NOTE: Adding a cap on the number of attempts might be a bad idea,
+        think if PACS is down for the whole day and the cap runs out. 
+        Then a lot of studies are going to get stuck in the queue folder, 
+        and aren't sent to PACS until the entire server is reset.
+  """
+  # Load study and connection configuration - if the files cannot be found don't send
+  ds_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
+  conf_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.json"
+
+  if not os.path.exists(ds_file) or not os.path.exists(conf_file):
+    return
+
+  with open(conf_file, "r") as fp:
+    conf = json.loads(fp.read())
+
+  ds = dicomlib.dcmread_wrapper(ds_file)
+
+  # Send study to PACS
+  is_sent = False
+
+  while not is_sent:
+    ae = AE(ae_title=conf["pacs_calling"])
+    ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
+    assoc = ae.associate(
+      conf["pacs_ip"],
+      int(conf["pacs_port"]),
+      ae_title=conf["pacs_aet"]
+    )
+
+    if assoc.is_established:
+      status = assoc.send_c_store(ds)
+      if status.Status == 0x0000:
+        is_sent = True
+    
+    if not is_sent:
+      time.sleep(wait_time)
+
+  # Clean up
+  os.remove(ds_file)
+  os.remove(conf_file)
+
+
+def send_queue_to_PACS():
+  """
+  Spawn threads for sending all studies in the queue folder to PACS
+  This should be called on start up of the server, so the missing
+  studies can be correctly send to PACS.
+  """
+  for dcm_file in glob.glob(f"{server_config.PACS_QUEUE_DIR}*.dcm"):
+    accession_number = dcm_file.split(".")[-2].split("/")[-1]
+
+    # print(f"Spawning PACS send thread for: {accession_number}")
+
+    store_thread = threading.Thread(
+      target=thread_store,
+      args=(
+        accession_number,
+        server_config.PACS_QUEUE_WAIT_TIME
+      )
+    )
+    store_thread.start()
+
+
 def start_scp_server(ae_title):
   """
-    Problems:
-      The server host multiple AE titles 
-        TEMP SOLUTION:
-          Accepts all AE title
-      Shutting down the server is difficult, since it's on another thread
-      server_instance.shutdown() needs to becalled for normal shutdown 
-        TEMP SOLUTION:
-          ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
-            Potential Solution:
-              Create Global Variable in server config and set it to none
-              When Creating Server overwrite global Variable with server instance
-              THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
-      Saving a file, While it's clear that it should be saved in the search_dir.
-      However Saving in subdirectories are difficult 
-
+  Problems:
+    The server host multiple AE titles 
+      TEMP SOLUTION:
+        Accepts all AE title
+    Shutting down the server is difficult, since it's on another thread
+    server_instance.shutdown() needs to becalled for normal shutdown 
+      TEMP SOLUTION:
+        ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
+          Potential Solution:
+            Create Global Variable in server config and set it to none
+            When Creating Server overwrite global Variable with server instance
+            THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
+    Saving a file, While it's clear that it should be saved in the search_dir.
+    However Saving in subdirectories are difficult 
   """
   logger = log_util.get_logger(__name__)
   logger.info('Starting Server')
@@ -338,7 +423,8 @@ def start_scp_server(ae_title):
   #server_ae.on_c_store = on_store 
   #server_ae.on_c_move = on_move
 
-  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
+  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers) # Production
+  # server_instance = server_ae.start_server(('', 11112), block=False, evt_handlers=event_handlers) # Testing / Debugging
 
   return server_instance
 
