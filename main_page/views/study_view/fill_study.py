@@ -12,6 +12,7 @@ import datetime
 import logging
 import PIL
 import glob
+import math
 from pandas import DataFrame
 from dateutil import parser as date_parser
 import pydicom
@@ -318,7 +319,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
-      height = height * 1000 / 10
+      height = math.ceil(height * 10000) / 100
       """
       we use:
         height = height * 1000 / 10
@@ -518,14 +519,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Use parameters fillout in store_form to compute GFR of patient
     if "calculate" in request.POST:
       # Comupute body surface area
-      height = dataset.PatientSize * 1000 / 10
+      height = math.ceil(dataset.PatientSize * 10000) / 100
       """
-      we use: height * 1000 / 10, as height * 100 results in floating-point
+      we use: math.ceil(height * 10000) / 100, as height * 100 results in floating-point
       errors, due to weird Python behavior 
       (for details see: https://docs.python.org/3.6/tutorial/floatingpoint.html)
       """
 
       weight = dataset.PatientWeight
+      
       BSA = clearance_math.surface_area(height, weight)
 
       # Compute dosis
