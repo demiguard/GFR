@@ -204,6 +204,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       Returns:
         Redirects to fill_study for matching accession Number
     """ 
+    logger.info(f"Recreating {accession_number}")
     current_user = request.user
     hospital_sn  = current_user.department.hospital.short_name
     study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}'
