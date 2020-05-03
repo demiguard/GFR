@@ -5,6 +5,7 @@
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/fill_study.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/present_old_study.css' %}">
 {% endblock head %}
 
 {% block content %}
@@ -50,9 +51,9 @@
   </div>
   
   <div class="col-md-8">
-    <img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+    <img class="image" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
     {% if qa_plot_path %}
-    <img width="100%" src="{% static qa_plot_path %}" alot="QA image not generated {{qa_plot_path}}">
+    <img class="image" src="{% static qa_plot_path %}" alot="QA image not generated {{qa_plot_path}}">
     {% endif %}
   </div>
 </div>
