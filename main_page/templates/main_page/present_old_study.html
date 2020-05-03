@@ -51,6 +51,9 @@
   
   <div class="col-md-8">
     <img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+    {% if qa_plot_path %}
+    <img width="100%" src="{% static qa_plot_path %}" alot="QA image not generated {{qa_plot_path}}">
+    {% endif %}
   </div>
 </div>
 {% endblock %}
