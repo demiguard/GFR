@@ -109,8 +109,9 @@ class CSVHandler {
     alerter.remove_alert('deviation')
 
     var numbers = this.get_selected_numbers();
+    console.log(numbers);
     if (numbers.length > 0){
-      var devation = this.deviation(numbers);
+      var deviation = this.deviation(numbers);
       alerter.add_alert(
         'deviation',
         'Prøven har en afvigelse på ' + deviation,
