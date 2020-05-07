@@ -308,7 +308,6 @@ function add_datetime_checking(field_alerter) {
     "#id_injection_date": "Injektionsdato",
     "#id_study_date": "Prøvedato",
     "#id_dateofmessurement": "Hent fra backup dato",
-    "#id_birthdate": "Fødselsdato"
   };
 
   let time_ids = [
@@ -320,7 +319,6 @@ function add_datetime_checking(field_alerter) {
     { "id": "#id_injection_date", "alert_type": "danger" },
     { "id": "#id_study_date", "alert_type": "danger" },
     { "id": "#id_dateofmessurement", "alert_type": "warning" },
-    { "id": "#id_birthdate", "alert_type": "danger" },
   ];
   
   // Add to time fields

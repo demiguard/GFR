@@ -106,6 +106,18 @@ class CSVHandler {
       return;
     }
 
+    alerter.remove_alert('deviation')
+
+    var numbers = this.get_selected_numbers();
+    if (numbers.length > 0){
+      var devation = this.deviation(numbers);
+      alerter.add_alert(
+        'deviation',
+        'Prøven har en afvigelse på ' + deviation,
+        'success'
+      )
+    }
+
     // Check if there is a large numerical difference between any two tests
     alerter.remove_alert('diff_check');
 
@@ -269,6 +281,42 @@ class CSVHandler {
 
     alerter.show_alerts();
   }
+
+  /**
+   * Calculates the deviation of the Samples
+   * 
+   * @param {List of numbers for the devation to be caculated from} numbers 
+   * 
+   * See Flemmings mail from 2020-05-06
+   */
+  deviation(numbers ){
+    var min_number = 1000000;
+    var max_number = 0;
+    for( var i = 0; i < numbers.length; i++){
+      if (min_number > numbers[i]) {
+        min_number = numbers[i];
+      }
+      if (max_number < numbers[i]){
+        max_number = numbers[i];
+      } 
+    }
+    return (max_number-min_number) / (max_number+min_number) * 100;
+
+  }
+
+  /*
+  * Return the selected Numbers
+  */
+  get_selected_numbers() {
+    var numbers = [];
+
+    for(var i = 0; i < this.selected_row_ids.length; i++){
+      numbers.push(this.get_row_count(this.selected_row_ids[i])); 
+    }
+
+    return numbers;
+  }
+
 
   difference_check(threshold) {
     /*
