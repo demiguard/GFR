@@ -54,6 +54,7 @@ REQUEST_PARAMETER_TYPES = {
   'vial_weight_after': float,
   'injection_time': str,
   'injection_date': str,
+  'vial_number': int,
   'thin_fac': float,
   'save_fac': bool,
   'study_type': int,
@@ -77,13 +78,17 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     dataset: dicom object to store information in
   """
   # Get birthdate and compute the age to store
-  birthdate = post_req.get("birthdate")
+  cpr = post_req.get("cpr")
 
-  if birthdate:
-    birthdate = datetime.datetime.strptime(birthdate, "%d-%m-%Y").date()
-    age = (datetime.date.today() - birthdate).days // 365
+  if cpr:
+    birthdate = clearance_math.calculate_birthdate(cpr)
+    age = clearance_math.calculate_age(cpr)
+  else:
+    birthdate = None
+    age = None
 
   # Get and format injection time and date to match required format for dicom object
+  vial_number = post_req.get('vial_number')
   inj_time = post_req.get("injection_time")
   inj_date = post_req.get("injection_date")
   
@@ -163,6 +168,8 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   
   # Get and insert bam_id
   bam_id = post_req["bamID"]
+  print("Vial number:")
+  print(post_req)
 
   # Store everything into dicom object
   dicomlib.fill_dicom(
@@ -170,22 +177,23 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     age=age,
     bamid=bam_id,
     birthday=birthdate,
-    update_dicom = True,
-    update_date = True,
-    injection_time=injection_datetime,
-    gfr_type=study_type_name,
-    series_number=1,
+    bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
+    exam_status=exam_status,
     gender=gender,
+    gfr_type=study_type_name,
+    injection_time=injection_datetime,
     injection_before=inj_before,
     injection_after=inj_after,
     injection_weight=inj_weight,
-    weight=weight,
     height=height,
-    bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
-    thiningfactor=thin_fac,
-    std_cnt=std_cnt,
     sample_seq=seq,
-    exam_status=exam_status
+    series_number=1,
+    std_cnt=std_cnt,
+    thiningfactor=thin_fac,
+    update_date = True,
+    update_dicom = True,
+    vial_number=vial_number,
+    weight=weight
   )
 
   return dataset
@@ -266,8 +274,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       study_type = 0
 
     cpr = dataset.get("PatientID")
-
     patient_sex = dataset.get("PatientSex")
+    vial_number = dataset.get("VialNumber")
+    
     if patient_sex:
       present_sex = enums.GENDER_SHORT_NAMES.index(patient_sex)
     else:
@@ -277,17 +286,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
           clearance_math.calculate_sex(cpr))
       except ValueError: # Failed to cast cpr nr. to int, i.e. weird cpr nr.
         present_sex = 1
-
-    try:
-      patient_birthday = dataset.get("PatientBirthDate")
-      if not patient_birthday: #If birthday is not found
-        patient_birthday = formatting.convert_date_to_danish_date( clearance_math.calculate_birthdate(dataset.get("PatientID")), sep='-')
-      else:
-        patient_birthday = datetime.datetime.strptime(
-          patient_birthday, "%Y%m%d"
-        ).strftime("%d-%m-%Y")
-    except ValueError:
-      patient_birthday = "00-00-0000"
     
     today = datetime.date.today()
     inj_date = today.strftime('%d-%m-%Y')
@@ -345,11 +343,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       name = formatting.person_name_to_name(str(name))
 
     grand_form = base_forms.FillStudyGrandForm(initial={
-      'birthdate'         : patient_birthday,
       'cpr'               : formatting.format_cpr(cpr),
       'height'            : height,
       'injection_date'    : inj_date,
       'injection_time'    : inj_time,
+      'vial_number'       : vial_number,
       'name'              : name,
       'save_fac'          : thin_fac_save_inital,
       'sex'               : present_sex,
@@ -572,7 +570,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       gfr_str, gfr_index = clearance_math.kidney_function(
         clearance_norm, 
-        birthdate.strftime("%Y-%m-%d"),
+        birthdate,
         gender
       )
 
@@ -597,7 +595,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         clearance,
         clearance_norm,
         gfr_str,
-        birthdate.strftime("%Y-%m-%d"),
+        birthdate,
         gender_name,
         accession_number,
         cpr=cpr,

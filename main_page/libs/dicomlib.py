@@ -447,6 +447,7 @@ def fill_dicom(ds,
     gfr                 = None,
     gfr_type            = None,
     height              = None,
+    vial_number         = None,
     injection_after     = None,
     injection_before    = None,
     injection_time      = None,
@@ -545,6 +546,7 @@ def fill_dicom(ds,
     0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion
     0x00231010 : ('LO', gfr_type),                                            # ds.GFRMethod
     0x00231018 : ('DT', injection_time),                                      # ds.injTime
+    0x00231019 : ('US', vial_number ),                                        # ds.VialNumber
     0x0023101A : ('DS', injection_weight),                                    # ds.injWeight
     0x0023101B : ('DS', injection_before),                                    # ds.injbefore
     0x0023101C : ('DS', injection_after),                                     # ds.injafter

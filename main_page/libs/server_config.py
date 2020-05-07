@@ -32,6 +32,7 @@ new_dict_items = {
   0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),   
   0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
   0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     # Tags Added
+  0x00231019 : ('US', '1', 'Vial number', '', 'VialNumber'),
   0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
   0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
   0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),

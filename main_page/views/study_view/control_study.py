@@ -140,7 +140,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
       'name'                : formatting.person_name_to_name(str(dataset.PatientName)),
       'sex'                 : enums.GENDER_NAMINGS[present_sex],
-      'birthdate'           : formatting.convert_date_to_danish_date(dataset.PatientBirthDate, sep='-'),
+      'vial_number'         : dataset.VialNumber,
       'height'              : formatting.float_dec_to_comma(dataset.PatientSize * 100),
       'weight'              : formatting.float_dec_to_comma(dataset.PatientWeight),
       'vial_weight_before'  : formatting.float_dec_to_comma(dataset.injbefore),      

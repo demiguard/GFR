@@ -37,11 +37,6 @@
               <td>{{ info.sex }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.birthdate_confirm form_group_class='.form-super-group' %}</td>
-              <td>Fødselsdagdato: </td>
-              <td>{{ info.birthdate }}</td>
-            </tr>
-            <tr>
               <td>{% bootstrap_field GrandForm.height_confirm form_group_class='.form-super-group' %}</td>
               <td>Højde: </td>
               <td>{{ info.height }} cm</td>
@@ -50,6 +45,11 @@
               <td>{% bootstrap_field GrandForm.weight_confirm form_group_class='.form-super-group' %}</td>
               <td>Vægt: </td>
               <td>{{ info.weight }} kg</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.vial_number_confirm form_group_class='.form-super-group' %}</td>
+              <td>Sprøjte nr:</td>
+              <td>{{ info.vial_number }} </td>
             </tr>
             <tr>
               <td>{% bootstrap_field GrandForm.vial_weight_before_confirm form_group_class='.form-super-group' %}</td>
