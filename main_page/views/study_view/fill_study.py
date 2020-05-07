@@ -168,9 +168,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   
   # Get and insert bam_id
   bam_id = post_req["bamID"]
-  print("Vial number:")
-  print(post_req)
-
+  
   # Store everything into dicom object
   dicomlib.fill_dicom(
     dataset,
