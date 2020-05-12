@@ -141,14 +141,17 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       qa_image.save(f'{qa_plot_path}')
       qa_plot_path = f"main_page/images/{hospital}/QA_{accession_number}.png"
 
-
+    #These will be displayed at inorder 
     study_data = [
       ('CPR:', formatting.format_cpr(dataset.PatientID)),
       ('Navn:', formatting.person_name_to_name(str(dataset.PatientName))),
       ('Køn:', enums.GENDER_NAMINGS[present_sex]),
       ('Fødselsdagdato:', birthdate),
       ('Højde:', f"{patient_height} cm"),
-      ('Vægt:', f"{patient_weight} kg"),
+      ('Vægt:', f"{patient_weight} kg")]
+    if 'VialNumber' in dataset:
+      study_data += [("Sprøjte Nr.", f"{dataset.VialNumber}.")]
+    study_data += [
       ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
       ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
       ('Injektion Tidspunkt:', study_datetime.strftime("%H:%M")),
