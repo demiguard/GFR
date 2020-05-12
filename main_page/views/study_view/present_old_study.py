@@ -150,7 +150,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Højde:', f"{patient_height} cm"),
       ('Vægt:', f"{patient_weight} kg")]
     if 'VialNumber' in dataset:
-      study_data += [("Sprøjte Nr.", f"{dataset.VialNumber}.")]
+      study_data += [("Sprøjte Nr: ", f"{dataset.VialNumber}.")]
     study_data += [
       ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
       ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
