@@ -97,19 +97,22 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   except:
     logger.debug(f"Samba Info: Failed to create directory '/backup/{hospital}'")
 
-  smb_conn.storeFileFromOffset(
-    share_name,
-    store_path,
-    temp_file,
-    truncate=False
-  )
+  try:
+    smb_conn.storeFileFromOffset(
+      share_name,
+      store_path,
+      temp_file,
+      truncate=False
+    )
+  except:
+    logger.warn(f'Samba Info: File already exists at path: {store_path}')
 
   smb_conn.deleteFiles(share_name, fullpath) 
 
   logger.info(f"Moved file; '{fullpath}' , to back up")
 
 
-def smb_get_all_csv(hospital: str, model_server_config, timeout: int=5 ) -> List[pd.DataFrame]:
+def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> List[pd.DataFrame]:
   """
   Retrieves file contents of all files presented as pandas DataFrames, for each
   file in a specific hospitals directory on the Samba Share
