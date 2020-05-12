@@ -388,6 +388,7 @@ def generate_gfr_plot(
   hospital_name: str='',
   image_height: float=server_config.PLOT_HEIGHT,
   image_width: float=server_config.PLOT_WIDTH,
+  vial_num: str='',
   index_gfr: float=0.0,
   injection_date=None,
   procedure_description: str='',
@@ -504,6 +505,7 @@ def generate_gfr_plot(
     Vægt: {weight:.1f} kg\n
     Højde: {height:.0f} cm\n
     Overflade: {BSA:.2f} m²\n
+    Sprøjte: {vial_num} \n
     Metode:  {method}\n
     \n
     GFR: {clearance:.0f} ml / min\n
@@ -514,8 +516,8 @@ def generate_gfr_plot(
 
   ax[1].set_xlim(0, 1)
   ax[1].set_ylim(0, 1)
-  ax[1].plot([0.05, 0.95], [0.3125, 0.3125], color='grey')
-  ax[1].text(0, 0.00, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
+  ax[1].plot([0.05, 0.95], [0.235, 0.235], color='grey')
+  ax[1].text(0, -0.075, print_str, ha='left', fontsize=server_config.TEXT_FONT_SIZE) 
   ax[1].axis('off')
 
   ax[0].set_xlabel('Alder (år)', fontsize=server_config.AXIS_FONT_SIZE)

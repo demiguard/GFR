@@ -530,6 +530,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       inj_weight = dataset.injWeight
       thin_fac = dataset.thiningfactor
       std_cnt = dataset.stdcnt
+      vial_num = dataset.VialNumber
       dosis = clearance_math.dosis(inj_weight, thin_fac, std_cnt)
 
       # Compute clearance and normalized clearance
@@ -605,6 +606,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         method=study_type_name,
         injection_date=inj_datetime.strftime('%d-%b-%Y'),
         name=formatting.person_name_to_name(str(name)),
+        vial_num=vial_num,
         procedure_description=dataset.RequestedProcedureDescription
       )
 
