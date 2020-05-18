@@ -108,6 +108,10 @@ def move_to_deleted(
     accession_number
   )
 
+  #There already exists a deleted file delete it then move the old over
+  if deleted_file.exists():
+    os.remove(deleted_file.as_posix())
+
   shutil.move(active_file.as_posix(), deleted_file.as_posix())
 
   return True
