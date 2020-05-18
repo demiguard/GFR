@@ -22,13 +22,13 @@ let enable_search_fields = function() {
 
 // Displays the loading spinner
 let show_loading = function() {
-  $('#loader').show();
+  $('#searchloader').show();
   $('#ss-wrapper .form-group').css('float', 'left');
 }
 
 // Removes the loading spinner
 let hide_loading = function() {
-  $('#loader').hide();
+  $('#searchloader').hide();
   $('#ss-wrapper .form-group').css('float', '');
 }
 
@@ -102,7 +102,14 @@ let ajax_search = function() {
         td_accession_number.innerHTML = search_results[i].accession_number;
         td_accession_number.classList.add("redirect-present");
 
-        var td_create_new = document.createElement('td');
+        var td_create_new  = document.createElement('td');
+        var loader_spinner = document.createElement('div');
+        loader_spinner.classList.add('loader');
+        loader_spinner.id = search_results[i].accession_number + "_loader"
+        loader_spinner.style.display ='none'
+        td_create_new.appendChild(loader_spinner);
+        /* - Remove per meeting may 18
+
         var create_new_btn = document.createElement("button");
         create_new_btn.type = "button";
         create_new_btn.classList.add("new-hist-btn");
@@ -115,7 +122,8 @@ let ajax_search = function() {
         create_new_span.setAttribute("title", "Ny undersøgelse fra historisk");
         
         create_new_btn.appendChild(create_new_span);
-        td_create_new.appendChild(create_new_btn);
+        */
+
 
         // Insert table entry into the table
         trow.appendChild(td_name);
@@ -131,6 +139,8 @@ let ajax_search = function() {
         // });
         $(".redirect-present").on('click', function() {
           let accession_number = $(this).parent().attr('id');
+          var loaderID = accession_number + "_loader"
+          $("#"+loaderID).show()
           document.location = '/present_old_study/' + accession_number;
         });
       }

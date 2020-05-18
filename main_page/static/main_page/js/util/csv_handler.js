@@ -109,7 +109,7 @@ class CSVHandler {
     alerter.remove_alert('deviation')
 
     var numbers = this.get_selected_numbers();
-    if (numbers.length > 0){
+    if (numbers.length >= 2){
       var deviation = this.deviation(numbers);
       alerter.add_alert(
         'deviation',

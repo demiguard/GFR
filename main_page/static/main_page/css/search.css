@@ -1,4 +1,4 @@
-#loader {
+.loader {
   border: 8px solid #e0e0e0; /* Light grey */
   border-top: 8px solid #76c6eb; /* Blue */
   border-radius: 50%;
@@ -21,3 +21,4 @@
 .redirect-present:hover {
   cursor: pointer;
 }
+

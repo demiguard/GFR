@@ -66,6 +66,7 @@ class QAView(LoginRequiredMixin, TemplateView):
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
+      'accession_number' : dicom_obj.AccessionNumber,
       'image_path' : image_path
     }
 
