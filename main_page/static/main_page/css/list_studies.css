@@ -31,3 +31,8 @@ tr:hover {
 #del-day-olds-btn {
   float: right;
 }
+
+#add-standard{
+  margin-top: 31px;
+  height: 40px;
+}
