@@ -14,3 +14,8 @@
 #dynamic_generate_history {
   display: none;
 }
+
+#add-standard{
+  margin-top: 31px;
+  height: 40px;
+}
