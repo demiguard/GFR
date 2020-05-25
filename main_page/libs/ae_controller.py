@@ -3,7 +3,7 @@ from pydicom import Dataset
 
 import logging
 from typing import Type, Union
-
+from pynetdicom import AE
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 from main_page import log_util
@@ -13,6 +13,47 @@ logger = log_util.get_logger(__name__)
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
+
+def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger):
+  """
+    From an AE establish an connection.
+
+    This is mostly a log wrapper for AE.associate and error handling for it
+
+  """
+  if isinstance(port, str):
+    port = int(port)
+  try:
+    assoc = AE.associate(
+      ip,
+      port,
+      ae_title=aet
+    )
+  except TypeError:
+    logger.error(f"""
+      Could not establish connection to
+      IP:     {ip}
+      Port:   {port}
+      my aet: {AE.ae_title}
+      Ris ae: {aet}
+      """)
+    return None
+  except RuntimeError:
+    logger.error(f"The context for {AE.ae_title} is {AE.requested_contexts} is invalid")
+    return None
+
+  if not(assoc.is_established):
+    logger.error(f"""
+      Could not establish connection to
+      IP:     {ip}
+      Port:   {port}
+      my aet: {AE.ae_title}
+      Ris ae: {aet}
+      """)
+    return None
+  
+  return assoc
+
 
 
 def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str, *args, **kwargs):
@@ -84,6 +125,29 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
         AET: '{aet}'""")
   return association
 
+def create_find_AE(ae_title):
+  try:
+    ae = pynetdicom.AE(ae_title=ae_title)
+  except ValueError:
+    # If AET is empty then a ValueError is thrown by pynetdicom
+    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
+    return None
+
+  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+
+  return ae
+
+def create_move_AE(ae_title):
+  try:
+    ae = pynetdicom.AE(ae_title=ae_title)
+  except ValueError:
+    # If AET is empty then a ValueError is thrown by pynetdicom
+    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
+    return None
+
+  ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
+
+  return ae
 
 def __handle_find_resp(resp, process, *args, **kwargs):
   """

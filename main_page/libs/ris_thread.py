@@ -7,6 +7,7 @@ import datetime
 import random
 import glob
 import shutil
+import multiprocessing
 from pathlib import Path
 from threading import Thread
 import re
@@ -78,6 +79,10 @@ class RisFetcherThread(Thread):
     self.today = datetime.datetime.now().day
     self.delay_min = delay_min
     self.delay_max = delay_max
+    self.ris_ae_finds = [] 
+    self.pacs_ae_finds = {}
+    self.pacs_ae_moves = {}
+    self.departments = {}
 
     # This is a daemon, i.e. background worker thread
     Thread.__init__(
@@ -217,106 +222,130 @@ class RisFetcherThread(Thread):
           shutil.rmtree(hosp_image_dir)
           logging.info(f"Deleting image directory: {hosp_image_dir}")
 
+  def kill_connections(self, AE):
+    """
+      Murders all active connections for an AE. This may happen mid-connection, and I have not tested all the infinite edge cases.
+    """
+    for assoc in AE.active_associations:
+      assoc.abort()
+
+  def pull_request(self, ris_find_ae):
+    """
+    This function handles a single pull request for a single AE, It may be cancel by the ris_thread
+    Note that this is a thread spawned by the thread. #INCEPTION
+
+    """
+    ae_title_b   = ris_find_ae.ae_title
+    department   = self.departments[ae_title_b]
+    config       = department.config
+    pacs_ae_find = self.pacs_ae_finds[ae_title_b]
+    pacs_ae_move = self.pacs_ae_moves[ae_title_b]
+
+    #Establishing Connection
+    ris_assoc = ae_controller.establish_assoc(
+      ris_find_ae,
+      config.ris_ip,
+      config.ris_port,
+      config.ris_aet,
+      logger
+    )
+    if ris_assoc == None:
+      return #Error have been logged in the ae_controler
+
+    pacs_find_assoc = ae_controller.establish_assoc(
+      pacs_ae_find,
+      config.pacs_ip,
+      config.pacs_port,
+      config.pacs_aet,
+      logger
+    )
+    if pacs_find_assoc == None:
+      ris_assoc.release()
+      return  
+
+    pacs_move_assoc = ae_controller.establish_assoc(
+      pacs_ae_move,
+      config.pacs_ip,
+      config.pacs_port,
+      config.pacs_aet,
+      logger
+    )
+    if pacs_move_assoc == None:
+      ris_assoc.release()
+      pacs_find_assoc.release()
+      return
+    #Connections has been established
+
+    query_dataset = dataset_creator.generate_ris_query_dataset(config.ris_calling)        
+    ae_controller.send_find(
+          ris_assoc, 
+          query_dataset, 
+          self.save_resp_to_file,
+          logger=logger,
+          department=department,
+          pacs_find_association=pacs_find_assoc,
+          pacs_move_association=pacs_move_assoc
+        )
+
+    ris_assoc.release()
+    pacs_find_assoc.release()
+    pacs_move_assoc.release()
+
+
   def run(self):
     """
     Routine function to periodically run
     """
     self.running = True
   
+    #This should be its own function called before each query to ensure upto date this
+    for department in models.Department.objects.all():
+      department_config = department.config
+      if department_config.ris_calling == None or department_config.ris_calling == '':
+        continue
+      ae_title = department_config.ris_calling
+      ris_ae = ae_controller.create_find_AE(ae_title)
+      self.ris_ae_finds.append(ris_ae)
+      self.pacs_ae_finds[ris_ae.ae_title] = ae_controller.create_find_AE(department_config.pacs_calling)
+      self.pacs_ae_moves[ris_ae.ae_title] = ae_controller.create_move_AE(department_config.pacs_calling)
+      self.departments[ris_ae.ae_title] = department
+
     logger.info("Starting run routine")
     
     while self.running:
       logger.info("RIS thread sending response")
+
+      for ris_ae in self.ris_ae_finds:
+        query_process = multiprocessing.Process(
+          target=self.pull_request,
+          args=(ris_ae,)
+          )
+        query_process.start()
+        query_process.join(60) #60 is timeout move this to somewhere visable
+        # After timeout reset connection
+        if query_process.is_alive():
+          logger.error(f'Timeout have happened for: {ris_ae.ae_title}!')
+          self.kill_connections(ris_ae)
+          self.kill_connections(pacs_ae_find[ris_ae.ae_title])
+          self.kill_connections(pacs_ae_move[ris_ae.ae_title])
+          query_process.terminate()
+          query_process.join()
+        else:
+          logger.info(f'Finished Query for title: {ris_ae.ae_title}')
+
 
       # For each hospital, we want to query to see if there's any new studies
       # for each study we want to retrieve the patient history from pacs,
       # this process requires a combination of C-FIND and C-MOVE queries
       hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
 
-      for department in models.Department.objects.all():
-        # Send C-FIND requests to RIS
-        # All associations are established here, since moving them into each
-        # processing function would mean that a new connection is opened and
-        # closed after each dataset has been processed, thus putting
-        # unnecessary stress on PACS
-        try:
-          ris_association = ae_controller.connect(
-            department.config.ris_ip,
-            department.config.ris_port,
-            department.config.ris_calling,
-            department.config.ris_aet,
-            ae_controller.FINDStudyRootQueryRetrieveInformationModel,
-            logger = logger
-          )
-          pacs_find_association = ae_controller.connect(
-            department.config.pacs_ip,
-            department.config.pacs_port,
-            department.config.pacs_calling, #TODO Change this back to config.pacs_calling when AE_titles is set up correctly
-            department.config.pacs_aet,
-            ae_controller.FINDStudyRootQueryRetrieveInformationModel,
-            logger = logger
-          )
-
-          pacs_move_association = ae_controller.connect(
-            department.config.pacs_ip,
-            department.config.pacs_port,
-            department.config.pacs_calling,
-            department.config.pacs_aet,
-            ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
-            logger = logger
-          )
-        except Exception as Error:
-          logger.error(f"Could not connect for department config : {department.config.id}")
-
-          #Unsure if I need the outer if-statement, but it's need if you just run it in the interpredritor
-          if 'ris_association' in dir(): 
-            if ris_association:
-              ris_association.release()
-          if 'pacs_find_association' in dir():
-            if pacs_find_association:
-              pacs_find_association.release()
-          if 'pacs_move_association' in dir():
-            if pacs_move_association:
-              pacs_move_association.release()
-
-          continue
-
-        if not (ris_association and pacs_find_association and pacs_move_association):
-          logger.info(f"Skipping config: {department.config.id}")
-
-          if ris_association:
-            ris_association.release()
-          if pacs_find_association:
-            pacs_find_association.release()
-          if pacs_move_association:
-            pacs_move_association.release()
-
-          continue
-
-
-        query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)        
-
-        ae_controller.send_find(
-          ris_association, 
-          query_dataset, 
-          self.save_resp_to_file,
-          logger=logger,
-          department=department,
-          pacs_find_association=pacs_find_association,
-          pacs_move_association=pacs_move_association
-        )
-
-        ris_association.release()
-        pacs_find_association.release()
-        pacs_move_association.release()
-      
       # End of department for-loop
 
       self.try_delete_old_images(hospitals)
       
       # Sleep the thread
       delay = random.uniform(self.delay_min, self.delay_max) * 60
-      logger.info(f'Ris thread going to sleep for {delay} sec.')
+      logger.info(f'Ris thread going to sleep for {delay:.2f} sec.')
       
       time.sleep(delay)
 
