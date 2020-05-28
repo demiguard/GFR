@@ -298,6 +298,7 @@ class RisFetcherThread(Thread):
     """
     self.running = True
   
+    #TODO: There are some small todos here
     #This should be its own function called before each query to ensure upto date this
     for department in models.Department.objects.all():
       department_config = department.config

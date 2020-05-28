@@ -75,6 +75,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
   Remark:
     This function doesn't handle releasing of the associations, this must be
     done by the caller.
+    This have been made obsolitte and is no longer used, I vote to remove this function
   """
   if 'logger' in kwargs:
     logger = kwargs['logger']
@@ -125,7 +126,11 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
         AET: '{aet}'""")
   return association
 
+
 def create_find_AE(ae_title):
+  """
+    Creates an pynetdicom.AE object with the find Context, ready to send a find
+  """
   try:
     ae = pynetdicom.AE(ae_title=ae_title)
   except ValueError:
@@ -137,7 +142,11 @@ def create_find_AE(ae_title):
 
   return ae
 
+
 def create_move_AE(ae_title):
+  """
+    Creates an pynetdicom.AE object with the find Context, ready to send a move
+  """
   try:
     ae = pynetdicom.AE(ae_title=ae_title)
   except ValueError:
@@ -148,6 +157,7 @@ def create_move_AE(ae_title):
   ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
 
   return ae
+
 
 def __handle_find_resp(resp, process, *args, **kwargs):
   """

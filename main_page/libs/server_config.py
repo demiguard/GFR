@@ -9,6 +9,7 @@ FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily
 BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
 DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
 CONTROL_STUDIES_DIR = "./control_studies/"
+SEARCH_CACHE_DIR    = "./search_cache/"
 PACS_QUEUE_DIR = "./pacs_study_queue/"
 PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
 

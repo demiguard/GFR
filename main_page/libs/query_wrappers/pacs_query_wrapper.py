@@ -30,6 +30,55 @@ from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
+def get_study(user, accession_number):
+  """
+    This function retrieves a completed study with the accession number given
+    The function first checks if the function is cached in local cache.
+    The RIS thread is responsible for updating the cache
+
+    Args:
+      User Django-Model.User object - The User making the request
+      accession_number str - The String of Accession Number eg. REGHXXXXXXXX
+    Returns:
+      None - The Dataset could not be found
+      Pydicom.Dataset Object. The Requested Dataset 
+    Remark:
+      This is overhauled version of move_from_pacs
+  """
+  if os.path.exists(f"{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm"):
+    return pydicom.read_file(f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm')
+  
+  #The file is not in the cache and we have to do work
+  config = user.department.config
+  pacs_find_ae = ae_controller.create_find_AE(config.pacs_calling)
+  pacs_move_ae = ae_controller.create_move_AE(config.pacs_calling)
+
+  pacs_find_assoc = ae_controller.establish_assoc(
+    pacs_find_ae, 
+    config.pacs_ip,
+    config.pacs_port,
+    config.pacs_aet,
+    logger
+  )
+  if not(pacs_find_assoc):
+    return None
+
+  pacs_move_assoc = ae_controller.establish_assoc(
+    pacs_move_ae, 
+    config.pacs_ip,
+    config.pacs_port,
+    config.pacs_aet,
+    logger
+  )
+  if not(pacs_move_assoc):
+    pacs_find_assoc.release()
+    return None
+
+  find_dataset = dataset_creator.create_search_dataset('', '', '', '', accession_number )
+  find_resp = pacs_find_assoc.send_c_find(find_dataset, query_model='S')
+
+    
+
 
 def move_from_pacs(user, accession_number):
   """
