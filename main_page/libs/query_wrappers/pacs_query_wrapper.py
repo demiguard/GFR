@@ -92,7 +92,7 @@ def get_study(user, accession_number):
   """
   logger.info('get_study is called')
   if os.path.exists(f"{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm"):
-    return pydicom.read_file(f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm')
+    return dicomlib.dcmread_wrapper(f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm')
   
   #The file is not in the cache and we have to do work
   config = user.department.config
