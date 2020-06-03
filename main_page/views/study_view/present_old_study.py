@@ -52,7 +52,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     # Search to find patient id - pick field response
     logger.info(f'Retriving study: {accession_number}')
-    dataset = pacs.move_from_pacs(
+    dataset = pacs.get_study(
       current_user,
       accession_number
     )

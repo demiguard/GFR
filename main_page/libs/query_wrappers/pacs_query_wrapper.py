@@ -63,9 +63,8 @@ def move_and_store(dataset, *args, **kwargs):
     move_assoc = kwargs['move_assoc']
     config     = kwargs['config']
   else:
+    logger.info('config or move_assoc doesn\'t exsists')
     raise AttributeError("move_assoc and config is a required keyword")
-
-  logger.info(dataset)
 
   ae_controller.send_move(
     move_assoc, 
