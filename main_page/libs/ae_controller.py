@@ -214,7 +214,7 @@ def __handle_move_resp(resp, process, *args, **kwargs):
     elif status.Status == TRANSFER_COMPLETE:
       process(identifier, *args, **kwargs)
     else:
-      logger.info(f"Failed to transfer dataset, with status: {status.Status}")
+      logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:

@@ -65,6 +65,8 @@ def move_and_store(dataset, *args, **kwargs):
   else:
     raise AttributeError("move_assoc and config is a required keyword")
 
+  logger.info(dataset)
+
   ae_controller.send_move(
     move_assoc, 
     config.pacs_calling,
@@ -89,6 +91,7 @@ def get_study(user, accession_number):
     Remark:
       This is overhauled version of move_from_pacs
   """
+  logger.info('get_study is called')
   if os.path.exists(f"{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm"):
     return pydicom.read_file(f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm')
   
