@@ -131,7 +131,7 @@ def get_study(user, accession_number):
   target_file = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
 
   if os.path.exists(target_file):
-    return pydicom.read_file(target_file)
+    return dicomlib.dcmread_wrapper(target_file)
   else:
     logger.error(f'Could not find request study {accession_number}')
     return None
