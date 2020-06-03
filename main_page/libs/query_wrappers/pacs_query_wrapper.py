@@ -35,7 +35,7 @@ def move_study_from_search_cache(dataset, *args, **kwargs):
     This is the hanlder 
   
   """
-  accession_number = kwargs['AccessionNumber']
+  accession_number = kwargs['accession_number']
 
   target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
   destination = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
