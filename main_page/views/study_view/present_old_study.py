@@ -51,7 +51,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     hospital = request.user.department.hospital.short_name
 
     # Search to find patient id - pick field response
-    dataset = pacs.move_from_pacs(
+    dataset = pacs.get_study(
       current_user,
       accession_number
     )
