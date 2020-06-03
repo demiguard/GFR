@@ -320,6 +320,10 @@ def get_studies(
   """
   Get the list of studies from a directory
 
+  Programmer Remarks:
+    This is not specific enough to be in ris_query_wrapper and should be moved to an
+    appropriate folder
+
   Args:
     directory: path to directory containing studies
     

@@ -14,6 +14,9 @@ logger = log_util.get_logger(__name__)
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
+
+#Dev notes: Sooo a pretty major flaw with using this is that send_xxx doesn't return anything
+
 def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger):
   """
     From an AE establish an connection.

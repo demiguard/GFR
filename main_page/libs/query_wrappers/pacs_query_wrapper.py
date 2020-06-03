@@ -30,6 +30,50 @@ from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
+def move_study_from_search_cache(dataset, *args, **kwargs):
+  """
+    This is the hanlder 
+  
+  """
+  accession_number = kwargs['AccessionNumber']
+
+  target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
+  destination = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
+
+  if not(os.path.exists(target_file)):
+    logger.error(f'Could not find the file {accession_number} from pacs')
+  if os.path.exists(destination):
+    logger.error(f'dublication of study: {accession_number}')
+
+  shutil.move(target_file, destination)
+
+def move_and_store(dataset, *args, **kwargs):
+  """
+    This function is a response to a C_find moves it over to the cache.
+    This means if a user searches for the same study twice on the same day, it's 
+    only downloaded once
+
+    args:
+      C-Find retrun dataset dataset
+      required KW:
+        move_assoc: An connected and active Pynetdicom.Association object
+
+  """
+  if 'move_assoc' and 'config' in kwargs:
+    move_assoc = kwargs['move_assoc']
+    config     = kwargs['config']
+  else:
+    raise AttributeError("move_assoc and config is a required keyword")
+
+  ae_controller.send_move(
+    move_assoc, 
+    config.pacs_calling,
+    dataset,
+    move_study_from_search_cache,
+    accession_number=dataset.AccessionNumber
+
+    )
+
 def get_study(user, accession_number):
   """
     This function retrieves a completed study with the accession number given
@@ -68,16 +112,27 @@ def get_study(user, accession_number):
     config.pacs_ip,
     config.pacs_port,
     config.pacs_aet,
-    logger
-  )
+    logger )
+
   if not(pacs_move_assoc):
     pacs_find_assoc.release()
     return None
 
   find_dataset = dataset_creator.create_search_dataset('', '', '', '', accession_number )
-  find_resp = pacs_find_assoc.send_c_find(find_dataset, query_model='S')
+  ae_controller.send_find(
+    pacs_find_assoc,
+    find_dataset,
+    move_and_store,
+    move_assoc=pacs_move_assoc,
+    config=config )
 
-    
+  target_file = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
+
+  if path.exists(target_file):
+    return pydicom.read_file(target_file)
+  else:
+    logger.error(f'Could not find request study {AccessionNumber}')
+    return None
 
 
 def move_from_pacs(user, accession_number):
@@ -207,6 +262,8 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   dicomlib.save_dicom(store_file, dicom_object)
 
   # Write file with connection configurations
+  # hey hey hey, I present the newest programming invention:
+  # MULTIPLE FUNCTIONAL ARGUMENTS, no more writing a file, and opening it up 
   with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
     fp.write(json.dumps({
       "pacs_calling": user.department.config.pacs_calling,

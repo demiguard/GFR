@@ -21,6 +21,9 @@ from main_page.libs import dataset_creator
 from main_page import models
 from main_page.libs.dirmanager import try_mkdir
 from main_page import log_util
+#This lib contains functions that should be moved an propriate directory
+#Specificly ris_query_wrapper.get_studies
+from main_page.libs.query_wrappers import ris_query_wrapper 
 
 # Create a logger just for the ris_thread
 logger = log_util.get_logger(
@@ -83,6 +86,7 @@ class RisFetcherThread(Thread):
     self.pacs_ae_finds = {}
     self.pacs_ae_moves = {}
     self.departments = {}
+    self.cache_life_time = 14 #Days
 
     # This is a daemon, i.e. background worker thread
     Thread.__init__(
@@ -93,6 +97,44 @@ class RisFetcherThread(Thread):
     )
 
     logger.info("Initialization done")
+
+  def Update_date(self):
+    """
+      This function updates the today variable
+
+      Remark:
+        It's very important that this function is called after ALL daily cleaning functions
+
+    """
+    today = datetime.datetime.now().day
+    if self.today != today:
+      self.today = today
+
+
+  def clean_cache(self):
+    """
+      This is a daily function, that cleans the cache directory of old studies.
+
+      self.cache_life_time is how many days objects in the cache lives
+
+      Cache is filled by store_dicom_pacs and pacs_query_wrapper.get_study
+
+      programmer notes: The proper design would proppally be to outsource the day logic
+      to another function
+
+    """
+    now = datetime.datetime.now()
+    if self.today != now.day:
+      logger.info('Cleaning Cache Dir')
+      studies = ris_query_wrapper.get_studies(server_config.SEARCH_CACHE_DIR)
+      for study in studies:
+        study_datetime = datetime.datetime.strptime(dicomlib.get_study_date(study_datetime), "%Y%m%d")
+        time_diff = now - study_datetime
+        if time_diff.days > self.cache_life_time:
+          #This study is too old and should be deleted!
+          os.remove(f'{server_config.SEARCH_CACHE_DIR}/{study.AccessionNumber}.dcm')
+
+
 
   def handle_c_move(self, dataset, *args, **kwargs):
     """
@@ -210,7 +252,6 @@ class RisFetcherThread(Thread):
     if today != self.today:
       # Delete Temperary files
       logger.info("Date changed, Removing Image Files")
-      self.today = today
 
       for hospital in hospitals:
         hosp_image_dir = Path(
@@ -335,14 +376,12 @@ class RisFetcherThread(Thread):
           logger.info(f'Finished Query for title: {ris_ae.ae_title}')
 
 
-      # For each hospital, we want to query to see if there's any new studies
-      # for each study we want to retrieve the patient history from pacs,
-      # this process requires a combination of C-FIND and C-MOVE queries
       hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
 
-      # End of department for-loop
-
+      #Daily clean up
+      self.clean_cache()
       self.try_delete_old_images(hospitals)
+      self.Update_date() #This updates today
       
       # Sleep the thread
       delay = random.uniform(self.delay_min, self.delay_max) * 60
