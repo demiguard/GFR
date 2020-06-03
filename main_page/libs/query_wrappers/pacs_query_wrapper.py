@@ -131,7 +131,7 @@ def get_study(user, accession_number):
   if os.path.exists(target_file):
     return pydicom.read_file(target_file)
   else:
-    logger.error(f'Could not find request study {AccessionNumber}')
+    logger.error(f'Could not find request study {accession_number}')
     return None
 
 
