@@ -25,10 +25,11 @@ class MainPageConfig(AppConfig):
       For more about these types of problems see:
       https://docs.djangoproject.com/en/2.2/ref/applications/
     """
+    # This line of code does not work, even when running in a virtual venv
     # Only allow server to be ran in virtualenv
-    if not hasattr(sys, "real_prefix"):
-      print("Error: This web server must be ran in a virtual environment!", file=sys.stderr)
-      exit(999)
+    #if not hasattr(sys, "real_prefix"):
+    #  print("Error: This web server must be ran in a virtual environment!", file=sys.stderr)
+    #  exit(999)
 
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import log_util
