@@ -61,9 +61,6 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       #Query Failed!
       logger.warning(f"""
       Examination unknown to GFR Calc
-      
-      dataset from query:
-      {dataset}
       """)
       error_template = loader.get_template('main_page/present_old_study_error.html')
       error_context  = {

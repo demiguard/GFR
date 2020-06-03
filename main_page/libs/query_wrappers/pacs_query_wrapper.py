@@ -464,7 +464,7 @@ def start_scp_server(ae_title):
     # Infomation Retrieved
     # Availble vars retrieved_dataset, retrieved_meta_info
     
-    logger.info(f'Dataset:\n {retrieved_dataset}')
+    #logger.info(f'Dataset:\n {retrieved_dataset}')
 
     if 'AccessionNumber' in retrieved_dataset:
       if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
