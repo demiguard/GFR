@@ -516,7 +516,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
   """
   def get(self, request):  
     # Extract search parameters
-    logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
+    # logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
 
     search_name = request.GET['name']
     search_cpr = request.GET['cpr']
