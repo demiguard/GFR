@@ -1,6 +1,7 @@
 import pydicom
 import pynetdicom
 import logging
+import django
 import os
 import time
 import datetime
@@ -167,7 +168,7 @@ class RisFetcherThread(Thread):
     Throws:
       Keyerror: When not called with correct parameters  
     """
-    
+    django.db.connection.close()
     department = kwargs['department']
     pacs_find_association = kwargs['pacs_find_association']
     pacs_move_association = kwargs['pacs_move_association']
@@ -316,6 +317,7 @@ class RisFetcherThread(Thread):
     ris_assoc.release()
     pacs_find_assoc.release()
     pacs_move_assoc.release()
+    return
 
   def update_self(self):
     ae_titles = []
