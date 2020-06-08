@@ -390,7 +390,7 @@ class RisFetcherThread(Thread):
           )
         query_process.start()
         query_process.join(60) #60 is timeout move this to somewhere visable
-         After timeout reset connection
+        # After timeout reset connection
         if query_process.is_alive():
           logger.error(f'Timeout have happened for: {ae_title}!')
           self.kill_connections(self.ris_ae_finds[ae_title])
