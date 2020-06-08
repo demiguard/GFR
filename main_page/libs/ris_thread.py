@@ -350,7 +350,6 @@ class RisFetcherThread(Thread):
         else:
           logger.info(f'Finished Query for title: {ris_ae.ae_title}')
 
-
       hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
 
       #Daily clean up
