@@ -303,15 +303,15 @@ class RisFetcherThread(Thread):
 
     query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
     
-    ae_controller.send_find(
-          ris_assoc, 
-          query_dataset, 
-          self.save_resp_to_file,
-          logger=logger,
-          department=department,
-          pacs_find_association=pacs_find_assoc,
-          pacs_move_association=pacs_move_assoc
-        )
+    #ae_controller.send_find(
+    #      ris_assoc, 
+    #      query_dataset, 
+    #      self.save_resp_to_file,
+    #      logger=logger,
+    #      department=department,
+    #      pacs_find_association=pacs_find_assoc,
+    #      pacs_move_association=pacs_move_assoc
+    #    )
 
     ris_assoc.release()
     pacs_find_assoc.release()
