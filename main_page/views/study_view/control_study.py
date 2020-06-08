@@ -18,6 +18,7 @@ import numpy as np
 from pydicom import Dataset
 from pandas import DataFrame
 from typing import Type, List, Tuple, Union, Generator, Dict
+from pathlib import Path
 
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
@@ -65,17 +66,19 @@ class ControlView(LoginRequiredMixin, TemplateView):
   def post(self, request, AccessionNumber):
     post_req = request.POST
     hopital_sn = request.user.department.hospital.short_name
-    dir_path =f'{server_config.CONTROL_STUDIES_DIR}{hopital_sn}/{AccessionNumber}/'
-    file_path = f'{dir_path}{AccessionNumber}.dcm'
+    dir_path = Path(server_config.CONTROL_STUDIES_DIR,hopital_sn, AccessionNumber)
+    file_path = Path(dir_path,f'{AccessionNumber}.dcm')
 
     if post_req['control'] == 'Afvis':
-      fill_study_dir = f'{server_config.FIND_RESPONS_DIR}{hopital_sn}/{AccessionNumber}'
+      fill_study_dir = Path(server_config.FIND_RESPONS_DIR, hopital_sn, AccessionNumber)
+      if fill_study_dir.exists():
+        shutil.rmtree(fill_study_dir)
       shutil.move(dir_path, fill_study_dir)
 
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
     elif post_req['control'] == 'Godkend og send til PACS':
-      file_path = f'{dir_path}{AccessionNumber}.dcm'
-      image_path  = f"{server_config.IMG_RESPONS_DIR}{hopital_sn}/{AccessionNumber}.png"
+      file_path   = Path(dir_path,f'{AccessionNumber}.dcm')
+      image_path  = Path(server_config.IMG_RESPONS_DIR,hopital_sn,f"{AccessionNumber}.png")
 
       dataset = dicomlib.dcmread_wrapper(file_path)
       bamid = post_req['bamID'].lower().swapcase()

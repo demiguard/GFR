@@ -111,31 +111,6 @@ class RisFetcherThread(Thread):
       self.today = today
 
 
-  def clean_cache(self):
-    """
-      This is a daily function, that cleans the cache directory of old studies.
-
-      self.cache_life_time is how many days objects in the cache lives
-
-      Cache is filled by store_dicom_pacs and pacs_query_wrapper.get_study
-
-      programmer notes: The proper design would proppally be to outsource the day logic
-      to another function
-
-    """
-    now = datetime.datetime.now()
-    if self.today != now.day:
-      logger.info('Cleaning Cache Dir')
-      studies = ris_query_wrapper.get_studies(server_config.SEARCH_CACHE_DIR)
-      for study in studies:
-        study_datetime = datetime.datetime.strptime(dicomlib.get_study_date(study_datetime), "%Y%m%d")
-        time_diff = now - study_datetime
-        if time_diff.days > self.cache_life_time:
-          #This study is too old and should be deleted!
-          os.remove(f'{server_config.SEARCH_CACHE_DIR}/{study.AccessionNumber}.dcm')
-
-
-
   def handle_c_move(self, dataset, *args, **kwargs):
     """
       This is the handler from pacs response C-MOVE
@@ -379,7 +354,9 @@ class RisFetcherThread(Thread):
       hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
 
       #Daily clean up
-      self.clean_cache()
+      today = datetime.datetime.now().day
+      if today != self.today:
+        cache.clean_cache(self.cache_life_time)
       self.try_delete_old_images(hospitals)
       self.Update_date() #This updates today
       

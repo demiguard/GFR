@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 from main_page.libs import server_config
-
+from main_page.libs import dirmanager
 import sys
 import threading
 import logging
@@ -34,6 +34,9 @@ class MainPageConfig(AppConfig):
     from .libs.query_wrappers import pacs_query_wrapper as pacs
     from . import log_util
     from . import models
+
+    #Here all the directories are created
+    dirmanager.try_mkdir(server_config.SEARCH_CACHE_DIR)
 
     # AET of the server (used as AET for SCP server for receiving studies 
     # i.e. we move to this AET)

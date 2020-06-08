@@ -26,6 +26,7 @@ from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
 from main_page.libs import enums
+from main_page.libs import cache
 from main_page.libs.clearance_math import clearance_math
 from main_page import models
 from main_page import log_util
@@ -52,10 +53,11 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     # Search to find patient id - pick field response
     logger.info(f'Retriving study: {accession_number}')
-    dataset = pacs.get_study(
+    dataset, path_to_dataset = pacs.get_study(
       current_user,
       accession_number
     )
+
 
     if dataset == None or not('GFR' in dataset):
       #Query Failed!

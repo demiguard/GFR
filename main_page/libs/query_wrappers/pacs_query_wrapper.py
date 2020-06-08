@@ -38,14 +38,12 @@ def move_study_from_search_cache(dataset, *args, **kwargs):
   accession_number = kwargs['accession_number']
 
   target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
-  destination = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
+  
 
   if not(os.path.exists(target_file)):
     logger.error(f'Could not find the file {accession_number} from pacs')
-  if os.path.exists(destination):
-    logger.error(f'dublication of study: {accession_number}')
-
-  shutil.move(target_file, destination)
+  else:
+    logger.info(f'Recieved File successfully for study {accession_number}')
 
 def move_and_store(dataset, *args, **kwargs):
   """
@@ -77,24 +75,19 @@ def move_and_store(dataset, *args, **kwargs):
 
 def get_study(user, accession_number):
   """
-    This function retrieves a completed study with the accession number given
-    The function first checks if the function is cached in local cache.
-    The RIS thread is responsible for updating the cache
+    This function retrieves a completed study with the accession number given. 
+    Note that this function does not check the cache
 
     Args:
       User Django-Model.User object - The User making the request
       accession_number str - The String of Accession Number eg. REGHXXXXXXXX
     Returns:
-      None - The Dataset could not be found
-      Pydicom.Dataset Object. The Requested Dataset 
+      Dataset: None - The Dataset could not be found or an Pydicom.Dataset Object. The Requested Dataset.
+      pathToDataset: The path to the dataset
+
     Remark:
       This is overhauled version of move_from_pacs
   """
-  logger.info('get_study is called')
-  if os.path.exists(f"{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm"):
-    return dicomlib.dcmread_wrapper(f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm')
-  
-  #The file is not in the cache and we have to do work
   config = user.department.config
   pacs_find_ae = ae_controller.create_find_AE(config.pacs_calling)
   pacs_move_ae = ae_controller.create_move_AE(config.pacs_calling)
@@ -107,7 +100,7 @@ def get_study(user, accession_number):
     logger
   )
   if not(pacs_find_assoc):
-    return None
+    return None, "Error"
 
   pacs_move_assoc = ae_controller.establish_assoc(
     pacs_move_ae, 
@@ -118,7 +111,8 @@ def get_study(user, accession_number):
 
   if not(pacs_move_assoc):
     pacs_find_assoc.release()
-    return None
+    logger.error('Could not etablish with pacs find assoc!')
+    return None, "Error"
 
   find_dataset = dataset_creator.create_search_dataset('', '', '', '', accession_number )
   ae_controller.send_find(
@@ -128,13 +122,13 @@ def get_study(user, accession_number):
     move_assoc=pacs_move_assoc,
     config=config )
 
-  target_file = f'{server_config.SEARCH_CACHE_DIR}/{accession_number}.dcm'
+  target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
 
   if os.path.exists(target_file):
-    return dicomlib.dcmread_wrapper(target_file)
+    return dicomlib.dcmread_wrapper(target_file), target_file
   else:
     logger.error(f'Could not find request study {accession_number}')
-    return None
+    return None, "Error"
 
 
 def move_from_pacs(user, accession_number):
