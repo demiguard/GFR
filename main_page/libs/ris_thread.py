@@ -9,6 +9,7 @@ import random
 import glob
 import shutil
 import multiprocessing
+import threading
 from pathlib import Path
 from threading import Thread
 import re
@@ -262,7 +263,9 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
-    return
+    django.db.ConnectionHandler.
+
+
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -386,11 +389,10 @@ class RisFetcherThread(Thread):
 
 
       for ae_title in self.ris_ae_finds.keys():
-        query_process = multiprocessing.Process(
+        query_process = threading.Thread(
           target=self.pull_request,
-          args=(self.ris_ae_finds[ae_title],),
-          daemon=False
-          )
+          args=[self.ris_ae_finds[ae_title]]
+        )
         query_process.start()
         query_process.join(60) #60 is timeout move this to somewhere visable
         # After timeout reset connection
