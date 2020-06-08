@@ -180,51 +180,48 @@ class RisFetcherThread(Thread):
     active_studies_dir  = server_config.FIND_RESPONS_DIR
     deleted_studies_dir = server_config.DELETED_STUDIES_DIR
 
-    try:
-      dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
-      deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
+    dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
+    deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
 
-      file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
-      file_handled = dataset.AccessionNumber in self.handled_examinations
+    file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
+    file_handled = dataset.AccessionNumber in self.handled_examinations
 
-      # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
-      if not file_exists and not file_handled:
-        try_mkdir(dataset_dir, mk_parents=True) # This should be removed on failure, so we can try again
+    # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
+    if not file_exists and not file_handled:
+      try_mkdir(dataset_dir, mk_parents=True) # This should be removed on failure, so we can try again
 
-        file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
-        try:
-          dicomlib.save_dicom(file_path, dataset)
-        except ValueError as e:
-          logger.error(f"Failed to save received dicom file: {file_path}, got exception {e}")
-          shutil.rmtree(dataset_dir) # Remove created dir. so file_handled is false in next try
-          return
+      file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
+      try:
+        dicomlib.save_dicom(file_path, dataset)
+      except ValueError as e:
+        logger.error(f"Failed to save received dicom file: {file_path}, got exception {e}")
+        shutil.rmtree(dataset_dir) # Remove created dir. so file_handled is false in next try
+        return
 
-        # Now retrieve the previous history
-        history_query_set = dataset_creator.create_search_dataset(
-          '',
-          dataset.PatientID,
-          '',
-          '',
-          ''
-        )
+      # Now retrieve the previous history
+      history_query_set = dataset_creator.create_search_dataset(
+        '',
+        dataset.PatientID,
+        '',
+        '',
+        ''
+      )
 
-        # Send the C-FIND to pacs
-        ae_controller.send_find(
-          pacs_find_association,
-          history_query_set,
-          self.get_historic_examination,
-          dataset_dir=dataset_dir,
-          department=department,
-          pacs_move_association=pacs_move_association,
-          logger=logger
-        )
+      # Send the C-FIND to pacs
+      ae_controller.send_find(
+        pacs_find_association,
+        history_query_set,
+        self.get_historic_examination,
+        dataset_dir=dataset_dir,
+        department=department,
+        pacs_move_association=pacs_move_association,
+        logger=logger
+      )
 
-        logger.info(f"Successfully save dataset: {dataset_dir}")
-      else:
-        logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
-    except AttributeError as e:
-      logger.error(f"failed to load/save dataset, with error: {e}")
-
+      logger.info(f"Successfully save dataset: {dataset_dir}")
+    else:
+      logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
+    
   def try_delete_old_images(self, hospitals):
     """
     Delete old generated images if more than a day has passed
