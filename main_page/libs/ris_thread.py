@@ -261,7 +261,6 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
-    return
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -303,6 +302,7 @@ class RisFetcherThread(Thread):
     #Connections has been established
 
     query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
+    return
     ae_controller.send_find(
           ris_assoc, 
           query_dataset, 
