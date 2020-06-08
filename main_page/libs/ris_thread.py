@@ -167,6 +167,7 @@ class RisFetcherThread(Thread):
     Throws:
       Keyerror: When not called with correct parameters  
     """
+    return
     department = kwargs['department']
     pacs_find_association = kwargs['pacs_find_association']
     pacs_move_association = kwargs['pacs_move_association']
@@ -302,7 +303,7 @@ class RisFetcherThread(Thread):
     #Connections has been established
 
     query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
-    return
+    
     ae_controller.send_find(
           ris_assoc, 
           query_dataset, 
