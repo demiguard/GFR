@@ -263,9 +263,6 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
-    django.db.ConnectionHandler.
-
-
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
