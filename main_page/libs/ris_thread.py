@@ -82,10 +82,11 @@ class RisFetcherThread(Thread):
     self.today = datetime.datetime.now().day
     self.delay_min = delay_min
     self.delay_max = delay_max
-    self.ris_ae_finds = [] 
+    self.ris_ae_finds = {} 
     self.pacs_ae_finds = {}
     self.pacs_ae_moves = {}
     self.departments = {}
+    self.handled_examinations = {}
     self.cache_life_time = 14 #Days
 
     # This is a daemon, i.e. background worker thread
@@ -154,6 +155,8 @@ class RisFetcherThread(Thread):
     """
     Processing function for saving successful response to files
 
+
+
     Args:
       dataset: response dataset
 
@@ -169,7 +172,7 @@ class RisFetcherThread(Thread):
     pacs_move_association = kwargs['pacs_move_association']
     logger = kwargs['logger']
 
-    hospital_shortname = department.hospital.short_name
+    hospital_shortname = department['hospital']
 
     active_studies_dir  = server_config.FIND_RESPONS_DIR
     deleted_studies_dir = server_config.DELETED_STUDIES_DIR
@@ -179,7 +182,7 @@ class RisFetcherThread(Thread):
       deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
 
       file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
-      file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
+      file_handled = dataset.AccessionNumber in self.handled_examinations
 
       # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
       if not file_exists and not file_handled:
@@ -250,19 +253,25 @@ class RisFetcherThread(Thread):
     This function handles a single pull request for a single AE, It may be cancel by the ris_thread
     Note that this is a thread spawned by the thread. #INCEPTION
 
+    CRITICAL: It is critical that this functions, and all function called by this function does not interact with the database
+      - It's a SQLite db, which doesn't handle concurrency very well, therefore all information from the db must be pre-queried and saved in the object
+        * Currently this information is:
+          # connection parameters handled in Department and their respective configs
+          # Handled examinations
+      - function self.update_self handles this currently
+
     """
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
-    config       = department.config
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
     pacs_ae_move = self.pacs_ae_moves[ae_title_b]
 
     #Establishing Connection
     ris_assoc = ae_controller.establish_assoc(
       ris_find_ae,
-      config.ris_ip,
-      config.ris_port,
-      config.ris_aet,
+      department['ris_ip'],
+      department['ris_port'],
+      department['ris_aet'],
       logger
     )
     if ris_assoc == None:
@@ -270,9 +279,9 @@ class RisFetcherThread(Thread):
 
     pacs_find_assoc = ae_controller.establish_assoc(
       pacs_ae_find,
-      config.pacs_ip,
-      config.pacs_port,
-      config.pacs_aet,
+      department['pacs_ip'],
+      department['pacs_port'],
+      department['pacs_aet'],
       logger
     )
     if pacs_find_assoc == None:
@@ -281,9 +290,9 @@ class RisFetcherThread(Thread):
 
     pacs_move_assoc = ae_controller.establish_assoc(
       pacs_ae_move,
-      config.pacs_ip,
-      config.pacs_port,
-      config.pacs_aet,
+      department['pacs_ip'],
+      department['pacs_port'],
+      department['pacs_aet'],
       logger
     )
     if pacs_move_assoc == None:
@@ -292,7 +301,7 @@ class RisFetcherThread(Thread):
       return
     #Connections has been established
 
-    query_dataset = dataset_creator.generate_ris_query_dataset(config.ris_calling)        
+    query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
     ae_controller.send_find(
           ris_assoc, 
           query_dataset, 
@@ -307,6 +316,57 @@ class RisFetcherThread(Thread):
     pacs_find_assoc.release()
     pacs_move_assoc.release()
 
+  def update_self(self):
+    ae_titles = []
+    for department in models.Department.objects.all():
+      department_config = department.config
+      if department_config.ris_calling == None or department_config.ris_calling == '':
+        continue
+      ae_title = pynetdicom.utils.validate_ae_title(department_config.ris_calling)
+      ae_titles.append(ae_title)
+      
+      department_dir = { 
+        'ris_aet' :     department_config.ris_aet,
+        'ris_ip'  :     department_config.ris_ip,
+        'ris_port':     department_config.ris_port,
+        'ris_calling':  department_config.ris_calling,
+        'pacs_aet':     department_config.pacs_aet,
+        'pacs_ip':      department_config.pacs_ip,
+        'pacs_port':    department_config.pacs_port,
+        'pacs_calling': department_config.pacs_calling,
+        'hospital'    : department.hospital.short_name
+      }
+
+      if not(ae_title in self.ris_ae_finds):
+        self.ris_ae_finds[ae_title] = ae_controller.create_find_AE(ae_title)
+
+      if not(ae_title in self.pacs_ae_finds):
+        self.pacs_ae_finds[ae_title] = ae_controller.create_find_AE(department_config.pacs_calling)
+
+      if not(ae_title in self.pacs_ae_moves):
+        self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(department_config.pacs_calling)
+      
+      self.departments[ae_title] = department_dir
+
+      #1 is a dummy value, what is need is the look up functionality, such that its not a list pythons looks through, but a hash table
+      self.handled_examinations = { handled_examination.accession_number : 1 for handled_examination in models.HandledExaminations.objects.all()}   
+      #End for department for loop 
+    #Clean up of unused ae_titles
+    for key in self.ris_ae_finds.keys():
+      if not(key in ae_titles):
+        del self.ris_ae_finds[key]
+    
+    for key in self.pacs_ae_finds.keys():
+      if not(key in ae_titles):
+        del self.pacs_ae_finds[key]
+    
+    for key in self.pacs_ae_moves.keys():
+      if not(key in ae_titles):
+        del self.pacs_ae_moves[key]
+
+    for key in self.departments.keys():
+      if not(key in ae_titles):
+        del self.departments[key]    
 
   def run(self):
     """
@@ -314,41 +374,30 @@ class RisFetcherThread(Thread):
     """
     self.running = True
   
-    #TODO: There are some small todos here
-    #This should be its own function called before each query to ensure upto date this
-    for department in models.Department.objects.all():
-      department_config = department.config
-      if department_config.ris_calling == None or department_config.ris_calling == '':
-        continue
-      ae_title = department_config.ris_calling
-      ris_ae = ae_controller.create_find_AE(ae_title)
-      self.ris_ae_finds.append(ris_ae)
-      self.pacs_ae_finds[ris_ae.ae_title] = ae_controller.create_find_AE(department_config.pacs_calling)
-      self.pacs_ae_moves[ris_ae.ae_title] = ae_controller.create_move_AE(department_config.pacs_calling)
-      self.departments[ris_ae.ae_title] = department
-
     logger.info("Starting run routine")
     
     while self.running:
       logger.info("RIS thread sending response")
+      self.update_self()
 
-      for ris_ae in self.ris_ae_finds:
+
+      for ae_title in self.ris_ae_finds.keys():
         query_process = multiprocessing.Process(
           target=self.pull_request,
-          args=(ris_ae,)
+          args=(self.ris_ae_finds[ae_title],)
           )
         query_process.start()
         query_process.join(60) #60 is timeout move this to somewhere visable
         # After timeout reset connection
         if query_process.is_alive():
-          logger.error(f'Timeout have happened for: {ris_ae.ae_title}!')
-          self.kill_connections(ris_ae)
-          self.kill_connections(pacs_ae_find[ris_ae.ae_title])
-          self.kill_connections(pacs_ae_move[ris_ae.ae_title])
+          logger.error(f'Timeout have happened for: {ae_title}!')
+          self.kill_connections(self.ris_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_find[ae_title])
+          self.kill_connections(self.pacs_ae_move[ae_title])
           query_process.terminate()
           query_process.join()
         else:
-          logger.info(f'Finished Query for title: {ris_ae.ae_title}')
+          logger.info(f'Finished Query for title: {ae_title}')
 
       hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
 
