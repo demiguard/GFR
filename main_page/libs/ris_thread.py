@@ -261,6 +261,7 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
+    return
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -382,22 +383,22 @@ class RisFetcherThread(Thread):
 
 
       for ae_title in self.ris_ae_finds.keys():
-        #query_process = multiprocessing.Process(
-        #  target=self.pull_request,
-        #  args=(self.ris_ae_finds[ae_title],)
-        #  )
-        #query_process.start()
-        #query_process.join(60) #60 is timeout move this to somewhere visable
-        # After timeout reset connection
-        #if query_process.is_alive():
-        #  logger.error(f'Timeout have happened for: {ae_title}!')
-        #  self.kill_connections(self.ris_ae_finds[ae_title])
-        #  self.kill_connections(self.pacs_ae_find[ae_title])
-        #  self.kill_connections(self.pacs_ae_move[ae_title])
-        #  query_process.terminate()
-        #  query_process.join()
-        #else:
-        #  logger.info(f'Finished Query for title: {ae_title}')
+        query_process = multiprocessing.Process(
+          target=self.pull_request,
+          args=(self.ris_ae_finds[ae_title],)
+          )
+        query_process.start()
+        query_process.join(60) #60 is timeout move this to somewhere visable
+         After timeout reset connection
+        if query_process.is_alive():
+          logger.error(f'Timeout have happened for: {ae_title}!')
+          self.kill_connections(self.ris_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_find[ae_title])
+          self.kill_connections(self.pacs_ae_move[ae_title])
+          query_process.terminate()
+          query_process.join()
+        else:
+          logger.info(f'Finished Query for title: {ae_title}')
 
       hospitals = [hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name]
 
