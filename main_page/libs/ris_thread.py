@@ -167,11 +167,13 @@ class RisFetcherThread(Thread):
     Throws:
       Keyerror: When not called with correct parameters  
     """
-    return
+    
     department = kwargs['department']
     pacs_find_association = kwargs['pacs_find_association']
     pacs_move_association = kwargs['pacs_move_association']
     logger = kwargs['logger']
+
+    logger.info(department)
 
     hospital_shortname = department['hospital']
 
