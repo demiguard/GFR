@@ -95,7 +95,7 @@ class RisFetcherThread(Thread):
     Thread.__init__(
       self,
       name='RisFetcherThread',
-      daemon=False,
+      daemon=True,
       group=None
     )
 
@@ -388,9 +388,10 @@ class RisFetcherThread(Thread):
       for ae_title in self.ris_ae_finds.keys():
         query_process = threading.Thread(
           target=self.pull_request,
-          args=[self.ris_ae_finds[ae_title]]
+          args=[self.ris_ae_finds[ae_title]],
+          deamon=True
         )
-        query_process.start()
+        #query_process.start()
         query_process.join(60) #60 is timeout move this to somewhere visable
         # After timeout reset connection
         if query_process.is_alive():
