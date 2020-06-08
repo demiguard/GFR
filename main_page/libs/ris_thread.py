@@ -93,7 +93,7 @@ class RisFetcherThread(Thread):
     Thread.__init__(
       self,
       name='RisFetcherThread',
-      daemon=True,
+      daemon=False,
       group=None
     )
 
@@ -385,7 +385,8 @@ class RisFetcherThread(Thread):
       for ae_title in self.ris_ae_finds.keys():
         query_process = multiprocessing.Process(
           target=self.pull_request,
-          args=(self.ris_ae_finds[ae_title],)
+          args=(self.ris_ae_finds[ae_title],),
+          daemon=False
           )
         query_process.start()
         query_process.join(60) #60 is timeout move this to somewhere visable
