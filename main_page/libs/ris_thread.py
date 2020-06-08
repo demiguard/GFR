@@ -143,7 +143,7 @@ class RisFetcherThread(Thread):
 
     ae_controller.send_move(
       pacs_move_association,
-      department.config.pacs_calling,
+      department['pacs_calling'],
       dataset,
       self.handle_c_move,
       accession_number=accession_number,
@@ -399,7 +399,7 @@ class RisFetcherThread(Thread):
         else:
           logger.info(f'Finished Query for title: {ae_title}')
 
-      hospitals = {hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name}
+      hospitals = [hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name]
 
       #Daily clean up
       today = datetime.datetime.now().day
