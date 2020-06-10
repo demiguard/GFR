@@ -169,13 +169,10 @@ class RisFetcherThread(Thread):
     Throws:
       Keyerror: When not called with correct parameters  
     """
-    django.db.connection.close()
     department = kwargs['department']
     pacs_find_association = kwargs['pacs_find_association']
     pacs_move_association = kwargs['pacs_move_association']
     logger = kwargs['logger']
-
-    logger.info(department)
 
     hospital_shortname = department['hospital']
 
@@ -263,7 +260,9 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
+    logger.info(f'Active database connections: {django.db.connections.databases}')
     django.db.connections.close_all()
+    logger.info(f'Active database connections: {django.db.connections.databases}')
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -379,7 +378,7 @@ class RisFetcherThread(Thread):
     """
     self.running = True
 
-    logger.info(f'Active Queries: {django.db.connection.queries})
+    logger.info(f'Active Queries: {django.db.connection.queries}')
 
     logger.info("Starting run routine")
     
