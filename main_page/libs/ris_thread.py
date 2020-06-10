@@ -379,7 +379,7 @@ class RisFetcherThread(Thread):
     """
     self.running = True
 
-    logger.info(django.db.connection.queries)
+    logger.info(f'Active Queries: {django.db.connection.queries})
 
     logger.info("Starting run routine")
     
