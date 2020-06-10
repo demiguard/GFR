@@ -129,7 +129,7 @@ def move_file_from_cache_active_studies(accession_number : str, target_path, mov
       FileExistsError   : Raised if the target already exists premovement
   """
   #Init
-  if not(isinstance(target_path, Path))
+  if not(isinstance(target_path, Path)):
     target_path = Path(target_path)
 
   study_dir = Path(server_config.SEARCH_CACHE_DIR, accession_number)
@@ -144,7 +144,7 @@ def move_file_from_cache_active_studies(accession_number : str, target_path, mov
   #Moving the file
   if move_dir:
     shutil.move(study_dir, target_path)
-  else
+  else:
     study_path = Path(study_dir, f'{accession_number}.dcm')
     shutil.move(study_path, target_path)
     shutil.rmtree(study_dir)
