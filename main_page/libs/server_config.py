@@ -5,7 +5,7 @@ DAYS_THRESHOLD = 30                                # How long dicom files should
 
 BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
 SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
-FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses
+FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses ### This name is very bad and should be changed
 BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
 DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
 CONTROL_STUDIES_DIR = "./control_studies/"
@@ -19,6 +19,7 @@ STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 CSV_DIR = f"{STATIC_DIR}csv/"
 
+#Legacy remove this 
 BASE_FIND_QUERY = f"{BASE_QUERY_DIR}base_find_query.dcm"                              # Used for the list studies page
 BASE_IMG_QUERY_PATH = f"{BASE_QUERY_DIR}base_img_query.dcm"                          # Used for retreiving images
 BASE_SEARCH_FILE = f"{BASE_QUERY_DIR}base_search_query.dcm"                            # Used for the searching page
