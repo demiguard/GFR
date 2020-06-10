@@ -53,7 +53,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     # Search to find patient id - pick field response
     logger.info(f'Retriving study: {accession_number}')
-    dataset = cache.retrieve_file_from_cache(user, accession_number)
+    dataset = cache.retrieve_file_from_cache(current_user, accession_number)
 
     if dataset == None or not('GFR' in dataset):
       #Query Failed!
