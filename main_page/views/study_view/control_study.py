@@ -90,15 +90,12 @@ class ControlView(LoginRequiredMixin, TemplateView):
       success_rate, error_message = pacs.store_dicom_pacs(dataset, request.user)
       logger.info(f"User:{request.user.username} has stored {AccessionNumber} in PACS")
       if success_rate:
-        # Remove the file + history
+        # move the directroy with file + history to cache
         try:
-          shutil.rmtree(dir_path)
+          cache_path = Path(server_config.SEARCH_CACHE_DIR, AccessionNumber)
+          shutil.move(dir_path, cache_path)
         except OSError as error:
           logger.error(f'Could not remove directory: {dir_path}')
-        try:
-          os.remove(image_path)
-        except:
-          logger.warn(f'Could not delete image: {image_path}')
         # Store the RIS number in the HandleExaminations table
         HE = models.HandledExaminations(accession_number=AccessionNumber)
         HE.save()
