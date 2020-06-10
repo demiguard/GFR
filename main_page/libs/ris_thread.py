@@ -263,6 +263,7 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
+    django.db.connections.close_all()
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -305,15 +306,15 @@ class RisFetcherThread(Thread):
 
     query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
     
-    #ae_controller.send_find(
-    #      ris_assoc, 
-    #      query_dataset, 
-    #      self.save_resp_to_file,
-    #      logger=logger,
-    #      department=department,
-    #      pacs_find_association=pacs_find_assoc,
-    #      pacs_move_association=pacs_move_assoc
-    #    )
+    ae_controller.send_find(
+          ris_assoc, 
+          query_dataset, 
+          self.save_resp_to_file,
+          logger=logger,
+          department=department,
+          pacs_find_association=pacs_find_assoc,
+          pacs_move_association=pacs_move_assoc
+        )
 
     ris_assoc.release()
     pacs_find_assoc.release()
@@ -377,28 +378,29 @@ class RisFetcherThread(Thread):
     Routine function to periodically run
     """
     self.running = True
-  
+
+    logger.info(django.db.connection.queries)
+
     logger.info("Starting run routine")
     
     while self.running:
       logger.info("RIS thread sending response")
       self.update_self()
 
-
       for ae_title in self.ris_ae_finds.keys():
         query_process = threading.Thread(target=self.pull_request, args=[self.ris_ae_finds[ae_title]])
         query_process.start()
-        #query_process.join(60) #60 is timeout move this to somewhere visable
-        ## After timeout reset connection
-        #if query_process.is_alive():
-        #  logger.error(f'Timeout have happened for: {ae_title}!')
-        #  self.kill_connections(self.ris_ae_finds[ae_title])
-        #  self.kill_connections(self.pacs_ae_find[ae_title])
-        #  self.kill_connections(self.pacs_ae_move[ae_title])
-        #  query_process.terminate()
-        #  query_process.join()
-        #else:
-        #  logger.info(f'Finished Query for title: {ae_title}')
+        query_process.join(60) #60 is timeout move this to somewhere visable
+        # After timeout reset connection
+        if query_process.is_alive():
+          logger.error(f'Timeout have happened for: {ae_title}!')
+          self.kill_connections(self.ris_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_find[ae_title])
+          self.kill_connections(self.pacs_ae_move[ae_title])
+          query_process.terminate()
+          query_process.join()
+        else:
+          logger.info(f'Finished Query for title: {ae_title}')
 
       hospitals = [hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name]
 
