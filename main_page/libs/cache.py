@@ -63,10 +63,10 @@ def move_file_to_cache(filepath, accession_number: str, overwrite=True):
   
   return True
 
+
 def retrieve_file_from_cache(user,accession_number: str, ask_pacs=True):
   """
     Retrieves a file from the cache, if the file is unavailble then file is retrieve from 
-
 
     Args:
       user: Django user with access to send to pacs
@@ -75,7 +75,6 @@ def retrieve_file_from_cache(user,accession_number: str, ask_pacs=True):
       ask_pacs: Bool - If True: makes a query for pacs for the requested study
     Returns:
       Pydicom Dataset or None - The request dataset or none if does not exists
-    
 
   """
   target = Path(server_config.SEARCH_CACHE_DIR, accession_number, f'{accession_number}.dcm')
@@ -92,6 +91,7 @@ def retrieve_file_from_cache(user,accession_number: str, ask_pacs=True):
   move_file_to_cache(path_to_dataset, accession_number)
 
   return dataset
+
 
 def get_all_cache_studies():
   studies_dirs = glob.glob(f'{server_config.SEARCH_CACHE_DIR}/*')
@@ -116,4 +116,44 @@ def clean_cache(life_time: int):
         target_path = Path(server_config.SEARCH_CACHE_DIR, study.AccessionNumber)
         shutil.rmtree(target_path)
 
+def move_file_from_cache_active_studies(accession_number : str, target_path, move_dir=True ):
+  """
+    This function moves a file in the cache to another destination. This removes the file from the cache
+    To ensure that a file exists use the function file in cache
 
+    Args:
+      accession_number : str the wished study, the study must be in the cache
+      target_path      : str or Path-object, where the file is moved to, parent path must exists and this function cannot overwrite
+    Raises:
+      FileNotFoundError : Raised if the target parent directory does not exists. 
+      FileExistsError   : Raised if the target already exists premovement
+  """
+  #Init
+  if not(isinstance(target_path, Path))
+    target_path = Path(target_path)
+
+  study_dir = Path(server_config.SEARCH_CACHE_DIR, accession_number)
+  #Checking if all paths exists for file transfer
+  if not(target_path.parent.exists()):
+    raise FileNotFoundError('Parent directory for file does not exists')
+  if not(study_dir.exists()):
+    raise FileNotFoundError("Study is not in the cache")
+  if target_path.exists():
+    raise FileExistsError(f"{str(target_path)} exists")
+
+  #Moving the file
+  if move_dir:
+    shutil.move(study_dir, target_path)
+  else
+    study_path = Path(study_dir, f'{accession_number}.dcm')
+    shutil.move(study_path, target_path)
+    shutil.rmtree(study_dir)
+
+
+def file_in_cache(accession_number):
+  return Path(server_config.SEARCH_CACHE_DIR, accession_number).exists()
+
+  
+
+
+  

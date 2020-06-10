@@ -38,6 +38,7 @@ class SearchView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, context)
 
+  """
   def post(self, request):
     # Create new study from the historical one
     user = request.user
@@ -78,3 +79,4 @@ class SearchView(LoginRequiredMixin, TemplateView):
     return JsonResponse({
       "redirect_url": f"/fill_study/{hist_accession_number}" # URL of new study to redirect to
     })
+    """

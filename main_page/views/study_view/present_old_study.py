@@ -37,6 +37,10 @@ CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], Li
 logger = log_util.get_logger(__name__)
 
 
+"""
+  Programming TODO: This file could be like 100 lines instead of 250
+"""
+
 class PresentOldStudyView(LoginRequiredMixin, TemplateView):
   """
   Remark:
@@ -188,44 +192,40 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       This function provides the functionality of creating a dicom file, from the already existing files
 
       Retrieves dicom object Updates the dicom files:
-        Series Number
-        SeriesUID
+        SOPinstanceUID
+        study_datetime
 
-      To Do:
-        [] Assign a the correct Series number at getting them from RIS
-        [x] Write this function
-        [] Ensure that Series number is not edited by other functions incorrecly 
-          {} dicomlib.fill_dicom
-          {} fillstudy.Post
-        [] Ensure that other functions can handle, existance of multiple studies
-          {} pacs_query_wrapper.move_from_pacs
-  
       Returns:
         Redirects to fill_study for matching accession Number
     """ 
     logger.info(f"Recreating {accession_number}")
     current_user = request.user
     hospital_sn  = current_user.department.hospital.short_name
-    study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}'
-    try_mkdir(study_directory)
+    active_studies_dir = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}'
+    try_mkdir(active_studies_dir)
     #Retrives Dicom object
-    dataset = pacs.move_from_pacs(
-      current_user,
-      accession_number
-    )  
-    
+    destination_path = Path(active_studies_dir, accession_number)
+    #Remove duplicate
+    if destination_path.exists():
+      destination_path.rmdir()
+
+    dataset = cache.retrieve_file_from_cache(current_user, accession_number)
+    cache.move_file_from_cache_active_studies(accession_number, destination_path)
+
     #Updates Tags
     dicomlib.fill_dicom(
       dataset,
       sop_instance_uid=pydicom.uid.generate_uid(prefix='1.3.'),
-      series_number=dataset.SeriesNumber
+      study_datetime=datetime.datetime.now()
       #New UID maybe, could build it into Series Number function
       )
-    dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', dataset)
+    dicomlib.save_dicom(f'{str(destination_path)}/{dataset.AccessionNumber}.dcm', dataset)
     #Retrives History
     if 'clearancehistory' in dataset:
       for study in dataset.clearancehistory:
-        study_dataset = pacs.move_from_pacs(current_user, dataset.AccessionNumber)
-        dicomlib.save_dicom(f'{study_directory}/{dataset.AccessionNumber}.dcm', study_dataset)
+        history_path = Path(destination_path, f'{study.AccessionNumber}.dcm')
+        if not(history_path.exists()):
+          _ , path_to_dataset = pacs.get_study(current_user, study.AccessionNumber)
+          shutil.move(path_to_dataset, history_path)
 
     return redirect('main_page:fill_study', accession_number = accession_number)
