@@ -260,9 +260,6 @@ class RisFetcherThread(Thread):
       - function self.update_self handles this currently
 
     """
-    logger.info(f'Active database connections: {django.db.connections.databases}')
-    django.db.connections.close_all()
-    logger.info(f'Active database connections: {django.db.connections.databases}')
     ae_title_b   = ris_find_ae.ae_title
     department   = self.departments[ae_title_b]
     pacs_ae_find = self.pacs_ae_finds[ae_title_b]
@@ -341,6 +338,7 @@ class RisFetcherThread(Thread):
         'hospital'    : department.hospital.short_name
       }
 
+      self.departments[ae_title] = department_dir
       if not(ae_title in self.ris_ae_finds):
         self.ris_ae_finds[ae_title] = ae_controller.create_find_AE(ae_title)
 
@@ -349,12 +347,11 @@ class RisFetcherThread(Thread):
 
       if not(ae_title in self.pacs_ae_moves):
         self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(department_config.pacs_calling)
-      
-      self.departments[ae_title] = department_dir
-
-      #1 is a dummy value, what is need is the look up functionality, such that its not a list pythons looks through, but a hash table
-      self.handled_examinations = { handled_examination.accession_number : 1 for handled_examination in models.HandledExaminations.objects.all()}   
       #End for department for loop 
+      
+
+    #1 is a dummy value, what is need is the look up functionality, such that its not a list pythons looks through, but a hash table
+    self.handled_examinations = { handled_examination.accession_number : 1 for handled_examination in models.HandledExaminations.objects.all()}   
     #Clean up of unused ae_titles
     for key in self.ris_ae_finds.keys():
       if not(key in ae_titles):
@@ -377,8 +374,6 @@ class RisFetcherThread(Thread):
     Routine function to periodically run
     """
     self.running = True
-
-    logger.info(f'Active Queries: {django.db.connection.queries}')
 
     logger.info("Starting run routine")
     
