@@ -208,7 +208,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     destination_path = Path(active_studies_dir, accession_number)
     #Remove duplicate
     if destination_path.exists():
-      destination_path.rmdir()
+      shutil.rmtree(destination_path)
 
     dataset = cache.retrieve_file_from_cache(current_user, accession_number)
     cache.move_file_from_cache_active_studies(accession_number, destination_path)
