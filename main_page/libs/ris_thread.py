@@ -14,6 +14,7 @@ from pathlib import Path
 from threading import Thread
 import re
 
+from copy import deepcopy
 from typing import Type
 
 from main_page.libs import cache
@@ -388,10 +389,10 @@ class RisFetcherThread(Thread):
           target=pull_request,
           args=[
             self.ris_ae_finds[ae_title],
-            self.departments[ae_title],
+            deepcopy(self.departments[ae_title]),
             self.pacs_ae_finds[ae_title],
             self.pacs_ae_moves[ae_title],
-            self.handled_examinations
+            deepcopy(self.handled_examinations)
           ]
         )
 

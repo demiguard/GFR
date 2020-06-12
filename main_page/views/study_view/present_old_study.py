@@ -100,6 +100,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     study_time = dataset.StudyTime.split('.')[0] #This is a bug
     study_datetime = datetime.datetime.strptime(f"{study_date}{study_time}", "%Y%m%d%H%M%S")
 
+    injection_datetime = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M')
+
     birthdate_str = dataset.PatientBirthDate
     birthdate = formatting.convert_date_to_danish_date(birthdate_str, sep='-')
 
@@ -155,8 +157,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     study_data += [
       ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
       ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
-      ('Injektion Tidspunkt:', study_datetime.strftime("%H:%M")),
-      ('Injektion Dato:', study_datetime.strftime("%d-%m-%Y")),
+      ('Injektion Tidspunkt:', injection_datetime.strftime("%H:%M")),
+      ('Injektion Dato:', injection_datetime.strftime("%d-%m-%Y")),
       ('Fortyndingsfaktor:', formatting.float_dec_to_comma(dataset.thiningfactor)),
       ('Standardtælletal:', formatting.float_dec_to_comma(dataset.stdcnt)),
       ('Undersøgelses type:', dataset.GFRMethod),
