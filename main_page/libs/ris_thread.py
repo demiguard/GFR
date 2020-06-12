@@ -7,6 +7,7 @@ import time
 import datetime
 import random
 import glob
+import cache
 import shutil
 import multiprocessing
 import threading
