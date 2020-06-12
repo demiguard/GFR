@@ -7,7 +7,6 @@ import time
 import datetime
 import random
 import glob
-import cache
 import shutil
 import multiprocessing
 import threading
@@ -17,6 +16,7 @@ import re
 
 from typing import Type
 
+from main_page.libs import cache
 from main_page.libs import dicomlib
 from main_page.libs import server_config
 from main_page.libs import ae_controller
