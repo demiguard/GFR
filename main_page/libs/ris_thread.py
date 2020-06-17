@@ -278,18 +278,7 @@ class RisFetcherThread(Thread):
     )
 
     logger.info("Initialization done")
-
-  def Update_date(self):
-    """
-      This function updates the today variable
-
-      Remark:
-        It's very important that this function is called after ALL daily cleaning functions
-    """
-    today = datetime.datetime.now().day
-    if self.today != today:
-      self.today = today
-
+    
   
   def try_delete_old_images(self, hospitals):
     """
