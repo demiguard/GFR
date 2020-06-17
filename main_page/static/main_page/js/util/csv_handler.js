@@ -538,6 +538,7 @@ class CSVHandler {
     */
     let csv_handler = this;
 
+
     add_standard_btn.on("click", function() {
       // Remove previous alerts
       // alerter.clear_alerts();
@@ -545,6 +546,18 @@ class CSVHandler {
       // Check if zero datapoints have been selected
       if (!csv_handler.check_selected_count()) {
         return;
+      }
+
+      csv_handler.alerter.remove_alert('deviation')
+
+      var numbers = csv_handler.get_selected_numbers();
+      if (numbers.length >= 2){
+        var deviation = csv_handler.deviation(numbers);
+        csv_handler.alerter.add_alert(
+          'deviation',
+          'Prøven har en afvigelse på ' + deviation.toFixed(3) + "%",
+          'success'
+        )
       }
 
       // Check if there is a large numerical difference between any two selected rows
