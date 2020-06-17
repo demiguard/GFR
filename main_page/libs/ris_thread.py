@@ -412,6 +412,7 @@ class RisFetcherThread(Thread):
       today = datetime.datetime.now().day
       if today != self.today:
         logger.info('Cleaning Cache and Image directory')
+        self.today = today
         cache.clean_cache(self.cache_life_time)
         self.try_delete_old_images(hospitals)
       
