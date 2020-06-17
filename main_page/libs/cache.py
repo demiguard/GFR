@@ -109,6 +109,7 @@ def clean_cache(life_time: int):
       Args:
         life-time - The amount of days that studies may life in the cache
     """
+    now = datetime.datetime.now()
     studies = get_all_cache_studies()
     for study in studies:
       study_datetime = datetime.datetime.strptime(dicomlib.get_study_date(study), "%Y%m%d")
