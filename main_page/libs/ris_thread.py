@@ -413,7 +413,7 @@ class RisFetcherThread(Thread):
 
       #Daily clean up
       today = datetime.datetime.now().day
-      if today != self.today:
+      if True:
         cache.clean_cache(self.cache_life_time)
       self.try_delete_old_images(hospitals)
       self.Update_date() #This updates today

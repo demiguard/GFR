@@ -1,7 +1,8 @@
 #Python packages
-import shutil
-import glob
 import datetime
+import glob
+import shutil
+
 from typing import Union, Type, List
 from pathlib import Path
 
