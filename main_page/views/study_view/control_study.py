@@ -51,10 +51,17 @@ class ControlView(LoginRequiredMixin, TemplateView):
     FormSamples = []
     for sample in dataset.ClearTest:
       sample_date, sample_time = formatting.splitDateTimeStr(sample.SampleTime)
+
+      if 'Deviation' in sample:
+        deviation = sample.Deviation
+      else:
+        deviation = 0
+
       FormSample = base_forms.ControlPatient6({
         'sample_time' : sample_time,
         'sample_date' : sample_date,
-        'sample_cnt'  : sample.cpm
+        'sample_cnt'  : sample.cpm,
+        'sample_devi' : deviation
       })
       FormSamples.append(FormSample)
 

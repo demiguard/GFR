@@ -61,4 +61,8 @@ $(function() {
   samples.each(function(){
     this.value = remove_decimal_values(this.value);
   })
+  var Deviations = $(".Deviation");
+  Deviations.each(function(){
+    this.value = replace_dots_with_commas(this.value);
+  })
 })

@@ -54,6 +54,7 @@ class ControlPatient6(forms.Form):
   sample_time = forms.TimeField(label='Dato',  required=False)
   sample_date = forms.DateField(label='Tidpunkt',  required=False, input_formats=['%d-%m-%Y'])
   sample_cnt  = forms.FloatField(label='Tælletal', required=False, widget=forms.TextInput(attrs={'class' : "sample_count"}))
+  sample_devi = forms.FloatField(label='Afvigelse', required=False, widget=forms.TextInput(attrs={'class' : "Deviation"}))
 
   sample_confirm = forms.BooleanField(required=False, label='')
 
@@ -62,9 +63,11 @@ class ControlPatient6(forms.Form):
     self.fields['sample_time'].widget.attrs['readonly'] = True    
     self.fields['sample_date'].widget.attrs['readonly'] = True  
     self.fields['sample_cnt' ].widget.attrs['readonly'] = True
+    self.fields['sample_devi'].widget.attrs['readonly'] = True
     self.fields['sample_time'].widget.attrs['class']    = 'form-input'    
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
+    self.fields['sample_devi'].widget.attrs['class']    = 'form-input Deviation'
     self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox confirm-checkbox' 
 
 class FillStudyTest(forms.Form):
