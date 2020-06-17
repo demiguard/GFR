@@ -295,21 +295,18 @@ class RisFetcherThread(Thread):
     """
     Delete old generated images if more than a day has passed
     """
-    today = datetime.datetime.now().day
-    if today != self.today:
-      # Delete Temperary files
-      logger.info("Date changed, Removing Image Files")
 
-      for hospital in hospitals:
-        hosp_image_dir = Path(
-          server_config.IMG_RESPONS_DIR,
-          hospital
-        )
-
-        if hosp_image_dir.is_dir():
-          shutil.rmtree(hosp_image_dir)
-          logging.info(f"Deleting image directory: {hosp_image_dir}")
-
+    for hospital in hospitals:
+      hosp_image_dir = Path(
+        server_config.IMG_RESPONS_DIR,
+        hospital
+      )
+      if hosp_image_dir.exists():
+        for image in hosp_image_dir.glob('*'):
+          os.remove(image)
+      else:
+        hosp_image_dir.mkdir()
+      
 
   def kill_connections(self, AE):
     """
@@ -413,10 +410,11 @@ class RisFetcherThread(Thread):
 
       #Daily clean up
       today = datetime.datetime.now().day
-      if True:
+      if today != self.today:
+        logger.info('Cleaning Cache and Image directory')
         cache.clean_cache(self.cache_life_time)
-      self.try_delete_old_images(hospitals)
-      self.Update_date() #This updates today
+        self.try_delete_old_images(hospitals)
+      
       
       # Sleep the thread
       delay = random.uniform(self.delay_min, self.delay_max) * 60
