@@ -78,6 +78,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     previous_sample_times  = []
     previous_sample_dates  = []
     previous_sample_counts = []
+    previous_sample_deviation = []
     previous_datetime_injections = [] #Used for generating QA plot
 
     if 'ClearTest' in dataset:
@@ -88,11 +89,16 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
         previous_sample_dates.append(injection_datetime.strftime('%d-%m-%Y'))
         previous_sample_times.append(injection_datetime.strftime('%H:%M'))
         previous_sample_counts.append(test.cpm)
+        if 'Deviation' in test:
+          previous_sample_deviation.append(test.Deviation)
+        else:
+          previous_sample_deviation.append(0.0)
 
     previous_samples = zip(
       previous_sample_dates,
       previous_sample_times,
-      previous_sample_counts
+      previous_sample_counts,
+      previous_sample_deviation
     )
 
     # Extract study data to present

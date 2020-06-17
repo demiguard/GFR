@@ -36,13 +36,15 @@
           <th>Dato</th>
           <th>Tidspunkt</th>
           <th>Tælletal</th>
+          <th>Afvigelse</th>
         </thead>
         <tbody>
-        {% for psd, pst, psc in previous_test %}
+        {% for psd, pst, psc, psdv in previous_test %}
           <tr>
             <td>{{ psd }}</td>
             <td>{{ pst }}</td>
             <td>{{ psc }}</td>
+            <td>{{ psdv }}</td>
           </tr>
         {% endfor %}
         </tbody>
