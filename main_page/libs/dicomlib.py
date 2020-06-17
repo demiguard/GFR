@@ -365,7 +365,7 @@ def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
     ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value]
 
 
-def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:
+def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float, float]]) -> None:
   """
   Attempts to add the sample sequence to the dataset
 
@@ -382,6 +382,7 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
       seq_elem = Dataset()
       seq_elem.add_new(0x00231021, 'DT', sample[0])
       seq_elem.add_new(0x00231022, 'DS', sample[1])
+      seq_elem.add_new(0x00231023, 'DS', sample[2])
       seq_list.append(seq_elem)
     
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))

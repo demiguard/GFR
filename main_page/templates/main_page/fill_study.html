@@ -59,7 +59,7 @@
             {% bootstrap_field grand_form.standcount %}
           </div>
           {% buttons %}
-          <input type="button" value="Tilføj standard" id="add-standard">
+            <input type="button" value="Tilføj standard" id="add-standard">
           {% endbuttons %}      
         </div>
         
@@ -68,25 +68,28 @@
           <!-- Place where JS inserts new test data -->
 
           <!-- Insert previous tests -->
-          {% for psd, pst, psc in previous_samples %}
-            <div class="form-row">
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="sample_date" value="{{ psd }}" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="sample_time" value="{{ pst }}" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control value-field" name="sample_value" value="{{ psc }}" readonly>
-              </div>
-              <div class="form-group col-md-1">
-                <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
-              </div>
-              <div class="form-group col-md-1">
-                <input type="button" value="🔒" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
-              </div>
+          {% for psd, pst, psc, psdv in previous_samples %}
+          <div class="form-row">
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name="sample_date" value="{{ psd }}" readonly>
             </div>
-          {% endfor %}
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name="sample_time" value="{{ pst }}" readonly>
+            </div>
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control value-field" name="sample_value" value="{{ psc }}" readonly>
+            </div>
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name=sample_deviation value="{{ psdv }}" readonly>
+            </div>
+            <div class="form-group col-md-1">
+              <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
+            </div>
+            <div class="form-group col-md-1">
+              <input type="button" value="🔒" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+            </div>
+          </div>
+        {% endfor %}
         </div>
         <!-- Add test info -->     
         <div id="add-test-container">

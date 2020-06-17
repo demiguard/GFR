@@ -107,10 +107,10 @@ class CSVHandler {
     }
 
     alerter.remove_alert('deviation')
-
+    var deviation
     var numbers = this.get_selected_numbers();
     if (numbers.length >= 2){
-      var deviation = this.deviation(numbers);
+      deviation = this.deviation(numbers);
       alerter.add_alert(
         'deviation',
         'Prøven har en afvigelse på ' + deviation.toFixed(3) + "%",
@@ -195,7 +195,7 @@ class CSVHandler {
 
     var date_field_div = document.createElement('div');
     date_field_div.classList.add('form-group');
-    date_field_div.classList.add('col-md-3');
+    date_field_div.classList.add('col-md-2');
     date_field_div.classList.add('readonly-field');
 
     var date_input = document.createElement('input');
@@ -208,7 +208,7 @@ class CSVHandler {
 
     var time_field_div = document.createElement('div');
     time_field_div.classList.add('form-group');
-    time_field_div.classList.add('col-md-3');
+    time_field_div.classList.add('col-md-2');
     time_field_div.classList.add('readonly-field');
 
     var time_input = document.createElement('input');
@@ -221,16 +221,30 @@ class CSVHandler {
     
     var count_field_div = document.createElement('div');
     count_field_div.classList.add('form-group');
-    count_field_div.classList.add('col-md-3');
+    count_field_div.classList.add('col-md-2');
     count_field_div.classList.add('readonly-field');
 
     var count_input = document.createElement('input');
     count_input.type = 'text';
     count_input.classList.add('form-control');
+    count_input.classList.add('value-field');
     count_input.name = 'sample_value';
     count_input.value = selected_avg_func();
     count_input.readOnly = true;
     count_field_div.appendChild(count_input);
+
+    var deviation_field_div = document.createElement('div');
+    deviation_field_div.classList.add('form-group');
+    deviation_field_div.classList.add('col-md-2');
+    deviation_field_div.classList.add('readonly-field');
+
+    var deviation_input = document.createElement('input');
+    deviation_input.type = 'text';
+    deviation_input.classList.add('form-control');
+    deviation_input.name = 'sample_deviation';
+    deviation_input.value = deviation.toFixed(3);
+    deviation_input.readOnly = true;
+    deviation_field_div.appendChild(deviation_input);
 
     var remove_btn_div = document.createElement('div');
     remove_btn_div.classList.add('form-group');
@@ -263,6 +277,7 @@ class CSVHandler {
     $('#test-data-container .form-row').last().append(date_field_div);
     $('#test-data-container .form-row').last().append(time_field_div);
     $('#test-data-container .form-row').last().append(count_field_div);
+    $('#test-data-container .form-row').last().append(deviation_field_div);
     $('#test-data-container .form-row').last().append(remove_btn_div);
     $('#test-data-container .form-row').last().append(lock_btn_div);
 

@@ -62,6 +62,7 @@ REQUEST_PARAMETER_TYPES = {
   'sample_date': (list, str),
   'sample_time': (list, str),
   'sample_value': (list, float),
+  'sample_deviation': (list, float),
   'study_date': str,
   'study_time': str,
   'bamID': str,
@@ -145,35 +146,35 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   sample_dates = post_req.get("sample_date")
   sample_times = post_req.get("sample_time")
   sample_values = post_req.get("sample_value")
-  
-  if sample_dates and sample_times and sample_values:
+  sample_deviations = post_req.get("sample_deviation")
+
+  #These if statements seams fishy
+  if sample_dates and sample_times and sample_values and sample_deviations:
     # Resize to fit min., if shapes don't match to avoid problems with zip
     dates_cnt = len(sample_dates)
     times_cnt = len(sample_times)
     values_cnt = len(sample_values)
+    deviation_cnt = len(sample_deviations)
     
     if dates_cnt != times_cnt or dates_cnt != values_cnt:
       min_len = min(dates_cnt, times_cnt, values_cnt)
       sample_dates = sample_dates[:min_len]
       sample_times = sample_times[:min_len]
       sample_values = sample_values[:min_len]
+      sample_deviations = sample_deviations[:min_len]
     
     # Combine dates and times to %Y%m%d%H%M format
-    for date, time, value in zip(sample_dates, sample_times, sample_values):
+    for date, time, value, deviation in zip(sample_dates, sample_times, sample_values, sample_deviations):
       date_tmp = datetime.datetime.strptime(
         f"{date} {time}", "%d-%m-%Y %H:%M"
       ).strftime("%Y%m%d%H%M")
 
-      seq.append((date_tmp, value))
-  
-  # Get and insert bam_id
-  bam_id = post_req["bamID"]
+      seq.append((date_tmp, value, deviation))  
   
   # Store everything into dicom object
   dicomlib.fill_dicom(
     dataset,
     age=age,
-    bamid=bam_id,
     birthday=birthdate,
     bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
     exam_status=exam_status,
@@ -375,7 +376,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
   def get_previous_samples(self,
     dataset: pydicom.Dataset
-  ) -> List[Tuple[str, str, float]]:
+  ) -> List[Tuple[str, str, float, float]]:
     """
     Retrieves the previous entered samples for study
 
@@ -392,18 +393,24 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
           sample.SampleTime,
           "%Y%m%d%H%M"
         )
-        
         sample_date = sample_datetime.strftime("%d-%m-%Y")
         sample_time = sample_datetime.strftime("%H:%M")
         sample_cnt  = sample.cpm
+        #Legacy Support
+        if 'Deviation' in sample:
+          sample_devi = float(sample.Deviation)
+        else:
+          sample_devi = 0.0
 
         previous_samples.append((
           sample_date,
           sample_time,
-          sample_cnt
+          sample_cnt,
+          sample_devi
         ))
-    
+
     return previous_samples
+
 
   def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
     """
