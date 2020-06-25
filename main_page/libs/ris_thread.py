@@ -388,8 +388,8 @@ class RisFetcherThread(Thread):
         if query_process.is_alive():
           logger.error(f'Timeout have happened for: {ae_title}!')
           self.kill_connections(self.ris_ae_finds[ae_title])
-          self.kill_connections(self.pacs_ae_find[ae_title])
-          self.kill_connections(self.pacs_ae_move[ae_title])
+          self.kill_connections(self.pacs_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_moves[ae_title])
           query_process.terminate()
           query_process.join()
         else:
