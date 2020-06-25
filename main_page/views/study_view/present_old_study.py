@@ -88,7 +88,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
         previous_datetime_injections.append(injection_datetime)
         previous_sample_dates.append(injection_datetime.strftime('%d-%m-%Y'))
         previous_sample_times.append(injection_datetime.strftime('%H:%M'))
-        previous_sample_counts.append(test.cpm)
+        previous_sample_counts.append(int(test.cpm))
         if 'Deviation' in test:
           previous_sample_deviation.append(test.Deviation)
         else:
