@@ -19,14 +19,10 @@ class FilterView(LoginRequiredMixin, TemplateView):
   #Display
   def get(self, request):
     department = request.user.department
-    
-
-    query = list(department.config.accepted_procedures.through.objects.all())
-    for aobj in query:
-      print(dir(aobj))  
+    config_id = department.config.id
+    query = list(department.config.accepted_procedures.through.objects.filter(config_id=config_id))
     procedures = [ procedure.proceduretype for procedure in query ]
     procedure_id = [ procedure.id for procedure in query ]
-    print(procedure_id)
     context = {
       'FilterForm' : FilterForm(initial={}),
       'active_filters' : zip(procedures, procedure_id)
