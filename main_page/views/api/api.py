@@ -177,7 +177,7 @@ class ServerConfigurationEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEn
     'AE_title'
   ]
 
-class ProcedureMappingsEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
+class ProcedureMappingsEndpoint(LoginRequiredMixin, RESTEndpoint):
   model = models.Config.accepted_procedures.through # Retreive the underlying relation model
 
   fields = [
