@@ -142,3 +142,5 @@ class NukeDeletedStudiesForm(forms.Form):
   d_hospital = forms.ModelChoiceField(label='Hospital', required=True, widget=forms.Select, queryset=models.Hospital.objects.all().values_list('short_name', flat=True))
   d_bamID = forms.CharField(label='Bam ID', max_length=8, required=True, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
 
+class FilterForm(forms.Form):
+  FilterName = forms.CharField(label="Filter Navn", widget=forms.TextInput(attrs={'class' : 'col-md-3'}))

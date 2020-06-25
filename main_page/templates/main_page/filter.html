@@ -1,0 +1,42 @@
+{% extends 'main_page/base.html' %}
+
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block head %}
+
+{% endblock head %}
+
+{% block content %}
+  <h2>Filter</h2>
+  <p>Guide: For at Fjerne en type af undersøgelser skal du kopier undersøgelsen Proceduren fra "Ny undersøgelse"-siden ned i  </p>
+  <strong>Active Filtre:</strong>
+  <table>
+    {% for active_filter, id in active_filters %}
+    <tr id='Filter_{{ id }}'>
+      <td> {{ active_filter }} </td>
+      <td class="col-md-1"></td>
+      <td> <input 
+        type="button"
+        id="delete_button_{{ active_filter }}"
+        name="{{ id }}"
+        value="Slet Filter"
+        class="delete_button">
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br><br><br>
+  <form method="POST">
+    {% csrf_token %}
+      {% bootstrap_form FilterForm %}
+
+    <input type="submit" name="save" value="Gem Filter" id="save">
+  </form>
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'main_page/js/util/csrf.js' %}"></script>
+<script src="{% static 'main_page/js/filter.js' %}"></script>
+{% endblock %}

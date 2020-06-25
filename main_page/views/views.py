@@ -1,6 +1,7 @@
 from main_page.views.index import IndexView
 from main_page.views.ajax_views import AjaxLogin, AjaxUpdateThiningFactor, LogoutView
 from main_page.views.admin_panel import AdminPanelView, AdminPanelAddView, AdminPanelEditView
+from main_page.views.filterView import FilterView
 from main_page.views.qa import QAView
 from main_page.views.search import SearchView
 from main_page.views.documentation import DocumentationView
