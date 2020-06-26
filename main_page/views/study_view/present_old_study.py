@@ -160,6 +160,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Vægt:', f"{patient_weight} kg")]
     if 'VialNumber' in dataset:
       study_data += [("Sprøjte Nr: ", f"{dataset.VialNumber}.")]
+      
     study_data += [
       ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
       ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
@@ -170,6 +171,8 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Undersøgelses type:', dataset.GFRMethod),
       ('Operatør:', operators)
     ]
+    if 'ImageComments' in dataset:
+      study_data += [('Kommentar',dataset.ImageComments)]
 
 
     
