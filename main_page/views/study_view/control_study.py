@@ -156,6 +156,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'injection_date'      : injeciton_date,
       'thin_fac'            : formatting.float_dec_to_comma(dataset.thiningfactor),
       'study_type'          : dataset.GFRMethod,
+      'comment'             : dataset.ImageComments,
       'stdCnt'              : formatting.float_dec_to_comma(dataset.stdcnt)
     }
 
