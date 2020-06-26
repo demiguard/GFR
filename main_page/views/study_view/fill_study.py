@@ -316,7 +316,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
-      height = math.ceil(height * 10000) / 100
+      height = math.floor(height * 10000) / 100
       """
       we use:
         height = height * 1000 / 10
@@ -522,9 +522,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Use parameters fillout in store_form to compute GFR of patient
     if "calculate" in request.POST:
       # Comupute body surface area
-      height = math.ceil(dataset.PatientSize * 10000) / 100
+      height = math.floor(dataset.PatientSize * 10000) / 100
       """
-      we use: math.ceil(height * 10000) / 100, as height * 100 results in floating-point
+      we use: math.floor(height * 10000) / 100, as height * 100 results in floating-point
       errors, due to weird Python behavior 
       (for details see: https://docs.python.org/3.6/tutorial/floatingpoint.html)
       """
