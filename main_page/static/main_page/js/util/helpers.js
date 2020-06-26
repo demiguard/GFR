@@ -140,12 +140,13 @@ var helper = (function() {
   /*
   Disables all enter key form submission if focused on a field
   */
-  var disable_enter_form_submit = function() {
+  var disable_enter_form_submit = function(form) {
     let ENTER_KEYCODE = 13;
 
-    $('#fill-study-form').on('keyup keypress', function(e) {
+    form.on('keyup keypress', function(e) {
       var key_code = e.keyCode || e.which;
       if (key_code === ENTER_KEYCODE) {
+        // console.debug("No form submission on enter!");
         e.preventDefault();
         return false;
       }
