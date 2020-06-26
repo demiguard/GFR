@@ -51,10 +51,51 @@ function checkboxes_filled(event) {
   return true;
 }
 
+function checkbox_enter_skips() {
+  /*
+  Allow uses to hit enter to toggle the current
+  */
+  helper.disable_enter_form_submit($("#Contorl-study-form"));
+
+  // Get all checkboxes
+  let checkboxes = $("input:checkbox");
+  let n = checkboxes.length;
+
+  // Focus on first checkbox
+  checkboxes[0].focus();
+
+  // Hit enter to toggle and jump to next checkbox
+  // Store ids as keys and indexes as values, since the i loop variable will remain the same if used in event function
+  var inds = { };
+
+  for (var i = 0; i < n; i++) {
+    inds[checkboxes[i].id] = i;
+
+    $("#" + checkboxes[i].id).on("keypress", function(event) {
+      if (event.which == 13) { // Enter key pressed
+        this.checked = true;
+
+        let next_idx = inds[this.id] + 1;
+
+        if (next_idx != n) {
+          // Focus on next checkbox
+          checkboxes[next_idx].focus();
+        } else {
+          // Focus on bamid, after last checkbox
+          $("#id_bamID").focus();
+        }
+      }
+    });
+  }
+}
+
 $(function() {
   let alerter = new FieldAlerter($("#error-message-container"));
 
   $('#confirm').on('click', {"alerter": alerter}, checkboxes_filled);
+
+  // Enable checkbox "Enter" skipping
+  checkbox_enter_skips();
 
   //Remove . from Thining Factor, Samples and Standard Counts
   var samples = $(".sample_count");

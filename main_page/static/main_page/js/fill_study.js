@@ -653,7 +653,7 @@ $(function() {
   let field_alerter = new FieldAlerter($("#error-message-container"));
   
   init_test_div_resizer();
-  helper.disable_enter_form_submit();
+  helper.disable_enter_form_submit($('#fill-study-form'));
   
   add_timefield_auto_colons();
 
