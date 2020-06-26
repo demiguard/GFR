@@ -119,10 +119,11 @@ class FillStudyGrandForm(forms.Form):
   standcount          = forms.FloatField(label="Standardtælletal", required=False)
   study_type          = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
   thin_fac            = forms.CharField(label='Fortyndingsfaktor', required=False)
-  vial_number         = forms.IntegerField(label="Sprøjte Nr.", min_value=0, max_value=99)
+  vial_number         = forms.IntegerField(label="Sprøjte Nr.", min_value=0, max_value=99, required=False)
   vial_weight_after   = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   vial_weight_before  = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
   weight              = forms.CharField( label='Vægt (kg)', required=False)
+  comment_field       = forms.CharField(label="Kommentar", widget=forms.Textarea(attrs={'style':'height:75px;'}))
 
 
   def __init__(self, *args, **kwargs):

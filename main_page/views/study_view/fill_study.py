@@ -54,7 +54,6 @@ REQUEST_PARAMETER_TYPES = {
   'vial_weight_after': float,
   'injection_time': str,
   'injection_date': str,
-  'vial_number': int,
   'thin_fac': float,
   'save_fac': bool,
   'study_type': int,
@@ -63,9 +62,11 @@ REQUEST_PARAMETER_TYPES = {
   'sample_time': (list, str),
   'sample_value': (list, float),
   'sample_deviation': (list, float),
+  'comment_field' : str,
   'study_date': str,
   'study_time': str,
   'bamID': str,
+  'vial_number': int,
   'dateofmessurement': str,
 }
 
@@ -171,6 +172,8 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
 
       seq.append((date_tmp, value, deviation))  
   
+
+  print(post_req)
   # Store everything into dicom object
   dicomlib.fill_dicom(
     dataset,
@@ -187,6 +190,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     height=height,
     sample_seq=seq,
     series_number=1,
+    image_comment=post_req.get('comment_field'),
     std_cnt=std_cnt,
     thiningfactor=thin_fac,
     update_date = True,
@@ -194,7 +198,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     vial_number=vial_number,
     weight=weight
   )
-
+  print(dataset)
   return dataset
 
 
@@ -356,6 +360,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'vial_weight_after' : dataset.get("injafter"),
       'vial_weight_before': dataset.get("injbefore"),
       'weight'            : dataset.get("PatientWeight"),
+      'comment_field'     : dataset.get("ImageComments")
     })
 
     # Samples Form

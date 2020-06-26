@@ -448,7 +448,7 @@ def fill_dicom(ds,
     gfr                 = None,
     gfr_type            = None,
     height              = None,
-    vial_number         = None,
+    image_comment       = None,
     injection_after     = None,
     injection_before    = None,
     injection_time      = None,
@@ -467,6 +467,7 @@ def fill_dicom(ds,
     update_date         = False,
     update_dicom        = False,
     update_version      = False,
+    vial_number         = None,
     weight              = None
   ):
   """
@@ -555,7 +556,8 @@ def fill_dicom(ds,
     0x00231012 : ('DS', clearance),                                           # ds.clearance
     0x00231014 : ('DS', clearance_norm),                                      # ds.normClear
     0x00231024 : ('DS', std_cnt),                                             # ds.stdcnt
-    0x00231028 : ('DS', thiningfactor)                                        # ds.thiningfactor
+    0x00231028 : ('DS', thiningfactor),                                        # ds.thiningfactor
+    0x00204000 : ('LT', image_comment)
   }
   
   for tag, args in try_adds_dict.items():
