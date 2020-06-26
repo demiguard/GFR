@@ -6,18 +6,17 @@ from main_page.libs import server_config
 from main_page.forms.base_forms import FilterForm
 from main_page.models import ProcedureType
 
-"""
-
-  This class is for the Filterview, The purpose of this is to make the filtering Easier
-
-"""
-
 
 class FilterView(LoginRequiredMixin, TemplateView):
+  """
+  This class is for the Filterview, The purpose of this is to make the filtering Easier
+  """
   template_name = 'main_page/filter.html'
   
-  #Display
   def get(self, request):
+    """
+    Used for displaying existing filters
+    """
     department = request.user.department
     config_id = department.config.id
     query = list(department.config.accepted_procedures.through.objects.filter(config_id=config_id))
@@ -28,10 +27,12 @@ class FilterView(LoginRequiredMixin, TemplateView):
       'active_filters' : zip(procedures, procedure_id)
     }
 
+    return render(request, self.template_name, context=context)
 
-    return render(request, self.template_name, context=context) 
-  #Creation
   def post(self, request):
+    """
+    Filter creation
+    """
     department = request.user.department
     Filter = request.POST['FilterName']
     
