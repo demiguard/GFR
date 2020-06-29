@@ -133,22 +133,24 @@ class ConfigEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
 
   fields = [
     'id',
-    'ris_aet',
-    'ris_ip',
-    'ris_port',
     'ris_calling',
-    'pacs_aet',
-    'pacs_ip',
-    'pacs_port',
-    'pacs_calling',
+    'black_list',
+    'ris',
+    'pacs'
   ]
+
+  foreign_fields = {
+    'ris' : models.Address,
+    'pacs': models.Address
+  }
 
 
 class HandledExaminationsEndpoint(AdminRequiredMixin, LoginRequiredMixin, GetEndpoint, PostEndpoint, DeleteEndpoint):
   model = models.HandledExaminations
 
   fields = [
-    'accession_number'
+    'accession_number',
+    'handle_day'
   ]
 
 

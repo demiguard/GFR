@@ -143,10 +143,10 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         serverConfig = models.ServerConfiguration.objects.get(id=1)
         user_config = request.user.department.config
         pacs_find_association = ae_controller.connect(
-          user_config.pacs_ip,
-          user_config.pacs_port,
-          user_config.pacs_calling, #This should be changed to serverConfig.AE_title
-          user_config.pacs_aet,
+          user_config.pacs.ip,
+          user_config.pacs.port,
+          serverConfig.AE_title, #This should be changed to serverConfig.AE_title
+          user_config.pacs.aet,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel,
           logger=logger
         )
@@ -158,10 +158,10 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
           failed_connection |= True
 
           pacs_move_association = ae_controller.connect(
-            user_config.pacs_ip,
-            user_config.pacs_port,
-            user_config.pacs_calling, #This should be changed to serverConfig.AE_title
-            user_config.pacs_aet,
+            user_config.pacs.ip,
+            user_config.pacs.port,
+            serverConfig.AE_title, #This should be changed to serverConfig.AE_title
+            user_config.pacs.aet,
             ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
             logger=logger
           )

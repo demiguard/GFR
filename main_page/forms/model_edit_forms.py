@@ -45,6 +45,10 @@ class ConfigChoiceField(forms.ModelChoiceField):
     return config_obj.id
 
 
+class AddressChocieField(forms.ModelChoiceField):
+  def label_from_instance(self, Address_obj):
+    return Address_obj.id
+
 class EditDepartmentForm(forms.ModelForm):
   class Meta:
     model = models.Department
@@ -66,15 +70,12 @@ class EditConfigForm(forms.ModelForm):
   class Meta:
     model = models.Config
     fields = [
-      'ris_aet',
-      'ris_ip',
-      'ris_port',
       'ris_calling',
-      'pacs_aet',
-      'pacs_ip',
-      'pacs_port',
-      'pacs_calling',
+      'black_list'
     ]
+
+  ris  = AddressChocieField(queryset=models.Address.objects.all(), label="RIS")
+  pacs = AddressChocieField(queryset=models.Address.objects.all(), label="PACS")
 
 
 class EditProcedureForm(forms.ModelForm):
@@ -93,7 +94,7 @@ class EditHospitalForm(forms.ModelForm):
       'address',
     ]
 
-
+#Note that the datefield is not editabled
 class EditHandledExaminationsForm(forms.ModelForm):
   class Meta:
     model = models.HandledExaminations
