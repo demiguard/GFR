@@ -325,7 +325,7 @@ class RisFetcherThread(Thread):
       if department_config.ris_calling == None or department_config.ris_calling == '':
         continue
       if department_config.ris == None or department_config.pacs == None:
-        logger.info('Ris and Pacs is not set')
+        logger.info(f'Ris and Pacs is not set for {department_config.ris_calling}')
         continue
       ae_title = pynetdicom.utils.validate_ae_title(department_config.ris_calling)
       ae_titles.append(ae_title)
