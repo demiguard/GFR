@@ -597,7 +597,7 @@ def generate_gfr_child_plot(
   while clearance_norm > ymax:
     ymax += 20
 
-  xmax = 20
+  xmax = 18
 
   fig, ax = plt.subplots(1, 2)
 
@@ -635,7 +635,7 @@ def generate_gfr_child_plot(
 
   if gender == 'Mand':
     #after age of 2
-    x +=           [2,     20,    20    ]
+    x +=           [2,     18,    18    ]
     zeros +=       [0,     0,     0     ]
     darkred_y +=   [30.52, 30.52, 31.08 ]
     light_red_y += [56.68, 56.68, 57.72 ]
@@ -644,7 +644,7 @@ def generate_gfr_child_plot(
     refline +=     [109,   109,   111   ]
     ax[0].plot( x, refline)
   else:
-    x +=           [2,     20,    20   ]
+    x +=           [2,     18,    18   ]
     zeros +=       [0,     0,     0    ]
     darkred_y +=   [30.52, 30.52, 28.84] 
     light_red_y += [56.68, 56.68, 53.56] 
