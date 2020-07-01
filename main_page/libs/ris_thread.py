@@ -36,6 +36,18 @@ logger = log_util.get_logger(
   log_level=server_config.THREAD_LOG_LEVEL
 )
 
+def delete_old_handled_studies():
+  """
+    Goes through the database and deletes old handled studies.
+
+    This is just because we technically don't need to keep all that information.
+  """
+  today = datetime.date.today()
+  for instance in models.HandledExaminations.objects.all():
+    time_difference = today - instance.handle_day
+    if time_difference.days > 14:
+      instance.delete()
+
 
 def handle_c_move(dataset, *args, **kwargs):
   """
@@ -306,23 +318,27 @@ class RisFetcherThread(Thread):
 
   
   def update_self(self):
+    server_ae = models.ServerConfiguration.objects.get(id=1).AE_title
     ae_titles = []
     for department in models.Department.objects.all():
       department_config = department.config
       if department_config.ris_calling == None or department_config.ris_calling == '':
         continue
+      if department_config.ris == None or department_config.pacs == None:
+        logger.info(f'Ris and Pacs is not set for {department_config.ris_calling}')
+        continue
       ae_title = pynetdicom.utils.validate_ae_title(department_config.ris_calling)
       ae_titles.append(ae_title)
       
       department_dir = { 
-        'ris_aet' :     department_config.ris_aet,
-        'ris_ip'  :     department_config.ris_ip,
-        'ris_port':     department_config.ris_port,
+        'ris_aet' :     department_config.ris.ae_title,
+        'ris_ip'  :     department_config.ris.ip,
+        'ris_port':     department_config.ris.port,
         'ris_calling':  department_config.ris_calling,
-        'pacs_aet':     department_config.pacs_aet,
-        'pacs_ip':      department_config.pacs_ip,
-        'pacs_port':    department_config.pacs_port,
-        'pacs_calling': department_config.pacs_calling,
+        'pacs_aet':     department_config.pacs.ae_title,
+        'pacs_ip':      department_config.pacs.ip,
+        'pacs_port':    department_config.pacs.port,
+        'pacs_calling': server_ae,
         'hospital'    : department.hospital.short_name
       }
 
@@ -331,10 +347,10 @@ class RisFetcherThread(Thread):
         self.ris_ae_finds[ae_title] = ae_controller.create_find_AE(ae_title)
 
       if not(ae_title in self.pacs_ae_finds):
-        self.pacs_ae_finds[ae_title] = ae_controller.create_find_AE(department_config.pacs_calling)
+        self.pacs_ae_finds[ae_title] = ae_controller.create_find_AE(server_ae)
 
       if not(ae_title in self.pacs_ae_moves):
-        self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(department_config.pacs_calling)
+        self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(server_ae)
       #End for department for loop 
       
 
@@ -398,12 +414,13 @@ class RisFetcherThread(Thread):
       hospitals = [hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name]
 
       #Daily clean up
-      today = datetime.datetime.now().day
+      today = datetime.date.today().day #mabye just save the entire object
       if today != self.today:
         logger.info('Cleaning Cache and Image directory')
         self.today = today
         cache.clean_cache(self.cache_life_time)
         self.try_delete_old_images(hospitals)
+        delete_old_handled_studies()
       
       
       # Sleep the thread

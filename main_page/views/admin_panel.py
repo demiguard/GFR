@@ -19,10 +19,10 @@ class AdminPanelView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
 
   def get(self, request):
     context = {
-      'title'     : server_config.SERVER_NAME,
-      'version'   : server_config.SERVER_VERSION,
-      'nuke_list_form': base_forms.NukeListStudiesForm(),
-      'nuke_deleted_form': base_forms.NukeDeletedStudiesForm(),
+      'title'             : server_config.SERVER_NAME,
+      'version'           : server_config.SERVER_VERSION,
+      'nuke_list_form'    : base_forms.NukeListStudiesForm(),
+      'nuke_deleted_form' : base_forms.NukeDeletedStudiesForm(),
     }
 
     return render(request, self.template_name, context)
@@ -126,7 +126,7 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'model_name': model_name,
-      'add_form': add_form,
+      'add_form'  : add_form,
     }
 
     return render(request, self.template_name, context)

@@ -59,18 +59,17 @@ def move_and_store(dataset, *args, **kwargs):
   """
   if 'move_assoc' and 'config' in kwargs:
     move_assoc = kwargs['move_assoc']
-    config     = kwargs['config']
+    AE_title     = kwargs['AE_title']
   else:
     logger.info('config or move_assoc doesn\'t exsists')
     raise AttributeError("move_assoc and config is a required keyword")
 
   ae_controller.send_move(
     move_assoc, 
-    config.pacs_calling,
+    AE_title,
     dataset,
     move_study_from_search_cache,
     accession_number=dataset.AccessionNumber
-
     )
 
 def get_study(user, accession_number):
@@ -89,14 +88,16 @@ def get_study(user, accession_number):
       This is overhauled version of move_from_pacs
   """
   config = user.department.config
-  pacs_find_ae = ae_controller.create_find_AE(config.pacs_calling)
-  pacs_move_ae = ae_controller.create_move_AE(config.pacs_calling)
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+
+  pacs_find_ae = ae_controller.create_find_AE(AE_title)
+  pacs_move_ae = ae_controller.create_move_AE(AE_title)
 
   pacs_find_assoc = ae_controller.establish_assoc(
     pacs_find_ae, 
-    config.pacs_ip,
-    config.pacs_port,
-    config.pacs_aet,
+    config.pacs.ip,
+    config.pacs.port,
+    config.pacs.aet,
     logger
   )
   if not(pacs_find_assoc):
@@ -104,9 +105,9 @@ def get_study(user, accession_number):
 
   pacs_move_assoc = ae_controller.establish_assoc(
     pacs_move_ae, 
-    config.pacs_ip,
-    config.pacs_port,
-    config.pacs_aet,
+    config.pacs.ip,
+    config.pacs.port,
+    config.pacs.aet,
     logger )
 
   if not(pacs_move_assoc):
@@ -120,7 +121,7 @@ def get_study(user, accession_number):
     find_dataset,
     move_and_store,
     move_assoc=pacs_move_assoc,
-    config=config )
+    AE_title=AE_title)
 
   target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
 
@@ -148,7 +149,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
     Value error: If the dicom set doesn't contain required information to send
   """
   accession_number = dicom_object.AccessionNumber
-
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
   # Save the dicom file to be sent to PACS
   try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
   store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
@@ -160,10 +161,10 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   # MULTIPLE FUNCTIONAL ARGUMENTS, no more writing a file, and opening it up 
   with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
     fp.write(json.dumps({
-      "pacs_calling": user.department.config.pacs_calling,
-      "pacs_ip": user.department.config.pacs_ip,
-      "pacs_port": user.department.config.pacs_port,
-      "pacs_aet": user.department.config.pacs_aet,
+      "pacs_calling": AE_title,
+      "pacs_ip":    user.department.config.pacs.ip,
+      "pacs_port":  user.department.config.pacs.port,
+      "pacs_aet":   user.department.config.pacs.aet,
     }))
 
   # Spawn background thread to send study
@@ -284,9 +285,6 @@ def start_scp_server(ae_title):
     
       Retried due to retried functionality of Pynetdicom v 1.4.0
     """
-    #logger.info(f"Recieved C-STORE with ID:{info['parameters']}")
-    #logger.info(f"C-Store Originated from:{info['parameters']}")
-    
     if 'AccessionNumber' in dataset:
 
       filename = f'{dataset.AccessionNumber}.dcm'
@@ -432,6 +430,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   """
   Return list of responses, None if PACS connection failed
   """
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
   # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(
     name,
@@ -443,10 +442,10 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
 
   # Establish association to PACS
   association = ae_controller.connect(
-    config.pacs_ip,
-    int(config.pacs_port),
-    config.pacs_calling, 
-    config.pacs_aet,
+    config.pacs.ip,
+    int(config.pacs.port),
+    AE_title, 
+    config.pacs.aet,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
 
@@ -473,7 +472,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
       logger=logger
     )
   except ValueError:
-    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs_ip}, pacs_port: {config.pacs_port}, pacs_calling: {config.pacs_calling}, pacs_aet: {config.pacs_aet}")
+    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.aet}")
     return None
 
   association.release()
@@ -638,7 +637,7 @@ def get_history_for_csv(
 
   # End Helper Functions
 
-  ae_title = user.department.config.pacs_calling
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
   bounds = (
     date_bounds,
@@ -661,8 +660,8 @@ def get_history_for_csv(
     raise ValueError('Invalids Genders')
   #End checking bounds
 
-  find_ae = pynetdicom.AE(ae_title=ae_title)
-  move_ae = pynetdicom.AE(ae_title=ae_title)
+  find_ae = pynetdicom.AE(ae_title=AE_title)
+  move_ae = pynetdicom.AE(ae_title=AE_title)
 
   #Add different presentation contexts for the AE's
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.1'
@@ -675,15 +674,15 @@ def get_history_for_csv(
 
   #Note that due to some unknown bugs, pacs is not happy make the same association handling both move and finds at the same time, thus we make two associations
   find_assoc = find_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    user.department.config.pacs.ip,
+    int(user.department.config.pacs.port),
+    ae_title=AE_title
   )
 
   move_assoc = move_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    user.department.config.pacs.ip,
+    int(user.department.config.pacs.port),
+    ae_title=AE_title
   )
 
   studies = []

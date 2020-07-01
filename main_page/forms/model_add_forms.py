@@ -84,17 +84,14 @@ class AddConfigForm(forms.ModelForm):
   class Meta:
     model = models.Config
     fields = [
-      'ris_aet',
-      'ris_ip',
-      'ris_port',
       'ris_calling',
-      'pacs_aet',
-      'pacs_ip',
-      'pacs_port',
-      'pacs_calling'
+      'black_list'
     ]
 
+  ris  = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Address.objects.all())
+  pacs = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Address.objects.all())
 
+#Note that the datefield is added automatic
 class AddHandledExaminationsForm(forms.ModelForm):
   class Meta:
     model = models.HandledExaminations
