@@ -1,10 +1,17 @@
-import pynetdicom, pydicom
+import pynetdicom, pydicom, logging
 
 
-pacs_ip = '10.143.128.234'
+pacs_ip = '10.49.144.11'
 pacs_port = 104
 pacs_calling = 'HVHFBERGHK7'
-pacs_AET = 'VIPDICOM'
+pacs_AET = 'RHKFANMGFR2'
+
+
+logging.basicConfig(level =logging.DEBUG, filename = 'storelogfile.log')
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
+
 
 ae = pynetdicom.AE(ae_title=pacs_calling)
 

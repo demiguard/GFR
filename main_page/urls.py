@@ -2,8 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 #Sooo WhY do we not just import api at this point?
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint
-
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint, ListEndpoint, AddressEndpoint, ServerConfigurationEndpoint
 import main_page.views.views as views
 
 
@@ -13,16 +12,18 @@ urlpatterns = [
   path('', views.IndexView.as_view(), name='index'),
   path('list_studies/new_study', views.NewStudyView.as_view(), name='new_study'),
   path('list_studies', views.ListStudiesView.as_view(), name='list_studies'),
-  path('fill_study/<str:ris_nr>', views.FillStudyView.as_view(), name='fill_study'),
+  path('control_list_studies', views.ControlListView.as_view(), name='control_list_studies'),
+  path('control_study/<str:AccessionNumber>', views.ControlView.as_view(), name='control_study'),
+  path('fill_study/<str:accession_number>', views.FillStudyView.as_view(), name='fill_study'),
   path('search', views.SearchView.as_view(), name='search'),
   path('logout', views.LogoutView.as_view(), name='logout'),
   path('documentation', views.DocumentationView.as_view(), name='documentation'),
   path('userguide',views.UserGuideView.as_view(), name='userguide'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
-  
+  path('filter', views.FilterView.as_view(), name="filter"),
   # Images
-  path('present_study/<str:ris_nr>', views.PresentStudyView.as_view(), name='present_study'),
-  path('present_old_study/<str:ris_nr>', views.PresentOldStudyView.as_view(), name='present_old_study'),
+  path('present_study/<str:accession_number>', views.PresentStudyView.as_view(), name='present_study'),
+  path('present_old_study/<str:accession_number>', views.PresentOldStudyView.as_view(), name='present_old_study'),
   path('QA/<str:accession_number>', views.QAView.as_view(), name='QA'),
 
   # Admin panel
@@ -33,10 +34,11 @@ urlpatterns = [
   # Async ajax urls
   # TODO: Make all these conform to the new RESTful api design
   path('ajax/login', views.AjaxLogin.as_view(), name='ajax_login'),
-  path('ajax/search', views.AjaxSearch.as_view(), name='ajax_search'),
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
   
   # New RESTful api design
+  path('api/search', SearchEndpoint.as_view(), name='search_api'),
+
   path('api/user', UserEndpoint.as_view(), name='user'),
   path('api/user/<int:obj_id>', UserEndpoint.as_view(), name='user'),
   path('api/hospital', HospitalEndpoint.as_view(), name='hospital'),
@@ -52,6 +54,12 @@ urlpatterns = [
   path('api/proceduretype/<int:obj_id>', ProcedureEndpoint.as_view(), name='procedure'),
   path('api/procedure_mapping', ProcedureMappingsEndpoint.as_view(), name='procedure_mapping'),
   path('api/procedure_mapping/<int:obj_id>', ProcedureMappingsEndpoint.as_view(), name='procedure_mapping'),
-  path('api/study/<str:ris_nr>', StudyEndpoint.as_view(), name='study'),
+  path('api/study/<str:accession_number>', StudyEndpoint.as_view(), name='study'),
   path('api/csv/<str:accession_number>', CsvEndpoint.as_view(), name='csv'),
+  path('api/list', ListEndpoint.as_view(), name='list_api'), # list_studies and deleted_studies
+  path('api/address', AddressEndpoint.as_view(), name='address'),
+  path('api/address/<int:obj_id>', AddressEndpoint.as_view(), name='address'),
+  path('api/server_config', ServerConfigurationEndpoint.as_view(), name='server_config'),
+  path('api/server_config/<int:obj_id>', ServerConfigurationEndpoint.as_view(), name='server_config'),
+ 
 ]

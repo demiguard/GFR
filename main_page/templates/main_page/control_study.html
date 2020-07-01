@@ -1,0 +1,153 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_study.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/alerter.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/csv-row.css' %}">
+{% endblock head %}
+
+
+{% block content %}
+  <strong>Accession nr.:</strong><p>{{ AccessionNumber }}</p>
+
+  <form method="POST" id="Contorl-study-form">
+    {% csrf_token %}
+    
+    <!-- Add patient info -->
+    <div class="row">
+      <div class="col-md-4">
+        <table class="study_table col-md-12">
+          <tbody>
+            <tr>
+              <td>{% bootstrap_field GrandForm.cpr_confirm form_group_class='.form-super-group' %}</td>
+              <td>CPR:</td>
+              <td>{{ info.cpr }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.name_confirm form_group_class='.form-super-group' %}</td>
+              <td>Navn: </td>
+              <td>{{ info.name }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.sex_confirm form_group_class='.form-super-group' %}</td>
+              <td>Køn: </td>
+              <td>{{ info.sex }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.height_confirm form_group_class='.form-super-group' %}</td>
+              <td>Højde: </td>
+              <td>{{ info.height }} cm</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.weight_confirm form_group_class='.form-super-group' %}</td>
+              <td>Vægt: </td>
+              <td>{{ info.weight }} kg</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.vial_number_confirm form_group_class='.form-super-group' %}</td>
+              <td>Sprøjte nr:</td>
+              <td>{{ info.vial_number }} </td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.vial_weight_before_confirm form_group_class='.form-super-group' %}</td>
+              <td>Sprøjtevægt før inj:</td>
+              <td>{{ info.vial_weight_before }} g</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.vial_weight_after_confirm form_group_class='.form-super-group' %}</td>
+              <td>Sprøjtevægt efter inj: </td>
+              <td>{{ info.vial_weight_after }} g</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.injection_time_confirm form_group_class='.form-super-group' %}</td>
+              <td>Injektion Tidspunkt:</td>
+              <td>{{ info.injection_time }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.injection_date_confirm form_group_class='.form-super-group' %}</td>
+              <td>Injektion Dato: </td>
+              <td>{{ info.injection_date }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.thin_fac_confirm form_group_class='.form-super-group' %}</td>
+              <td>Fortyndingsfaktor: </td>
+              <td>{{ info.thin_fac }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.stdCnt_confirm form_group_class='.form-super-group' %}</td>
+              <td>Standardtælletal: </td>
+              <td>{{ info.stdCnt }}</td>
+            </tr>
+            <tr>
+              <td>{% bootstrap_field GrandForm.study_type_confirm form_group_class='.form-super-group' %}</td>
+              <td>Undersøgelses type: </td>
+              <td>{{ info.study_type }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Kommentar:</p>
+        <p>{{ info.comment }}</p>
+      </div>
+      <div class="col-md-8">
+        <img class="PresentationImage" width="100%" src="{% static static_path %}" alt="Image not generated, {{ image_path }}" >
+      </div>
+    </div>
+    <!-- Second Half -->
+    <div class="row">
+      <!-- Left side-->
+      <div class="col-md-6">
+        <!-- Display test info -->
+        <h5>Blodprøvedata</h5>
+        <div id="test-data-container">
+          <!-- Place where JS inserts new test data -->
+          
+        <div class="form-row">
+          <div class="form-group col-md-3">PrøveDato</div>
+          <div class="form-group col-md-2">Prøvetidspunkt</div>
+          <div class="form-group col-md-2">Tælletal</div>
+          <div class="form-group col-md-2">Afvigelse</div>
+          
+        </div>     
+        {% for sample in Samples %}
+        <div class="form-group">
+          <div class="form-row">
+            {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-3' %}                            
+            {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}                        
+            {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-2' %}
+            {% bootstrap_field sample.sample_devi layout='inline' form_group_class='col-md-2' %}
+            {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}                        
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+        <!-- Add test info -->
+        <hr>     
+        {% bootstrap_field GrandForm.bamID layout='inline' %}
+        {% buttons %}
+          <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
+          <input type="submit" name="control" value="Afvis" id="deny">
+        {% endbuttons %}
+
+        <!-- Container for error/alert messages -->
+        <div id="error-message-container">
+  
+        </div>
+      </div>
+      <!-- Left Closing -->
+      <!-- Right side -->
+
+      </div> <!-- Right closing-->
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'main_page/js/util/csrf.js'%}"></script>
+<script src="{% static 'main_page/js/util/helpers.js'%}"></script>
+<script src="{% static 'main_page/js/control_study.js'%}"></script>
+<script src="{% static 'main_page/js/alert_obj.js'%}"></script>
+{% endblock %}

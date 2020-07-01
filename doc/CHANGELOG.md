@@ -4,8 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <!-- and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). -->
 
-## 1.1 TODO Features
-  - [ ] Resolve timeout issues related to retreiving the history of studies (compress the images uploaded to PACS)
+## 1.1 - 2020-01-27
+### Added
+  - Worklist prefecthing, to retrieve prior history of a study
+  - Added control site, so studies are sent to control for second-hand evaluation before they can be sent to PACS
+  - ae_controller, library to simplify C-FIND and C-MOVE requests
+  - Added a rollover logfile, s.t. a new logfile is created every day at midnight
+  - Added git branch (ldap-integration) for implementing future LDAP solution to enable BAM-Id login
+  - Added enums to solidify the process of working with genders, study types and exam status
+  - Added buttons to admin panel, for removal of all studies and deleted studies
+
+### Changed
+  - Refactored method for storing dicom files. I.e. the nested directories, which are able to also hold the history related to a study
+  - Split Views and forms into multiple files
+    - Merged PostRequestHandler into FillStudy view
+  - Changed all C-FINDs and C-MOVEs to use the new ae_controller library
+  - Changed all references of ```ris_nr``` or ```rigs_nr``` to ```accession_number``` (This should be the default from now on)
+  - Moved most Ajax (JSON) endpoints to follow the RESTful design
+
+### Fixed
+  - Minor state-change issues related to the javascript alerter (including total rewrite of the alerter to an object-based design following: https://www.digitalocean.com/community/tutorials/understanding-classes-in-javascript)
+  - Made Selenium tests use the new nested directories, so they work once again
+
+### Removed
+  - All references to examination_info class (just use purely dicom objects from now on)
 
 ---
 

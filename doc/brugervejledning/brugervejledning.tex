@@ -23,8 +23,10 @@
 \begin{document}
 \tableofcontents
 \section*{Introduktion}
-Dette dokument beskriver dagligt brug af GFRcalc. Til udvikling og vedligeholdelse af GFRcalc bør du referer dokumentet: "kode-dokumentation.pdf". Dette dokument er skrevet så det kan læses af alle bruger.\\\\
-Brugervejledningen er skrevet til version 1.0.x af GFRcalc.\\\\
+Brugervejledningen er skrevet til version 1.1.x af GFRcalc.\\
+
+Dette dokument beskriver dagligt brug af GFRcalc. Dette dokument er skrevet så det kan læses af alle bruger. Til udvikling og vedligeholdelse af GFRcalc bør du referer til dokumentet: "code-documentation.pdf".\\
+
 Programmet er udarbejdet af Christoffer Vilstrup Jensen og Simon Surland Andersen. Den ansvarlige person for vedligeholdelse er Christoffer Vilstrup Jensen og kan kontakt via mail på christoffer.vilstrup.jensen@regionh.dk\\\\
 Alt data; \textit{Navne, cpr numre og test data}, i brugervejledningen er fabrikeret.
 
@@ -42,17 +44,27 @@ GFRcalc er et værktøj som kan tilgås på hjemmesiden \url{http://gfr} eller \
 \section{Til dagligt brug}
 For at kunne benytte nogle GFRcalc funktioner, skal der logges ind.
 \subsection{Hurtig Guide}
+Udfylding af undersøgelsen.
 \begin{enumerate}
 	\item Gå til hjemmesiden \url{http://gfr.petnet.rh.dk}.
-	\item Log in.
+	\item Log in, og navigerer til "Åben undersøgelse" fra sidebaren. 
 	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen.
 	\item Udfyld undersøgelsen ved at indtaste relevant data.
 	\begin{itemize}
 		\item Brug knappen “Gem” til at gemme de nuværende indtastet data
 	\end{itemize}
 	\item Klik “Beregn”, hvorefter en graf vil blive genereret som beskriver undersøgelsen.
-	\item Klik “Send til PACS” efter at havde bekræftet at undersøgelsen er korrekt. Den genereret graf vil blive sent til PACS, sammen med det tilhørende data for undersøgelsen. 
-\end{enumerate}  
+	\item Klik “Send til Kontrol” Hvis graffen er korrekt.
+\end{enumerate} 
+Kontrol af undersøgelsen 
+\begin{enumerate}
+	\item Gå til hjemmesiden \url{http://gfr.petnet.rh.dk}.
+	\item Log in, og navigerer til "Kontrol" fra sidebaren. 
+	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen.
+	\item Godkend alle data felter og skriv dit bamID i det tomme felt
+	\item Klik “Send til PACS” Hvis graffen er korrekt.
+\end{enumerate} 
+
 \subsection{Oversigt over nuværende undersøgelser (Åbn undersøgelse)}\label{list_study}
 Denne side præsenterer alle undersøgelser, hvor patienten er ankomst registret. Dette betyder at hvis undersøgelsen bliver afsluttet i RIS, før at man har besøgt GFRcalc, så kan undersøgelsen ikke findes i GFRcalc. Hvis en undersøgelse mangler kontakt din RIS/PACS ansvarlige person. \\
 
@@ -64,7 +76,7 @@ En undersøgelses information kan tilgås via at klikke på den. \\
 
 Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via farven på clipboardet (i søjlen med "status"):
 \begin{itemize}
-	\item[Grøn] - Undersøgelsen har alle information og afventer at blive godkendt og sendt til PACS.
+	\item[Grøn] - Undersøgelsen har alle information og afventer at blive godkendt og sendt til kontrol.
 	\item[Gul] - Undersøgelsen har nogle bruger indtastet informationer, men har ikke udregnet clearance endnu. 
 	\item[Rød] - Undersøgelse har ingen bruger indtastet informationer. 
 \end{itemize} 
@@ -84,9 +96,9 @@ Talende skal indtastes i den korrekte enhed. Disse enheder er:
 	\item Vægt: Kilogram - (kg)
 	\item Sprøjtevægt: Gram - (g)
 \end{itemize}
-Ved alle decimaltal skal der benyttes: » . «\\%$\;$ i stedet for: » , «.\\
+Ved alle decimaltal skal der benyttes: » , «\\%$\;$ i stedet for: » , «.\\
 Alle datoer skal intaste i formatet DD-MM-ÅÅÅÅ.\\\\
-For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 men op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er stor numerisk forskel på prøverne gives der en advarsel, som kan indikerer en mulig tastefejl.\\
+For at tilføje en prøve eller tilføje en standard skal man vælge mindst 1 og op til 6 prøver fra Dagens tællinger. Hvis flere prøver vælges tages gennemsnittet af disse prøver. Hvis der er stor numerisk forskel på prøverne gives der en advarsel, som kan indikerer en mulig tastefejl.\\
 Scanninger kan identificeres ved, tidspunktet hvor scanningen af første rack er færdig.\\
 
 Det er vigtigt at brugeren selv husker hvilken patient, der findes i hvilken række og position.\\
@@ -102,18 +114,26 @@ Tællinger, der er mere end 24 timer gamle, bliver rykket til en backup. Tællin
 De indtastede informationer kan gemmes ved at klikke på 'Gem' knappen, som er placeret i nederst venstre hjørne. Hvis brugeren gemmer og et injektions tidspunkt ikke er udfyldt, så vil hjemmesiden selv udfylde 00:00.\\\\
 Hvis man ønsker at beregne GFR, så skal man udfylde alle felter, samt et relevant antal prøver. Derefter bliver bruger videresendt til hjemmesiden beskrevet i section \ref{present_study}.\\
 
-\textbf{Bemærk:} Der kan opstå ventetid i forbindelse med lavet billede, da GFRcalc også skal fremskaffe alt historik om patients tidligere undersøgelser (fra Sommeren 2019 og frem). Denne historik inkluderer alle undersøgelser lavet med GFRcalc.  
-\subsection{Godkendelse og oversigt}\label{present_study}
+%\textbf{Bemærk:} Der kan opstå ventetid i forbindelse med lavet billede, da GFRcalc også skal fremskaffe alt historik om patients tidligere undersøgelser (fra Sommeren 2019 og frem). Denne historik inkluderer alle undersøgelser lavet med GFRcalc.  
+\subsection{Beregn og oversigt}\label{present_study}
 Denne side kan tilgås fra en udfyldt undersøgelse fra \ref{fill_study}.\\\\
 Der præsenteres et billede med en graf og information indtaste med undersøgelsen. GFR-værdierne er genereret ud fra metoden beskrevet i \ref{Documentation}.  Nedenunder billedet findes 4 knapper, som kan bruges til følgende:
 \begin{itemize}
 	\item \textbf{Tilbage til hovedmenu} - Navigerer til hjemmesiden beskrevet i sektion \ref{list_study}
 	\item \textbf{Tilbage til redigering} - Navigerer til hjemmesiden beskrevet sektion \ref{fill_study}
 	\item \textbf{Billede til printning} - Navigerer til et fuldt skærmbillede af billede uden hjemmeside navigation, denne side er velegnet til printning af undersøgelsen.
-	\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til PACS. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
-	Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.   
-	\item \textbf{QA-plot} \textit{Denne knap vises kun ved flere prøve metoden} - Navigerer til skærmbillede hvor man kan se et plot over hvor tæt prøveresultaterne ligger på den generetet linje.
+	\item \textbf{Send til kontrol} - Sender undersøgelsen til sekundær kontrol før undersøgelsen sendes til PACS, hvor den kan tilgås fra "Kontrol"\ siden.
+	%\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til PACS. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
+	%Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.   
+	\item \textbf{QA-plot} \textit{Denne knap vises kun ved "flere prøve"\ metoden} - Navigerer til skærmbillede hvor man kan se et plot over hvor tæt prøveresultaterne ligger på den generetet linje.
 \end{itemize}
+
+\subsection{Kontrol}
+Denne side findes i "Kontrol"\ i hovedmenuen og kan tilgås efter en undersøgelse er blivet "send til kontrol"\ fra beregn siden.\\
+
+Efter en undersøgelse er blevet valgt, skal man godkende at alle felter er korrekt udfyldt, indtaste sit BamID og derefter sende undersøgelsen til PACS.\\
+
+Hvis der findes fejl i undersøgelsen kan den sendes tilbage til redigering.
 
 \subsection{Find gamle undersøgelse}\label{search}
 Tidligerer afsluttet undersøgelser, som er lavet med GFRcalc kan findes med denne funktion.\\
@@ -128,7 +148,25 @@ Efter at man klikker på søg, kan man sorterer søgeresultaterne efter søjlern
 
 \textbf{Bemærk} Søgetiden kan reduceres ved at man indskrænker sin søgning. 
 
+\subsection{Tilføj/Fjerne procedure filter}
+Listen af undersøgelser på siden "Åbn undersøgelse"\ kan filtreres, så undersøgelser med bestemte "Procedure"\ navne ikke bliver vist. For eksempel hvis man ikke ønsker at se undersøgelser af Procedure typen "Clearance blodprøve 2. gang". For opsætning af sådanne filter gør følgende:
+\begin{enumerate}
+	\item Login med bruger som har administrator rettigheder.
+	\item Klik på "Admin panel"\ i menuen til venstre.
+	\item Vælg "Procedurer"\ på toppen af siden.
+	\item Klik på "+"\ knappen.
+	\item Skriv navnet på Proceduren man ikke ønsker at se længere, og klik "Tilføj".
+	\item Gå tilbage til "Admin panel"\, vælg nu "Procedure filter"\ og klik på "+".
+	\item Vælg afdelingen som filterede skal oprettes for, samt vælg id'et for det tidligere oprettede Procedure og klik "Tilføj".
+\end{enumerate}
 
+Filtre kan ligeledes fjernes ved at:
+\begin{enumerate}
+	\item Login med bruger som har administrator rettigheder.
+	\item Klik på "Admin panel"\ i menuen til venstre.
+	\item Vælg "Procedurer filter"\ på toppen af siden.
+	\item Klik på det røde skraldespands ikon ud for det filter som ønskes slettet.
+\end{enumerate}
 
 \subsection{Metode Dokumentation}\label{Documentation}
 Dokumentation beskriver metoden hvordan GFR værdierne er udregnet.\\ 

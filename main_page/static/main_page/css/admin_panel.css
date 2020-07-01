@@ -16,3 +16,7 @@
 #admin-table-body tr td:last-child {
   text-align: right;
 }
+
+#nuke-form {
+  float: right;
+}

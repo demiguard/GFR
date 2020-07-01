@@ -12,7 +12,9 @@ from main_page.libs import server_config
 from main_page.libs import dicomlib
 from main_page.libs.clearance_math import clearance_math
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class QAView(LoginRequiredMixin, TemplateView):
@@ -24,8 +26,8 @@ class QAView(LoginRequiredMixin, TemplateView):
   def get(self, request, accession_number):
     logger.info('A user have used the QA plot for something')
     try:
-      logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}.dcm")
-      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}.dcm")
+      logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
+      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
       sample_times = []
       tch99_cnt = []
 
@@ -64,6 +66,7 @@ class QAView(LoginRequiredMixin, TemplateView):
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
+      'accession_number' : dicom_obj.AccessionNumber,
       'image_path' : image_path
     }
 

@@ -13,7 +13,9 @@ ae = pynetdicom.AE(ae_title=rigs_calling)
 
 
 logging.basicConfig(filename='searchfind.log', level=logging.DEBUG)
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 logger.debug('initlogger')
 
 

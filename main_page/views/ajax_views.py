@@ -16,10 +16,12 @@ from main_page.libs import samba_handler
 from main_page.libs import server_config
 from main_page.libs.status_codes import *
 from main_page.libs.dirmanager import try_mkdir
-from main_page import forms
+from main_page.forms import base_forms
 
 
-logger = logging.getLogger()
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 
 class AjaxLogin(TemplateView):
@@ -29,7 +31,7 @@ class AjaxLogin(TemplateView):
   def post(self, request):
     signed_in = False
     
-    login_form = forms.LoginForm(data=request.POST)
+    login_form = base_forms.LoginForm(data=request.POST)
 
     if login_form.is_valid():
       user = authenticate(
@@ -79,46 +81,7 @@ class LogoutView(LoginRequiredMixin, TemplateView):
     return self.logout_current_user(request)
 
 
-class AjaxSearch(LoginRequiredMixin, TemplateView):
-  """
-  Handles ajax search requests
-  """
-  def get(self, request):  
-    # Extract search parameters
-    search_name = request.GET['name']
-    search_cpr = request.GET['cpr']
-    search_rigs_nr = request.GET['rigs_nr']
-    search_date_from = request.GET['date_from']
-    search_date_to = request.GET['date_to']
-
-    search_resp = pacs.search_query_pacs(
-      request.user,
-      name=search_name,
-      cpr=search_cpr,
-      accession_number=search_rigs_nr,
-      date_from=search_date_from,
-      date_to=search_date_to,
-    )
-
-    # Serialize search results; i.e. turn ExaminationInfo objects into dicts.
-    serialized_results = []
-    for res in search_resp:
-      serialized_results.append({
-        'rigs_nr': res.rigs_nr,
-        'name': res.name,
-        'cpr': res.cpr,
-        'date': res.date
-      })
-
-    data = {
-      'search_results': serialized_results
-    }
-
-    return JsonResponse(data) 
-
-
-
-class AjaxUpdateThiningFactor(TemplateView):
+class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
   def post(self, request):
     """
       Ajax from list_studies, called from list_studies.js

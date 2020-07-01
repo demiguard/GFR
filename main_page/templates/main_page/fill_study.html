@@ -11,7 +11,11 @@
 
 
 {% block content %}
-  <strong>Accession-nr.:</strong><p>{{ rigsnr }}</p>
+  <strong>Accession nr.:</strong><p>{{ rigsnr }}</p>
+  {% if historic_studies %}
+    Tidligere undersøgelser:
+    {{ historic_studies }}
+  {% endif %}
 
   <form method="POST" id="fill-study-form">
     {% csrf_token %}
@@ -19,18 +23,27 @@
     <!-- Add patient info -->
     <div class="form-row">
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_patient_form %}
+        {% bootstrap_field grand_form.cpr %}
+        {% bootstrap_field grand_form.name %}
+        {% bootstrap_field grand_form.sex %}
       </div>
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_patient_form_2 %}
+        {% bootstrap_field grand_form.height %}
+        {% bootstrap_field grand_form.weight %}
+        {% bootstrap_field grand_form.injection_time %}
+        {% bootstrap_field grand_form.injection_date %}
       </div>
       <div class="form-group col-md-3">
-        {% bootstrap_form study_examination_form %}
+        {% bootstrap_field grand_form.vial_number %}
+        {% bootstrap_field grand_form.vial_weight_before %}
+        {% bootstrap_field grand_form.vial_weight_after %}
+        
       </div>  
       <div class = "form-group col-md-3">
-        {% bootstrap_form study_dosis_form %}
+        {% bootstrap_field grand_form.thin_fac  %}
+        {% bootstrap_field grand_form.save_fac %}
         <small><a id="reset_thin_fac" href="#">Hent fortyndingsfaktor</a></small>
-        {% bootstrap_form study_type_form %}
+        {% bootstrap_field grand_form.study_type %}
       </div>
     </div>
     
@@ -43,38 +56,40 @@
         <!-- Display test info -->
         <div class="form-row">
           <div class="form-group col-md-6">
-            <label for="standard-field">Standardtælletal</label>
-            <input type="number" step="0.001" class="form-control" id="standard-field" name="std_cnt_text_box" value="{{ standard_count }}">
+            {% bootstrap_field grand_form.standcount %}
           </div>
+          {% buttons %}
+            <input type="button" value="Tilføj standard" id="add-standard">
+          {% endbuttons %}      
         </div>
-        {% buttons %}
-          <input type="button" value="Tilføj standard" id="add-standard">
-        {% endbuttons %}
         
         <h5>Blodprøvedata</h5>
         <div id="test-data-container">
           <!-- Place where JS inserts new test data -->
 
           <!-- Insert previous tests -->
-          {% for psd, pst, psc in previous_samples %}
-            <div class="form-row">
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_date" value="{{ psd }}" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="study_time" value="{{ pst }}" readonly>
-              </div>
-              <div class="form-group col-md-3 readonly-field">
-                <input type="text" class="form-control" name="test_value" value="{{ psc }}" readonly>
-              </div>
-              <div class="form-group col-md-1">
-                <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
-              </div>
-              <div class="form-group col-md-1">
-                <input type="button" value="🔒" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
-              </div>
+          {% for psd, pst, psc, psdv in previous_samples %}
+          <div class="form-row">
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name="sample_date" value="{{ psd }}" readonly>
             </div>
-          {% endfor %}
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name="sample_time" value="{{ pst }}" readonly>
+            </div>
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control value-field" name="sample_value" value="{{ psc }}" readonly>
+            </div>
+            <div class="form-group col-md-2 readonly-field">
+              <input type="text" class="form-control" name=sample_deviation value="{{ psdv }}" readonly>
+            </div>
+            <div class="form-group col-md-1">
+              <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
+            </div>
+            <div class="form-group col-md-1">
+              <input type="button" value="🔒" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+            </div>
+          </div>
+        {% endfor %}
         </div>
         <!-- Add test info -->     
         <div id="add-test-container">
@@ -95,10 +110,11 @@
             <input type="button" value="Nulstil valgte prøver" id="reset-selected">
           {% endbuttons %}
         </div>
+        {% bootstrap_field grand_form.comment_field %}
+
         {% buttons%}
           <input type="submit" name="calculate" value="Beregn" id="calculate">
           <input type="submit" name="save" value="Gem" id="save">
-          <input type="button" value="Afbryd" id="cancel">
         {% endbuttons %}
 
         <!-- Container for error/alert messages -->
@@ -139,7 +155,7 @@
                               <td>{{ data_row.0 }}</td>
                               <td>{{ data_row.1 }}</td>
                               <td>{{ data_row.2 }}</td>
-                            </tr>  
+                            </tr>
                           {% endfor %}
                         </tbody>
                       </table>
@@ -156,7 +172,7 @@
         {% endif %}
 
         <div id="dynamic_generate_history">
-          <input type="button" value="Tilbage til dagens målinger" onclick="remove_backup_measurement()">
+          <input type="button" value="Tilbage til dagens målinger" id="remove-backup-btn">
           
           <br><br>
           
@@ -166,7 +182,7 @@
         </div> <!-- dynamic_generate_history Closing-->
         
         {% bootstrap_form get_backup_date_form %}
-        <input type="button" value="Hent målinger" onclick="get_backup_measurements()">
+        <input type="button" value="Hent målinger" id="get-backup-btn">
       </div> <!-- Right closing-->
     </div>
   </form>
@@ -174,9 +190,10 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{% static 'main_page/js/util/csrf.js' %}"></script>
-  <script src="{% static 'main_page/js/util/helpers.js' %}"></script>
-  <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
-  <script src="{% static 'main_page/js/util/csv_handler.js' %}"></script>
-  <script src="{% static 'main_page/js/fill_study.js' %}"></script>
+  <script src="{% static 'main_page/js/util/csrf.js'              %}"></script>
+  <script src="{% static 'main_page/js/util/bad_input_handler.js' %}"></script>
+  <script src="{% static 'main_page/js/util/helpers.js'           %}"></script>
+  <script src="{% static 'main_page/js/util/csv_handler.js'       %}"></script>
+  <script src="{% static 'main_page/js/fill_study.js'             %}"></script>
+  <script src="{% static 'main_page/js/alert_obj.js'              %}"></script>
 {% endblock %}

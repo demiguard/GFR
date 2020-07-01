@@ -1,0 +1,42 @@
+#id_study_type > label {
+  display:block;
+}
+
+#right_side {
+  height: 495px;
+  overflow: auto
+}
+
+#id_dateofmessurement {
+  width: 50%;
+}
+
+#dynamic_generate_history {
+  display: none;
+}
+
+.confirm-checkbox {
+  position :relative;
+  margin-right: 5px;
+  transform: scale(1.5);
+}
+
+.confirm-row-checkbox {
+  margin-top:  12px;
+  margin-left: 0px;
+}
+
+.form-input {
+  width: 100%;
+}
+
+.form-super-group{
+  margin-bottom: 0rem;
+}
+
+.study_table{
+  padding: 15px !important;
+  border: 5px;
+  border-color: rgb(38, 38, 150); 
+  /*border-style: solid;*/
+}

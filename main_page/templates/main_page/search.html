@@ -3,39 +3,51 @@
 {% load static %}
 {% load bootstrap4 %}
 
-{% block content %}
-  <form>
-    <div class="form-row">
-      <!-- First row of fields -->
-      <div class="form-group col-md-2">
-        {{ getstudy.name.label }}:
-        {{ getstudy.name }}
-      </div>
-      <div class="form-group col-md-2">
-        {{ getstudy.cpr.label }}:
-        {{ getstudy.cpr }}
-      </div>
-      <div class="form-group col-md-2">
-        {{ getstudy.Rigs.label }}:
-        {{ getstudy.Rigs }}
-      </div>
-    </div>
-    <!-- Second row of fields -->
-    <div class="form-row">
-      <div class="form-group col-md-2">
-        {{ getstudy.Dato_start.label }}:
-        {{ getstudy.Dato_start }}
-      </div>
-      <div class="form-group col-md-2">
-        {{ getstudy.Dato_finish.label }}:
-        {{ getstudy.Dato_finish }}
-      </div>
-    </div>
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/search.css' %}">
+{% endblock %}
 
-    {% buttons %}
-      <input type="button" name="search" value="Søg" id="search-btn">
-    {% endbuttons %}
-  </form>
+{% block content %}
+<h2>Historisk undersøgelser</h2>
+<hr>
+  <div>
+    <form>
+      <div class="form-row">
+        <!-- First row of fields -->
+        <div class="form-group col-md-2">
+          {{ search_form.name.label }}:
+          {{ search_form.name }}
+        </div>
+        <div class="form-group col-md-2">
+          {{ search_form.cpr.label }}:
+          {{ search_form.cpr }}
+        </div>
+        <div class="form-group col-md-2">
+          {{ search_form.accession_number.label }}:
+          {{ search_form.accession_number }}
+        </div>
+      </div>
+      <!-- Second row of fields -->
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          {{ search_form.from_date.label }}:
+          {{ search_form.from_date }}
+        </div>
+        <div class="form-group col-md-2">
+          {{ search_form.to_date.label }}:
+          {{ search_form.to_date }}
+        </div>
+      </div>
+
+      <div id="ss-wrapper">
+        {% buttons %}
+          <input type="button" name="search" value="Søg" id="search-btn">
+        {% endbuttons %}
+    
+        <div class="loader" id="searchloader"></div> <!-- Spinner animation -->
+      </div>
+    </form>
+  </div>
 
   <br>
   <h2>Søgeresultater:</h2>
@@ -49,19 +61,31 @@
         <th onclick="sort_table(1,'result_table')">Cpr-nr.</th>
         <th onclick="sort_table(2,'result_table')">undersøgelsesdato</th>
         <th onclick="sort_table(3,'result_table')">Accessionnr</th>
+        <th></th> <!-- Empty column for action buttons -->
       </tr>
     </thead>
     <tbody id="search-table-body">
-      {% for resp in responses %}
-      <tr onclick="document.location='{% url "main_page:present_old_study" resp.rigs_nr %}'">
-        <td>{{ resp.name }}</td>
-        <td>{{ resp.cpr }}</td>
-        <td>{{ resp.date }}</td>
-        <td>{{ resp.rigs_nr }}</td>
-      </tr>
-      {% endfor %}
+
     </tbody>
   </table>
+
+  <!-- Display error message when unable to create new study from historical -->
+  <div class="modal fade" id="newFailedModal" tabindex="-1" role="dialog" aria-labelledby="newFailedModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          </span> Fejl</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <p>Det var ikke muligt at oprette ny undersøgelse fra den historiske data.</p>
+            <p>Dette kan skyldes problemer med PACS, prøv igen senere.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block javascript %}

@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied
 
-import logging
+from main_page import log_util
 
 
 # TODO: Add logging to check who attempted to access
@@ -22,7 +22,7 @@ class LoggingMixin:
   # view if added as a mixin.
 
   def dispatch(self, request, *args, **kwargs):
-    logger = logging.getLogger()
+    logger = log_util.get_logger(__name__)
     log_msg = ""
 
     if request.user:

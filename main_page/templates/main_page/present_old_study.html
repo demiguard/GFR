@@ -5,32 +5,66 @@
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/fill_study.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/present_old_study.css' %}">
 {% endblock head %}
 
 {% block content %}
-<img width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+<strong>Accession nr.:</strong><p>{{ accession_number }}</p>
 
-<div class="col-md-4">
-  <h3>Prøve data:</h3>
-  {% for previous_test in previous_samples %}
-    <h5>Prøve nr. {{ forloop.counter }}</h5>
-
-    <table class="table table-bordered">
-      <thead>
-        <th>Dato</th>
-        <th>Tidspunkt</th>
-        <th>Tælletal</th>
-      </thead>
+<div class="row">
+  <div class="col-md-4">
+    
+    <table class="col-md-12">
       <tbody>
-      {% for psd, pst, psc in previous_test %}
-        <tr>
-          <td>{{ psd }}</td>
-          <td>{{ pst }}</td>
-          <td>{{ psc }}</td>
-        </tr>
-      {% endfor %}
+        {% for present_name, value in study_data %}
+          <tr>
+            <td>{{ present_name }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
-  {% endfor %}
+
+    <br>
+
+    <h5>Prøver:</h5>
+    {% for previous_test in previous_samples %}
+      <!-- <h5>Prøve nr. {{ forloop.counter }}</h5> -->
+  
+      <table class="table table-bordered">
+        <thead>
+          <th>Dato</th>
+          <th>Tidspunkt</th>
+          <th>Tælletal</th>
+          <th>Afvigelse</th>
+        </thead>
+        <tbody>
+        {% for psd, pst, psc, psdv in previous_test %}
+          <tr>
+            <td>{{ psd }}</td>
+            <td>{{ pst }}</td>
+            <td>{{ psc }}</td>
+            <td>{{ psdv }} %</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
+
+    <form method="POST">
+      {% csrf_token %}
+      {% buttons %}
+        <input type="submit" name="Genskab" value="Genskab" id="genskab-btn">
+      {% endbuttons %}
+    </form>
+
+  </div>
+  
+  <div class="col-md-8">
+    <img class="image" src="{% static image_path %}" alt="Image not generated, {{ image_path }}">
+    {% if qa_plot_path %}
+    <img class="image" src="{% static qa_plot_path %}" alot="QA image not generated {{qa_plot_path}}">
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

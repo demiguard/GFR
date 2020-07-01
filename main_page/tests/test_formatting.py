@@ -181,187 +181,187 @@ class LibsFormattingTestCase(TestCase):
 
     self.assertEqual(out, expected)
 
-######## ---------------- Test of function reverse_format_date --------------- ########
+######## ---------------- Test of function convert_date_to_danish_date --------------- ########
 # Success full tests
-  def test_reverse_format_date_no_extra_characters(self):
+  def test_convert_date_to_danish_date_no_extra_characters(self):
     function_input = '20111993'
 
     expected_output = '19931120'
 
-    function_output = formatting.reverse_format_date(function_input) 
+    function_output = formatting.convert_date_to_danish_date(function_input) 
 
     self.assertEqual(expected_output, function_output)
 
-  def test_reverse_format_date_slash_characters(self):
+  def test_convert_date_to_danish_date_slash_characters(self):
     function_input = '20/11/1993'
 
     expected_output = '19931120'
 
-    function_output = formatting.reverse_format_date(function_input) 
+    function_output = formatting.convert_date_to_danish_date(function_input) 
 
     self.assertEqual(expected_output, function_output)
 
-  def test_reverse_format_date_dash_characters(self):
+  def test_convert_date_to_danish_date_dash_characters(self):
     function_input = '20-11-1993'
 
     expected_output = '19931120'
 
-    function_output = formatting.reverse_format_date(function_input) 
+    function_output = formatting.convert_date_to_danish_date(function_input) 
 
     self.assertEqual(expected_output, function_output)
   # ### Check for leap year
-  def test_reverse_format_date_leap_year(self):
+  def test_convert_date_to_danish_date_leap_year(self):
     function_input = '29021992'
 
     expected_output = '19920229'
 
-    function_output = formatting.reverse_format_date(function_input) 
+    function_output = formatting.convert_date_to_danish_date(function_input) 
 
     self.assertEqual(expected_output, function_output)
 
-  def test_reverse_format_date_leap_year_special_rule_2(self):
+  def test_convert_date_to_danish_date_leap_year_special_rule_2(self):
     function_input = '29022000'
 
     expected_output = '20000229'
 
-    function_output = formatting.reverse_format_date(function_input) 
+    function_output = formatting.convert_date_to_danish_date(function_input) 
 
     self.assertEqual(expected_output, function_output)
 
   # Error Tests
 
   # ### Invalid dates years
-  def test_reverse_format_date_invalid_date_no_extra_characters(self):
+  def test_convert_date_to_danish_date_invalid_date_no_extra_characters(self):
     function_input = '32112000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
 
-  def test_reverse_format_date_invalid_date_dash_characters(self):
+  def test_convert_date_to_danish_date_invalid_date_dash_characters(self):
     function_input = '32-11-2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_invalid_date_backslash_characters(self):
+  def test_convert_date_to_danish_date_invalid_date_backslash_characters(self):
     function_input = '32/11/2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_not_leap_year(self):
+  def test_convert_date_to_danish_date_not_leap_year(self):
     function_input = '29022019'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_leap_year_special_rule_1(self):
+  def test_convert_date_to_danish_date_leap_year_special_rule_1(self):
     function_input = '29022100'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
   # ### Typoes / formatting
-  def test_reverse_format_date_len_too_long_error(self):
+  def test_convert_date_to_danish_date_len_too_long_error(self):
     function_input = '290221100'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_len_too_short_error(self):
+  def test_convert_date_to_danish_date_len_too_short_error(self):
     function_input = '2902211'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
 
-  def test_reverse_format_date_character(self):
+  def test_convert_date_to_danish_date_character(self):
     function_input = '2a022110'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_stupid_format(self):
+  def test_convert_date_to_danish_date_stupid_format(self):
     function_input = '12312000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_spaces_format(self):
+  def test_convert_date_to_danish_date_spaces_format(self):
     function_input = '31 12 2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
 
-  def test_reverse_format_date_backslash_format(self):
+  def test_convert_date_to_danish_date_backslash_format(self):
     function_input = '31\\12\\2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_dot_format(self):
+  def test_convert_date_to_danish_date_dot_format(self):
     function_input = '31.12.2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_6_digit_format(self):
+  def test_convert_date_to_danish_date_6_digit_format(self):
     function_input = '311200'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_6_digit_slash_format(self):
+  def test_convert_date_to_danish_date_6_digit_slash_format(self):
     function_input = '31/12/00'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_6_digit_dash_format(self):
+  def test_convert_date_to_danish_date_6_digit_dash_format(self):
     function_input = '31-12-00'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_month_name_format(self):
+  def test_convert_date_to_danish_date_month_name_format(self):
     function_input = '31-Dec-2000'
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_no_leading_zero(self):
+  def test_convert_date_to_danish_date_no_leading_zero(self):
     function_input = '112000' #01012000
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_no_leading_dashes_zero(self):
+  def test_convert_date_to_danish_date_no_leading_dashes_zero(self):
     function_input = '1-1-2000' #01-01-2000
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_no_leading_slashes_zero(self):
+  def test_convert_date_to_danish_date_no_leading_slashes_zero(self):
     function_input = '1/1/2000' #01/01/2000
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_inconsistance_seperators_1(self):
+  def test_convert_date_to_danish_date_inconsistance_seperators_1(self):
     function_input = '01/01-2000' #01012000
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
-  def test_reverse_format_date_inconsistance_seperators_2(self):
+  def test_convert_date_to_danish_date_inconsistance_seperators_2(self):
     function_input = '01-01/2000' #01012000
 
     with self.assertRaises(ValueError):
-      formatting.reverse_format_date(function_input)
+      formatting.convert_date_to_danish_date(function_input)
 
   # Production test
   # If a test case comes up in production put it in here
 
-  # End testing for reverse_format_date
+  # End testing for convert_date_to_danish_date

@@ -1,17 +1,65 @@
 import pynetdicom
 from pydicom import Dataset
-from typing import Type
 
 import logging
+from typing import Type, Union
+from pynetdicom import AE
+from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
+from main_page.libs.dirmanager import try_mkdir
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 
-def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
+#Dev notes: Sooo a pretty major flaw with using this is that send_xxx doesn't return anything
+
+def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger):
+  """
+    From an AE establish an connection.
+
+    This is mostly a log wrapper for AE.associate and error handling for it
+
+  """
+  if isinstance(port, str):
+    port = int(port)
+  try:
+    assoc = AE.associate(
+      ip,
+      port,
+      ae_title=aet
+    )
+  except TypeError:
+    logger.error(f"""
+      Could not establish connection to
+      IP:     {ip}
+      Port:   {port}
+      my aet: {AE.ae_title}
+      Ris ae: {aet}
+      """)
+    return None
+  except RuntimeError:
+    logger.error(f"The context for {AE.ae_title} is {AE.requested_contexts} is invalid")
+    return None
+
+  if not(assoc.is_established):
+    logger.error(f"""
+      Could not establish connection to
+      IP:     {ip}
+      Port:   {port}
+      my aet: {AE.ae_title}
+      Ris ae: {aet}
+      """)
+    return None
+  
+  return assoc
+
+
+
+def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context: str, *args, **kwargs):
   """
   Establish a connection to an AET
 
@@ -30,7 +78,17 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
   Remark:
     This function doesn't handle releasing of the associations, this must be
     done by the caller.
+    This have been made obsolitte and is no longer used, I vote to remove this function
   """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = log_util.get_logger(__name__)
+
+  # Handle both integer and string ports
+  if isinstance(port, str):
+    port = int(port)
+
   try:
     ae = pynetdicom.AE(ae_title=calling_aet)
   except ValueError:
@@ -49,8 +107,7 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
   except RuntimeError:
     logger.info(f"Got no or invalid context: '{context}'")
@@ -61,8 +118,7 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
           IP: '{ip}'
           port: '{port}'
           calling AET: '{calling_aet}'
-          AET: '{aet}'
-      """)
+          AET: '{aet}'""")
     return None
 
   logger.info(
@@ -70,24 +126,95 @@ def connect(ip: str, port: int, calling_aet: str, aet: str, context: str):
         IP: '{ip}'
         port: '{port}'
         calling AET: '{calling_aet}'
-        AET: '{aet}'
-    """)
+        AET: '{aet}'""")
   return association
 
 
-def __handle_resp(resp, process, *args, **kwargs):
+def create_find_AE(ae_title):
+  """
+    Creates an pynetdicom.AE object with the find Context, ready to send a find
+  """
+  try:
+    ae = pynetdicom.AE(ae_title=ae_title)
+  except ValueError:
+    # If AET is empty then a ValueError is thrown by pynetdicom
+    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
+    return None
+
+  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+
+  return ae
+
+
+def create_move_AE(ae_title):
+  """
+    Creates an pynetdicom.AE object with the find Context, ready to send a move
+  """
+  try:
+    ae = pynetdicom.AE(ae_title=ae_title)
+  except ValueError:
+    # If AET is empty then a ValueError is thrown by pynetdicom
+    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
+    return None
+
+  ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
+
+  return ae
+
+
+def __handle_find_resp(resp, process, *args, **kwargs):
   """
   Passes each successful response on to the user defined process function
 
   Args:
     resp: response generator from e.g. C_FIND, C_MOVE, etc.
     process: function for processing successful response identifiers (datasets)
-  """
-  for status, identifier in resp:
-    p_response = process(status, identifier, *args, **kwargs)
 
-    if not p_response:
-      break
+  Remarks:
+    TRANSFER_COMPLETE is the last thing received from a C-FIND, 
+    since it's empty we can just ignore it and 
+    release the association if no futher queries are to be made.
+  """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = log_util.get_logger(__name__)
+
+  for status, identifier in resp:
+    if status.Status == DATASET_AVAILABLE:
+      process(identifier, *args, **kwargs)
+    elif status.Status == TRANSFER_COMPLETE:
+      pass
+    else:
+      logger.info(f"Failed to transfer dataset, with status: {status.Status}")
+
+
+def __handle_move_resp(resp, process, *args, **kwargs):
+  """
+  Passes each successful response on to the user defined process function
+
+  Args:
+    resp: response generator from e.g. C_FIND, C_MOVE, etc.
+    process: function for processing successful response identifiers (datasets)
+
+  Remarks:
+    C-move, regullary sends small updates about what is going on
+    this is processed under DATASET_AVAILABLE. Thus we just ignore them.
+
+    Once a TRANSFER_COMPLETE is received the file has been moved successfully
+  """
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = log_util.get_logger(__name__)
+
+  for status, identifier in resp:
+    if status.Status == DATASET_AVAILABLE:
+      pass
+    elif status.Status == TRANSFER_COMPLETE:
+      process(identifier, *args, **kwargs)
+    else:
+      logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
 
 
 def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
@@ -98,8 +225,6 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     association: an established association
     query_ds: pydicom dataset containing the query parameters
     process: function for processing incoming response identifiers (datasets).
-             function should return True if the processing is to continue,
-             false if it's to break.
              *args and **kwargs will be passed on to this function
 
   Kwargs:
@@ -111,9 +236,20 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
-  logger.info("Sending C_FIND query")
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_find call")
+
+  # Retrieve logger if given
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = log_util.get_logger(__name__)
+
+  # Perform query
+  logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
   resp = association.send_c_find(query_ds, query_model=query_model)
-  __handle_resp(resp, process, *args, **kwargs)
+  __handle_find_resp(resp, process, *args, **kwargs)
 
 
 def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model='S', *args, **kwargs) -> None:
@@ -125,8 +261,6 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     to_aet: AET of where to send responses
     query_ds: pydicom dataset containing the query parameters
     process: function for processing incoming response identifiers (datasets).
-             function should return True if the processing is to continue,
-             false if it's to break.
              *args and **kwargs will be passed on to this function
 
   Kwargs:
@@ -138,6 +272,17 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
     ValueError: if the query dataset fails to encode in the underlying
                 query request
   """
-  logger.info("Sending C_MOVE query")
+  # Handle None as association
+  if not association:
+    raise ValueError("'association' cannot be NoneType object when making a send_move call")
+
+  # Retrieve logger if given
+  if 'logger' in kwargs:
+    logger = kwargs['logger']
+  else:
+    logger = log_util.get_logger(__name__)
+  
+  # Perform query
+  logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)
-  __handle_resp(resp, process, *args, **kwargs)
+  __handle_move_resp(resp, process, *args, **kwargs)

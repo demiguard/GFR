@@ -5,16 +5,20 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pydicom import uid
 
-from typing import Type, Tuple, List, IO, Any
+from pathlib import Path
 import numpy as np
+import datetime
+
+from typing import Type, Tuple, List, IO, Any
 
 from main_page import models
 from main_page.libs import enums
 from .server_config import new_dict_items
 from . import server_config
 from . import formatting
+from main_page import log_util
 
-logger = logging.getLogger()
+logger = log_util.get_logger(__name__)
 
 
 def update_private_tags() -> None:
@@ -24,6 +28,67 @@ def update_private_tags() -> None:
   new_names_dirc = dict([(val[4], tag) for tag, val in new_dict_items.items()])
   keyword_dict.update(new_names_dirc)
 
+
+def get_recovered_date(
+  accession_number: str,
+  hospital_shortname: str,
+  active_studies_dir: str=server_config.FIND_RESPONS_DIR,
+  recovered_filename: str=server_config.RECOVERED_FILENAME
+  ) -> str:
+  """
+  Attempts to get the recovery date of a study
+
+  Args:
+    accession_number: accession number of study to get recovery date from
+
+  Kwargs:
+    active_studies_dir: directory containing currently active studies
+    recovered_filename: filename of the recovery file
+
+  Returns:
+    string contaning the recovery date of the study, None otherwise
+  """
+  recover_filepath = Path(
+    active_studies_dir,
+    hospital_shortname,
+    accession_number,
+    recovered_filename
+  )
+  
+  try:
+    with open(recover_filepath, 'r') as fp:
+      return fp.readline()
+  except FileNotFoundError:
+    return None
+
+
+def get_study_date(dataset: Type[Dataset]) -> str:
+  """
+  Attempts to retreieve the study date of a dataset, by check first on StudyDate
+  then on ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
+  Args:
+    dataset: dataset to get study date from
+
+  Returns:
+    The study date if it found one, otherwise None
+  """
+  try:
+    study_date_str = dataset.StudyDate
+
+    if not study_date_str:
+      raise ValueError()
+  except (AttributeError, ValueError):
+    try:
+      study_date_str = dataset.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+
+      if not study_date_str:
+        return None
+    except (AttributeError, IndexError):
+      return None
+
+  return study_date_str
+    
 
 def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Type[Dataset]:
   """
@@ -37,6 +102,9 @@ def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_
   Returns:
     The read dicom object with corrected private tags
   """
+  if isinstance(filepath, Path):
+    filepath = str(filepath) # Convert to string, so pydicom can work with it
+
   update_private_tags()
 
   obj = pydicom.dcmread(filepath)
@@ -101,6 +169,9 @@ def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
     ValueError: No AccessionNumber was available when trying to resolve meta data issues
     ValueError: if the filepath is empty
   """
+  if isinstance(filepath, Path):
+    filepath = str(filepath) # Convert to string, to allow pydicom to work with it
+
   ds.is_implicit_VR = True
   ds.is_little_endian = True
 
@@ -160,8 +231,9 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
-    ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'SOP'])
-    ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[ds.AccessionNumber, 'Series'])
+    now = datetime.datetime.now().strftime("%Y%m%d%H%M")
+    ds.SeriesInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
+    ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
 
 
 def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -> None:
@@ -208,11 +280,16 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: 
         ds.add_new(0x00400100, 'SQ', Sequence([seq_data]))
     else:
       # TODO: The below will fail if update_date=True, study_date=None and ds has no ScheduledProcedureStepSequence...
-      ds.StudyDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-      ds.StudyTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
-      ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
-      ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
-
+      try:
+        ds.StudyDate  = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+        ds.StudyTime  = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+        ds.SeriesDate = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
+        ds.SeriesTime = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartTime
+      except:
+        ds.StudyDate  = datetime.datetime.today().strftime('%Y%m%d')
+        ds.StudyTime  = '0800'
+        ds.SeriesDate  = datetime.datetime.today().strftime('%Y%m%d')
+        ds.SeriesTime  = '0800'
 
 def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
   """
@@ -229,6 +306,23 @@ def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
     ds.StudyDescription = ds.ScheduledProcedureStepSequence[0].ScheduledProcedureStepDescription
     ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
 
+
+def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
+  """
+  Adds Additional bamID to the operators
+
+  """
+  if bamID:
+    curr_operators = ds.get("OperatorsName")
+
+    if not curr_operators:
+      ds.OperatorsName = bamID
+    elif isinstance(curr_operators, pydicom.multival.MultiValue):
+      if bamID not in curr_operators:
+        curr_operators.append(bamID)
+    elif isinstance(curr_operators, pydicom.valuerep.PersonName3):
+      if str(ds.OperatorsName) != bamID:
+        ds.OperatorsName = str(ds.OperatorsName) + f'\\{bamID}'
 
 def try_add_exam_status(ds: Type[Dataset], exam_status: str) -> None:
   """
@@ -271,7 +365,7 @@ def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
     ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value]
 
 
-def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float]]) -> None:
+def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float, float]]) -> None:
   """
   Attempts to add the sample sequence to the dataset
 
@@ -288,6 +382,7 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
       seq_elem = Dataset()
       seq_elem.add_new(0x00231021, 'DT', sample[0])
       seq_elem.add_new(0x00231022, 'DS', sample[1])
+      seq_elem.add_new(0x00231023, 'DS', sample[2])
       seq_list.append(seq_elem)
     
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
@@ -309,7 +404,7 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
     pixeldata: pixeldata to add if present
 
   Remark:
-    This function assumes the pixeldata was generated through generate_plot_text
+    This function assumes the pixeldata was generated through generate_gfr_plot
     function from clearance_math.py
 
     The dicom dataset should have TransferSyntax to Little Endian Explicit
@@ -335,12 +430,12 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
     ds.HighBit = 7
     ds.PixelRepresentation = 0
     ds.PixelData = pixeldata.tobytes()
-    ds.ImageComments = 'GFR summary, generated by GFR-calc'
 
 
 def fill_dicom(ds,
     age                 = None,
     birthday            = None,
+    bamid               = None,
     bsa_method          = None,
     clearance           = None,
     clearance_norm      = None,
@@ -352,6 +447,7 @@ def fill_dicom(ds,
     gfr                 = None,
     gfr_type            = None,
     height              = None,
+    image_comment       = None,
     injection_after     = None,
     injection_before    = None,
     injection_time      = None,
@@ -370,6 +466,7 @@ def fill_dicom(ds,
     update_date         = False,
     update_dicom        = False,
     update_version      = False,
+    vial_number         = None,
     weight              = None
   ):
   """
@@ -397,7 +494,7 @@ def fill_dicom(ds,
     injection_time      : string on format 'YYYYMMDDHHMM', Describing when a sample was injected
     injection_weight    : float, Weight of injection
     name                : string, Name on format Firstname<1 space>Middlenames sperated by 1 space<1 space>Lastname
-    pixeldata           :
+    pixeldata           : image represented as byte-string
     ris_nr              : string, Accession number of dataset
     sample_seq          : list of lists where every list is on the format: 
       *List_elem_1      : string on format 'YYYYMMDDHHMM', describing sample taken time
@@ -409,10 +506,10 @@ def fill_dicom(ds,
     sop_instance_uid    :
     station_name        :
     study_datetime      : string, on format YYYYMMDD, describing study date
-    std_cnt             :
-    thiningfactor       :
-    update_date         :
-    update_dicom        :
+    std_cnt             : standard count for the study
+    thiningfactor       : thinning factor of the day
+    update_date         : whether or not to update the StudyDate
+    update_dicom        : whether or not to update dicom meta data
     update_version      : whether or not to update the software version
     weight              : float, Weight of patient wished to be stored
 
@@ -450,6 +547,7 @@ def fill_dicom(ds,
     0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion
     0x00231010 : ('LO', gfr_type),                                            # ds.GFRMethod
     0x00231018 : ('DT', injection_time),                                      # ds.injTime
+    0x00231019 : ('US', vial_number ),                                        # ds.VialNumber
     0x0023101A : ('DS', injection_weight),                                    # ds.injWeight
     0x0023101B : ('DS', injection_before),                                    # ds.injbefore
     0x0023101C : ('DS', injection_after),                                     # ds.injafter
@@ -457,7 +555,8 @@ def fill_dicom(ds,
     0x00231012 : ('DS', clearance),                                           # ds.clearance
     0x00231014 : ('DS', clearance_norm),                                      # ds.normClear
     0x00231024 : ('DS', std_cnt),                                             # ds.stdcnt
-    0x00231028 : ('DS', thiningfactor)                                        # ds.thiningfactor
+    0x00231028 : ('DS', thiningfactor),                                        # ds.thiningfactor
+    0x00204000 : ('LT', image_comment)
   }
   
   for tag, args in try_adds_dict.items():
@@ -483,7 +582,8 @@ def fill_dicom(ds,
     try_add_pixeldata: [pixeldata],
     # ### PRIVATE TAGS START ###
     try_add_sample_sequence: [sample_seq],
-    try_add_dicom_history: [dicom_history]
+    try_add_dicom_history: [dicom_history],
+    try_add_bamID: [bamid]
   }
 
   for try_func, args in custom_try_adds.items():

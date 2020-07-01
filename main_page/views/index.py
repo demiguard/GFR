@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 
 from main_page.libs import server_config
-from main_page import forms
+from main_page.forms import base_forms
 
 
 def is_browser_supported(user_agent: str) -> bool:
@@ -39,7 +39,7 @@ class IndexView(TemplateView):
     user_agent = request.META['HTTP_USER_AGENT']
     browser_support = is_browser_supported(user_agent)
 
-    login_form = forms.LoginForm()
+    login_form = base_forms.LoginForm()
 
     context = {
       'title'     : server_config.SERVER_NAME,

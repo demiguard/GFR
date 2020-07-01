@@ -1,0 +1,303 @@
+\documentclass{article}
+\usepackage[T1]{fontenc} %thanks's daleif
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}						% Dokumentets sprog
+\usepackage{graphicx}							% contains the "includegraphics" command for inserting images
+
+\usepackage{hyperref}
+
+% Highlighted comments
+\usepackage{color}
+\newcommand{\makecomment}[1]{{\color{red} \bf Comment: #1}}
+
+\setlength{\parindent}{0pt} % Disable indentation by default
+
+\title{Code/Project Documentation}
+\author{By: Christoffer Vilstrup Jensen \\ $\ \ $ Simon Surland Andersen}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Setup and installation}
+To install and run a locally hosted instance of the project, please refer to the document \texttt{GFR/doc/install.md}.
+
+\subsection{Server management and production installation(s)}
+For information related to the management and production installation(s) and configuration see: \url{http://hopper.petnet.rh.dk/wiki/Gfr}.
+
+\subsection{Recommended reading}
+If you're new to working with Django it's recommended that you read:
+\begin{itemize}
+	\item Django Getting Started tutorial: \url{https://docs.djangoproject.com/en/2.2/intro/tutorial01/}
+	\item REST api: \url{https://en.wikipedia.org/wiki/Representational_state_transfer}
+	\item Samba Share: \url{https://en.wikipedia.org/wiki/Samba_(software)}
+\end{itemize}
+
+\section{Project overview}
+The project is built using Python 3.6, primarily using the Django web framework. For specific information about functions please refer to their docstrings, the code is written with the intent of following the Google Style Python Docstrings (\url{https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html}). \\
+
+The project is made through one Django app, named \texttt{main\_page}, with a top project directory \texttt{GFR/} which contains the following files and directories:
+\begin{itemize}
+	\item \textbf{Code dirs.:}
+	\begin{itemize}
+		\item \texttt{GFR/main\_page/} - Main Django app directory.
+		\item \texttt{GFR/clairvoyance/} - Django project files e.g.: \texttt{settings.py},  \texttt{urls.py}, etc.
+		\item \texttt{GFR/doc/} - Files related to documentation of the code and user guide.
+	\end{itemize}
+	\item \textbf{Files and scripts:}
+	\begin{itemize}
+		\item \texttt{GFR/manage.py} - Django management script.
+		\item \texttt{GFR/run-tests.sh} - Script for running the automated tests. For more info. run:\\ \texttt{(venv)> ./run-tests.sh ----help}
+		\item \texttt{GFR/requirements.txt} - Python library dependencies.
+		\item \texttt{GFR/db.sqlite3} - SQLite database file.
+		\item \texttt{GFR/uwsgi\_params} - Parameters to use when running the uWSGI service.
+		\item \texttt{GFR/clairvoyance\_uwsgi.ini} - uWSGI settings file, for setup of uWSGI service. 
+	\end{itemize}
+\end{itemize}
+
+Most code for the project is found under the directory \texttt{GFR/main\_page}, which contains:
+\begin{itemize}
+	\item \texttt{GFR/main\_page/fixtures/} - Testing fixtures, i.e. database data to fill out during testing (for more read: \url{https://docs.djangoproject.com/en/3.0/howto/initial-data/}).
+	\item \texttt{GFR/main\_page/forms/} - Classes defining Django forms.
+	\item \texttt{GFR/main\_page/libs/} - Custom utility and wrapper functions:
+	\begin{itemize}
+		\item \texttt{GFR/main\_page/libs/clearance\_math/} - Math utility functions for computing clearance, normalized clearance, body surface area, etc.
+		\item \texttt{GFR/main\_page/libs/query\_wrappers/} - Wrapper functions for simple queries of RIS and PACS.
+		\item \texttt{GFR/main\_page/libs/ae\_controller.py} - Wrapper library for simplifying the process of making dicom queries using pydicom.
+		\item \texttt{GFR/main\_page/libs/dataset\_creator.py} - Wrapper library to easily generate empty or partially filled out dicom datasets.
+		\item \texttt{GFR/main\_page/libs/dicomlib.py} - Wrapper library for resolving issues related to saving and loading dicom datasets containing private tags.
+		\item \texttt{GFR/main\_page/libs/dirmanager.py} - Utility functions for easy and safe creation of directories.
+		\item \texttt{GFR/main\_page/libs/enums.py} - Enum definitions used throughout the code-base.
+		\item \texttt{GFR/main\_page/libs/formatting.py} - Formatting functions for e.g. converting dates, dicom person names, dots and commas, etc.
+		\item \texttt{GFR/main\_page/libs/ris\_thread.py} - Background thread executed on startup, used to perform prefetching of registered studies.
+		\item \texttt{GFR/main\_page/libs/samba\_handler.py} - Wrapper functions for getting data from the Samba Share, for incoming counter files.
+		\item \texttt{GFR/main\_page/libs/server\_config.py} - General configuration options for the server, e.g. where certain files and directories located, which private tags do we use, etc.
+		\item \texttt{GFR/main\_page/libs/status\_codes.py} - HTTP and dicom status codes.
+	\end{itemize}
+	\item \texttt{GFR/main\_page/migrations/} - Django migration files for database management.
+	\item \texttt{GFR/main\_page/static/} - static files, e.g. images, CSS, Javascript, etc.
+	\item \texttt{GFR/main\_page/templates/} - Jinja templates used to render the site.
+	\item \texttt{GFR/main\_page/tests/} - Automated testing files for the app.
+	\item \texttt{GFR/main\_page/views/} - Classes defining Django views, i.e. individual site endpoints.
+	\begin{itemize}
+		\item \texttt{GFR/main\_page/views/api/} - Class-based views for REST api endpoints
+	\end{itemize}
+	\item \texttt{GFR/main\_page/log\_util.py} - Utility for handling of logging to multiple files, s.t. the \texttt{ris\_thread} and main thread of the server can log to separate files without overlap.
+	\item \texttt{GFR/main\_page/apps.py} - Code to be ran once on startup of the Django server (this is responsible for e.g. starting the background RIS thread for retrieving historic studies).
+	\item \texttt{GFR/main\_page/backends.py} - Defines the authentication process for simple User login.
+	\item \texttt{GFR/main\_page/models.py} - Defines database models.
+	\item \texttt{GFR/main\_page/urls.py} - Defines available endpoints and their corresponding views.
+\end{itemize}
+
+\subsection{Changelog}
+The changelog describing added, changed, removed and/or fixed features of previous versions can be found under: \texttt{GFR/doc/CHANGELOG.md}.
+
+\subsection{Adding new libraries, frameworks, etc.}
+If adding any new libraries or frameworks becomes a necessity don't \underline{ever} use external CDNs, as the application must still be able to run internally, even if connection to the outside internet is down.
+
+\section{Structure of stored data}
+\subsection{DICOM files}
+This project stores dicom objects in nested directories based on the accession number of a study, e.g. accession number is "REGH12345678": \\ \texttt{GFR/active\_dicom\_objects/REGH12345678/REGH12345678.dcm} \\
+The reason for using nested directories, is so we can store any history gathered from PACS as dicom files next to the currently active study. \\
+
+This project generates four directories for temporarily storing dicom objects:
+\begin{itemize}
+	\item \texttt{GFR/active\_dicom\_objects} - Dicom objects related to currently active studies, displayed on \texttt{<SITE\_URL/list\_studies}.
+	\item \texttt{GFR/deleted\_studies} - Dicom objects related to studies which have been deleted from \texttt{<SITE\_URL>/list\_studies}. Dicom ojects in this directory are displayed on \texttt{<SITE\_URL>/deleted\_studies}.
+	\item \texttt{GFR/control\_studies} - Dicom objects related to filled out studies, displayed on \texttt{<SITE\_URL>/control\_list\_studies}, that are to be checked through by a second person.
+	\item \texttt{GFR/search\_dir} - For temporary storage of retrieved search files. This directory should usually be empty, as search files are only stored for a brief period after they have been received.
+\end{itemize}
+
+\subsection{Samba Share files}
+Alongside the Django server we're running a Samba Share, i.e. a shared directory accessible by Windows machines, which stores csv data files from the counter wizards located at each hospital. E.g. on the production server named \texttt{gfr}, the Samba Share is located under \texttt{/data/}, with two directories:
+\begin{itemize}
+	\item \texttt{/data/Samples/<HOSPITAL\_SHORTNAME>/} - Sample counts for the current day, here \texttt{<HOSPITAL\_SHORTNAME} is the abbreviated name for the hospital, e.g. "Rigshospitalet"\ has shortname "RH", "Glostrup"\ has "GLO", etc.
+	\item \texttt{/data/backup/<HOSPITAL\_SHORTNAME>/} - Stores backup of old sample files. A sample file is moved to backup, once it's more than 1 day old.
+\end{itemize}
+
+\section{DICOM}
+The full specification of the DICOM standard can be found at:\\ \url{https://www.dicomstandard.org/current/}. \\
+
+Working with dicom objects/dataset throughout this project is done via. two Python libraries:
+\begin{itemize}
+	\item \texttt{pydicom} (\url{https://pydicom.github.io/pydicom/stable/getting_started.html}) - for viewing and manipulating dicom files, objects and datasets, etc.
+	\item \texttt{pynetdicom} (\url{https://pydicom.github.io/pynetdicom/stable/}) - for any networking related to DICOM, such as querying dicom databases like RIS and PACS.
+\end{itemize}
+
+\subsection{DICOM tags}
+DICOM tags are data elements stored in a DICOM dataset and are defined by a unique tag, typically represented by a hexadecimal value, a VR (Value Representation), and value to be stored. \\
+
+For a full list of available VR's see: \url{http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html} \\
+
+For information regarding specific DICOM tags and description of their usage, please refer to the search tools, where you can search by tag:
+\begin{itemize}
+	\item \url{https://www.dicomlibrary.com/dicom/dicom-tags/}
+	\item \url{https://dicom.innolitics.com/ciods}
+\end{itemize}
+
+\subsection{Private DICOM tags}
+In the code private DICOM tags are defined in \texttt{GFR/main\_page/libs/server\_config.py}. The private tags are as follows:
+\begin{table}[!htb]
+	\centering
+	\begin{tabular}{ | l | l | l | l | }
+	\hline
+	\textbf{Tag (hex)} & \textbf{Attribute name} & \textbf{VR} & \textbf{Description} \\ \hline
+	\texttt{0x00231001} & GFR & LO & GFR (Normal, Moderat Nedsat, Svært nedsat) \\ \hline
+	\texttt{0x00231002} & GFRVersion & LO & GFR Version \\ \hline
+	\texttt{0x00231010} & GFRMethod & LO & GFR Method \\ \hline
+	\texttt{0x00231011} & BSAmethod & LO & Body Surface Method \\ \hline
+	\texttt{0x00231012} & clearance & DS & clearance \\ \hline
+	\texttt{0x00231014} & normClear & DS & normalized clearance \\ \hline
+	\texttt{0x00231018} & injTime & DT & Injection time \\ \hline
+	\texttt{0x0023101A} & injWeight & DS & Injection weight \\ \hline
+	\texttt{0x0023101B} & injbefore & DS & Vial weight before injection \\ \hline
+	\texttt{0x0023101C} & injafter & DS & Vial weight after injection \\ \hline
+	\texttt{0x00231020} & ClearTest & SQ & Clearance Tests (Sequence) \\ \hline
+	\texttt{0x00231021} & SampleTime & DT & Sample Time (Sequence item) \\ \hline
+	\texttt{0x00231022} & cpm & DS & Count Per Minuts (Sequence item) \\ \hline
+	\texttt{0x00231024} & stdcnt & DS & Standart Counts Per \\ \hline
+	\texttt{0x00231028} & thiningfactor & DS & Thining Factor \\ \hline
+	\texttt{0x00231032} & ExamStatus & US & Examnation Status \\ \hline
+	\texttt{0x0023103F} & clearancehistory & SQ & Clearance History \\ \hline
+	\end{tabular}
+\end{table}
+
+%  0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), # Normal, Moderat Nedsat, Svært nedsat
+%  0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), # Version 1.
+%  0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
+%  0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
+%  0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),   
+%  0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
+%  0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     # Tags Added
+%  0x0023101A : ('DS', '1', 'Injection weight', '', 'injWeight'),
+%  0x0023101B : ('DS', '1', 'Vial weight before injection', '', 'injbefore'),
+%  0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
+%  0x00231020 : ('SQ', '1', 'Clearance Tests', '', 'ClearTest'),
+%  0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), # Sequence Items
+%  0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'), #Sequnce Item
+%  0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
+%  0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor'),
+%  0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus'),
+%  0x0023103F : ('SQ', '1', 'Clearance History', '', 'clearancehistory')
+
+\section{Formatting specifications}
+\subsection{Commas and Dots (presenting floats)}
+
+
+\subsection{Dates and timestamps}
+
+
+\section{\texttt{ae\_controller.py} library}
+
+\subsection{Dicom communication}
+The dicom protocol also includes a method for transfering dicomfiles between workstations such as GFR, PACS and RIS, each workstation have their own name, this is called an application Entity title (AE_title). To save the reader some time, this section also includes
+A mini-introduction to dicom communication. All dicom communication is running over TCP, and works by sending different messages between stations. Each message is a dicom object.
+The following dicom messages are relevant for GFR:
+\begin{itemize}
+		\item \texttt{C-FIND}:  This message is send a partially filled dicom header, that returns all dicom files, that match the header. This used for finding new studies and finding history
+		\item \texttt{C-STORE}: This message is a request to store the dicomfile, send with the message. It returns a dicom file indicating success.
+		\item \texttt{C-Move}:  This message is a request to one AE to send a dicom specified in the message to another AE. Note that the recieving AE can be yourself.
+		 A C-move message consists of two parts. In the first part the recieving at AE may send the move message to another AE, that may know where the requested dicom objects.
+		 This continues until the message reaches the AE, that have access to the request Dicom file, at this point it sends a C-store with the file to the target of the message
+\end{itemize}
+Note that you can receive multiple messages from sending a single message, therefore the pynetdicom implementation handles this by introducting iterator objects,
+this means you end up with a large amount of for loops, the AE controller is there to conact this trend by hiding the loops for you.\\
+C-finds multiple studies can return based on the search criteria This is not the case with C-Stores so the AE doesn't have thing for this.
+C-moves sends you updates how the message is doing, as it have successfully been send onwards, and the final c-store was successfull.\\ 
+The AE controller modules handles establishing communication, and sending the accually request, however to each 
+
+
+
+\section{API}
+For dynamic content on the site, such as search, admin panel, and retrieval of old sample data, we use a set of custom defined api endpoints, which uses a REST design to make it easy to work with on the Javascript frontend.
+
+\subsection{Available API endpoints}
+For precise information about which views are used for each endpoint, please refer to the file \texttt{GFR/main\_page/urls.py}.
+
+\begin{itemize}
+	\item \texttt{<SITE\_URL>/api/user}: (Requires admin privileges)
+	\begin{itemize}
+		\item \texttt{GET}: list information about all users.
+	\end{itemize}
+	
+	\item \texttt{<SITE\_URL>/api/user/<user\_id>}: (Requires admin privileges)
+	\begin{itemize}
+		\item \texttt{GET}: list information about specific user based on unique user id.
+		\item \texttt{PATCH}: update information about specific user.
+		\item \texttt{DELETE}: delete specific user.
+		\item \texttt{POST}: create new user.
+	\end{itemize}
+
+	\item \texttt{<SITE\_URL>/api/}:
+\end{itemize}
+
+\subsection{Defining new endpoints}
+\makecomment{Something about the custom serializer for Django model instances. Describe how to use the RESTEndpoint class and it's subclasses for defining endpoints with only specific actions.}
+
+\subsection{Non-REST endpoints}
+Currently there are only two endpoints which haven't yet been updated to use the REST design of all other endpoints, these endpoints are:
+\begin{itemize}
+	\item \texttt{<SITE\_URL>/ajax/login}:
+	\begin{itemize}
+		\item \texttt{POST} - attempt to login with the provided request parameters.
+	\end{itemize}
+
+	\item \texttt{<SITE\_URL>/ajax/update\_thining\_factor}: (Login required)
+	\begin{itemize}
+		\item \texttt{POST} - update the saved thining factor for the department of the currently logged in user.
+	\end{itemize}
+\end{itemize}
+
+\section{Database design scheme}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.5]{images/gfr_database.png}
+	\caption{Database relationship diagram}
+\end{figure}
+
+\newpage
+\section{Add a panel to admin panel / Database}
+To enable database manipulation / editting without using tools like DB broswer and their like. There's a admin panel, that allows editting of DB entries. The following is a guide on how to edit the codebase s.t. it can display a new table
+
+\begin{enumerate}
+	\item Add the database schema by creating a model class in \textit{main\_page/models.py} file.
+	\item Update the database by calling the django commands make migration and migrate.
+	\item Create the class \textbf{Edit<model name>Form} corosponding to the edit form and the class \textbf{Add<Model name>Form} corosponding to the adding form in the \textit{main\_page/forms.py} file
+	\item Add an Endpoint by adding the class \textbf{<model name>EndPoint} in the \textit{main\_page/views/api/api.py} file.
+	\item Update \textit{main\_page/url.py} with the endpoint created in step 4, remember to create 2 endpoints for displaying and for accessing an object. 
+	\item In the classes \textbf{AdminPanelEditView} and \textbf{AdminPanelAddview} found in the \textit{main\_page/views/admin\_panel.py} file, add an entry with to the dictionary \textbf{MODEL\_NAME\_MAPPINGS} with the model from step one in both classes. Add an Entry to the dictionary in the:\\ \textbf{EDIT\_FORM\_MAPPINGS} / \textbf{ADD\_FORM\_MAPPING} in the respective classes with the form you created in step 3.
+	\item Update the javascript in the files \textit{main\_page/static/main\_page/js/admin\_panel.js}, \textit{main\_page/static/main\_page/js/admin\_panel\_add.js} and\\ \textit{main\_page/static/main\_page/js/admin\_panel\_edit.js}
+	\item Add the option to the button in the admin
+\end{enumerate} 
+Total list of files that require to be edited
+\begin{itemize}
+	\item[] main\_page/
+	\begin{itemize}
+		\item[] forms/
+		\begin{itemize}
+			\item model\_add\_forms.py
+			\item model\_edit\_forms.py
+		\end{itemize}	
+		\item models.py
+		\item urls.py
+		\item[] views/:
+		\begin{itemize}
+			\item admin\_panel.py
+			\item[] api/
+			\begin{itemize}
+				\item api.py
+			\end{itemize}
+		\end{itemize}
+		\item[] static/main\_page/js/
+		\begin{itemize}
+			\item admin\_panel.js
+			\item admin\_panel\_add.js
+			\item admin\_panel\_edit.js
+		\end{itemize}
+		\item[] template/main\_page/admin\_panel.html
+	\end{itemize}
+\end{itemize}
+\end{document}

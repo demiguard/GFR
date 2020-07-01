@@ -5,5 +5,5 @@
 
 {% block content %}
 <img width="100%" src="{% static image_path %}">
-
+<input type="button" onclick="document.location='{% url "main_page:present_study" accession_number %}'" value="Tilbage">
 {% endblock content %}

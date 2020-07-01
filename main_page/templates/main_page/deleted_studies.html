@@ -15,22 +15,26 @@
         <th onclick="sort_table(0, 'deleted_studies')">Navn</th>
         <th onclick="sort_table(1, 'deleted_studies')">Cpr-nr.</th>
         <th onclick="sort_table(2, 'deleted_studies')">Undersøgelsesdato</th>
-        <th onclick="sort_table(3, 'deleted_studies')">Dato slettet</th>
-        <th onclick="sort_table(4, 'deleted_studies')">Accessionnr</th>
+        <!-- <th onclick="sort_table(3, 'deleted_studies')">Dato slettet</th> -->
+        <th onclick="sort_table(4, 'deleted_studies')">Accession nr.</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% for exam in deleted_studies %}
+      {% for study in deleted_studies %}
         <tr>
-          <td>{{ exam.name }}</td>
-          <td>{{ exam.cpr }}</td>
-          <td>{{ exam.date }}</td>
-          <td>{{ exam.deletion_date }}</td>
-          <td>{{ exam.rigs_nr }}</td>
+          <td>{{ study.name }}</td>
+          <td>{{ study.cpr }}</td>
+          <td>{{ study.study_date }}</td>
+          <!-- <td>{{ study.study_date }}</td> -->
+          <!-- <td>...</td> -->
+          <td>{{ study.accession_number }}</td>
           <td align="center">
             <button type="button" class="btn btn-link restore-btn">
               <span class="oi oi-loop-circular" title="Gendan undersøgelse" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-link purge-btn">
+              <span class="oi oi-ban" title="Fjern undersøgelse" aria-hidden="true"></span>
             </button>
           </td>
         </tr>
@@ -39,22 +43,44 @@
   </table>
 
 
-    <!-- Delete study modal -->
-    <div class="modal fade" id="recoverModal" tabindex="-1" role="dialog" aria-labelledby="recoverModalLabel" aria-hidden="true">
+  <!-- Recover study modal -->
+  <div class="modal fade" id="recoverModal" tabindex="-1" role="dialog" aria-labelledby="recoverModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="recoverModalLabel">Vil du gendanne undersøgelsen</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Du er ved at gendanne undersøgelse med accession nummer: <span id="modal-accession-number"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
+          <button id="recover-modal-accept" type="button" class="btn btn-danger">Gendan undersøgelse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purge study modal -->
+  <div class="modal fade" id="purgeModal" tabindex="-1" role="dialog" aria-labelledby="purgeModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="recoverModalLabel">Vil du gendanne undersøgelsen</h5>
+            <h5 class="modal-title" id="purgeModalLabel">Vil du fjerne undersøgelsen</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            <p>Du er ved at gendanne undersøgelse med accession nummer: <span id="modal-accession-number"></span></p>
+            <p>Du er ved at fjerne undersøgelse med accession nummer: <span id="purge-modal-accession-number"></span></p>
+            <p>ADVARSEL:<br>ALT data relateret til undersøgelsen bliver slettet fra GFRcalc systemet og kan hentes igen under "Åbn undersøgelse" hvis undersøgelsen stadig er ankomst registeret. (Der går op imod 15 min. før undersøgelsen kan blive vist på "Åbn undersøgelse".)</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
-            <button id="recover-modal-accept" type="button" class="btn btn-danger">Gendan undersøgelse</button>
+            <button id="purge-modal-accept" type="button" class="btn btn-danger">Fjern undersøgelse</button>
           </div>
         </div>
       </div>

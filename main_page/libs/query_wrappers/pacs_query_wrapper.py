@@ -14,195 +14,266 @@ import numpy
 import pandas
 import random
 import csv
+import threading
+import time
+import json
 
+from main_page import models
+from main_page.libs import ae_controller
 from main_page.libs.dirmanager import try_mkdir
 from .. import dicomlib, dataset_creator
 from .. import server_config
 from ..clearance_math import clearance_math
-from .. import examination_info
-from ..examination_info import ExaminationInfo
 from .. import formatting
 
 
-logger = logging.getLogger()
+from main_page import log_util
 
+logger = log_util.get_logger(__name__)
 
-def move_from_pacs(user, accession_number):
+def move_study_from_search_cache(dataset, *args, **kwargs):
   """
-    Returns:
-      None or Dataset - The dataset is always single
+    This is the hanlder 
+  
   """
-  # # # Get file from pacs # # #
-  find_dataset = dataset_creator.create_search_dataset(
-    '', #Name
-    '', #CPR
-    '', #Date_from
-    '', #Date_to
-    accession_number
-  )    
+  accession_number = kwargs['accession_number']
 
-  find_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-  find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+  target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
+  
 
-  move_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
-  move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
+  if not(os.path.exists(target_file)):
+    logger.error(f'Could not find the file {accession_number} from pacs')
+  else:
+    logger.info(f'Recieved File successfully for study {accession_number}')
 
-  find_assoc = find_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
-  )
-  move_assoc = move_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
-  )
-  if find_assoc.is_established and move_assoc.is_established:
-    
-    find_dataset_from_response = []
-    find_response = find_assoc.send_c_find(find_dataset, query_model='S')
-    for (status, dataset_from_find) in find_response:
-      # Error Checking
-      if status.Status == 0xC001:
-        logger.warn(f"""
-          C-FIND failed with dataset: 
-          {find_dataset}
-        """)
-        try:
-          move_assoc.release()          
-          find_assoc.release()
-        except:
-          pass
-        return None
-        # Extract available data 
-      if dataset_from_find != None:
-        find_dataset_from_response.append(dataset_from_find)
-    
-    if len(find_dataset_from_response) > 1:
-      #Soooo somehow we got more than one response to a unique AccessionNumber?
-      logger.warn(f"Move_from_pacs got multiple responses to AccessionNumber: {accession_number}. The responses was: {find_dataset_from_response}")
-    elif len(find_dataset_from_response) == 0:
-      logger.info(f"Could not find any study under {accession_number}")
-      find_assoc.release()
-      move_assoc.release()
-      return None
+def move_and_store(dataset, *args, **kwargs):
+  """
+    This function is a response to a C_find moves it over to the cache.
+    This means if a user searches for the same study twice on the same day, it's 
+    only downloaded once
 
-    #Takes the first dataset. We can do this because len > 0
-    move_query_dataset = find_dataset_from_response[0]
-    
-    successfull_move = False
-    move_response = move_assoc.send_c_move(
-      move_query_dataset,
-      server_config.SERVER_AE_TITLE,
-      query_model='S'
+    args:
+      C-Find retrun dataset dataset
+      required KW:
+        move_assoc: An connected and active Pynetdicom.Association object
+
+  """
+  if 'move_assoc' and 'config' in kwargs:
+    move_assoc = kwargs['move_assoc']
+    AE_title     = kwargs['AE_title']
+  else:
+    logger.info('config or move_assoc doesn\'t exsists')
+    raise AttributeError("move_assoc and config is a required keyword")
+
+  ae_controller.send_move(
+    move_assoc, 
+    AE_title,
+    dataset,
+    move_study_from_search_cache,
+    accession_number=dataset.AccessionNumber
     )
-    for (status, identifier) in move_response:
-      if status.Status == 0x0000:
-        # We are successful
-        logger.info('C-move successful')
-        successfull_move = True
-      elif status.Status == 0xFF00:
-        #We are not done, but shit have not broken down
-        pass
-      else:
-        logger.warn('C-Move move opration failed with Status code:{0}'.format(hex(status.Status)))
-    find_assoc.release()
-    move_assoc.release()
-  else:
-    logger.warn('Move_from_pacs could not connect to pacs')
-    return None
 
-  file_src = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
-  if successfull_move and os.path.exists(file_src):
-    dataset = dicomlib.dcmread_wrapper(file_src)
-    os.remove(file_src) # Deletes the file, because we are done with it, and if the user want the page again, they have 
-    return dataset
-  else:
-    logger.warn('Mismatching matching Accession number, Perhaps Pacs doesn\'t have the requested file? Maybe you have incorrect info')
-    return None
-
-
-def get_examination(user, rigs_nr, resp_dir):
+def get_study(user, accession_number):
   """
-  Retreive examination information based on a specified RIGS nr.
-
-  Args:
-    rigs_nr: RIGS nr of examination
-
-  Returns:
-    ExaminationInfo instance containing examination information for the specified
-    RIGS nr.
-  """
-  # Read after dictionary update
-  try:
-    obj = dicomlib.dcmread_wrapper(f'{resp_dir}{rigs_nr}.dcm')
-  except FileNotFoundError:
-    # Get object from DCM4CHEE/PACS Database
-    obj = move_from_pacs(user, rigs_nr)
-
-  return examination_info.deserialize(obj)
-
-
-def store_dicom_pacs(dicom_object, user, ensure_standart = True ):
-  """
-    Stores a dicom object in the user defined pacs (user.department.config)
-    It uses a C-store message
+    This function retrieves a completed study with the accession number given. 
+    Note that this function does not check the cache
 
     Args:
-      dicom_object : pydicom dataset, the dataset to be stored
-      user : a django model user, the user that stores 
-
-    KWargs:
-      ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
+      User Django-Model.User object - The User making the request
+      accession_number str - The String of Accession Number eg. REGHXXXXXXXX
     Returns:
-      Success : Bool, returns true on a success full storage, false on failed storage
-      Failure Message : String, A user friendly message of what went wrong. Empty on success. 
-    Raises
-      Value error: If the dicom set doesn't contain required information to send
+      Dataset: None - The Dataset could not be found or an Pydicom.Dataset Object. The Requested Dataset.
+      pathToDataset: The path to the dataset
 
+    Remark:
+      This is overhauled version of move_from_pacs
   """
-  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
-  assoc = ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_aet
+  config = user.department.config
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+
+  pacs_find_ae = ae_controller.create_find_AE(AE_title)
+  pacs_move_ae = ae_controller.create_move_AE(AE_title)
+
+  pacs_find_assoc = ae_controller.establish_assoc(
+    pacs_find_ae, 
+    config.pacs.ip,
+    config.pacs.port,
+    config.pacs.aet,
+    logger
   )
+  if not(pacs_find_assoc):
+    return None, "Error"
 
-  if assoc.is_established:
-    status = assoc.send_c_store(dicom_object)
-    if status.Status == 0x0000:
-      return True, ''
-    elif status.Status == 0x0124:
-      return False, 'Duplikeret Argument'
-    elif status.Status >= 0xA700 and status.Status <= 0xA7FF:
-      return False, 'Pacs har ikke hukommelse til at gemme undersøgelsen'
-    else:
-      return False, 'Fejlede at gemme i pacs med ukendt fejlkode:{0}'.format(hex(status.Status))
-  else: 
-    return False , 'Kunne ikke forbinde til pacs'
+  pacs_move_assoc = ae_controller.establish_assoc(
+    pacs_move_ae, 
+    config.pacs.ip,
+    config.pacs.port,
+    config.pacs.aet,
+    logger )
+
+  if not(pacs_move_assoc):
+    pacs_find_assoc.release()
+    logger.error('Could not etablish with pacs find assoc!')
+    return None, "Error"
+
+  find_dataset = dataset_creator.create_search_dataset('', '', '', '', accession_number )
+  ae_controller.send_find(
+    pacs_find_assoc,
+    find_dataset,
+    move_and_store,
+    move_assoc=pacs_move_assoc,
+    AE_title=AE_title)
+
+  target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
+
+  if os.path.exists(target_file):
+    return dicomlib.dcmread_wrapper(target_file), target_file
+  else:
+    logger.error(f'Could not find request study {accession_number}')
+    return None, "Error"
+
+def store_dicom_pacs(dicom_object, user, ensure_standart=True):
+  """
+  Stores a dicom object in the user defined pacs (user.department.config)
+  It uses a C-store message
+
+  Args:
+    dicom_object : pydicom dataset, the dataset to be stored
+    user : a django model user, the user that stores 
+
+  KWargs:
+    ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
+  Returns:
+    Success : Bool, returns true on a success full storage, false on failed storage
+    Failure Message : String, A user friendly message of what went wrong. Empty on success. 
+  Raises
+    Value error: If the dicom set doesn't contain required information to send
+  """
+  accession_number = dicom_object.AccessionNumber
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  # Save the dicom file to be sent to PACS
+  try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
+  store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
   
-def start_scp_server():
-  """
-    Problems:
-      The server host multiple AE titles 
-        TEMP SOLUTION:
-          Accepts all AE title
-      Shutting down the server is difficult, since it's on another thread
-      server_instance.shutdown() needs to becalled for normal shutdown 
-        TEMP SOLUTION:
-          ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
-            Potential Solution:
-              Create Global Variable in server config and set it to none
-              When Creating Server overwrite global Variable with server instance
-              THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
-      Saving a file, While it's clear that it should be saved in the search_dir.
-      However Saving in subdirectories are difficult 
+  dicomlib.save_dicom(store_file, dicom_object)
 
+  # Write file with connection configurations
+  # hey hey hey, I present the newest programming invention:
+  # MULTIPLE FUNCTIONAL ARGUMENTS, no more writing a file, and opening it up 
+  with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
+    fp.write(json.dumps({
+      "pacs_calling": AE_title,
+      "pacs_ip":    user.department.config.pacs.ip,
+      "pacs_port":  user.department.config.pacs.port,
+      "pacs_aet":   user.department.config.pacs.aet,
+    }))
+
+  # Spawn background thread to send study
+  store_thread = threading.Thread(
+    target=thread_store,
+    args=(
+      accession_number,
+      server_config.PACS_QUEUE_WAIT_TIME
+    )
+  )
+  store_thread.start()
+
+  return True, ""
+
+
+def thread_store(accession_number, wait_time, max_attempts=5):
   """
-  logger = logging.getLogger()
+  Send a study to PACS
+
+  Args:
+    accession_number: accession number of study to send
+    wait_time: time to wait before attempting to send again if failed
+
+  Kwargs:
+    max_attempts: max number of attempts to try and send to PACS
+
+  TODO: Implement the max cap for attempts
+  NOTE: Adding a cap on the number of attempts might be a bad idea,
+        think if PACS is down for the whole day and the cap runs out. 
+        Then a lot of studies are going to get stuck in the queue folder, 
+        and aren't sent to PACS until the entire server is reset.
+  """
+  # Load study and connection configuration - if the files cannot be found don't send
+  ds_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
+  conf_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.json"
+
+  if not os.path.exists(ds_file) or not os.path.exists(conf_file):
+    return
+
+  with open(conf_file, "r") as fp:
+    conf = json.loads(fp.read())
+
+  ds = dicomlib.dcmread_wrapper(ds_file)
+
+  # Send study to PACS
+  is_sent = False
+
+  while not is_sent:
+    ae = AE(ae_title=conf["pacs_calling"])
+    ae.add_requested_context('1.2.840.10008.5.1.4.1.1.7', transfer_syntax='1.2.840.10008.1.2.1')
+    assoc = ae.associate(
+      conf["pacs_ip"],
+      int(conf["pacs_port"]),
+      ae_title=conf["pacs_aet"]
+    )
+
+    if assoc.is_established:
+      status = assoc.send_c_store(ds)
+      if status.Status == 0x0000:
+        is_sent = True
+    
+    if not is_sent:
+      time.sleep(wait_time)
+
+  # Clean up
+  os.remove(ds_file)
+  os.remove(conf_file)
+
+
+def send_queue_to_PACS():
+  """
+  Spawn threads for sending all studies in the queue folder to PACS
+  This should be called on start up of the server, so the missing
+  studies can be correctly send to PACS.
+  """
+  for dcm_file in glob.glob(f"{server_config.PACS_QUEUE_DIR}*.dcm"):
+    accession_number = dcm_file.split(".")[-2].split("/")[-1]
+
+    # print(f"Spawning PACS send thread for: {accession_number}")
+
+    store_thread = threading.Thread(
+      target=thread_store,
+      args=(
+        accession_number,
+        server_config.PACS_QUEUE_WAIT_TIME
+      )
+    )
+    store_thread.start()
+
+
+def start_scp_server(ae_title):
+  """
+  Problems:
+    The server host multiple AE titles 
+      TEMP SOLUTION:
+        Accepts all AE title
+    Shutting down the server is difficult, since it's on another thread
+    server_instance.shutdown() needs to becalled for normal shutdown 
+      TEMP SOLUTION:
+        ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
+          Potential Solution:
+            Create Global Variable in server config and set it to none
+            When Creating Server overwrite global Variable with server instance
+            THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
+    Saving a file, While it's clear that it should be saved in the search_dir.
+    However Saving in subdirectories are difficult 
+  """
+  logger = log_util.get_logger(__name__)
   logger.info('Starting Server')
   def on_store(dataset, context, info):
     """
@@ -215,9 +286,6 @@ def start_scp_server():
     
       Retried due to retried functionality of Pynetdicom v 1.4.0
     """
-    #logger.info(f"Recieved C-STORE with ID:{info['parameters']}")
-    #logger.info(f"C-Store Originated from:{info['parameters']}")
-    
     if 'AccessionNumber' in dataset:
 
       filename = f'{dataset.AccessionNumber}.dcm'
@@ -286,7 +354,7 @@ def start_scp_server():
     # Infomation Retrieved
     # Availble vars retrieved_dataset, retrieved_meta_info
     
-    logger.info(f'Dataset:\n {retrieved_dataset}')
+    #logger.info(f'Dataset:\n {retrieved_dataset}')
 
     if 'AccessionNumber' in retrieved_dataset:
       if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
@@ -348,58 +416,74 @@ def start_scp_server():
 
   try_mkdir(server_config.SEARCH_DIR)
 
-  server_ae = AE(ae_title=server_config.SERVER_AE_TITLE)
+  server_ae = AE(ae_title=ae_title)
   server_ae.supported_contexts = StoragePresentationContexts
   #
   #server_ae.on_c_store = on_store 
   #server_ae.on_c_move = on_move
 
-  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers)
+  server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers) # Production
+  # server_instance = server_ae.start_server(('', 11112), block=False, evt_handlers=event_handlers) # Testing / Debugging
 
   return server_instance
 
-def search_query_pacs(user, name="", cpr="", accession_number="", date_from="", date_to=""):
-  response_list = []
-
+def search_query_pacs(config, name="", cpr="", accession_number="", date_from="", date_to=""):
+  """
+  Return list of responses, None if PACS connection failed
+  """
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
   # Construct Search Dataset
-  find_dataset = dataset_creator.create_search_dataset(
-      name,
-      cpr, 
-      date_from, 
-      date_to, 
-      accession_number
-    )  
+  search_dataset = dataset_creator.create_search_dataset(
+    name,
+    cpr, 
+    date_from,
+    date_to, 
+    accession_number
+  ) 
 
-  logger.info(f"{user} is Executing search query with paramenters: name='{name}', cpr='{cpr}', date_from='{date_from}', date_to='{date_to}', accession_number='{accession_number}'")
+  # Establish association to PACS
+  association = ae_controller.connect(
+    config.pacs.ip,
+    int(config.pacs.port),
+    AE_title, 
+    config.pacs.aet,
+    ae_controller.FINDStudyRootQueryRetrieveInformationModel
+  )
 
-  # Construct AE
-  ae = AE(ae_title=server_config.SERVER_AE_TITLE)
-  ae.add_requested_context('1.2.840.10008.5.1.4.1.2.2.1')
+  # Send find query and process successful responses
+  response_list = [ ]
+  def process_incoming_dataset(dataset, *args, **kwargs):
+    if 'logger' in kwargs:
+      logger = kwargs['logger']
+    try:
+      response_list.append({
+        'accession_number': dataset.AccessionNumber,
+        'name'            : formatting.person_name_to_name(str(dataset.PatientName)),
+        'cpr'             : formatting.format_cpr(dataset.PatientID),
+        'date'            : formatting.format_date(dataset.StudyDate)
+      })
+    except Exception as e:
+      logger.info(f"Failed to process incoming search dataset, got exception {e}")
 
-  # Connect with AE
-  assoc = ae.associate(user.department.config.pacs_ip, int(user.department.config.pacs_port), ae_title=user.department.config.pacs_aet)
-  
-  if assoc.is_established:
-    # Make Search Request
-    response = assoc.send_c_find(find_dataset, query_model='S')
-    for (status, dataset_from_response) in response:
-      if status.Status == 0xFF00:
-        exam_obj = examination_info.deserialize(dataset_from_response)
+  try:
+    ae_controller.send_find(
+      association,
+      search_dataset,
+      process_incoming_dataset,
+      logger=logger
+    )
+  except ValueError:
+    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.aet}")
+    return None
 
-        response_list.append(exam_obj)
-      elif status.Status == 0x0000:
-        # Operation successfull
-        continue
-      else:
-        logger.info('Error, recieved status:{0}\n{1}'.format(hex(status.Status), status))
-    assoc.release()
-  else:
-    logger.warn('Connection to pacs failed!')
+  association.release()
+
+  logger.info(f'Returning search list of {len(response_list)}')
 
   return response_list
 
 
-def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
+def get_history_from_pacs(dataset, active_objects_path):
   """
   Retrieves information historical data about a user from pacs.
   This function doesn't save anything
@@ -410,114 +494,58 @@ def get_history_from_pacs(dataset, cpr : str, birthday : str, user):
 
   Returns:
     date_list:            A datetime-list. The n'th element is a datetime object with time of examination. The lenght is 'm'
-    age_list:             A float list. The n'th element is calculated age at time of examination. The lenght is 'm'
+    age_list:             A float list. Element is calculated age at time of examination. The lenght is 'm'
     clearence_norm_list:  A float list. The n'th element is float
   Notes:
     This function doesn't save anything and cleans up after it-self
   """
   
   #Init 
-  date_list           = []
   age_list            = []
   clearence_norm_list = []
-  history_datasets     = []
+  date_list           = []
+  history_sequence    = []
 
-  birthday = datetime.datetime.strptime(birthday,'%Y-%m-%d')
-  #Create Assosiation to pacs
-  find_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
-  move_ae = pynetdicom.AE(ae_title=user.department.config.pacs_calling)
-  FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
-  find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel) #Contest for C-FIND
-  MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
-  move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel) 
+  birthday = dataset.PatientBirthDate
+
+  #Get all file paths for the Accession number
+  curr_dicom_path = f"{active_objects_path}{dataset.AccessionNumber}/{dataset.AccessionNumber}.dcm"
+  dicom_filepaths = glob.glob(f'{active_objects_path}{dataset.AccessionNumber}/*.dcm')
+  #Filter the already opened dataset out
+  history_filepaths = filter(lambda x: x != curr_dicom_path, dicom_filepaths)
+  #Iterate through the datasets
+  for history_filepath in history_filepaths:
+    #Open the dataset
+    
+    history_dataset = dicomlib.dcmread_wrapper(history_filepath)
+    #Create History dataset for history datasets
+    try:
+      date_of_examination = datetime.datetime.strptime(history_dataset.StudyDate,'%Y%m%d')
+      age_at_examination = (date_of_examination - birthday).days / 365
+      
+      age_list.append(age_at_examination)
+      date_list.append(date_of_examination)
+      clearence_norm_list.append(history_dataset.normClear)
+
+      #Dataset for dicom
+      sequence_dataset = Dataset()
+      sequence_dataset.AccessionNumber  = history_dataset.AccessionNumber
+      sequence_dataset.StudyDate        = history_dataset.StudyDate
+      sequence_dataset.PatientSize      = history_dataset.PatientSize
+      sequence_dataset.PatientWeight    = history_dataset.PatientWeight
+      #Private tags 
+      sequence_dataset.clearance        = history_dataset.clearance 
+      sequence_dataset.normClear        = history_dataset.normClear 
+      sequence_dataset.ClearTest        = history_dataset.ClearTest 
+      sequence_dataset.injTime          = history_dataset.injTime   
+      history_sequence.append(sequence_dataset)
+    except AttributeError as E:
+      logger.error(f'Sequence dataset {history_filepath} has invalid format with {E}')
+
+  dicomlib.fill_dicom(dataset, dicom_history=history_sequence)
   
-  #Create the dataset for a C-FIND
-  find_dataset = dataset_creator.create_search_dataset(
-      '', #Name
-      cpr, #CPR
-      '', #Date_from
-      '', #date_to
-      '' #Accession Number
-    )
-  
-  #Make a C-FIND to pacs
-  find_assoc = find_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_aet)
-
-  move_assoc = move_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_aet
-  )
-
-  if find_assoc.is_established and move_assoc.is_established:
-    find_response = find_assoc.send_c_find(find_dataset, query_model='S')
-    for (find_status, find_response_dataset) in find_response:
-      if find_status.Status == 0xFF00:
-        #Create Dataset to C-MOVE
-        accession_number = find_response_dataset.AccessionNumber
-
-        #For each response make a C-MOVE to myself
-        move_response = move_assoc.send_c_move(
-          find_response_dataset,
-          user.department.config.pacs_calling,
-          query_model='S'
-        )
-        for move_status, _ in move_response:
-          if move_status.Status == 0x0000:
-            filename = f'{server_config.SEARCH_DIR}{accession_number}.dcm'
-            #Open the DCM file
-            logger.info(f'Search File, Filename: {filename}')
-            try:
-              move_response_dataset = dicomlib.dcmread_wrapper(filename)
-              #Read values of Clearence Normalized and date of examination into a return list
-              date_of_examination = datetime.datetime.strptime(move_response_dataset.StudyDate,'%Y%m%d')
-              date_list.append(date_of_examination)
-              logger.info(f'Type of birthday: {type(birthday)} Type of date_of_examination:{type(date_of_examination)}')
-              age_at_examination = (date_of_examination - birthday).days / 365
-              age_list.append(age_at_examination)
-              clearence_norm_list.append(float(move_response_dataset.normClear))
-
-              history_dataset = Dataset()
-              try: #fill dataset
-                history_dataset.StudyDate = move_response_dataset.StudyDate
-                history_dataset.clearance = move_response_dataset.clearance
-                history_dataset.normClear = move_response_dataset.normClear
-                history_dataset.ClearTest = move_response_dataset.ClearTest
-                history_dataset.injTime   = move_response_dataset.injTime
-              except AttributeError:
-                logger.info(move_response_dataset)
-
-
-              history_datasets.append(history_dataset)
-              #Delete the file
-              logger.info(f'Deleteing File: {filename}')
-              os.remove(filename)
-            except Exception as E:
-              logger.warn(f'Error handling {accession_number} with {E}')
-          elif move_status.Status == 0xFF00:
-            pass      
-          else:
-            logger.warn(f'Move Response code:{move_status.Status}')
-      elif find_status.Status == 0x0000:
-        logger.info(f"""Successfull gathered history to be:
-          date_list:{date_list}
-          age_list:{age_list}
-          clearence_normalized_list:{clearence_norm_list}""")
-      else: 
-        logger.warn(f""" Unexpected Status code:{find_status.Status}""")
-  #If statement done
-    find_assoc.release()
-    move_assoc.release()
-  else:
-    logger.warn('Could not connect to pacs')
-  #Fill the dicom object:
-  dicomlib.fill_dicom(dataset)
-  
-  #Return
   return date_list, age_list, clearence_norm_list
+
 
 def get_history_for_csv(
   user,
@@ -608,7 +636,9 @@ def get_history_for_csv(
     
     return returnlist
 
-  #End Helper Functions
+  # End Helper Functions
+
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
   bounds = (
     date_bounds,
@@ -631,8 +661,8 @@ def get_history_for_csv(
     raise ValueError('Invalids Genders')
   #End checking bounds
 
-  find_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
-  move_ae = pynetdicom.AE(ae_title=server_config.SERVER_AE_TITLE)
+  find_ae = pynetdicom.AE(ae_title=AE_title)
+  move_ae = pynetdicom.AE(ae_title=AE_title)
 
   #Add different presentation contexts for the AE's
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.1'
@@ -645,15 +675,15 @@ def get_history_for_csv(
 
   #Note that due to some unknown bugs, pacs is not happy make the same association handling both move and finds at the same time, thus we make two associations
   find_assoc = find_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    user.department.config.pacs.ip,
+    int(user.department.config.pacs.port),
+    ae_title=AE_title
   )
 
   move_assoc = move_ae.associate(
-    user.department.config.pacs_ip,
-    int(user.department.config.pacs_port),
-    ae_title=user.department.config.pacs_calling
+    user.department.config.pacs.ip,
+    int(user.department.config.pacs.port),
+    ae_title=AE_title
   )
 
   studies = []
@@ -672,7 +702,7 @@ def get_history_for_csv(
 
     for find_status, find_response_dataset in find_response:
       successfull_move = False
-      move_response = move_assoc.send_c_move(find_response_dataset, server_config.SERVER_AE_TITLE, query_model='S')
+      move_response = move_assoc.send_c_move(find_response_dataset, ae_title, query_model='S')
       for (status, identifier) in move_response:
         if status.Status == 0x0000:
           # Status code for C-move is successful
@@ -699,7 +729,7 @@ def get_history_for_csv(
       else:
         logger.info(f'Could not successfully move {find_response_dataset.AccessionNumber}')
 
-    #Finallize Association
+    # Finallize Association
     find_assoc.release()
     move_assoc.release()
   else:

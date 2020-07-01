@@ -18,6 +18,7 @@ class JSONSerializer:
       models.FloatField: self.__serialize_FloatField,
       models.DateTimeField: self.__serialize_DateTimeField,
       models.DateField: self.__serialize_DateField,
+      models.BooleanField: self.__serialize_BooleanField
     }
 
   # TODO: Make the below serializer functions more generic
@@ -43,6 +44,10 @@ class JSONSerializer:
 
   def __serialize_DateField(self, obj: Type[models.Model], field: Type[models.DateField]) -> str:
     return getattr(obj, field.name)
+
+  def __serialize_BooleanField(self, obj: Type[models.Model], field: Type[models.BooleanField]) -> str:
+    return getattr(obj, field.name)
+
 
   def serialize(self, obj: Type[models.Model], fields=None) -> Dict:
     """
@@ -73,7 +78,7 @@ class JSONSerializer:
       try:
         obj_fields.append(field.name)
       except:
-        # Ignore weird internal django fields
+        # Ignore weird internal django fields, since they have no .name
         continue
     
     if fields:
@@ -98,6 +103,8 @@ class JSONSerializer:
 
         # Continuously update curr_obj
         for field_component in field_split:
+          if curr_obj == None:
+            continue
           inner_field = curr_obj._meta.get_field(field_component)
           inner_field_type = type(inner_field)
 
@@ -105,7 +112,10 @@ class JSONSerializer:
             curr_field_name = field_component
             break
 
-          inner_pk = getattr(curr_obj, inner_field.name).pk
+          try:
+            inner_pk = getattr(curr_obj, inner_field.name).pk
+          except AttributeError:
+            continue
 
           # NOTE: This is kinda hacky, for details see function specifications at: 
           # https://github.com/django/django/blob/7f612eda80db1c1c8e502aced54c2062080eae46/django/db/models/fields/related.py#L444

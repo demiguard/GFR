@@ -1,22 +1,31 @@
 var helper = (function() {
-  /*
-  Checks if a value is within a given threshold
+  var within_bound = function(val, low, high) {
+    /*
+    Checks if given value is with a specified bound
+  
+    Args:
+      val: integer or float value to check against
+      args: dict containing arguments "low" and "high"
+  
+    Returns:
+      True, if val is within low and high or if val is empty. False otherwise
+    */
+    return ((val >= low && val <= high) || !val);
+  }
 
-  Args:
-    val: value to check on
-    min_val: minimum value
-    max_val: maximum value
+  var str_to_float = function(str) {
+    /*
+    Casts strings to float (with comma handling)
 
-  Returns:
-    true if the value is within the bounds, false otherwise
-  */
-  var is_within_threshold = function(val, min_val, max_val) {
-    if (val < min_val || val > max_val) {
-      return false;
-    }
+    Args:
+      str: string to convert
 
-    return true;
-  };
+    Returns:
+      The float value of the string, NaN if unable to parse
+    */
+    let new_str = str.replace(",", ".");
+    return parseFloat(new_str);
+  }
 
   /*
   Helper function to round of floating point numbers
@@ -31,7 +40,7 @@ var helper = (function() {
   };
 
   /*
-  Checks if a string only contains digits or '.' (floats)
+  Checks if a string only contains digits '.' or ',' (floats)
 
   Args:
     str: string to check on
@@ -45,19 +54,43 @@ var helper = (function() {
   };
 
   // Validates a given time string (format: tt:mm)
-  var valid_time_format = function(time_str) {
+  var is_valid_time = function(time_str) {
+    if (!time_str) { return true; }
+
     let TIME_FORMAT = /^([0-1][0-9]|[2][0-3]):[0-5][0-9]$/;
     return TIME_FORMAT.test(time_str);
   };
 
-  // Validates a given date string (format: YYYY-MM-DD)
-  var valid_date_format = function(date_str) {
+  /*
+  Validates if a given date string is in the format: YYYY-MM-DD (ISO 8601)
+  
+  Args:
+    date_str: string to validate against
+
+  Remark:
+    For specific information see:
+    https://www.iso.org/iso-8601-date-and-time-format.html
+  */
+  var is_valid_date = function(date_str) {
+    console.log(date_str);
     let DATE_FORMAT = /^[0-9]{4}-([0][1-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/;
     return DATE_FORMAT.test(date_str);
   };
 
-  // Validates a given date string (format: DD-MM-YYYY)
-  var valid_danish_date_format = function(date_str) {
+  /*
+  Validates if a given date string is in the format: DD-MM-YYYY (danish format)
+
+  Args:
+    date_str: string to validate against
+
+  Remarks:
+    For specifications see ISO 8601:2005 or the section on
+    "Denmark" in the table on:
+    https://en.wikipedia.org/wiki/Date_format_by_country
+  */
+  var is_danish_date = function(date_str) {
+    if (!date_str) { return true; }
+
     let DATE_FORMAT = /^([0-2][0-9]|[3][0-1])-([0][1-9]|[1][0-2])-[0-9]{4}$/;
     return DATE_FORMAT.test(date_str);
   };
@@ -104,15 +137,33 @@ var helper = (function() {
     });
   };
 
+  /*
+  Disables all enter key form submission if focused on a field
+  */
+  var disable_enter_form_submit = function(form) {
+    let ENTER_KEYCODE = 13;
+
+    form.on('keyup keypress', function(e) {
+      var key_code = e.keyCode || e.which;
+      if (key_code === ENTER_KEYCODE) {
+        // console.debug("No form submission on enter!");
+        e.preventDefault();
+        return false;
+      }
+    });
+  };
+
   return {
-    is_within_threshold: is_within_threshold,
+    within_bound: within_bound,
+    str_to_float: str_to_float,
     round_to: round_to,
     is_number: is_number,
-    valid_time_format: valid_time_format,
-    valid_date_format: valid_date_format,
-    valid_danish_date_format: valid_danish_date_format,
+    is_valid_time: is_valid_time,
+    is_valid_date: is_valid_date,
+    is_danish_date: is_danish_date,
     auto_char: auto_char,
     convert_danish_date_to_date_format: convert_danish_date_to_date_format,
-    convert_date_to_danish_date_format: convert_date_to_danish_date_format
+    convert_date_to_danish_date_format: convert_date_to_danish_date_format,
+    disable_enter_form_submit: disable_enter_form_submit
   };
 })();

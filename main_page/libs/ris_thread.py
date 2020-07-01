@@ -1,69 +1,265 @@
 import pydicom
 import pynetdicom
 import logging
+import django
 import os
 import time
 import datetime
 import random
-from . import dicomlib
-from . import dataset_creator
-from . import server_config 
-from . import ris_thread_config_gen
-from . import ae_controller
-
-from main_page import models
-from .dirmanager import try_mkdir
+import glob
+import shutil
+import multiprocessing
+import threading
+from pathlib import Path
 from threading import Thread
+import re
 
-SUCCESSFUL_TRANSFER = 0x0000
-DICOM_FILE_RECIEVED = 0xFF00
+from copy import deepcopy
+from typing import Type
 
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+from main_page.libs import cache
+from main_page.libs import dicomlib
+from main_page.libs import server_config
+from main_page.libs import ae_controller
+from main_page.libs import dataset_creator
+from main_page import models
+from main_page.libs.dirmanager import try_mkdir
+from main_page import log_util
+#This lib contains functions that should be moved an propriate directory
+#Specificly ris_query_wrapper.get_studies
+from main_page.libs.query_wrappers import ris_query_wrapper 
 
-def setup_logger(name, log_file, level=logging.INFO):
+# Create a logger just for the ris_thread
+logger = log_util.get_logger(
+  __name__, 
+  log_filename="ris_thread.log", 
+  log_level=server_config.THREAD_LOG_LEVEL
+)
+
+def delete_old_handled_studies():
   """
-  Generates loggers
+    Goes through the database and deletes old handled studies.
+
+    This is just because we technically don't need to keep all that information.
+  """
+  today = datetime.date.today()
+  for instance in models.HandledExaminations.objects.all():
+    time_difference = today - instance.handle_day
+    if time_difference.days > 14:
+      instance.delete()
+
+
+def handle_c_move(dataset, *args, **kwargs):
+  """
+    This is the handler from pacs response C-MOVE
+    REMEMBER a C-MOVE doesn't return the file, but instead a status update when the reciever have recieved the file
+    In this case the reciever is the SCP server which just stores it under server_config.SEARCH_DIR
+  """
+  accession_number = kwargs['accession_number']
+  dataset_dir      = kwargs['dataset_dir']
+  logger           = kwargs['logger']
+
+  target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
+  destination = f"{dataset_dir}{accession_number}.dcm"
+
+  if not os.path.exists(destination):
+    shutil.move(target_file, destination)
+  else:
+    logger.critical(f"Got duplicate move response from PACS with accession number: {accession_number}")
+
+
+def get_historic_examination(dataset, *args, **kwargs): 
+  """
+    Handler for C-FIND query from PACS to get the historic data
+  """
+  department       = kwargs['department']
+  dataset_dir      = kwargs['dataset_dir'] 
+  logger           = kwargs['logger']
+  accession_number = dataset.AccessionNumber
+  
+  pacs_move_association = kwargs['pacs_move_association']
+
+  ae_controller.send_move(
+    pacs_move_association,
+    department['pacs_calling'],
+    dataset,
+    handle_c_move,
+    accession_number=accession_number,
+    dataset_dir=dataset_dir,
+    logger=logger
+  )
+
+def save_resp_to_file(dataset, **kwargs):
+  """
+  Processing function for saving successful response to files
 
   Args:
-    name: name of the logger 
-          (a logger can be retreived by calling logging.getLogger(<LOGGER_NAME>))
-    log_file: filepath to placement of the logfile on the system
-  
+    dataset: response dataset
+
   Kwargs:
-    level: which level should the logger log on (default=INFO)
+    logger: logger to use
+    hospital_shortname: current hospital shortname e.g. RH
+
+  Throws:
+    Keyerror: When not called with correct parameters  
   """
-  handler = logging.FileHandler(log_file)        
-  handler.setFormatter(formatter)
+  department = kwargs['department']
+  pacs_find_association = kwargs['pacs_find_association']
+  pacs_move_association = kwargs['pacs_move_association']
+  handled_examinations  = kwargs['handled_examinations']
+  logger = kwargs['logger']
 
-  logger = logging.getLogger(name)
-  logger.setLevel(level)
-  logger.addHandler(handler)
+  hospital_shortname = department['hospital']
+  active_studies_dir  = server_config.FIND_RESPONS_DIR
+  deleted_studies_dir = server_config.DELETED_STUDIES_DIR
 
-  return logger
+  dataset_dir = f"{active_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
+  deleted_dir = f"{deleted_studies_dir}{hospital_shortname}/{dataset.AccessionNumber}/"
 
-# Get the ris threads logger
-logger = setup_logger(
-  "ris-thread-log", 
-  f"{server_config.LOG_DIR}ris_thread.log", 
-  level=server_config.THREAD_LOG_LEVEL
-)
+  file_exists = (os.path.exists(dataset_dir) or os.path.exists(deleted_dir))
+  file_handled = dataset.AccessionNumber in handled_examinations
+
+  # Check if not in active_dicom_objects or deleted_studies and not in handled_examinations
+  if not file_exists and not file_handled:
+    try_mkdir(dataset_dir, mk_parents=True) # This should be removed on failure, so we can try again
+
+    file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
+    try:
+      dicomlib.save_dicom(file_path, dataset)
+    except ValueError as e:
+      logger.error(f"Failed to save received dicom file: {file_path}, got exception {e}")
+      shutil.rmtree(dataset_dir) # Remove created dir. so file_handled is false in next try
+      return
+
+    # Now retrieve the previous history
+    history_query_set = dataset_creator.create_search_dataset(
+      '',
+      dataset.PatientID,
+      '',
+      '',
+      ''
+    )
+
+    # Send the C-FIND to pacs
+    ae_controller.send_find(
+      pacs_find_association,
+      history_query_set,
+      get_historic_examination,
+      dataset_dir=dataset_dir,
+      department=department,
+      pacs_move_association=pacs_move_association,
+      logger=logger
+    )
+
+    logger.info(f"Successfully save dataset: {dataset_dir}")
+  else:
+    logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
+    
+
+def pull_request(ris_find_ae, department, pacs_ae_find, pacs_ae_move, handled_examinations):
+  """
+  This function handles a single pull request for a single AE, It may be cancel by the ris_thread
+  Note that this is a thread spawned by the thread. #INCEPTION
+
+  CRITICAL: It is critical that this functions, and all function called by this function does not interact with the database
+    - It's a SQLite db, which doesn't handle concurrency very well, therefore all information from the db must be pre-queried and saved in the object
+      * Currently this information is:
+        # connection parameters handled in Department and their respective configs
+        # Handled examinations
+    - function self.update_self handles this currently
+
+  """
+
+  #Establishing Connection
+  ris_assoc = ae_controller.establish_assoc(
+    ris_find_ae,
+    department['ris_ip'],
+    department['ris_port'],
+    department['ris_aet'],
+    logger
+  )
+  if ris_assoc == None:
+    return #Error have been logged in the ae_controler
+
+  pacs_find_assoc = ae_controller.establish_assoc(
+    pacs_ae_find,
+    department['pacs_ip'],
+    department['pacs_port'],
+    department['pacs_aet'],
+    logger)
+
+  if pacs_find_assoc == None:
+    ris_assoc.release()
+    return  
+
+  pacs_move_assoc = ae_controller.establish_assoc(
+    pacs_ae_move,
+    department['pacs_ip'],
+    department['pacs_port'],
+    department['pacs_aet'],
+    logger)
+
+  if pacs_move_assoc == None:
+    ris_assoc.release()
+    pacs_find_assoc.release()
+    return
+  #Connections has been established
+
+  query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
+    
+  ae_controller.send_find(
+        ris_assoc, 
+        query_dataset, 
+        save_resp_to_file,
+        logger=logger,
+        department=department,
+        pacs_find_association=pacs_find_assoc,
+        pacs_move_association=pacs_move_assoc,
+        handled_examinations=handled_examinations
+      )
+
+  ris_assoc.release()
+  pacs_find_assoc.release()
+  pacs_move_assoc.release()
+  return
 
 
 class RisFetcherThread(Thread):
   """
-  Thread subclass for retreiving studies periodically, as to avoid problems with
-  study information first being entered the day after the study was actually made
+  Thread subclass for peridically retreiving studies from RIS 
+  to be shown on list_studies.
+
+  Once a study has been received it's prior history for GFR studies is 
+  retreieved aswell, since it takes a long time to fetch the previous history
+  for the patient, we do it here such that the history is ready once a new
+  study is to be computed. (we refer to this a "worklist-prefetching")
+
+  This class is meant to be used as a singleton class
   """
 
-  def __init__(self, config):
+  __instance = None
+  @staticmethod
+  def get_instance(server_ae, delay_min, delay_max):
     """
-    Initializes a fetcher thread instance
+    Retreives or instantiates the thread (this is a singleton class)
 
     Args:
-      config: dictionary containing required 
+  
     """
-    self.log_name = type(self).__name__
-    logger.info(f"{self.log_name}: starting initialization of thread")
+    if RisFetcherThread.__instance == None:
+      RisFetcherThread(server_ae, delay_min, delay_max)
+    return RisFetcherThread.__instance
+
+  def __init__(self, server_ae: str, delay_min, delay_max):
+    """
+    Initializes the thread instance
+
+    Args:
+      server_ae: server AET (SCP server AET)
+      delay_min: min. number of minutes to sleep for
+      delay_max: max. number of minutes to sleep for
+    """
+    logger.info("Starting initialization of thread")
 
     # Ensure singleton pattern
     if RisFetcherThread.__instance != None:
@@ -71,10 +267,20 @@ class RisFetcherThread(Thread):
     else:
       RisFetcherThread.__instance = self
 
-    self.config = config
+    # Set instance variables
     self.running = False
+    self.server_ae = server_ae
+    self.today = datetime.datetime.now().day
+    self.delay_min = delay_min
+    self.delay_max = delay_max
+    self.ris_ae_finds = {} 
+    self.pacs_ae_finds = {}
+    self.pacs_ae_moves = {}
+    self.departments = {}
+    self.handled_examinations = {}
+    self.cache_life_time = 14 #Days
 
-    # Thread is a daemon, i.e. background worker thread
+    # This is a daemon, i.e. background worker thread
     Thread.__init__(
       self,
       name='RisFetcherThread',
@@ -82,128 +288,151 @@ class RisFetcherThread(Thread):
       group=None
     )
 
-    logger.info(f"{self.log_name}: initialization done")
+    logger.info("Initialization done")
+    
   
+  def try_delete_old_images(self, hospitals):
+    """
+    Delete old generated images if more than a day has passed
+    """
+
+    for hospital in hospitals:
+      hosp_image_dir = Path(
+        server_config.IMG_RESPONS_DIR,
+        hospital
+      )
+      if hosp_image_dir.exists():
+        for image in hosp_image_dir.glob('*'):
+          os.remove(image)
+      else:
+        hosp_image_dir.mkdir()
+      
+
+  def kill_connections(self, AE):
+    """
+      Murders all active connections for an AE. This may happen mid-connection, and I have not tested all the infinite edge cases.
+    """
+    for assoc in AE.active_associations:
+      assoc.abort()
+
+  
+  def update_self(self):
+    server_ae = models.ServerConfiguration.objects.get(id=1).AE_title
+    ae_titles = []
+    for department in models.Department.objects.all():
+      department_config = department.config
+      if department_config.ris_calling == None or department_config.ris_calling == '':
+        continue
+      if department_config.ris == None or department_config.pacs == None:
+        logger.info(f'Ris and Pacs is not set for {department_config.ris_calling}')
+        continue
+      ae_title = pynetdicom.utils.validate_ae_title(department_config.ris_calling)
+      ae_titles.append(ae_title)
+      
+      department_dir = { 
+        'ris_aet' :     department_config.ris.ae_title,
+        'ris_ip'  :     department_config.ris.ip,
+        'ris_port':     department_config.ris.port,
+        'ris_calling':  department_config.ris_calling,
+        'pacs_aet':     department_config.pacs.ae_title,
+        'pacs_ip':      department_config.pacs.ip,
+        'pacs_port':    department_config.pacs.port,
+        'pacs_calling': server_ae,
+        'hospital'    : department.hospital.short_name
+      }
+
+      self.departments[ae_title] = department_dir
+      if not(ae_title in self.ris_ae_finds):
+        self.ris_ae_finds[ae_title] = ae_controller.create_find_AE(ae_title)
+
+      if not(ae_title in self.pacs_ae_finds):
+        self.pacs_ae_finds[ae_title] = ae_controller.create_find_AE(server_ae)
+
+      if not(ae_title in self.pacs_ae_moves):
+        self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(server_ae)
+      #End for department for loop 
+      
+
+    #1 is a dummy value, what is need is the look up functionality, such that its not a list pythons looks through, but a hash table
+    self.handled_examinations = { handled_examination.accession_number : 1 for handled_examination in models.HandledExaminations.objects.all()}   
+    #Clean up of unused ae_titles
+    for key in self.ris_ae_finds.keys():
+      if not(key in ae_titles):
+        del self.ris_ae_finds[key]
+    
+    for key in self.pacs_ae_finds.keys():
+      if not(key in ae_titles):
+        del self.pacs_ae_finds[key]
+    
+    for key in self.pacs_ae_moves.keys():
+      if not(key in ae_titles):
+        del self.pacs_ae_moves[key]
+
+    for key in self.departments.keys():
+      if not(key in ae_titles):
+        del self.departments[key]    
 
   def run(self):
     """
     Routine function to periodically run
     """
     self.running = True
-  
-    logger.info(f"{self.log_name}: Starting run routine")
+
+    logger.info("Starting run routine")
     
     while self.running:
-      logger.info(f"{self.log_name}: RIS thread sending response")
+      logger.info("RIS thread sending response")
+      self.update_self()
+
+      for ae_title in self.ris_ae_finds.keys():
+        
+        query_process = threading.Thread(
+          target=pull_request,
+          args=[
+            self.ris_ae_finds[ae_title],
+            deepcopy(self.departments[ae_title]),
+            self.pacs_ae_finds[ae_title],
+            self.pacs_ae_moves[ae_title],
+            deepcopy(self.handled_examinations)
+          ]
+        )
+
+        query_process.start()
+        query_process.join(60) #60 is timeout move this to somewhere visable
+        # After timeout reset connection
+        if query_process.is_alive():
+          logger.error(f'Timeout have happened for: {ae_title}!')
+          self.kill_connections(self.ris_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_finds[ae_title])
+          self.kill_connections(self.pacs_ae_moves[ae_title])
+          query_process.stop()
+          query_process.join()
+        else:
+          logger.info(f'Finished Query for title: {ae_title}')
+
+      hospitals = [hospital.short_name for hospital in models.Hospital.objects.all() if hospital.short_name]
+
+      #Daily clean up
+      today = datetime.date.today().day #mabye just save the entire object
+      if today != self.today:
+        logger.info('Cleaning Cache and Image directory')
+        self.today = today
+        cache.clean_cache(self.cache_life_time)
+        self.try_delete_old_images(hospitals)
+        delete_old_handled_studies()
       
-      # Extract configuration parameters
-      try:
-        ris_ip = self.config['ris_ip']
-        ris_port = int(self.config['ris_port'])
-        ris_AET = self.config['ris_AET']
-        delay_min = int(self.config['Delay_minimum'])
-        delay_max = int(self.config['Delay_maximum'])
-        AE_titles = self.config['AE_items']
-
-        assert delay_min <= delay_max
-      except KeyError as KE:
-        raise AttributeError(
-          f"""Unable to read from config, '{KE}'.
-          self.config={self.config}"""
-        )
-
-      # Create directories for tmp. storage
-      for _, hospital_shortname in AE_titles.items():
-        try_mkdir(
-          f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}", 
-          mk_parents=True
-        )
-
-      # Send C-FIND requests to RIS
-      association = ae_controller.connect(
-        ris_ip,
-        ris_port,
-        server_config.SERVER_AE_TITLE,
-        ris_AET,
-        ae_controller.FINDStudyRootQueryRetrieveInformationModel
-      )
-
-      for AET, hospital_shortname in AE_titles.items():
-        query_dataset = dataset_creator.generate_ris_query_dataset(AET)        
-
-        ae_controller.send_find(
-          association, 
-          query_dataset, 
-          self.__process_find_dataset, 
-          hospital_shortname=hospital_shortname
-        )
-
+      
       # Sleep the thread
-      delay = random.uniform(delay_min, delay_max) * 60
-      logger.info(f'Ris thread going to sleep for {delay} sec.')
-
-      # Re-read config for possible updates
-      self.config = ris_thread_config_gen.read_config()
-
+      delay = random.uniform(self.delay_min, self.delay_max) * 60
+      logger.info(f'Ris thread going to sleep for {delay:.2f} sec.')
+      
       time.sleep(delay)
 
-    logger.info(f"{self.log_name}: Terminated run loop")
-
-  def __process_find_dataset(self, status, dataset, **kwargs):
-    """
-    Function for processing received find responses
-
-    Args:
-      status: status of the received response
-      dataset: response dataset
-
-    Kwargs:
-      hospital_shortname: current hospital shortname e.g. RH
-
-    Returns:
-      True if the processing is to continue, False to stop
-    """
-    hospital_shortname = kwargs['hospital_shortname']
-
-    if status.Status == DICOM_FILE_RECIEVED:
-      try:
-        filepath = f"{server_config.FIND_RESPONS_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm"            # Check if in active_dicom_objects
-        deleted_filepath = f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}/{dataset.AccessionNumber}.dcm" # Check if in deleted_studies
-
-        # file_exists = (os.path.exists(filepath) and os.path.exists(deleted_filepath)) # Old
-        file_exists = (os.path.exists(filepath) or os.path.exists(deleted_filepath)) # New
-        file_handled = models.HandledExaminations.objects.filter(accession_number=dataset.AccessionNumber).exists()
-
-        if not file_exists and not file_handled:
-          dicomlib.save_dicom(filepath, dataset)
-        else:
-          logger.info(f"{self.log_name}: Skipping file: {filepath}, as it already exists or has been handled")
-      except AttributeError as e:
-        logger.error(f"{self.log_name}: failed to load/save dataset, with error: {e}")  
-    elif status.Status == SUCCESSFUL_TRANSFER:
-      pass # Ignore, then release association
-    else:
-      logger.info(f"{self.log_name}: Failed to transfer file, with status: {status.Status}")
-      return False
-
-    return True
+    logger.info("Terminated ris_thread run loop")
 
   def apply_kill_to_self(self):
     """
     Termiantes the periodic loop. Intended for restarting the thread
     """
     self.running = False
-    logger.info(f"{self.log_name}: killing self")
-
-  __instance = None
-  @staticmethod
-  def get_instance(config):
-    """
-    Retreives or instantiates the thread (this is a singleton class)
-
-    Args:
-      config: initial configuration for the thread to use
-    """
-    if RisFetcherThread.__instance == None:
-      RisFetcherThread(config)
-    return RisFetcherThread.__instance
+    logger.info("Killing self")

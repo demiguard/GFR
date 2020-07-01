@@ -4,7 +4,11 @@ import re
 import logging
 from datetime import datetime
 
-logger = logging.getLogger()
+from typing import Union
+
+from main_page import log_util
+
+logger = log_util.get_logger(__name__)
 
 def person_name_to_name(name: str) -> str:
   """
@@ -19,7 +23,13 @@ def person_name_to_name(name: str) -> str:
   Remark:
     Specification for person names: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     Examples at: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1
+
+    TODO: Pydicom have a special type for person name called PersonName3 in pydicom.valuerep.PersonName, 
+    it's not a string and it breaks if you try to put it in. Work around str(name) before function call.
+    I find this to be a suboptimal, since the function name is person_name_to_... indicating a personname class should pass through this
   """
+
+
   if '*' in name:
     raise ValueError(f"name: '{name}', contains a wildcard character: '*'")
 
@@ -288,70 +298,14 @@ def convert_cpr_to_cpr_number(cpr):
     return cpr
 
 def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
+  """
+  returns:
+    Reasonable time format: YYYY-MM-DD HH:MM
+  """
   month, day, yearandtimestamp = unreasonable_time_format.split('/')
   year, timestamp = yearandtimestamp.split(' ')
   return f"{year}-{month}-{day} {timestamp}"
 
-def reverse_format_date(reverse_Date : str, sep='') -> str:
-  """
-    Converts a string on format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY to YYYY{sep}MM{sep}DD
-
-    Args:
-      reverse_Date: string of format DDMMYYYY, DD-MM-YYYY or DD/MM/YYYY
-
-    Kwargs:
-      sep: String, this string is put in between the time
-
-    Returns
-      dateformat : String on format YYYYMMDD
-      Returns '' on input = ''
-
-    Raises:
-      ValueError : On invalid String
-    """ 
-  if reverse_Date == None or reverse_Date == '':
-    return ''
-  # Argument checking
-  if reverse_Date.count('-') == 2 and len(reverse_Date) == 10:
-    day, month, year = reverse_Date.split('-')
-
-    if day.isdigit() and month.isdigit() and year.isdigit():
-      try:
-        #Create datetime object to see if it's a valid date
-        datetime(int(year), int(month), int(day)) 
-      except ValueError as  V:
-        raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-    else:
-      raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
-  
-  elif reverse_Date.count('/') == 2 and len(reverse_Date) == 10:
-    day, month, year = reverse_Date.split('/')
-
-    if day.isdigit() and month.isdigit() and year.isdigit():
-      try:
-        #Create datetime object to see if it's a valid date
-        datetime(int(year), int(month), int(day))  
-      except ValueError as V:
-        raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-    else:
-      raise ValueError('Reverse_format_date: Date, Month or Years are not digits')
-  
-  elif len(reverse_Date) == 8 and reverse_Date.isdigit():
-    day = reverse_Date[:2]
-    month = reverse_Date[2:4]
-    year = reverse_Date[4:]
-
-    try:
-      #Create datetime object to see if it's a valid date
-      datetime(int(year), int(month), int(day)) 
-    except ValueError as V:
-      raise ValueError('Reverse_format_date: Input string doesnt corrospond to a valid date')
-  else:
-    raise ValueError('Reverse_format_date: String is not on correct format')
-# Converting format
-  returnstring = year + sep + month + sep + day
-  # Returning
-  return returnstring
 
 def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
   """
@@ -404,3 +358,132 @@ def xstr(s: str) -> str:
     return ''
 
   return str(s)
+
+def splitDateTimeStr(input_str):
+  """
+    Converts a valid datestring from a dicom object to 2 strings on the format:
+    date :  DD-MM-YYYY
+    time :  tt:mm
+
+    Args:
+      input_str: string in on the format:
+
+    returns:
+      Date: See above
+      Time: See above
+  """
+  if(len(input_str) != 12 and input_str.isdigit()):
+    raise AttributeError('THIS IS NOT A VALID DATESTRING YOU BROKEN MY TRUST')
+
+  year  = input_str[:4]
+  month = input_str[4:6]
+  day   = input_str[6:8]
+  hour  = input_str[8:10]
+  minut = input_str[10:]
+
+  return f'{day}-{month}-{year}', f'{hour}:{minut}'
+
+
+def float_safe(val: Union[str, int, float]) -> float:
+  """
+  Wrapper for safe conversion to float.
+  Safe: commas are replaced with dots to better localization support
+
+  Args:
+    val: value to be cast to float
+
+  Returns:
+    The value converted to a float
+  """
+  if not val:
+    return val
+
+  if isinstance(val, str):
+    val = val.replace(',', '.')
+
+  return float(val)
+
+
+def extract_request_parameters(
+  d: dict,
+  format_dict: dict
+) -> dict:
+  """
+  Extracts and type safely type converts the request parameters
+
+  Args:
+    d: dict. of key, value pairs to be converted.
+    format_dict: dict. of keys and their corresponding type to be converted to
+
+  Returns:
+    Dictionary containing the same key, value pair where the value has been
+    converted acording to the format_dict
+
+  Raises:
+    ValueError: if a value failed to be converted
+  """
+  ret = { }
+
+  for key, conv_type in format_dict.items():
+    # Check if current entry should be processed as a list
+    is_multi_value = isinstance(conv_type, tuple)
+    
+    # Find corresponding value
+    try:
+      if is_multi_value:
+        value = d.getlist(key)
+      else:
+        value = [d.get(key)]
+    except KeyError:
+      ValueError(f"Key: '{key}', is not in dictionary of values.")
+    
+    if is_multi_value:
+      _, new_type = conv_type
+    else:
+      new_type = conv_type
+
+    # Convert every entry
+    new_value = [ ]
+    for sub_val in value:
+      _sub_val = sub_val
+      if sub_val:
+        _sub_val = _sub_val.strip()
+
+      try:
+        if new_type == float:
+          new_value.append(float_safe(_sub_val)) # Handles dots and commas
+        else:
+          new_value.append(new_type(_sub_val))
+      except ValueError:
+        raise ValueError(f"Failed to convert key: '{key}', with value: '{_sub_val}'")
+    
+    # Only select first value if it's not a list
+    if is_multi_value:
+      ret[key] = new_value
+    else:
+      ret[key] = new_value[0]
+
+  return ret
+
+
+def float_dec_to_comma(floating_num: float) -> str:
+  """
+  Converts floating points with decimal to comma
+
+  Args:
+    floating_num: floating-point number
+
+  Returns:
+    String representing the number using comma
+
+  Example:
+    >>> float_dec_to_comma(3.7)
+    "3,7"
+  """
+  string_num = str(floating_num).replace('.',',')
+  whole_num, decimal_num = string_num.split(',')
+
+  if re.match('^0+$', decimal_num):
+    return whole_num
+  else:
+    return string_num

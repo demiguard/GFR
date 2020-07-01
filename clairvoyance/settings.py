@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['193.3.238.103', '172.16.186.190', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
+ALLOWED_HOSTS = ['gfr2.petnet.rh.dk', 'gfr2', '172.16.186.190', '193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
 
 AUTH_USER_MODEL = 'main_page.User'
 AUTHENTICATION_BACKENDS = ['main_page.backends.SimpleBackend']
@@ -83,6 +83,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'CONN_MAX_AGE': 1,
     }
 }
 

@@ -16,6 +16,16 @@ class Hospital(models.Model):
   def __str__(self):
     return self.name
 
+class Address(models.Model):
+  id          = models.AutoField(primary_key=True)
+  ae_title    = models.CharField(max_length=16, null=True, default=None)
+  ip          = models.CharField(max_length=20)
+  port        = models.CharField(max_length=5)
+  description = models.CharField(max_length=255, default='')
+
+  def __str__(self):
+    return self.description
+
 
 # Used to filter reveiced dicom objects from PACS
 class ProcedureType(models.Model):
@@ -32,18 +42,17 @@ class Config(models.Model):
 
   # List of procedure types related to GFR examinations
   accepted_procedures = models.ManyToManyField(ProcedureType)
+  black_list          = models.BooleanField(default=True)
 
   # Configuration to ris server
-  ris_aet = models.CharField(max_length=200, default='')
-  ris_ip = models.CharField(max_length=200, default='')
-  ris_port = models.CharField(max_length=200, default='')
+  ris = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='ris')
   ris_calling = models.CharField(max_length=200, default='')
 
   # Configuration to PACS server
-  pacs_aet = models.CharField(max_length=200, default='')
-  pacs_ip = models.CharField(max_length=200, default='')
-  pacs_port = models.CharField(max_length=200, default='')
-  pacs_calling = models.CharField(max_length=200, default='')
+  pacs = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='pacs')
+
+  def __str__(self):
+    return str(self.id)
 
 
 class Department(models.Model):
@@ -91,3 +100,24 @@ class User(AbstractBaseUser):
 # This means we don't have to query PACS for all previous examinations
 class HandledExaminations(models.Model):
   accession_number = models.CharField(primary_key=True, max_length=20)
+  handle_day       = models.DateField(auto_now_add=True)
+
+# So Stuff breaks if there's no ServerConfiguration with an id=1 !IMPORTANT !NOTICE
+# All server configs with an id differtn from 1 is ignored.
+# This is something YOU have to check and ensure
+# TODO: Put this in some more official documentation
+class ServerConfiguration(models.Model):
+  id          = models.AutoField(primary_key=True)
+  samba_ip    = models.CharField(max_length=20)
+  samba_name  = models.CharField(max_length=30)
+  samba_user  = models.CharField(max_length=30)
+  samba_pass  = models.CharField(max_length=30)
+  samba_pc    = models.CharField(max_length=30)
+  samba_share = models.CharField(max_length=30)
+
+  AE_title    = models.CharField(max_length=30)
+
+  def __str__(self):
+    return self.AE_title
+
+

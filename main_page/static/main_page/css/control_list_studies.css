@@ -1,0 +1,24 @@
+.trash-btn {
+  color: lightcoral;
+}
+
+.trash-btn:hover {
+  color: red;
+}
+
+/* Status styling */
+.exam-status-column {
+  text-align: center;
+}
+
+.exam-status-0 {
+  color: lightcoral;
+}
+
+.exam-status-1 {
+  color: #F4D980;
+}
+
+.exam-status-2 {
+  color: lightgreen;
+}

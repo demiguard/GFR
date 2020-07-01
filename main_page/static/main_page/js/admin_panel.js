@@ -1,12 +1,14 @@
 // Endpoint to access the model through
 MODEL_URL_MAPPINGS = {
-  'users': '/api/user',
-  'hospitals': '/api/hospital',
-  'departments': '/api/department',
+  'users'               : '/api/user',
+  'hospitals'           : '/api/hospital',
+  'departments'         : '/api/department',
   'handled_examinations': '/api/handled_examination',
-  'configs': '/api/config',
-  'procedures' : '/api/proceduretype',
-  'procedure_mapping': '/api/procedure_mapping',
+  'configs'             : '/api/config',
+  'procedures'          : '/api/proceduretype',
+  'procedure_mapping'   : '/api/procedure_mapping',
+  'address'             : '/api/address' ,
+  'server_config'       : '/api/server_config'
 };
 
 // Names to display to the user
@@ -18,17 +20,21 @@ MODEL_NAME_MAPPINGS = {
   'configs': 'konfiguration',
   'procedures' : 'proceduretype',
   'procedure_mapping': 'procedure filter',
+  'address' : 'addresse',
+  'server_config' : 'server konfiguration'
 };
 
 // Name of the underlying model
 SELECTED_MODEL_NAMES = {
-  'users': 'user',
-  'hospitals': 'hospital',
-  'departments': 'department',
+  'users'               : 'user',
+  'hospitals'           : 'hospital',
+  'departments'         : 'department',
   'handled_examinations': 'handled_examination',
-  'configs': 'config',
-  'procedures' : 'proceduretype',
-  'procedure_mapping': 'procedure_mapping',
+  'configs'             : 'config',
+  'procedures'          : 'proceduretype',
+  'procedure_mapping'   : 'procedure_mapping',
+  'address'             : 'address',
+  'server_config'       : 'server_config'
 }
 
 function clear_table_headers() {
@@ -198,6 +204,92 @@ function show_model() {
   });
 }
 
+function remove_all_studies() {
+  let hospital_shortname = $('#id_l_hospital').val();
+  let bam_id = $('#id_l_bamID').val();
+
+  $.ajax({
+    url: '/api/list',
+    type: 'DELETE',
+    data: {
+      'list_studies': '',
+      'hospital_shortname': hospital_shortname,
+      'bam_id': bam_id,
+    },
+    success: function(data) {
+      console.debug(data);
+      window.location.replace("/admin_panel");
+    },
+    error: function(data) {
+      console.debug("Failed to delete all list_studies");
+    }
+  });
+}
+
+function remove_all_deleted_studies() {
+  let hospital_shortname = $('#id_d_hospital').val();
+  let bam_id = $('#id_l_bamID').val();
+
+  $.ajax({
+    url: '/api/list',
+    type: 'DELETE',
+    data: {
+      'deleted_studies': '',
+      'hospital_shortname': hospital_shortname,
+      'bam_id': bam_id,
+    },
+    success: function(data) {
+      console.debug(data);
+      window.location.replace("/admin_panel");
+    },
+    error: function(data) {
+      console.debug("Failed to delete all deleted_studies");
+    }
+  });
+}
+
+function deleted_check_toggle_remove() {
+  let hosp = $('#id_d_hospital').val();
+  let bam_id = $('#id_d_bamID').val();
+
+  var should_toggle = true;
+
+  if (bam_id.length != 8) {
+    should_toggle = false;
+  }
+
+  if (!hosp) {
+    should_toggle = false;
+  }
+
+  if (should_toggle) {
+    $('#nukeDS-modal-accept').attr('disabled', false);
+  } else {
+    $('#nukeDS-modal-accept').attr('disabled', true);
+  }
+}
+
+function list_check_toggle_remove() {
+  let hosp = $('#id_l_hospital').val();
+  let bam_id = $('#id_l_bamID').val();
+
+  var should_toggle = true;
+
+  if (bam_id.length != 8) {
+    should_toggle = false;
+  }
+
+  if (!hosp) {
+    should_toggle = false;
+  }
+
+  if (should_toggle) {
+    $('#nukeLS-modal-accept').attr('disabled', false);
+  } else {
+    $('#nukeLS-modal-accept').attr('disabled', true);
+  }
+}
+
 $(function() {
   // Site loaded
   alerter.init_alerter($('#error-container'));
@@ -213,5 +305,35 @@ $(function() {
 
     let add_url = "/admin_panel/add/" + selected_model_name;
     window.location.href = add_url;
+  });
+
+  /* Event listeners for remove all studies buttons */
+  $('#nukeLS-modal-accept').attr('disabled', true);
+  $('#nukeDS-modal-accept').attr('disabled', true);
+
+  $('#nuke-list-studies').on('click', function() {
+    $('#nukeLSModal').modal('toggle');
+  });  
+
+  $('#nukeLS-modal-accept').on('click', function() {
+    remove_all_studies();
+    $('#nukeLSModal').modal('toggle');
+  });
+
+  $('#id_l_hospital').on('change', list_check_toggle_remove);
+  $('#id_l_bamID').on('change', list_check_toggle_remove);
+  $('#id_l_bamID').keypress(list_check_toggle_remove);
+
+  $('#id_d_hospital').on('change', deleted_check_toggle_remove);
+  $('#id_d_bamID').on('change', deleted_check_toggle_remove);
+  $('#id_d_bamID').keypress(deleted_check_toggle_remove);
+
+  $('#nukeDS-modal-accept').on('click', function() {
+    remove_all_deleted_studies();
+    $('#nukeDSModal').modal('toggle');
+  });
+
+  $('#nuke-deleted-studies').on('click', function() {
+    $('#nukeDSModal').modal('toggle');
   });
 });
