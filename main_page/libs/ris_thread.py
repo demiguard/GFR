@@ -110,7 +110,6 @@ def save_resp_to_file(dataset, **kwargs):
   logger = kwargs['logger']
 
   hospital_shortname = department['hospital']
-status
   active_studies_dir  = server_config.FIND_RESPONS_DIR
   deleted_studies_dir = server_config.DELETED_STUDIES_DIR
 
