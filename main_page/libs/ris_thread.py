@@ -98,7 +98,7 @@ def save_resp_to_file(dataset, **kwargs):
   logger = kwargs['logger']
 
   hospital_shortname = department['hospital']
-
+status
   active_studies_dir  = server_config.FIND_RESPONS_DIR
   deleted_studies_dir = server_config.DELETED_STUDIES_DIR
 
@@ -390,7 +390,7 @@ class RisFetcherThread(Thread):
           self.kill_connections(self.ris_ae_finds[ae_title])
           self.kill_connections(self.pacs_ae_finds[ae_title])
           self.kill_connections(self.pacs_ae_moves[ae_title])
-          query_process.terminate()
+          query_process.stop()
           query_process.join()
         else:
           logger.info(f'Finished Query for title: {ae_title}')
