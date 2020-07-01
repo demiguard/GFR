@@ -4,9 +4,11 @@ from pydicom import Dataset
 import logging
 from typing import Type, Union
 from pynetdicom import AE
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 from main_page import log_util
+
 
 logger = log_util.get_logger(__name__)
 
@@ -217,7 +219,7 @@ def __handle_move_resp(resp, process, *args, **kwargs):
       logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
 
 
-def send_find(association, query_ds, process, query_model='S', *args, **kwargs) -> None:
+def send_find(association, query_ds, process, query_model=StudyRootQueryRetrieveInformationModelFind, *args, **kwargs) -> None:
   """
   Sends a C_FIND query request to an association using the supplied dataset
 
@@ -252,7 +254,7 @@ def send_find(association, query_ds, process, query_model='S', *args, **kwargs) 
   __handle_find_resp(resp, process, *args, **kwargs)
 
 
-def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model='S', *args, **kwargs) -> None:
+def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model=StudyRootQueryRetrieveInformationModelMove, *args, **kwargs) -> None:
   """
   Sends a C_FIND query request to an association using the supplied dataset
 

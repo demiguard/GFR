@@ -3,6 +3,7 @@ from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pynetdicom import AE, StoragePresentationContexts, evt
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
 import os
 import logging
 import sys
@@ -17,6 +18,7 @@ import csv
 import threading
 import time
 import json
+
 
 from main_page import models
 from main_page.libs import ae_controller
@@ -697,12 +699,12 @@ def get_history_for_csv(
     #This retrives all studies from pacs
     find_response = find_assoc.send_c_find(
       find_query_dataset,
-      query_model='S'
+      query_model=StudyRootQueryRetrieveInformationModelFind
     )
 
     for find_status, find_response_dataset in find_response:
       successfull_move = False
-      move_response = move_assoc.send_c_move(find_response_dataset, ae_title, query_model='S')
+      move_response = move_assoc.send_c_move(find_response_dataset, ae_title, query_model=StudyRootQueryRetrieveInformationModelMove)
       for (status, identifier) in move_response:
         if status.Status == 0x0000:
           # Status code for C-move is successful
