@@ -4,7 +4,6 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pynetdicom import AE, StoragePresentationContexts, evt
 import os
-import models
 import logging
 import sys
 import shutil
@@ -19,6 +18,7 @@ import threading
 import time
 import json
 
+from main_page import models
 from main_page.libs import ae_controller
 from main_page.libs.dirmanager import try_mkdir
 from .. import dicomlib, dataset_creator
