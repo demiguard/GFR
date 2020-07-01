@@ -4,6 +4,7 @@ from pydicom.sequence import Sequence
 from pydicom.datadict import DicomDictionary, keyword_dict
 from pynetdicom import AE, StoragePresentationContexts, evt
 import os
+import models
 import logging
 import sys
 import shutil
