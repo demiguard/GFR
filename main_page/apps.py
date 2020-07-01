@@ -40,26 +40,26 @@ class MainPageConfig(AppConfig):
 
     # AET of the server (used as AET for SCP server for receiving studies 
     # i.e. we move to this AET)
-    ae_title = models.ServerConfiguration.objects.get(id=1).AE_title
+    #ae_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
     # Setup SCP server logger
     logger = log_util.get_logger(__name__)
   
     logger.info('Started Logger')
-    try:
-      self.scp_server = pacs.start_scp_server(ae_title)
-      logger.info(f'Started SCP server with AE_title: {ae_title}')
-    except Exception as e:
-      logger.info('Failed to start SCP server because:{0}'.format(str(e)))
+    #try:
+    #  self.scp_server = pacs.start_scp_server(ae_title)
+    #  logger.info(f'Started SCP server with AE_title: {ae_title}')
+    #except Exception as e:
+    #logger.info('Failed to start SCP server because:{0}'.format(str(e)))
 
     from main_page.libs import ris_thread
 
-    RT = ris_thread.RisFetcherThread(
-      ae_title,
-      server_config.SLEEP_DELAY_MIN, 
-      server_config.SLEEP_DELAY_MAX
-    )
-    RT.start()
+    #RT = ris_thread.RisFetcherThread(
+    #  ae_title,
+    #  server_config.SLEEP_DELAY_MIN, 
+    #  server_config.SLEEP_DELAY_MAX
+    #)
+    #RT.start()
 
     # Spawn threads for sending files in PACS queue to PACS
     # the import has to be done here, and not at top of file, since
