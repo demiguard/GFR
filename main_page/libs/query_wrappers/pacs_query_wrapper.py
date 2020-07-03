@@ -91,6 +91,9 @@ def get_study(user, accession_number):
       This is overhauled version of move_from_pacs
   """
   config = user.department.config
+  if not config.pacs:
+    return None, "Error: No PACS address set for configuration."
+
   AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
   pacs_find_ae = ae_controller.create_find_AE(AE_title)
@@ -158,6 +161,9 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
   
   dicomlib.save_dicom(store_file, dicom_object)
+
+  if not user.department.config.pacs:
+    return False, "Error: No PACS address in configuration."
 
   # Write file with connection configurations
   # hey hey hey, I present the newest programming invention:
@@ -443,6 +449,11 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
     accession_number
   ) 
 
+  # Don't query if no PACS address
+  if not config.pacs:
+    logger.warning(f"Unable to execute search query. No PACS address in configuration: {config}.")
+    return None
+
   # Establish association to PACS
   association = ae_controller.connect(
     config.pacs.ip,
@@ -657,25 +668,26 @@ def get_history_for_csv(
     check_bounds(bound)
 
   if None != formatting.check_cpr(cpr_bounds):
-    raise ValueError('Invalid Cpr number')
+    raise ValueError('Invalid CPR number')
 
   if not(gender_bounds in [['M'], ['F'], ['O'], ['M','F'], ['M','O'], ['F','O'] ,['M','F','O'] ]):
-    raise ValueError('Invalids Genders')
-  #End checking bounds
+    raise ValueError('Invalid gender')
+  # End checking bounds
 
   find_ae = pynetdicom.AE(ae_title=AE_title)
   move_ae = pynetdicom.AE(ae_title=AE_title)
 
-  #Add different presentation contexts for the AE's
+  # Add different presentation contexts for the AE's
   FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.1'
   MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2'
 
   find_ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
   move_ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
 
-  #Associates
-
-  #Note that due to some unknown bugs, pacs is not happy make the same association handling both move and finds at the same time, thus we make two associations
+  # Note that due to some unknown bugs, pacs is not happy make the same association handling both move and finds at the same time, thus we make two associations
+  if not user.department.config.pacs:
+    raise ValueError("No PACS address in configuration")
+  
   find_assoc = find_ae.associate(
     user.department.config.pacs.ip,
     int(user.department.config.pacs.port),
