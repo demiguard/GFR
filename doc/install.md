@@ -1,21 +1,32 @@
 # Install, Deploy, Run
 ## General dependencies
 The project was built using:
-* python 3.6
-* pip3
+* python 3.8
+* pip
 * Nginx (+ uWSGI)
+* MySQL 8 or later (MariaDB 10 or later)
 
-The project was built and tested on CentOS 7, CentOS 8 and Ubuntu 18.04 (bionic beaver)
+The project was built and tested on CentOS 8 and Ubuntu 18.04
+
+## Installing pytho 3.8
+Ubuntu:
+```
+> sudo apt install -y python3.8
+```
+CentOS:
+```
+> sudo yum install -y python38
+```
 
 ## Installing and using virtualenv
-Virtualenv is install through pip3:
+Virtualenv is installed through pip:
 ```
-> pip3 install virtualenv
+> python3.8 -m pip install virtualenv
 ```
 
 Initializing virtualenv
 ```
-> virtualenv venv
+> python3.8 -m virtualenv venv
 ```
 
 Running virtualenv:
@@ -27,6 +38,23 @@ Exitting the virtualenv:
 ```
 > deactivate
 ```
+
+## Installing MySQL
+This step *MUST* be done before install requirements using pip, as the ```mysqlclient``` package has additional external dependencies.
+
+Ubuntu:
+```
+> sudo apt install mysql-server
+> sudo apt install python3.8-devel
+```
+
+CentOS:
+```
+> sudo yum install -y mysql-server
+> sudo yum install -y python38-devel
+```
+
+The ```python3.8-devel```/```python38-devel``` is required for the ```mysqlclient``` package.
 
 ## Installing requirements
 Once in the virtualenv, the required python packages can be installed by running:
@@ -50,6 +78,37 @@ Example for ```python-compile-hook``` which is a pre-commit hook, it checks if a
 ```
 > cp python-compile-hook ../.git/hooks/pre-commit
 ```
+
+## Initialize database
+### Databse and user creation
+The database and user *MUST* be created with below commands, as changing them will differ from the database connection settings under ```clairvoyance/settings.py```.
+```
+> sudo mysql
+mysql> CREATE DATABASE gfrdb;
+mysql> CREATE USER 'gfr'@'localhost' IDENTIFIED BY 'gfr';
+mysql> GRANT ALL PRIVILEGES ON gfrdb.* TO 'gfr'@'localhost';
+mysql> FLUSH PRIVILEGES;
+mysql> quit
+```
+Ensure that the user can login with
+```
+> mysql -u gfr -p
+```
+
+### Table schemas
+The easiest way to initialize database tables and data is by using a snapshot from the existing database using an SQL dump.
+```
+(gfr) > mysqldump gfrdb > dbdump.sql
+```
+which can then be loaded into the new database by
+```
+> mysql -u gfr -p gfrdb < dbdump.sql
+```
+
+### MariaDB specifics
+If MariaDB is being used instead of MySQL, e.g. for development purposes, then the SQL dump file might have be modified:
+1. Open the SQL dump file and replace all occurrences of ```utf8mb4_0900_ai_ci``` with ```utf8mb4_general_ci```.
+2. MariaDB should now be able to import the dump.
 
 ## Running in debug mode
 The Django comes with a development/debugging minimal web server, which can be ran by setting the variable ```debug=True```, under the ```settings.py``` file in the main project directory.
