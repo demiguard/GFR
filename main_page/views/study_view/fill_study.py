@@ -588,7 +588,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       # Get historical data from PACS
       try:
         history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
-        f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}')
+        f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/')
       except ValueError: # Handle empty AET for PACS connection
         history_age = [ ]
         history_clrN = [ ]
