@@ -519,7 +519,7 @@ def get_history_from_pacs(dataset, active_objects_path):
   date_list           = []
   history_sequence    = []
 
-  birthday = dataset.PatientBirthDate
+  birthday = datetime.datetime.strptime(dataset.PatientBirthDate,'%Y-%m-%d') 
 
   #Get all file paths for the Accession number
   curr_dicom_path = f"{active_objects_path}{dataset.AccessionNumber}/{dataset.AccessionNumber}.dcm"
