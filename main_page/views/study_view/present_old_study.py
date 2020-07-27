@@ -117,7 +117,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       present_sex = 1
 
     operators = dataset.get("OperatorsName")
-    if isinstance(operators, pydicom.valuerep.PersonName3):
+    if isinstance(operators, pydicom.valuerep.PersonName):
       operators = str(operators)
     elif isinstance(operators, pydicom.multival.MultiValue):
       operators = ', '.join([str(x) for x in operators])
