@@ -60,7 +60,7 @@ def move_and_store(dataset, *args, **kwargs):
         move_assoc: An connected and active Pynetdicom.Association object
 
   """
-  if 'move_assoc' and 'config' in kwargs:
+  if 'move_assoc' and 'AE_title' in kwargs:
     move_assoc = kwargs['move_assoc']
     AE_title     = kwargs['AE_title']
   else:
