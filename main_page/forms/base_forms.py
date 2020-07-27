@@ -123,7 +123,13 @@ class FillStudyGrandForm(forms.Form):
   vial_weight_after   = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   vial_weight_before  = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
   weight              = forms.CharField( label='Vægt (kg)', required=False)
-  comment_field       = forms.CharField(label="Kommentar", required=False , widget=forms.Textarea(attrs={'style':'height:75px;'}))
+  comment_field       = forms.CharField(label="Kommentar", 
+                                        required=False, 
+                                        widget=forms.Textarea(attrs={
+                                          "style": "height:75px;",
+                                          "class": "col-md-8"
+                                          })
+                                        )
 
 
   def __init__(self, *args, **kwargs):

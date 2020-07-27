@@ -135,13 +135,14 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         hospital_sn
       )
       
-      # Get history from pacs
-      if formatting.check_cpr(cpr):
+      # Get history from pacs if PACS address is present
+      user_config = request.user.department.config
+
+      if user_config.pacs:
         #CPR is valid, so we can retrieve history from pacs
         # So there's a serverConfig(database entry) and server_config(file)
         # See models for explination
         serverConfig = models.ServerConfiguration.objects.get(id=1)
-        user_config = request.user.department.config
         pacs_find_association = ae_controller.connect(
           user_config.pacs.ip,
           user_config.pacs.port,
@@ -191,7 +192,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
             pacs_find_association.release()
             pacs_move_association.release()
       else:
-        #Error Message should be handled by front end
+        # Error Message should be handled by front end
         pass
 
       dicomlib.save_dicom( 

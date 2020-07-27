@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 from .libs import server_config
@@ -100,7 +101,7 @@ class User(AbstractBaseUser):
 # This means we don't have to query PACS for all previous examinations
 class HandledExaminations(models.Model):
   accession_number = models.CharField(primary_key=True, max_length=20)
-  handle_day       = models.DateField(auto_now_add=True)
+  handle_day       = models.DateField(default=timezone.now)
 
 # So Stuff breaks if there's no ServerConfiguration with an id=1 !IMPORTANT !NOTICE
 # All server configs with an id differtn from 1 is ignored.
