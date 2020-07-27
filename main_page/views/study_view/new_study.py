@@ -146,7 +146,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
           user_config.pacs.ip,
           user_config.pacs.port,
           serverConfig.AE_title, #This should be changed to serverConfig.AE_title
-          user_config.pacs.aet,
+          user_config.pacs.ae_title,
           ae_controller.FINDStudyRootQueryRetrieveInformationModel,
           logger=logger
         )
@@ -161,7 +161,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
             user_config.pacs.ip,
             user_config.pacs.port,
             serverConfig.AE_title, #This should be changed to serverConfig.AE_title
-            user_config.pacs.aet,
+            user_config.pacs.ae_title,
             ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
             logger=logger
           )

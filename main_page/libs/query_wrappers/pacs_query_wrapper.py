@@ -100,7 +100,7 @@ def get_study(user, accession_number):
     pacs_find_ae, 
     config.pacs.ip,
     config.pacs.port,
-    config.pacs.aet,
+    config.pacs.ae_title,
     logger
   )
   if not(pacs_find_assoc):
@@ -110,7 +110,7 @@ def get_study(user, accession_number):
     pacs_move_ae, 
     config.pacs.ip,
     config.pacs.port,
-    config.pacs.aet,
+    config.pacs.ae_title,
     logger )
 
   if not(pacs_move_assoc):
@@ -167,7 +167,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
       "pacs_calling": AE_title,
       "pacs_ip":    user.department.config.pacs.ip,
       "pacs_port":  user.department.config.pacs.port,
-      "pacs_aet":   user.department.config.pacs.aet,
+      "pacs_aet":   user.department.config.pacs.ae_title,
     }))
 
   # Spawn background thread to send study
@@ -448,7 +448,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
     config.pacs.ip,
     int(config.pacs.port),
     AE_title, 
-    config.pacs.aet,
+    config.pacs.ae_title,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
 
@@ -475,7 +475,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
       logger=logger
     )
   except ValueError:
-    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.aet}")
+    logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.ae_title}")
     return None
 
   association.release()
