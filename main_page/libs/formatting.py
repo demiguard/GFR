@@ -451,7 +451,15 @@ def extract_request_parameters(
 
       try:
         if new_type == float:
-          new_value.append(float_safe(_sub_val)) # Handles dots and commas
+          if _sub_val == '':
+            new_value.append(0.0)
+          else:
+            new_value.append(float_safe(_sub_val)) # Handles dots and commas
+        elif new_type == int:
+          if _sub_val == '':
+            new_value.append(0)
+          else:
+            new_value.append(new_type(_sub_val))
         else:
           new_value.append(new_type(_sub_val))
       except ValueError:

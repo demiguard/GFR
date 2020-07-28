@@ -34,6 +34,7 @@ from main_page.libs import server_config
 from main_page.libs import samba_handler
 from main_page.libs import formatting
 from main_page.libs import dicomlib
+from main_page.libs import dicomio
 from main_page.libs import enums
 from main_page.forms import base_forms
 from main_page import models
@@ -502,7 +503,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         request.POST, 
         REQUEST_PARAMETER_TYPES
       )
-    except ValueError: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
+    except ValueError as E: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
+      print(E)
       return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
 
     # Store form information in dataset regardless of submission type
@@ -587,9 +589,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       # Get historical data from PACS
       try:
-        history_dates, history_age, history_clrN = pacs.get_history_from_pacs(dataset, 
-        f'{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/')
-      except ValueError: # Handle empty AET for PACS connection
+        history_dates, history_age, history_clrN = dicomio.get_history(dataset, hospital_shortname)
+      except ValueError as E: # Handle empty AET for PACS connection
+        logger.error(f'Value error detected {E}')
         history_age = [ ]
         history_clrN = [ ]
         history_dates = [ ]
