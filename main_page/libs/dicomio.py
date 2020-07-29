@@ -2,6 +2,9 @@ import pathlib
 import datetime
 import glob
 
+from pydicom import Dataset
+from typing import List
+
 from main_page.libs import dicomlib
 from main_page.libs import server_config
 from main_page import log_util
@@ -82,3 +85,37 @@ def get_history(dataset, active_hospital):
   dicomlib.fill_dicom(dataset, dicom_history=history_sequence)
   
   return date_list, age_list, clearence_norm_list
+
+
+def get_studies(
+  directory: str, 
+  ) -> List[Dataset]:
+  """
+  Get the list of studies from a directory
+
+  Programmer Remarks:
+    This is not specific enough to be in ris_query_wrapper and should be moved to an
+    appropriate folder
+
+  Args:
+    directory: path to directory containing studies
+    
+  Returns:
+    List of pydicom datasets of all studies currently in the
+    datasets_dir directory
+  """
+  datasets = [ ]
+
+  for dataset_dir in pathlib.Path(directory).glob('*'):
+    accession_number = dataset_dir.name
+    dataset_dir = f"{directory}/{accession_number}"
+    dataset_filepath = f"{dataset_dir}/{accession_number}.dcm"
+    
+    try:
+      datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
+    except FileNotFoundError:
+      # The sub file doesn't exist, delete the directory
+      logger.info(f"Deleting directory, due to missing dicom file in dataset directory: \"{dataset_dir}\"")
+      shutil.rmtree(dataset_dir)
+
+  return datasets

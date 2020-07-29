@@ -26,8 +26,8 @@ from main_page import models
 from main_page.libs.dirmanager import try_mkdir
 from main_page import log_util
 #This lib contains functions that should be moved an propriate directory
-#Specificly ris_query_wrapper.get_studies
-from main_page.libs.query_wrappers import ris_query_wrapper 
+
+from main_page.libs import dicomio
 
 # Create a logger just for the ris_thread
 logger = log_util.get_logger(
@@ -386,7 +386,7 @@ class RisFetcherThread(Thread):
 
       for ae_title in self.ris_ae_finds.keys():
         
-        query_process = threading.Thread(
+        query_process = multiprocessing.Process(
           target=pull_request,
           args=[
             self.ris_ae_finds[ae_title],
@@ -405,7 +405,7 @@ class RisFetcherThread(Thread):
           self.kill_connections(self.ris_ae_finds[ae_title])
           self.kill_connections(self.pacs_ae_finds[ae_title])
           self.kill_connections(self.pacs_ae_moves[ae_title])
-          query_process.stop()
+          query_process.terminate()
           query_process.join()
         else:
           logger.info(f'Finished Query for title: {ae_title}')

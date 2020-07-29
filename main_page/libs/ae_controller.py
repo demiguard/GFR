@@ -183,12 +183,15 @@ def __handle_find_resp(resp, process, *args, **kwargs):
     logger = log_util.get_logger(__name__)
 
   for status, identifier in resp:
-    if status.Status == DATASET_AVAILABLE:
-      process(identifier, *args, **kwargs)
-    elif status.Status == TRANSFER_COMPLETE:
-      pass
+    if 'Status' in status:
+      if status.Status == DATASET_AVAILABLE:
+        process(identifier, *args, **kwargs)
+      elif status.Status == TRANSFER_COMPLETE:
+        pass
+      else:
+        logger.info(f"Failed to transfer dataset, with status: {status.Status}")
     else:
-      logger.info(f"Failed to transfer dataset, with status: {status.Status}")
+      logger.error(f'Dataset does not have status attribute\n Status:\n{status}')
 
 
 def __handle_move_resp(resp, process, *args, **kwargs):
@@ -211,12 +214,15 @@ def __handle_move_resp(resp, process, *args, **kwargs):
     logger = log_util.get_logger(__name__)
 
   for status, identifier in resp:
-    if status.Status == DATASET_AVAILABLE:
-      pass
-    elif status.Status == TRANSFER_COMPLETE:
-      process(identifier, *args, **kwargs)
+    if 'Status' in status:
+      if status.Status == DATASET_AVAILABLE:
+        pass
+      elif status.Status == TRANSFER_COMPLETE:
+        process(identifier, *args, **kwargs)
+      else:
+        logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
     else:
-      logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
+      logger.error(f'Dataset does not have status attribute\n Status:\n{status}')
 
 
 def send_find(association, query_ds, process, query_model=StudyRootQueryRetrieveInformationModelFind, *args, **kwargs) -> None:
