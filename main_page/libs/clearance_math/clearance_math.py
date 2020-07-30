@@ -155,25 +155,30 @@ def calculate_age(cprnr):
   Determine the age of a patient based on CPR
   
   Params:
-    cprnr: CPR number on the form DDMMYY-CCCC, where D - Day, M - Month, Y - year, C - control
+    cprnr: CPR number on the form DDMMYY-CCCC or DDMMYYCCCC, 
+           where D - Day, M - Month, Y - year, C - control
   
   Returns: 
-    The age in int format
-
+    Age as int
   """
   try:
     if len(cprnr) == 11:
+      # With dash
       year_of_birth = int(cprnr[4:6])
       month_of_birth = int(cprnr[2:4])
       day_of_birth = int(cprnr[0:2])
-      Control = int(cprnr[7]) #SINGLE diget
+      control = int(cprnr[7]) # SINGLE digit
     elif len(cprnr) == 10:
+      # Without dash
       year_of_birth = int(cprnr[4:6])
       month_of_birth = int(cprnr[2:4])
       day_of_birth = int(cprnr[0:2])
-      Control = int(cprnr[6]) #SINGLE diget
-
+      control = int(cprnr[6]) # SINGLE digit
+    else:
+      # Not in cpr-format
+      return 1
   except ValueError:
+    # Failed int casting, i.e. cpr is not in cpr format
     return 1
 
   current_time = datetime.datetime.now()
@@ -181,9 +186,9 @@ def calculate_age(cprnr):
   century = []
   
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  if Control in [0,1,2,3] or (Control in [4,9] and 37 <= year_of_birth ): 
+  if control in [0,1,2,3] or (control in [4,9] and 37 <= year_of_birth ): 
     century.append(1900)
-  elif (Control in [4,9] and year_of_birth <= 36) or (Control in [5,6,7,8] and year_of_birth <= 57):
+  elif (control in [4,9] and year_of_birth <= 36) or (control in [5,6,7,8] and year_of_birth <= 57):
     century.append(2000)
   #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
