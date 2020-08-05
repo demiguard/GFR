@@ -87,6 +87,8 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
       'study_form': base_forms.NewStudy(initial={
           'study_date': datetime.date.today().strftime('%d-%m-%Y')
         }
