@@ -242,7 +242,7 @@ def is_valid_study(cpr, name, study_date, accession_number):
   else:
     errors.append("Accession nummer må ikke være tomt.")
 
-  return (errors == [ ]), errors
+  return not(bool(errors)), errors
 
 
 def name_to_person_name(name: str) -> str:
@@ -265,6 +265,9 @@ def name_to_person_name(name: str) -> str:
     return name
 
   names = name.strip().split(' ')
+
+  if len(names) == 1:
+    return names[0]
 
   firstname = names[0]
   middlenames = names[1:-1]

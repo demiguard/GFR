@@ -101,8 +101,6 @@ def get_blank(
   Returns:
     The generated dataset with filled out tags
 
-  TODO: Ensure that the names is a correctly formatted person name
-  TODO: Validate that the cpr number is valid
   TODO: Validate the format of the study_date (possibly change it to take a date object instead)
   """
   # Create dataset w/ meta data
