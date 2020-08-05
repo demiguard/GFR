@@ -331,11 +331,11 @@ def calculate_birthdate(cpr):
     first_digits_year_of_birth = '20'
   else:
     raise ValueError('Dead person Detected')
-  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
+  # The remaining CPR-numbers is used by people from the 19-century AKA dead. 
 
   returnstring = f'{first_digits_year_of_birth}{last_digits_year_of_birth}-{month_of_birth}-{day_of_birth}'
 
-  #logger.debug('Returning with string:{0}'.format(returnstring))
+  # logger.debug('Returning with string:{0}'.format(returnstring))
   
   return returnstring 
 
