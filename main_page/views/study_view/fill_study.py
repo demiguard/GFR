@@ -82,12 +82,11 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   """
   # Get birthdate and compute the age to store
   cpr = post_req.get("cpr")
+  birthdate = post_req.get("birthdate")
 
   if cpr:
-    birthdate = clearance_math.calculate_birthdate(cpr)
     age = clearance_math.calculate_age(cpr)
   else:
-    birthdate = None
     age = None
 
   # Get and format injection time and date to match required format for dicom object
@@ -172,9 +171,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
       ).strftime("%Y%m%d%H%M")
 
       seq.append((date_tmp, value, deviation))  
-  
 
-  print(post_req)
   # Store everything into dicom object
   dicomlib.fill_dicom(
     dataset,
@@ -199,7 +196,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     vial_number=vial_number,
     weight=weight
   )
-  print(dataset)
+
   return dataset
 
 
@@ -291,6 +288,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       except ValueError: # Failed to cast cpr nr. to int, i.e. weird cpr nr.
         present_sex = 1
     
+    # Get patient birthdate
+    try:
+      patient_birthday = dataset.get("PatientBirthDate")
+
+      if not patient_birthday: # If birthday is not found
+        patient_birthday = formatting.convert_date_to_danish_date(clearance_math.calculate_birthdate(dataset.get("PatientID")), sep='-')
+    except ValueError:
+      patient_birthday = "00-00-0000"
+
     today = datetime.date.today()
     inj_date = today.strftime('%d-%m-%Y')
     inj_time = None
@@ -349,6 +355,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     grand_form = base_forms.FillStudyGrandForm(initial={
       'cpr'               : formatting.format_cpr(cpr),
       'height'            : height,
+      'birthdate'         : patient_birthday,
       'injection_date'    : inj_date,
       'injection_time'    : inj_time,
       'vial_number'       : vial_number,
@@ -504,7 +511,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         REQUEST_PARAMETER_TYPES
       )
     except ValueError as E: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
-      print(E)
       return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
 
     # Store form information in dataset regardless of submission type

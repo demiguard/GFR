@@ -109,6 +109,7 @@ class FillStudyGrandForm(forms.Form):
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
   
   #Fields
+  birthdate           = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
   cpr                 = forms.CharField(label='Cpr-nr', required=False)
   height              = forms.CharField(label='Højde (cm)', required=False)
   injection_time      = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
