@@ -32,14 +32,12 @@ var delete_study = function(accession_number) {
 $(function() {
   init_tooltips();
 
-
   // On click event for accepting the deletion of a study
   $('#delete-modal-accept').on('click', function() {
     let del_accession_number = $('#modal-accession-number').text();
     
     delete_study(del_accession_number);
   });
-
 
   // On click event for deletion of a study
   $('.trash-btn').on('click', function() {
@@ -52,7 +50,6 @@ $(function() {
     // Show the modal
     $('#deleteModal').modal('toggle');
   });
-
 
   /* Event handlers for modal and button for deleting ALL studies more than a day old */
   $("#del-day-olds-btn").on("click", function() {
