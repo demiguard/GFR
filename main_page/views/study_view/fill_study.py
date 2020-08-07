@@ -586,6 +586,9 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       # Compute kidney function
       birthdate = dataset.PatientBirthDate
+      birthdate = datetime.datetime \
+        .strptime(birthdate, "%d-%m-%Y") \
+        .strftime("%Y-%m-%d") # format for kidney_function
       gender_num = post_req["sex"]
       gender = enums.Gender(gender_num)
       gender_name = enums.GENDER_NAMINGS[gender.value]
