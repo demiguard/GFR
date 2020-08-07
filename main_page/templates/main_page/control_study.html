@@ -88,7 +88,11 @@
             </tr>
           </tbody>
         </table>
-        <p>Kommentar:</p>
+        {% if comment %}
+          <p>Kommentar:</p>
+        {% else %}
+          <p>Ingen kommentar fundet.</p>
+        {% endif %}
         <p>{{ info.comment }}</p>
       </div>
       <div class="col-md-8">

@@ -143,6 +143,11 @@ class ControlView(LoginRequiredMixin, TemplateView):
       
     injeciton_date, injeciton_time = formatting.splitDateTimeStr( dataset.injTime )
   
+    try:
+      image_comments = dataset.Imagecomments
+    except AttributeError:
+      image_comments = ""
+
     InfoDir = {
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
       'name'                : formatting.person_name_to_name(str(dataset.PatientName)),
@@ -156,7 +161,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'injection_date'      : injeciton_date,
       'thin_fac'            : formatting.float_dec_to_comma(dataset.thiningfactor),
       'study_type'          : dataset.GFRMethod,
-      'comment'             : dataset.ImageComments,
+      'comment'             : image_comments,
       'stdCnt'              : formatting.float_dec_to_comma(dataset.stdcnt)
     }
 
