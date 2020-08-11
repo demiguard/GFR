@@ -308,6 +308,7 @@ function add_datetime_checking(field_alerter) {
     "#id_injection_date": "Injektionsdato",
     "#id_study_date": "Prøvedato",
     "#id_dateofmessurement": "Hent fra backup dato",
+    "#id_birthdate": "Fødselsdato",
   };
 
   let time_ids = [
@@ -319,6 +320,7 @@ function add_datetime_checking(field_alerter) {
     { "id": "#id_injection_date", "alert_type": "danger" },
     { "id": "#id_study_date", "alert_type": "danger" },
     { "id": "#id_dateofmessurement", "alert_type": "warning" },
+    { "id": "#id_birthdate", "alert_type": "danger" },
   ];
   
   // Add to time fields
@@ -548,6 +550,11 @@ function initialize_calculate_button(alerter) {
       return false;
     }
 
+    if (alerter.alert_type_exists("danger", null)) {
+      alerter.show_alerts();
+      return false;
+    }
+
     // Check that all fields are filled out or has a danger alert
     let ids_to_check = [
       "#id_cpr",
@@ -562,13 +569,13 @@ function initialize_calculate_button(alerter) {
       "#id_injection_date",
       "#id_std_cnt",
       "#id_thin_fac",
-      '#id_standcount'
+      "#id_standcount",
+      "#id_birthdate"
     ];
     
     is_valid = true;
     failed_id = "";
     for (var i = 0; i < ids_to_check.length; i++) {
-      // if ($(ids_to_check[i]).val() == "" || alerter.has_alert(ids_to_check[i], 'danger')) {
       if ($(ids_to_check[i]).val() == "") {
         is_valid = false;
         failed_id = ids_to_check[i];
