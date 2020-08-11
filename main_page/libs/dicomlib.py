@@ -320,7 +320,7 @@ def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
     elif isinstance(curr_operators, pydicom.multival.MultiValue):
       if bamID not in curr_operators:
         curr_operators.append(bamID)
-    elif isinstance(curr_operators, pydicom.valuerep.PersonName3):
+    elif isinstance(curr_operators, pydicom.valuerep.PersonName):
       if str(ds.OperatorsName) != bamID:
         ds.OperatorsName = str(ds.OperatorsName) + f'\\{bamID}'
 
