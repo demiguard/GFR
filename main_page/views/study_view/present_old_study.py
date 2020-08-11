@@ -108,8 +108,10 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     injection_datetime = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M')
 
-    birthdate_str = dataset.PatientBirthDate
-    birthdate = formatting.convert_date_to_danish_date(birthdate_str, sep='-')
+    try:
+      birthdate = formatting.convert_date_to_danish_date(birthdate_str, sep='-')
+    except ValueError:
+      birthdate_str = dataset.PatientBirthDate
 
     if dataset.PatientSex == 'M':
       present_sex = 0
