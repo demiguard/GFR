@@ -10,9 +10,9 @@
 
 {% block content %}
   <h2>Filter</h2>
-  <p class="col-md-4">Guide: For at Fjerne en type af undersøgelser skal du kopier undersøgelsen Proceduren fra "Ny undersøgelse"-siden ned i Filter Navn.
-  Bemærk filteret er for hele din afdeling </p>
-  <strong>Active Filtre:</strong>
+  <p class="col-md-4">Guide: For at filtrere en type undersøgelser fra skal du kopier undersøgelsens Procedure fra "Ny undersøgelse"-siden ned i Filter Navn feltet.</p>
+  <p><strong>Bemærk</strong> filteret er for hele din afdeling!</p>
+  <strong>Aktive filtre:</strong>
   <table>
     {% for active_filter, id in active_filters %}
     <tr id='Filter_{{ id }}'>
