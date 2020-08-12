@@ -28,6 +28,10 @@ tr:hover {
   cursor: pointer;
 }
 
+tr .non-clickable:hover {
+  cursor: auto;
+}
+
 #del-day-olds-btn {
   float: right;
 }
