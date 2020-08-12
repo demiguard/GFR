@@ -444,7 +444,7 @@ function initialize_before_unload_handler() {
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
-  $("#cancel").on('click', function() {
+  /*$("#cancel").on('click', function() {
     confirm_cancel_study(
       function() {
         // Redirect on success
@@ -453,7 +453,7 @@ function initialize_before_unload_handler() {
       function() { }
     );
   });
-
+  */
   // Sidemenu item clicked
   $(".menu-item").click(function() {
     $(window).off("beforeunload");
