@@ -16,6 +16,6 @@ class UserGuideView(View):
     logger.info("SOMEONE OPENED THE USERGUIDE!") 
 
     return FileResponse(
-      open('main_page/static/main_page/pdf/brugervejledning.pdf', 'rb'),
+      open('main_page/static/main_page/pdf/brugervejledning-metode.pdf', 'rb'),
       content_type='application/pdf'
     )
