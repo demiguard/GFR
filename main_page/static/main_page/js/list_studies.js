@@ -43,7 +43,7 @@ $(function() {
   $('.trash-btn').on('click', function() {
     // Get accession number to display in modal
     var parent_tr = $(this).parent().parent();
-    let accession_number = parent_tr.children()[5].innerHTML;
+    let accession_number = parent_tr.children()[4].innerHTML;
 
     $('#modal-accession-number').text(accession_number);
 
