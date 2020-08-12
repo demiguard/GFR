@@ -537,7 +537,7 @@ def generate_gfr_plot(
   print_str = f"""    Navn: {name}\n
     CPR: {cpr}\n
     Undersøgelsedato: {injection_date}\n
-    Accession Nummer: {rigs_nr}\n
+    Accession nr.: {rigs_nr}\n
     Køn: {gender}\n
     Alder: {_age_string(day_of_birth)}\n
     Vægt: {weight:.1f} kg\n

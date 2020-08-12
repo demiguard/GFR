@@ -49,7 +49,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
 
     #ControlPatient6 
     FormSamples = []
-    for sample in dataset.ClearTest:
+    for i, sample in enumerate(dataset.ClearTest):
       sample_date, sample_time = formatting.splitDateTimeStr(sample.SampleTime)
 
       if 'Deviation' in sample:
@@ -62,7 +62,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
         'sample_date' : sample_date,
         'sample_cnt'  : sample.cpm,
         'sample_devi' : deviation
-      })
+      }, field_id=i)
       FormSamples.append(FormSample)
 
     return {
@@ -76,7 +76,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     dir_path = Path(server_config.CONTROL_STUDIES_DIR,hopital_sn, AccessionNumber)
     file_path = Path(dir_path,f'{AccessionNumber}.dcm')
 
-    if post_req['control'] == 'Afvis':
+    if post_req['control'] == 'Afvis og rediger':
       fill_study_dir = Path(server_config.FIND_RESPONS_DIR, hopital_sn, AccessionNumber)
       if fill_study_dir.exists():
         shutil.rmtree(fill_study_dir)

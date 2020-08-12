@@ -158,17 +158,17 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('CPR:', formatting.format_cpr(dataset.PatientID)),
       ('Navn:', formatting.person_name_to_name(str(dataset.PatientName))),
       ('Køn:', enums.GENDER_NAMINGS[present_sex]),
-      ('Fødselsdagdato:', birthdate),
+      ('Fødselsdato:', birthdate),
       ('Højde:', f"{patient_height} cm"),
       ('Vægt:', f"{patient_weight} kg")]
     if 'VialNumber' in dataset:
-      study_data += [("Sprøjte Nr: ", f"{dataset.VialNumber}.")]
+      study_data += [("Sprøjte Nr: ", f"{dataset.VialNumber}")]
       
     study_data += [
-      ('Sprøjtevægt før inj:', f"{inj_weight_before} g"),
-      ('Sprøjtevægt efter inj:', f"{inj_weight_after} g"),
-      ('Injektion Tidspunkt:', injection_datetime.strftime("%H:%M")),
-      ('Injektion Dato:', injection_datetime.strftime("%d-%m-%Y")),
+      ('Sprøjtevægt før inj.:', f"{inj_weight_before} g"),
+      ('Sprøjtevægt efter inj.:', f"{inj_weight_after} g"),
+      ('Injektionstidspunkt:', injection_datetime.strftime("%H:%M")),
+      ('Injektionsdato:', injection_datetime.strftime("%d-%m-%Y")),
       ('Fortyndingsfaktor:', formatting.float_dec_to_comma(dataset.thiningfactor)),
       ('Standardtælletal:', formatting.float_dec_to_comma(dataset.stdcnt)),
       ('Undersøgelses type:', dataset.GFRMethod),

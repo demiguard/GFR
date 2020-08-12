@@ -59,7 +59,10 @@ class ControlPatient6(forms.Form):
   sample_confirm = forms.BooleanField(required=False, label='')
 
   def __init__(self, *args, **kwargs):
-    super(ControlPatient6, self).__init__( *args, **kwargs)
+    field_id = kwargs["field_id"]
+
+    super(ControlPatient6, self).__init__( *args, { })
+    
     self.fields['sample_time'].widget.attrs['readonly'] = True    
     self.fields['sample_date'].widget.attrs['readonly'] = True  
     self.fields['sample_cnt' ].widget.attrs['readonly'] = True
@@ -68,7 +71,8 @@ class ControlPatient6(forms.Form):
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
     self.fields['sample_devi'].widget.attrs['class']    = 'form-input Deviation'
-    self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox confirm-checkbox' 
+    self.fields['sample_confirm'].widget.attrs['class'] = 'confirm-row-checkbox confirm-checkbox'
+    self.fields['sample_confirm'].widget.attrs['id'] = f"id_sample_confirm_{field_id}"
 
 class FillStudyTest(forms.Form):
   study_time = forms.TimeField(label='Blodprøve taget kl:', required=False)
@@ -84,8 +88,8 @@ class FillStudyTest(forms.Form):
 
 class SearchForm(forms.Form):
   name = forms.CharField(label='Navn', required=False)
-  cpr  = forms.CharField(label='Cpr-nr.', required=False)
-  accession_number = forms.CharField(label='Accession nummer', required=False)
+  cpr  = forms.CharField(label='CPR', required=False)
+  accession_number = forms.CharField(label='Accession nr.', required=False)
   from_date = forms.DateField(label='Fra dato (DD-MM-ÅÅÅÅ)', required=False)
   to_date = forms.DateField(label='Til dato (DD-MM-ÅÅÅÅ)', required=False)
 
@@ -110,7 +114,7 @@ class FillStudyGrandForm(forms.Form):
   
   #Fields
   birthdate           = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
-  cpr                 = forms.CharField(label='Cpr-nr', required=False)
+  cpr                 = forms.CharField(label='CPR', required=False)
   height              = forms.CharField(label='Højde (cm)', required=False)
   injection_time      = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
   injection_date      = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)  
@@ -120,7 +124,7 @@ class FillStudyGrandForm(forms.Form):
   standcount          = forms.FloatField(label="Standardtælletal", required=False)
   study_type          = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
   thin_fac            = forms.CharField(label='Fortyndingsfaktor', required=False)
-  vial_number         = forms.IntegerField(label="Sprøjte Nr.", min_value=0, max_value=99, required=False)
+  vial_number         = forms.IntegerField(label="Sprøjte nr.", min_value=0, max_value=99, required=False)
   vial_weight_after   = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   vial_weight_before  = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
   weight              = forms.CharField( label='Vægt (kg)', required=False)
