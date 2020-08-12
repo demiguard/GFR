@@ -542,6 +542,7 @@ def fill_dicom(ds,
     0x00101020 : ('DS', height),                                              # ds.PatientSize
     0x00101030 : ('DS', weight),                                              # ds.PatientWeight
     0x0008103E : ('LO', 'Clearance ' + formatting.xstr(gfr_type), gfr_type),  # ds.SeriesDescription
+    0x00204000 : ('LT', image_comment),                                       # ds.ImageComments
                                                                               # ### PRIVATE TAGS START ###
     0x00231001 : ('LO', gfr),                                                 # ds.GFR
     0x00231002 : ('LO', server_config.SERVER_VERSION, update_version),        # ds.GFRVersion
@@ -555,8 +556,7 @@ def fill_dicom(ds,
     0x00231012 : ('DS', clearance),                                           # ds.clearance
     0x00231014 : ('DS', clearance_norm),                                      # ds.normClear
     0x00231024 : ('DS', std_cnt),                                             # ds.stdcnt
-    0x00231028 : ('DS', thiningfactor),                                        # ds.thiningfactor
-    0x00204000 : ('LT', image_comment)
+    0x00231028 : ('DS', thiningfactor),                                       # ds.thiningfactor
   }
   
   for tag, args in try_adds_dict.items():

@@ -88,12 +88,11 @@
             </tr>
           </tbody>
         </table>
-        {% if comment %}
-          <p>Kommentar:</p>
+        {% if info.comment %}
+          <p>Kommentar: {{ info.comment }}</p>
         {% else %}
           <p>Ingen kommentar fundet.</p>
         {% endif %}
-        <p>{{ info.comment }}</p>
       </div>
       <div class="col-md-8">
         <img class="PresentationImage" width="100%" src="{% static static_path %}" alt="Image not generated, {{ image_path }}" >
