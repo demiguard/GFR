@@ -58,29 +58,20 @@ class CSVHandler {
     });
   }
 
-  init_add_button_handler(add_test_btn, add_empty_btn) {
+  init_add_button_handler(add_test_btn) {
     // /*
     // Initializes the click event for 'Tilføj prøve'
     // */
     let csv_handler = this;
     
     add_test_btn.on('click', function() {    
-      // Check if zero datapoints have been selected
-      if (!csv_handler.check_selected_count()) {
-        return;
+      if (csv_handler.check_selected_count()) {
+        // Add average over selected samples
+        csv_handler.add_test(csv_handler.compute_selected_avg); 
+      } else {
+        // Add empty test, if no samples were selected
+        csv_handler.add_test(function() { return 0; });
       }
-
-      csv_handler.add_test(csv_handler.compute_selected_avg); 
-    });
-    
-    // 'Tilføj tom prøve
-    add_empty_btn.on('click', function() {
-      csv_handler.add_test(function() {
-        return 0;
-      });
-
-      // Remove the inserted NaN or avg. value
-      $('#test-data-container .form-row:last-child .form-group:nth-of-type(3) input').val(0)
     });
   }
 
@@ -111,11 +102,13 @@ class CSVHandler {
     var numbers = this.get_selected_numbers();
     if (numbers.length >= 2){
       deviation = this.deviation(numbers);
-      alerter.add_alert(
-        'deviation',
-        'Prøven har en afvigelse på ' + deviation.toFixed(3) + "%",
-        'success'
-      )
+      // NOTE: The below alert has been commented out as it never gets removed, 
+      // and the deviation info is already displayed in the added sample
+      // alerter.add_alert(
+      //   'deviation',
+      //   'Prøven har en afvigelse på ' + deviation.toFixed(3) + "%",
+      //   'success'
+      // );
     }
 
     // Check if there is a large numerical difference between any two tests
@@ -511,16 +504,8 @@ class CSVHandler {
       This function might set alerts based on the number of selected rows.
     */
     if (this.selected_row_ids.length == 0) {
-      this.alerter.add_alert('r1', 'Der skal vælges min. 1 datapunkt for at kunne tilføje en prøve.', 'danger');
-      this.alerter.show_alerts();
       return false;
     }
-    
-    if (this.selected_row_ids.length == 1) {
-      this.alerter.add_alert('r2', 'Det anbefaldes at der bruges 2 datapunkter for større sikkerhed', 'warning');
-    }
-
-    this.alerter.show_alerts();
 
     return true;
   }

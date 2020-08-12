@@ -503,7 +503,7 @@ function initialize_csv_handler(alerter) {
   csv_handler = new CSVHandler(alerter);
 
   csv_handler.init_row_selector(".csv_row");
-  csv_handler.init_add_button_handler($('#add-test'), $('#add-empty-value'));
+  csv_handler.init_add_button_handler($('#add-test'));
   csv_handler.init_reset_selected($('#reset-selected'));
   csv_handler.init_add_standard($('#add-standard'));
   csv_handler.init_study_method();
