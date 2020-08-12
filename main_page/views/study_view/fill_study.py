@@ -290,7 +290,12 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     
     # Get patient birthdate
     try:
-      patient_birthday = dataset.get("PatientBirthDate")
+      birthdate = dataset.get("PatientBirthDate")
+
+      try:
+        patient_birthday = formatting.convert_date_to_danish_date(birthdate, sep='-')
+      except ValueError:
+        patient_birthday = birthdate
 
       if not patient_birthday: # If birthday is not found
         try:
