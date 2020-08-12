@@ -102,13 +102,6 @@ class CSVHandler {
     var numbers = this.get_selected_numbers();
     if (numbers.length >= 2){
       deviation = this.deviation(numbers);
-      // NOTE: The below alert has been commented out as it never gets removed, 
-      // and the deviation info is already displayed in the added sample
-      // alerter.add_alert(
-      //   'deviation',
-      //   'Prøven har en afvigelse på ' + deviation.toFixed(3) + "%",
-      //   'success'
-      // );
     }
 
     // Check if there is a large numerical difference between any two tests

@@ -63,6 +63,7 @@ function checkbox_enter_skips() {
   // Get all checkboxes
   let checkboxes = $("input:checkbox");
   let n = checkboxes.length;
+  console.debug(n);
 
   // Focus on first checkbox
   checkboxes[0].focus();

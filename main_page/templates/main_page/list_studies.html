@@ -9,16 +9,22 @@
 
 {% block content %}
   <div class="row">
-    <div class="col-md-11">
+    <div class="col-md-9">
       <h2>Ny undersøgelse</h2> <br>
     </div>
-    <div class="col-md-1">
+    <div class="col-md-3">
       <br>
-      <form>
-        <button type="button" id="del-day-olds-btn" class="del-day-olds btn btn-sm btn-danger">
-          Fjern gamle undersøgelser
-        </button>
-      </form>
+      <form class="form-row">
+        <div class="form-group col-md-1"></div>
+        <div class="form-group col-md-5">
+          <a href="{% url 'main_page:new_study' %}" class="btn btn-sm btn-primary" role="button">Nødoprettelse</a>
+        </div>
+        <div class="form-group col-md-6">
+          <button type="button" id="del-day-olds-btn" class="del-day-olds btn btn-sm btn-danger">
+            Fjern gamle undersøgelser
+          </button>
+        </div>
+    </form>
     </div>
   </div>
   {% if error_message %}
@@ -36,7 +42,7 @@
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
         <th class="exam-status-column" onclick="sort_table(1, 'new_studies')">Status</th>
-        <th onclick="sort_table(2, 'new_studies')">Cpr nr.</th>
+        <th onclick="sort_table(2, 'new_studies')">CPR</th>
         <th onclick="sort_table(3, 'new_studies')">Dato</th>
         <th onclick="sort_table(5, 'new_studies')">Accession nr.</th>
         <th onclick="sort_table(4, 'new_studies')">Procedure</th>
@@ -63,7 +69,6 @@
     </tbody>
   </table>
 
-  <a href="{% url 'main_page:new_study' %}">Nødoprettelse</a>
 
 
   <!-- Delete study modal -->

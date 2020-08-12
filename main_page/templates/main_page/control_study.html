@@ -48,7 +48,7 @@
             </tr>
             <tr>
               <td>{% bootstrap_field GrandForm.vial_number_confirm form_group_class='.form-super-group' %}</td>
-              <td>Sprøjte nr:</td>
+              <td>Sprøjte nr.:</td>
               <td>{{ info.vial_number }} </td>
             </tr>
             <tr>
@@ -105,33 +105,33 @@
         <!-- Display test info -->
         <h5>Blodprøvedata</h5>
         <div id="test-data-container">
-          <!-- Place where JS inserts new test data -->
-          
-        <div class="form-row">
-          <div class="form-group col-md-3">PrøveDato</div>
-          <div class="form-group col-md-2">Prøvetidspunkt</div>
-          <div class="form-group col-md-2">Tælletal</div>
-          <div class="form-group col-md-2">Afvigelse</div>
-          
-        </div>     
-        {% for sample in Samples %}
-        <div class="form-group">
           <div class="form-row">
-            {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-3' %}                            
-            {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}                        
-            {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-2' %}
-            {% bootstrap_field sample.sample_devi layout='inline' form_group_class='col-md-2' %}
-            {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}                        
+            <div class="form-group col-md-2">PrøveDato</div>
+            <div class="form-group col-md-2">Prøvetidspunkt</div>
+            <div class="form-group col-md-2">Tælletal</div>
+            <div class="form-group col-md-2">Afvigelse</div>
           </div>
-        </div>
-        {% endfor %}
+          
+          <!-- Place where JS inserts new test data -->
+
+          {% for sample in Samples %}
+          <div class="form-group">
+            <div class="form-row">
+              {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-2' %}                            
+              {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}                        
+              {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-2' %}
+              {% bootstrap_field sample.sample_devi layout='inline' form_group_class='col-md-2' %}
+              {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}                        
+            </div>
+          </div>
+          {% endfor %}
         </div>
         <!-- Add test info -->
         <hr>     
         {% bootstrap_field GrandForm.bamID layout='inline' %}
         {% buttons %}
           <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
-          <input type="submit" name="control" value="Afvis" id="deny">
+          <input type="submit" name="control" value="Afvis og rediger" id="deny">
           <input type="submit" name="control" value="Annuller" id="cancel">
         {% endbuttons %}
 
