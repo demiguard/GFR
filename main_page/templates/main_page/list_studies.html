@@ -38,8 +38,8 @@
         <th class="exam-status-column" onclick="sort_table(1, 'new_studies')">Status</th>
         <th onclick="sort_table(2, 'new_studies')">Cpr nr.</th>
         <th onclick="sort_table(3, 'new_studies')">Dato</th>
-        <th onclick="sort_table(4, 'new_studies')"> Procedure</th>
         <th onclick="sort_table(5, 'new_studies')">Accession nr.</th>
+        <th onclick="sort_table(4, 'new_studies')">Procedure</th>
         <th></th> <!-- Empty column for action buttons -->
       </tr>
     </thead>
@@ -51,8 +51,8 @@
           <td class="exam-status-column" onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'"><span class="oi oi-clipboard exam-status-{{ study.exam_status }}"></span></td>
           <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.cpr }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.study_date }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.procedure }}</td>
           <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.accession_number }}</td>
+          <td class="non-clickable">{{ study.procedure }}</td>
           <td>
             <button type="button" class="trash-btn btn btn-link">
               <span title="Fjern undersøgelse" class="oi oi-trash" aria-hidden="true"></span>
