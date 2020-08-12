@@ -294,7 +294,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       try:
         patient_birthday = formatting.convert_date_to_danish_date(birthdate, sep='-')
-      except ValueError:
+      except (ValueError, TypeError):
         patient_birthday = birthdate
 
       if not patient_birthday: # If birthday is not found
