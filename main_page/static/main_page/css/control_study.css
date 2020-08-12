@@ -40,3 +40,9 @@
   border-color: rgb(38, 38, 150); 
   /*border-style: solid;*/
 }
+
+img {
+  margin-top: -5%;
+  margin-left: -8%;
+  width: 113%;
+}
