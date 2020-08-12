@@ -50,7 +50,6 @@
               <li><a class="menu-item" href="{% url 'main_page:userguide' %}">Brugervejledning</a></li>
               
               {% if user.is_authenticated %}
-              <li><a class="menu-item" href="{% url 'main_page:documentation' %}">Dokumentation</a></li>
                 {% if user.user_group.name == 'admin' %}
                   <li><a class="menu-item" href="{% url 'main_page:admin_panel' %}">Admin panel</a></li>
                 {% endif %}
