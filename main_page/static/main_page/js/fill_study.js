@@ -530,16 +530,8 @@ function initialize_calculate_button(alerter) {
     alerter.remove_alert('test_before');
 
     let test_count = $('#test-data-container .form-row').length;
-    if (test_count == 0) {
-      alerter.add_alert(
-        'no_tests',
-        'Kan ikke beregne uden prøver.',
-        'danger'
-      );
-
-      alerter.show_alerts();
-      return false;
-    } else if (test_count == 1 && $('id_study_type_2').is(":checked")) {
+    
+    if (test_count == 1 && $('id_study_type_2').is(":checked")) {
       alerter.add_alert(
         'model_tests_selected',
         'Flere Prøve modellen er valgt, men der er kun tilføjet en prøve',

@@ -82,20 +82,12 @@ class CSVHandler {
     Args:
       selected_avg_func: function which computes the average of selected csv rows
     */
-
+    console.log('Add test is called with: ' + String(selected_avg_func));
     let alerter = this.alerter;
 
     // Check if time and date fields are correctly formatted
     let study_time_field = $('#id_study_time');
     let study_date_field = $('#id_study_date');
-
-    if (study_time_field.hasClass("danger-field") || !study_time_field.val()) {
-      return;
-    }
-
-    if (study_date_field.hasClass("danger-field") || !study_date_field.val()) {
-      return;
-    }
 
     alerter.remove_alert('deviation')
     var deviation = 0;
@@ -129,7 +121,7 @@ class CSVHandler {
     let time_of_study = new Date(study_datetime_str);
     
     let time_diff = time_of_study - time_of_inj;
-    console.debug("time_diff: " + time_diff);
+    console.log("time_diff: " + time_diff);
 
     // Check if study date was before injection date - this shouldn't be possible...
     alerter.remove_alert("inj_diff");
