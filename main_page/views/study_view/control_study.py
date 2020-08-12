@@ -143,10 +143,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       
     injeciton_date, injeciton_time = formatting.splitDateTimeStr( dataset.injTime )
   
-    try:
-      image_comments = dataset.Imagecomments
-    except AttributeError:
-      image_comments = ""
+    image_comments = dataset.get("ImageComments")
 
     InfoDir = {
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
