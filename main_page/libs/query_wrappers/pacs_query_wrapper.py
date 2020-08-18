@@ -371,22 +371,13 @@ def start_scp_server(ae_title):
 
 
   def sop_common_handler(event):
-    logger.info(event.name)
-    logger.info(event.description)
-    logger.info(event.assoc)
-    logger.info(event.items)
+    logger.info(event)
 
   def sop_extended_handler(event):
-    logger.info(event.name)
-    logger.info(event.description)
-    logger.info(event.assoc)
-    logger.info(event.app_info)
+    logger.info(event)
 
   def log_event_handler(event):
-    logger.info('\n New Event Logged!\n')
-    logger.info(event.name)
-    logger.info(event.description)
-    logger.info(event.assoc)
+    logger.info(event)
 
   def connection_open_handler(event):
     """
