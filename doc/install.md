@@ -63,7 +63,7 @@ Once in the virtualenv, the required python packages can be installed by running
 ```
 
 ### Installing new packages
-Whenever a new package is added the ```requirements.txt``` must be updated. This can be done by running:
+Whenever a new package is added, the ```requirements.txt``` must be updated. This can be done by running:
 ```
 (venv)> pip freeze > requirements.txt
 ```
@@ -98,7 +98,7 @@ Ensure that the user can login with
 ### Table schemas
 The easiest way to initialize database tables and data is by using a snapshot from the existing database using an SQL dump.
 ```
-(gfr) > mysqldump gfrdb > dbdump.sql
+(gfr)> mysqldump gfrdb > dbdump.sql
 ```
 which can then be loaded into the new database by
 ```
@@ -111,9 +111,9 @@ If MariaDB is being used instead of MySQL, e.g. for development purposes, then t
 2. MariaDB should now be able to import the dump.
 
 ## Running in debug mode
-The Django comes with a development/debugging minimal web server, which can be ran by setting the variable ```debug=True```, under the ```settings.py``` file in the main project directory.
+Django comes with a minimal development/debugging web server, which can be ran by setting the variable ```debug=True```, under the ```settings.py``` file in the main project directory.
 
-Once this is done, the web development web server can be ran using:
+Once this is done, the development web server can be ran using:
 ```
 (venv)> python manage.py runserver
 ```
@@ -127,7 +127,7 @@ To allow hosts on the local network to access the debug test site, run the comma
 Now the site should be accessible via.: http://<YOUR_IP_ADDRESS>:8000
 
 ## Deploying with nginx
-The following steps is a minor rewrite of https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html, if any problems occur this tutorial can possibly of help.
+The following steps is a minor rewrite of https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html, if any problems occur this tutorial can possibly be of help.
 
 1. Install uwsgi:
 ```
