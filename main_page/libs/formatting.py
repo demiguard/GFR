@@ -236,11 +236,11 @@ def is_valid_study(cpr, name, study_date, accession_number):
   if accession_number:
     if not re.search(r"\s", accession_number):
       if not re.match(r"^[a-zA-Z0-9\-]+$", accession_number):
-        errors.append("Accession nummer indeholder ulovlige karaktere.")
+        errors.append("Accession nr. indeholder ulovlige karaktere.")
     else:
-      errors.append("Accession nummer må ikke indeholde mellemrum.")
+      errors.append("Accession nr. må ikke indeholde mellemrum.")
   else:
-    errors.append("Accession nummer må ikke være tomt.")
+    errors.append("Accession nr. må ikke være tomt.")
 
   return not(bool(errors)), errors
 

@@ -199,7 +199,7 @@ function show_model() {
       console.warn(data);
       // $('#id_accession_number').attr('readonly', false);
       // let resp_accession_number = data.responseJSON.resp_accession_number;
-      // alerter.add_alert("Kunne ikke slette behandlede undersøgelse med accession nummer: '" + resp_accession_number + "'", 'danger');
+      // alerter.add_alert("Kunne ikke slette behandlede undersøgelse med accession nr.: '" + resp_accession_number + "'", 'danger');
     }
   });
 }

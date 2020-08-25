@@ -14,7 +14,7 @@ class NewStudy(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.')
   name = forms.CharField(label='Navn')
   study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)')
-  rigs_nr = forms.CharField(label='Accession nummer')
+  rigs_nr = forms.CharField(label='Accession nr.')
 
 
 #Form Control Study
