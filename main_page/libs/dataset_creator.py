@@ -177,7 +177,7 @@ def generate_ris_query_dataset(ris_calling: str='') -> Type[Dataset]:
   
   Sequenceset.add_new(0x00080060, 'CS', 'OT')           # Modality
   Sequenceset.add_new(0x00400001, 'AE', ris_calling) # ScheduledStationAETitle
-  Sequenceset.add_new(0x00400002, 'DA', date.today().strftime("%Y%m%d"))           # ScheduledProcedureStepStartDate
+  Sequenceset.add_new(0x00400002, 'DA', '-' +date.today().strftime("%Y%m%d"))           # ScheduledProcedureStepStartDate
   Sequenceset.add_new(0x00400003, 'TM', '')           # ScheduledProcedureStepStartTime
   Sequenceset.add_new(0x00400007, 'LO', '')           # ScheduledProcedureStepDescription
   Sequenceset.add_new(0x00400009, 'SH', '')           # ScheduledProcedureStepID
