@@ -23,8 +23,10 @@ class FilterView(LoginRequiredMixin, TemplateView):
     procedures = [ procedure.proceduretype for procedure in query ]
     procedure_id = [ procedure.id for procedure in query ]
     context = {
-      'FilterForm' : FilterForm(initial={}),
-      'active_filters' : zip(procedures, procedure_id)
+      "title": server_config.SERVER_NAME,
+      "version": server_config.SERVER_VERSION,
+      'FilterForm': FilterForm(initial={}),
+      'active_filters': zip(procedures, procedure_id)
     }
 
     return render(request, self.template_name, context=context)
