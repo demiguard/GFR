@@ -9,6 +9,8 @@ deleted_dicom_objects/
 control_dicom_objects/
 deleted_studies/
 search_dir/
+pacs_study_queue/
+db_dumps/
 
 # Python cache
 __pycache__/
