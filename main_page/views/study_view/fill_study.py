@@ -361,7 +361,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       name = formatting.person_name_to_name(str(name))
 
     comment = dataset.get('ClearenceComment')
-    if comment = None:
+    if not(comment):
       comment = dataset.get('ImageComments')
 
 
