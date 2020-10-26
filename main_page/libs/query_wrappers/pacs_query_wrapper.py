@@ -230,9 +230,12 @@ def thread_store(accession_number, wait_time, max_attempts=5):
     if not is_sent:
       time.sleep(wait_time)
 
-  # Clean up
-  os.remove(ds_file)
-  os.remove(conf_file)
+  # Clean up or report if failed to send to PACS
+  if is_sent:
+    os.remove(ds_file)
+    os.remove(conf_file)
+  else:
+    logger.error(f"Failed to send study to PACS: {ds_file}.")
 
 
 def send_queue_to_PACS():
