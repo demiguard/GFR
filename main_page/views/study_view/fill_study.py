@@ -376,7 +376,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'vial_weight_after' : dataset.get("injafter"),
       'vial_weight_before': dataset.get("injbefore"),
       'weight'            : dataset.get("PatientWeight"),
-      'comment_field'     : dataset.get("ImageComments")
+      'comment_field'     : dataset.get("ClearenceComment")
     })
 
     # Samples Form
