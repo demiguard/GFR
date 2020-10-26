@@ -360,6 +360,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     if name:
       name = formatting.person_name_to_name(str(name))
 
+    comment = dataset.get('ClearenceComment')
+    if comment = None:
+      comment = dataset.get('ImageComments')
+
+
     grand_form = base_forms.FillStudyGrandForm(initial={
       'cpr'               : formatting.format_cpr(cpr),
       'height'            : height,
@@ -376,7 +381,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       'vial_weight_after' : dataset.get("injafter"),
       'vial_weight_before': dataset.get("injbefore"),
       'weight'            : dataset.get("PatientWeight"),
-      'comment_field'     : dataset.get("ClearenceComment")
+      'comment_field'     : comment
     })
 
     # Samples Form
