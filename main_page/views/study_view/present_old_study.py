@@ -175,8 +175,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Operatør:', operators)
     ]
     if 'ClearenceComment' in dataset:
-      study_data += [('Kommentar',dataset.ClearenceComment)]
-
+      study_data += [('Kommentar', dataset.ClearenceComment)]
+    elif 'ImageComments' in dataset:
+      study_data += [('Kommentar', dataset.ImageComments)]
 
     
     if 'PixelData' in dataset:

@@ -144,6 +144,8 @@ class ControlView(LoginRequiredMixin, TemplateView):
     injeciton_date, injeciton_time = formatting.splitDateTimeStr( dataset.injTime )
   
     image_comments = dataset.get("ClearenceComment")
+    if image_comments == None:
+      image_comments = dataset.get("ImageComments")
 
     InfoDir = {
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
