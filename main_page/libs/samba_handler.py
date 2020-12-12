@@ -18,6 +18,18 @@ from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
+def valid_dataset(pandas_ds):
+  if 'Measurement date & time' not in pandas_ds.columns:
+    return False
+  if 'Pos' not in pandas_ds.columns:
+    return False
+  if 'Tc-99m CPM' not in pandas_ds.columns:
+    return False
+  if 'Rack' not in pandas_ds.columns:
+    return False
+
+  return True
+
 
 def open_csv_file(temp_file: NamedTemporaryFile):
   """
@@ -183,12 +195,20 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> Lis
         logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
 
     dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
-    if (now - dt_examination).days > 0:
-      logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
-      move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename, model_server_config)
+    if valid_dataset(pandas_ds):
+
+      if (now - dt_examination).days > 0:
+        logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
+        move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename, model_server_config)
+      else:
+        returnarray.append(pandas_ds)
     else:
-      returnarray.append(pandas_ds)
-      
+      logger.error(f'Invalid Data format')
+      try:
+        conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + correct_filename)
+      except Exception as E:
+        logger.error(f"Unknown Exception : {E}")
+
     temp_file.close()
 
   conn.close()
