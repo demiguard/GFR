@@ -172,6 +172,82 @@ Filtre kan ligeledes fjernes ved at:
 Dokumentation beskriver metoden hvordan GFR værdierne er udregnet.\\ 
 Den kan man tilgå via sidebaren ved at klippe på linket »Documentation« (eller via. linket: \url{http://gfr/documentation}). 
 
+\section{Teknisk documentation}
+Denne sektion er for tekniske side af GFR, så den har ikke noget information om daglig brug af GFRcalc.\\
+
+GFRcalc laver dicom-objecter, med føglende tags, Tags som ikke er private føgler dicom standarden:
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|p{7cm}|}\hline
+	Dicom Tag   & VR & Forklaring \\ \hline
+	(0008,0018) & UI & genereret SOP Instance UID, genberegnes ved hver opdatering af Dicom objectet \\ \hline
+	(0008,0020) & DA & Dato undersøgelse er booket til \\ \hline
+	(0008,0021) & DA & Dato undersøgelse er booket til \\ \hline	
+	(0008,0030) & TM & Tidspunkt undersøgelse er booket til \\ \hline
+	(0008,0031) & TM & Tidspunkt undersøgelse er booket til \\ \hline	
+	(0008,0050) & SH & Accession nummer af undersøgelsen \\ \hline 
+	(0008,0060) & CS & Modalitet af undersøgelsen sat til OT \\ \hline
+	(0008,0064) & CS & Billed type - værdi er konstant: SYN \\ \hline
+	(0008,0080) & LO & Hospital som undersøgelsen er udført på, kan konfigures fra admin panelet \\ \hline
+	(0008,0081) & LO & Addresse som undersøgelsen er udført på, kan konfigures fra admin panelet \\ \hline
+	(0008,1010) & SH & AE-title som undersøgelsen er lavet ved \\ \hline
+	(0008,1030) & LO & Undersøgelse beskrivelse, ej ændret men læst. \\ \hline
+	(0008,103E) & LO & Beskrivelse af undersøgen og at metoden \\ \hline
+	(0010,0010) & PN & Navn på patienten i dicom format \\ \hline
+	(0010,0020) & LO & Patient CPR-nr. \\ \hline
+	(0010,0030) & DA & Patient fødseldato på format YYYYMMDD \\ \hline
+	(0010,1020) & DS & Patient højde i meter \\ \hline
+	(0010,1030) & DS & Patient Vægt i Kg \\ \hline
+	(0018,1019)	& LO & Beskrivelse af software og versions nummer \\ \hline
+	(0020,000E) & UI & Genereret Series Instance UID, genberegnes ved vær opdatering af dicom objectet \\ \hline
+	(0020,0010) & SH & ID til undersøgelse, i formattet GFR\# XXXXXXXX hvor X'erne er taget fra Accessionnummeret \\ \hline
+	(0020,0011) & IS & Billed nummer, altid 1 \\ \hline
+	(0020,0013) & IS & Billed nummer, altid 1 \\ \hline
+	(0028,0002) & US & Antal byte per pixel, altid 3 \\ \hline
+	(0028,0004) & CS & Kode for forståelse pixel data \\ \hline
+	(0028,0010) & US & Billed højde i pixel, altid 1080 \\ \hline
+	(0028,0011) & US & Billed brede i pixel, altid 1920 \\ \hline
+	(0028,0100) & US & Antal bits allokeret per farvekanal \\ \hline
+	(0028,0101) & US & Antal bits brugt per allokeret bits \\ \hline
+	(0028,0102) & US & Størst betydende bit  \\ \hline
+	(0028,0103) & US & Unsigned representation af farver\\ \hline
+	(7FE0,0010) & OW & Ukomprimeret pixels til billedet af undersøgelsen.\\ \hline
+\end{tabular}
+\end{center}
+\caption{Public tags manipuleret af GFRcalc}
+\end{table}
+
+
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|c|c|p{7cm}|}\hline
+		Dicom Tag   & VR &  Forklaring \\ \hline
+		(0023,0010) & LO &  Dicom allokering af tag gruppe (0023,10XX) \\ \hline
+		(0023,1001) & LO & Konklusion af GFR undersøgelsen eg. Normal, moderat Nedsat, Svært nedsat \\ \hline 
+		(0023,1002) & LO & Intern version nummer af Dicom object, ingen effekt på GFR værdien. \\ \hline
+		(0023,1010) & LO & Metoden som er brugt til at regne GFR værdien: "En blodprøve, Voksen", "En blodprøve, Barn", "Flere blodprøver" \\ \hline
+		(0023,1011) & LO & Metoden til at regne krops overflade, som er brugt i GFR. Haycock er den værdi, som er brugt\\ \hline
+		(0023,1012) & DS & Clearance værdien regnet ud fra undersøgelsen, beskrevet i metode dokumentation\\ \hline
+		(0023,1014) & DS & Clearance værdien normalizeret med krops overfladen til $1.73m^2$ \\ \hline
+		(0023,1018) & DT & Tidspunktet for Injektion af radioaktivt materale i formattet YYYYMMDDHHMMSS \\ \hline
+		(0023,1019) & US & Sprøjte nummer, ikke brugt til beregning af Clearance værdien \\ \hline
+		(0023,101A) & DS & Udregnet vægt af injektion materiale, værdien er i gram \\ \hline
+		(0023,101B) & DS & Sprøjte vægt før injektion, værdien er i gram  \\ \hline
+		(0023,101C) & DS & Sprøjte vægt efter injektion, værdien er i gram  \\ \hline
+		(0023,1020) & SQ & En liste hvor et element svare til en blodprøve \\ \hline
+		(0023,1021) & DT & Liste element af (0023,1020): Tidspunkt hvor blodprøven er taget \\ \hline
+		(0023,1022) & DS & Liste element af (0023,1020): Gennemsnit af Radioaktiv aktivitet i blodprøven \\\hline
+		(0023,1023) & DS & Liste element af (0023,1020): Afvigelse udregnet via  maximal $M$ værdi fra gennemsnit og minimal værdi fra gennemsnittet $m$: $\frac{M-m}{M+m} \cdot 100$ \\ \hline
+		(0023,1024) & DS & Standart tælletal af radioaktivt materiale \\ \hline
+		(0023,1028) & DS & Fortynding faktor af radioaktivt materiale \\ \hline
+		(0023,103F) & SQ & Liste af Historiske undersøgelser: En historisk undersøgelse har føglende tags: AccessionNumber, StudyDate, PatientSize, PatientWeight, Clearance Værdi (0023,1011), Normalized Clearance (0023,1012),  Injektions tidpunktet (0023,1018), Prøver fra undersøgelsen (0023,1020) \\ \hline
+		(0023,1040) & LT & Kommentar til intern brug  \\ \hline
+		\end{tabular}
+	\end{center}	
+	\caption{Private tags manipuleret af GFRcalc}
+\end{table}
+
 
 
 \end{document}

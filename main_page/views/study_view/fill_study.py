@@ -621,8 +621,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       name = dataset.PatientName
       study_type_name = dataset.GFRMethod
 
-      print(history_age, history_clrN)
-
       pixel_data = clearance_math.generate_gfr_plot(
         weight,
         height,
