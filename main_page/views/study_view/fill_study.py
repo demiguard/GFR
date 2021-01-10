@@ -176,7 +176,7 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   dicomlib.fill_dicom(
     dataset,
     age=age,
-    birthday=birthdate,
+    birthday=formatting.convert_to_dicom_date(birthdate),
     bsa_method="Haycock", # There is no way to change this from fill_study, so just fill in default value
     exam_status=exam_status,
     gender=gender,
@@ -222,7 +222,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     try:
       server_configuration = models.ServerConfiguration.objects.get(id=1)
 
-      data_files = samba_handler.smb_get_all_csv(hospital, server_configuration, timeout=10)
+      data_files, error_messages = samba_handler.smb_get_all_csv(hospital, server_configuration, timeout=10)
     except Exception as E:
       logger.warning(f'SMB Connection Failed: {E}')
       raise ConnectionError('Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.')
@@ -253,7 +253,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Flatten list of lists
     data_indicies = [idx for sublist in data_indicies for idx in sublist]
 
-    return zip(csv_present_names, csv_data, data_indicies), len(data_indicies)
+    return zip(csv_present_names, csv_data, data_indicies), len(data_indicies), error_messages
 
   def initialize_forms(self, request, dataset: pydicom.Dataset) -> Dict:
     """
@@ -454,7 +454,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Retrieve counter data to display from Samba Share
     error_message = "Der er ikke lavet nogen prøver de sidste 24 timer"
     try:
-      csv_data, csv_data_len = self.get_counter_data(hospital)
+      csv_data, csv_data_len, error_messages = self.get_counter_data(hospital)
     except ConnectionError as conn_err:
       csv_data, csv_data_len = [], 0
       error_message = conn_err
@@ -595,10 +595,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       )
 
       # Compute kidney function
-      birthdate = dataset.PatientBirthDate
-      birthdate = datetime.datetime \
-        .strptime(birthdate, "%d-%m-%Y") \
-        .strftime("%Y-%m-%d") # format for kidney_function
+      birthdate = datetime.datetime.strptime(dataset.PatientBirthDate,"%Y%m%d")
       gender_num = post_req["sex"]
       gender = enums.Gender(gender_num)
       gender_name = enums.GENDER_NAMINGS[gender.value]
@@ -614,6 +611,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         history_dates, history_age, history_clrN = dicomio.get_history(dataset, hospital_shortname)
       except ValueError as E: # Handle empty AET for PACS connection
         logger.error(f'Value error detected {E}')
+        print(f'Value error detected {E}')
         history_age = [ ]
         history_clrN = [ ]
         history_dates = [ ]
@@ -623,6 +621,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       name = dataset.PatientName
       study_type_name = dataset.GFRMethod
 
+      print(history_age, history_clrN)
+
       pixel_data = clearance_math.generate_gfr_plot(
         weight,
         height,
@@ -630,7 +630,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         clearance,
         clearance_norm,
         gfr_str,
-        birthdate,
+        birthdate.strftime("%Y-%m-%d"),
         gender_name,
         accession_number,
         cpr=cpr,

@@ -124,7 +124,7 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   logger.info(f"Moved file; '{fullpath}' , to back up")
 
 
-def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> List[pd.DataFrame]:
+def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (List[pd.DataFrame], List[str]):
   """
   Retrieves file contents of all files presented as pandas DataFrames, for each
   file in a specific hospitals directory on the Samba Share
@@ -141,6 +141,7 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> Lis
   now = datetime.now()
 
   returnarray = []
+  error_messages = []
 
   conn = SMBConnection(
     model_server_config.samba_user, 
@@ -208,6 +209,7 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> Lis
         conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + correct_filename)
       except Exception as E:
         logger.error(f"Unknown Exception : {E}")
+        error_messages.append(f"Der er ukendt tælling. Check om det Wizarden er konfiguret til Tc-99")
 
     temp_file.close()
 
@@ -216,7 +218,7 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> Lis
   # Sort based on date and time
   sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0], reverse=True)
 
-  return sorted_array
+  return sorted_array, error_messages
 
 
 def get_backup_file(

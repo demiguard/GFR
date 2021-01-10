@@ -240,13 +240,13 @@ def calculate_sex(cprnr):
     return 'M'
 
 
-def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Gender]) -> str:
+def kidney_function(clearance_norm: float, birthdate: Type[datetime.datetime], gender: Type[enums.Gender]) -> str:
   """
   Calculate the Kidney function compared to their age and gender
   
   Args:
     clearence_norm: computed clearence of the patient
-    birthdate: birthdate of patient (format: YYYY-MM-DD)
+    birthdate: birthdate of patient (format: YYYYMMDD)
     gender: gender of patient
   
   Returns:
@@ -254,7 +254,6 @@ def kidney_function(clearance_norm: float, birthdate: str, gender: Type[enums.Ge
   """
   # Calulcate age in days and years
   now = datetime.datetime.today()
-  birthdate = datetime.datetime.strptime(birthdate, '%Y-%m-%d')
   
   age_in_days = (now - birthdate).days
   age = int(age_in_days / 365)

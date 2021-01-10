@@ -46,17 +46,17 @@ def get_history(dataset, active_hospital):
   date_list           = []
   history_sequence    = []
 
-  birthday = datetime.datetime.strptime(dataset.PatientBirthDate,'%Y-%m-%d') 
+  birthday = datetime.datetime.strptime(dataset.PatientBirthDate,'%Y%m%d') 
 
   #Get all file paths for the Accession number
   curr_dicom_path = f"{server_config.FIND_RESPONS_DIR}{active_hospital}/{dataset.AccessionNumber}/{dataset.AccessionNumber}.dcm"
   dicom_filepaths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{active_hospital}/{dataset.AccessionNumber}/*.dcm')
   #Filter the already opened dataset out
   history_filepaths = filter(lambda x: x != curr_dicom_path, dicom_filepaths)
+  print(history_filepaths, dicom_filepaths, curr_dicom_path)
   #Iterate through the datasets
   for history_filepath in history_filepaths:
     #Open the dataset
-    
     history_dataset = dicomlib.dcmread_wrapper(history_filepath)
     #Create History dataset for history datasets
     try:
