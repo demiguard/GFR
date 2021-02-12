@@ -498,3 +498,17 @@ def float_dec_to_comma(floating_num: float) -> str:
     return whole_num
   else:
     return string_num
+
+def convert_to_dicom_date(date: str) -> str:
+  """
+    Converts a string on the format DD-MM-YYYY or DD/MM/YYYY to the format YYYYMMDD according to the dicom standard
+
+
+    Raises Value Error if input is on the specified format
+  """
+  try:
+    date = datetime.strptime(date, "%d-%m-%Y")
+  except ValueError:
+      date = datetime.strptime(date, "%d/%m/%Y")
+    
+  return date.strftime("%Y%m%d")

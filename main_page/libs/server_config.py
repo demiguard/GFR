@@ -45,7 +45,8 @@ new_dict_items = {
   0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
   0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor'),
   0x00231032 : ('US', '1', 'Examnation Status', '', 'ExamStatus'),
-  0x0023103F : ('SQ', '1', 'Clearance History', '', 'clearancehistory')
+  0x0023103F : ('SQ', '1', 'Clearance History', '', 'clearancehistory'),
+  0x00231040 : ('LT', '1', 'Clearence Comment', '', 'ClearenceComment')
 }
 
 

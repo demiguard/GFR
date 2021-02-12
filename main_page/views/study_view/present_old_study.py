@@ -174,9 +174,10 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Undersøgelses type:', dataset.GFRMethod),
       ('Operatør:', operators)
     ]
-    if 'ImageComments' in dataset:
-      study_data += [('Kommentar',dataset.ImageComments)]
-
+    if 'ClearenceComment' in dataset:
+      study_data += [('Kommentar', dataset.ClearenceComment)]
+    elif 'ImageComments' in dataset:
+      study_data += [('Kommentar', dataset.ImageComments)]
 
     
     if 'PixelData' in dataset:
