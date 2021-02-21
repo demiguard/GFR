@@ -123,7 +123,7 @@ def calc_clearance(
     clearance_normalized = clearance * 1.73 / BSA
 
     # Inulin Korrigering for 24 prøver 
-    if delta_times[-1] > 1440:
+    if delta_times[-1] > 1200:
       clearance_normalized  = clearance_normalized - 0.5
       clearance = clearance_normalized * BSA * 1.73
 
@@ -480,10 +480,11 @@ def generate_gfr_plot(
   fig.suptitle(titlestring, fontsize=server_config.TITLE_FONT_SIZE)
   
   # Left side - the actual graph
-  def calc_mean_gfr_for_todlers(age, threshold):
+  def calc_mean_gfr_for_todlers(age, threshold):  
     return threshold * 10 ** (0.209 * np.log10(age*365) + 1.44) 
   
-  x = np.arange(0, 2, 1/365)
+  
+  x = np.arange(0.000001, 2, 1/365)
   zeros = np.zeros(len(x))
   darkred_y = calc_mean_gfr_for_todlers(x, 0.28)
   light_red_y = calc_mean_gfr_for_todlers(x, 0.52)
@@ -737,7 +738,8 @@ def generate_QA_plot(
 
   logger.info(f'max delta:{max(delta_times)}, Slope:{slope}, intercept:{intercept}')
 
-  x = np.arange(0, max(delta_times)+ 10, 0.1)
+  xmax = max(delta_times) + 10
+  x = np.arange(0, xmax, 0.1)
   y = np.exp(slope * x + intercept)
 
   # Plot generation
@@ -758,8 +760,8 @@ def generate_QA_plot(
   ax[0].set_ylabel('counts', fontsize=server_config.AXIS_FONT_SIZE)
   ax[0].axes.set_yscale('log')
   ax[0].grid(axis='y')
-  ax[0].set_xlim(0,max(delta_times) + 10)
-  ax[0].set_ylim( min(tec99_cnt)*0.9, max(y)*1.1)
+  ax[0].set_xlim(0,xmax)
+  ax[0].set_ylim(min(tec99_cnt)*0.9, max(y)*1.1)
 
   #for i, val in enumerate(log_tec99_cnt):
   for i, val in enumerate(tec99_cnt):
@@ -775,14 +777,12 @@ def generate_QA_plot(
   ax[0].legend(framealpha=1.0, prop={'size': server_config.LEGEND_SIZE})
 
   # Right side - text information
-  p_value_str         = f"P Værdi: {p_value:.6f}\n" 
-  r_value_str         = f"R Værdi: {r_value:.6f}\n"
+  r_value_str         = f"R Værdi: {r_value**2:.6f}\n"
   std_err_str         = f"Standard fejl: {standard_error:.6}\n"
   thining_factor_str  = f"Fortyndingsfaktor: {thining_factor}\n"
 
   text_str = f"""
     {thining_factor_str}
-    {p_value_str}
     {r_value_str}
     {std_err_str}
   """

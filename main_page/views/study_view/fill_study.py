@@ -579,8 +579,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
           sample.SampleTime,
           "%Y%m%d%H%M"
         )
-        sample_datetimes.append(tmp_date)
-        
+        sample_datetimes.append(tmp_date)        
         tec_counts.append(sample.cpm)
 
       study_type = enums.StudyType(post_req["study_type"])

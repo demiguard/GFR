@@ -24,7 +24,6 @@ class QAView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/QA.html'
 
   def get(self, request, accession_number):
-    logger.info('A user have used the QA plot for something')
     try:
       logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
       dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
@@ -46,6 +45,8 @@ class QAView(LoginRequiredMixin, TemplateView):
       logger.error(f'failed to load dicom object for {accession_number}')
       return render(request, self.template_name)
 
+
+
     # Get injection time
     inj_time = datetime.datetime.strptime(dicom_obj.injTime, '%Y%m%d%H%M') 
     
@@ -53,8 +54,7 @@ class QAView(LoginRequiredMixin, TemplateView):
     thin_fact = dicom_obj.thiningfactor
 
     # Create list of timedeltas from timedates
-    delta_times = [(time - inj_time).seconds / 60 + 86400 * (time - inj_time).days for time in sample_times]
-    
+    delta_times = [(time - inj_time).seconds / 60 + 1440 * (time - inj_time).days for time in sample_times]
     image_bytes = clearance_math.generate_QA_plot(delta_times, tch99_cnt, thin_fact, accession_number)
     image_path = f"main_page/images/{request.user.department.hospital.short_name}/QA-{accession_number}.png"
 
