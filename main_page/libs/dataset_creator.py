@@ -105,9 +105,9 @@ def get_blank(
   """
   # Create dataset w/ meta data
   ds = create_empty_dataset(accession_number)
-  ds.RequestedProcedureDescription = 'GFR, Tc-99m-DTPA'
+  method_str = 'Nødoprettet, GFR, Tc-99m-DTPA'
+  ds.RequestedProcedureDescription = method_str
   # Fill out required examination data to allow the site to propperly use the dataset 
-  method_str = 'GFR, Tc-99m-DTPA'
   
   study_instance_uid = uid.generate_uid(
     prefix='1.3.',
