@@ -51,7 +51,7 @@ class GrandControlPatient(forms.Form):
 
 
 class ControlPatient6(forms.Form):
-  sample_time = forms.TimeField(label='Dato',  required=False)
+  sample_time = forms.TimeField(label='Dato',  required=False, widget=forms.TextInput(attrs={'class' : "sample_time_field"}))
   sample_date = forms.DateField(label='Tidpunkt',  required=False, input_formats=['%d-%m-%Y'])
   sample_cnt  = forms.FloatField(label='Tælletal', required=False, widget=forms.TextInput(attrs={'class' : "sample_count"}))
   sample_devi = forms.FloatField(label='Afvigelse', required=False, widget=forms.TextInput(attrs={'class' : "Deviation"}))
