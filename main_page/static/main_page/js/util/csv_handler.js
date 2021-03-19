@@ -192,10 +192,12 @@ class CSVHandler {
     var time_input = document.createElement('input');
     time_input.type = 'text';
     time_input.classList.add('form-control');
+    time_input.classList.add('sample_time_field')
     time_input.name = 'sample_time';
     time_input.value = study_time_field.val();
     time_input.readOnly = true;
     time_field_div.appendChild(time_input);
+    helper.auto_char($(time_input),':',2)
     
     var count_field_div = document.createElement('div');
     count_field_div.classList.add('form-group');
@@ -206,6 +208,7 @@ class CSVHandler {
     count_input.type = 'text';
     count_input.classList.add('form-control');
     count_input.classList.add('value-field');
+    count_input.classList.add('sample_count_field')
     count_input.name = 'sample_value';
     count_input.value = selected_avg_func();
     count_input.readOnly = true;

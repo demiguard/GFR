@@ -562,7 +562,8 @@ function initialize_calculate_button(alerter) {
       "#id_std_cnt",
       "#id_thin_fac",
       "#id_standcount",
-      "#id_birthdate"
+      "#id_birthdate",
+      ".sample_time_field"
     ];
     
     is_valid = true;
