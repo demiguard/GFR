@@ -67,7 +67,7 @@ class ControlPatient6(forms.Form):
     self.fields['sample_date'].widget.attrs['readonly'] = True  
     self.fields['sample_cnt' ].widget.attrs['readonly'] = True
     self.fields['sample_devi'].widget.attrs['readonly'] = True
-    self.fields['sample_time'].widget.attrs['class']    = 'form-input'    
+    self.fields['sample_time'].widget.attrs['class']    = 'form-input sample_time_field'    
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
     self.fields['sample_devi'].widget.attrs['class']    = 'form-input Deviation'

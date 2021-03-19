@@ -357,6 +357,7 @@ function add_timefield_auto_colons() {
   */
   helper.auto_char($("input[name='injection_time']"), ':', 2);
   helper.auto_char($("input[name='study_time']"), ':', 2);
+  helper.auto_char($(".sample_time_field"), ':', 2)
 }
 
 function initialize_date_fields() {
