@@ -324,7 +324,7 @@ class StudyEndpoint(LoginRequiredMixin, View):
     )
 
     try:
-      shutil.move(move_src, move_dst)
+      shutil.move(str(move_src), str(move_dst))
 
       # Create recovery file
       recover_filepath = Path(
@@ -409,7 +409,7 @@ class StudyEndpoint(LoginRequiredMixin, View):
       )
 
       try:
-        shutil.move(move_src, move_dst)
+        shutil.move(str(move_src), str(move_dst))
 
         logger.info(f"Successfully moved study to trash can: {accession_number}")
       except (FileNotFoundError, FileExistsError):

@@ -242,6 +242,6 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
         history_path = Path(destination_path, f'{study.AccessionNumber}.dcm')
         if not(history_path.exists()):
           _ , path_to_dataset = pacs.get_study(current_user, study.AccessionNumber)
-          shutil.move(path_to_dataset, history_path)
+          shutil.move(str(path_to_dataset), str(history_path))
 
     return redirect('main_page:fill_study', accession_number = accession_number)

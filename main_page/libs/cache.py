@@ -58,11 +58,11 @@ def move_file_to_cache(filepath, accession_number: str, overwrite=True):
   #This is the directory that will contain the cached files
   #If the think is a dir or not
   if filepath.is_dir():
-    shutil.move(filepath, target_dir)
+    shutil.move(str(filepath), str(target_dir))
   else:
     #Target is a path to a file 
     target_dir.mkdir()
-    shutil.move(filepath, target)
+    shutil.move(str(filepath), str(target))
   
   return True
 
@@ -147,11 +147,11 @@ def move_file_from_cache_active_studies(accession_number : str, target_path, mov
 
   #Moving the file
   if move_dir:
-    shutil.move(study_dir, target_path)
+    shutil.move(str(study_dir), str(target_path))
   else:
     study_path = Path(study_dir, f'{accession_number}.dcm')
-    shutil.move(study_path, target_path)
-    shutil.rmtree(study_dir)
+    shutil.move(str(study_path), str(target_path))
+    shutil.rmtree(str(study_dir))
 
 
 def file_in_cache(accession_number):

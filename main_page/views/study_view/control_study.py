@@ -80,7 +80,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       fill_study_dir = Path(server_config.FIND_RESPONS_DIR, hopital_sn, AccessionNumber)
       if fill_study_dir.exists():
         shutil.rmtree(fill_study_dir)
-      shutil.move(dir_path, fill_study_dir)
+      shutil.move(str(dir_path), str(fill_study_dir))
 
       return redirect('main_page:fill_study', accession_number = AccessionNumber)
     elif post_req['control'] == 'Godkend og send til PACS':
@@ -100,7 +100,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
         # move the directroy with file + history to cache
         try:
           cache_path = Path(server_config.SEARCH_CACHE_DIR, AccessionNumber)
-          shutil.move(dir_path, cache_path)
+          shutil.move(str(dir_path), str(cache_path))
         except OSError as error:
           logger.error(f'Could not remove directory: {dir_path}')
         # Store the RIS number in the HandleExaminations table
