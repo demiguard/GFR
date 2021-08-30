@@ -564,9 +564,13 @@ function initialize_calculate_button(alerter) {
       "#id_thin_fac",
       "#id_standcount",
       "#id_birthdate",
-      ".sample_time_field"
     ];
     
+
+
+
+
+
     is_valid = true;
     failed_id = "";
     for (var i = 0; i < ids_to_check.length; i++) {
@@ -577,10 +581,59 @@ function initialize_calculate_button(alerter) {
       }
     };
 
+    let classes_to_Check = [
+      ".sample_time_field",
+      ".sample_count_field"
+    ]
+
+    if (is_valid) for (const field of $(".sample_time_field")) {
+      const timeVal = $(field).val()
+      const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
+      if (!timeRegex.test(timeVal)) {
+        failed_id = ".sample_time_field";
+        is_valid = false;
+        break;
+      }
+    }
+
+    if (is_valid) for (const field of $(".sample_count_field")){
+      const count_val = Number($(field).val());
+      if (count_val <= 0) {
+        failed_id = ".sample_count_field";
+        is_valid = false;
+        break;
+      }
+      
+    }
+
+
+
+
+
     if (!is_valid) {
+      const ErrorMap = new Map();
+      ErrorMap.set("#id_cpr", "CPR feltet")
+      ErrorMap.set("#id_name", "navne feltet")
+      ErrorMap.set("#id_sex", "Køn feltet")
+      ErrorMap.set("#id_age", "Alders feltet")
+      ErrorMap.set("#id_height", "Højde feltet")
+      ErrorMap.set("#id_weight", "Vægt feltet")
+      ErrorMap.set("#id_vial_weight_before", "SprøjteVægt før feltet")
+      ErrorMap.set("#id_vial_weight_after", "Sprøjtevægt efter feltet")
+      ErrorMap.set("#id_injection_time", "injektions tidpunktet feltet")
+      ErrorMap.set("#id_injection_date", "injektions datoen feltet")
+      ErrorMap.set("#id_std_cnt", "Standard tælletals feltet")
+      ErrorMap.set("#id_thin_fac", "Fortydningstals felt")
+      ErrorMap.set("#id_standcount", "Standard tælletals feltet")
+      ErrorMap.set("#id_birthdate",    "Fødselsdags feltet")
+      ErrorMap.set(".sample_time_field", "En prøves tids felt")
+      ErrorMap.set(".sample_count_field", "En prøves count felt")
+  
+      const ErrorFieldText = ErrorMap.get(failed_id)
+
       alerter.add_alert(
         'missing_fields',
-        'Et eller flere felter er ikke udfyldt korrekt.',
+        ErrorFieldText +' er ikke udfyldt korrekt.',
         'danger'
       );
     
