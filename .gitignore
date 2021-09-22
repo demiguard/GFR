@@ -48,7 +48,8 @@ log/
 *.dvi
 *.toc
 *.out
-
+*.bbl
+*.blg
 # vscode hidden dir
 .vscode/
 

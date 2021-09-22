@@ -45,7 +45,6 @@ AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
 AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
 
 AUTH_LDAP_GLOBAL_OPTIONS = {
-    'ldap.OPT_X_TLS_PACKAGE' : "OpenSSL",
     'ldap.OPT_X_TLS_CERTFILE' : "./ldapcert.cert",
     'ldap.OPT_X_TLS_KEYFILE' : "./ldapkey.key"
 }
