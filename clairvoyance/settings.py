@@ -12,9 +12,12 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 try:
-    from key import SECRET_KEY # Imports sec. key
+    from key import SECRET_KEY, LDAP_PASSWORD # Imports sec. key
 except ImportError:
     SECRET_KEY = "0"
+
+from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
+import ldap
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +32,30 @@ DEBUG = True
 ALLOWED_HOSTS = ['gfr2.petnet.rh.dk', 'gfr2', '172.16.186.190', '193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
 
 AUTH_USER_MODEL = 'main_page.User'
-AUTHENTICATION_BACKENDS = ['main_page.backends.SimpleBackend']
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',    
+    'main_page.backends.SimpleBackend'
+]
+
+AUTH_LDAP_SERVER_URL = 'ldap://10.146.96.6'  # Change this to Regionh.top.local
+AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
+
+# AUTH LOGIN
+AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
+AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
+
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
+    LDAPSearch("OU=Region Hovedstaden,dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(uid=REGIONH\%(user)s)")
+)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"django_auth_ldap": {"level": "DEBUG", "handlers": ["console"]}},
+}
+
+
 LOGIN_URL = '/'
 
 # Application definition
