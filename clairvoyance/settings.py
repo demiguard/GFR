@@ -38,17 +38,16 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 AUTH_LDAP_SERVER_URL = 'ldap://regionh.top.local'  # Change this to Regionh.top.local
-#AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
+AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGIN
 AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
 AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
 
 AUTH_LDAP_GLOBAL_OPTIONS = {
-    'ldap.OPT_X_TLS_NEWCTX' : 0,
-    'ldap.OPT_X_TLS_PACKAGE' : "OpenSSL",
-    'ldap.OPT_X_TLS_CERTFILE' : "./ldapcert.cert",
-    'ldap.OPT_X_TLS_KEYFILE' : "./ldapkey.key"
+    ldap.OPT_X_TLS_NEWCTX : 0,
+    ldap.OPT_X_TLS_CERTFILE : "./ldapcert.cert",
+    ldap.OPT_X_TLS_KEYFILE : "./ldapkey.key"
 }
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
