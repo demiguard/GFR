@@ -37,7 +37,7 @@ AUTHENTICATION_BACKENDS = [
     'main_page.backends.SimpleBackend'
 ]
 
-AUTH_LDAP_SERVER_URL = 'ldap://regionh.top.local'  # Change this to Regionh.top.local
+AUTH_LDAP_SERVER_URL = 'ldaps://regionh.top.local'  # Change this to Regionh.top.local
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGIN
@@ -47,9 +47,7 @@ AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
 AUTH_LDAP_GLOBAL_OPTIONS = {
     ldap.OPT_X_TLS_NEWCTX : 0,
     #ldap.OPT_X_TLS_CERTFILE : "./ldapcert.cert",
-    ldap.OPT_X_TLS_CACERTFILE : "./ldapcert.pem",
-    ldap.OPT_X_TLS_KEYFILE : "./ldapkey.key",
-    ldap.OPT_X_TLS_CRLCHECK : ldap.OPT_X_TLS_CRL_NONE,
+    ldap.OPT_X_TLS_CACERTFILE : "/root/GFR/ldapcert.pem",
     ldap.OPT_X_TLS_REQUIRE_CERT : ldap.OPT_X_TLS_NEVER
 }
 
