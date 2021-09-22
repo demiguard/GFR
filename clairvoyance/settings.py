@@ -38,7 +38,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 AUTH_LDAP_SERVER_URL = 'ldap://regionh.top.local'  # Change this to Regionh.top.local
-#AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
+AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGIN
 AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
