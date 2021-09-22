@@ -1,6 +1,7 @@
 from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import auth
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 
@@ -10,6 +11,10 @@ import time
 import datetime
 import logging
 from smb.base import NotConnectedError
+
+import django_auth_ldap
+
+import ldap
 
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs import samba_handler
@@ -32,6 +37,14 @@ class AjaxLogin(TemplateView):
     signed_in = False
     
     login_form = base_forms.LoginForm(data=request.POST)
+
+    print(auth.get_backends())
+    backends = auth.get_backends()
+    ldap_backend = backends[0]    
+
+    conn = ldap.initialize("ldap://regionh.top.local")
+    print(conn.start_tls_s())
+    print(conn.simple_bind_s("REGIONH\cjen0668","Discord451"))
 
     if login_form.is_valid():
       user = authenticate(
