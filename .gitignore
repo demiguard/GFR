@@ -18,7 +18,7 @@ __pycache__/
 
 # Virtual environment
 venv/
-
+old_venv/
 # Deployment files
 clairvoyance.sock
 clairvoyance_uwsgi.ini
@@ -35,7 +35,7 @@ log/
 *.jpeg
 *.jpg
 *.bmp
-
+*.json
 *.xml
 *.csv
 *.log
@@ -57,5 +57,6 @@ main_page/tests/selenium_drivers/
 
 # Misc. files
 TODO.txt
+key.py
 scripts/
 rigs_fetcher/
