@@ -37,15 +37,7 @@ class AjaxLogin(TemplateView):
     signed_in = False
     
     login_form = base_forms.LoginForm(data=request.POST)
-
-    print(auth.get_backends())
-    backends = auth.get_backends()
-    ldap_backend = backends[0]    
-
-    conn = ldap.initialize("ldap://regionh.top.local")
-    print(conn.start_tls_s())
-    print(conn.simple_bind_s("REGIONH\cjen0668","Discord451"))
-
+    
     if login_form.is_valid():
       user = authenticate(
         request, 
