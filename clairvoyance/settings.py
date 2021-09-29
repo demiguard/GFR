@@ -37,7 +37,7 @@ AUTHENTICATION_BACKENDS = [
     'main_page.backends.SimpleBackend'
 ]
 
-AUTH_LDAP_SERVER_URL = 'ldaps://regionh.top.local'  # Change this to Regionh.top.local
+AUTH_LDAP_SERVER_URL = 'ldaps://regionh.top.local'
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGIN
@@ -51,13 +51,15 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
 }
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch("OU=Region Hovedstaden,dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+    LDAPSearch("dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 )
 
 AUTH_LDAP_CONNECTION_OPTIONS = {
-ldap.OPT_DEBUG_LEVEL: 1, # 0 to 255
-ldap.OPT_REFERRALS: 0, # For Active Directory
+    ldap.OPT_DEBUG_LEVEL: 1, # 0 to 255
+    ldap.OPT_REFERRALS: 0, # For Active Directory
 }
+
+AUTH_LDAP_TRACE_LEVEL=100
 
 LOGGING = {
     "version": 1,
