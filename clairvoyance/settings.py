@@ -51,7 +51,7 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
 }
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch("dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+    LDAPSearch("dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(uid=REGIONH\%(user)s)")
 )
 
 AUTH_LDAP_CONNECTION_OPTIONS = {
