@@ -39,6 +39,10 @@ class AjaxLogin(TemplateView):
     login_form = base_forms.LoginForm(data=request.POST)
     
     if login_form.is_valid():
+      AppendUsername = "REGIONH\\" + request.POST['username']
+      print(AppendUsername)
+
+
       user = authenticate(
         request, 
         username=request.POST['username'], 
