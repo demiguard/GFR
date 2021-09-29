@@ -37,7 +37,7 @@ AUTHENTICATION_BACKENDS = [
     'main_page.backends.SimpleBackend'
 ]
 
-AUTH_LDAP_SERVER_URI = 'ldaps://regionh.top.local'
+AUTH_LDAP_SERVER_URI = 'ldap://regionh.top.local'
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGIN
