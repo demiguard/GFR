@@ -40,5 +40,3 @@ def CheckGroup(conn : LDAPObject, group_ldap_path : str, BAMID : str) -> bool:
     return True
   else:
     return False
-
-  

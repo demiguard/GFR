@@ -94,8 +94,10 @@ class AjaxLogin(TemplateView):
         if user.department == None:
           usergroups = UserDepartmentAssignment.objects.filter(user=user)
           if len(usergroups) == 0: # User is a valid BamID but is not set up in CBAS for access to 
-
-            return redirect("main_page:insuffient_permissions")
+            return JsonResponse({
+              "signed_in" : False,
+              "no_permissions" : True,
+            })
 
 
         login(request, user) # Login the user aka set some tokens and cookies
@@ -108,6 +110,7 @@ class AjaxLogin(TemplateView):
 
     data = {
       'signed_in': signed_in,
+      "no_permissions" : False,
     }
     resp = JsonResponse(data)
 

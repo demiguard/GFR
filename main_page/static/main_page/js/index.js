@@ -18,6 +18,9 @@ let try_login = function() {
         //window.location.href = "http://localhost:8000/list_studies";
         window.location.href = "/list_studies"; //{% url main_page:list_studies %};
       }
+      if (data.no_permissions) {
+        window.location.href= "/insuffient_permissions" //{% url main_page:insuffient_permissions %}
+      }
     },
     error: function() {
       $('#err-msg-container').append("<p style='color: lightcoral;'>Forkert login.</p>");
