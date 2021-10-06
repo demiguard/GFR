@@ -3,7 +3,7 @@ from ldap.ldapobject import LDAPObject
 from key import LDAP_PASSWORD
 
 base_ldap_path = "OU=Region Hovedstaden,DC=regionh,DC=top,DC=local"
-ldap_username  = "Regionh\REGIONH\RGH-S-GFRLDAP"
+ldap_username  = "REGIONH\RGH-S-GFRLDAP"
 ldap_server    = "ldap://regionh.top.local"
 
 def initialize_connection():
