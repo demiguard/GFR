@@ -89,7 +89,6 @@ class User(AbstractBaseUser):
   department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
   user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)
-  user_ldap_group = 
 
   USERNAME_FIELD = 'username'
   REQUIRED_FIELDS = ['password', 'hospital']
