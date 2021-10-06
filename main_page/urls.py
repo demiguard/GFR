@@ -20,7 +20,7 @@ urlpatterns = [
   path('userguide',views.UserGuideView.as_view(), name='userguide'),
   path('deleted_studies', views.DeletedStudiesView.as_view(), name='deleted_studies'),
   path('filter', views.FilterView.as_view(), name="filter"),
-  path('insufficient_permissions', views.InsuffientPermissionsView.as_view(), name="insuffient_permissions")
+  path('insufficient_permissions', views.InsuffientPermissionsView.as_view(), name="insuffient_permissions"),
   # Images
   path('present_study/<str:accession_number>', views.PresentStudyView.as_view(), name='present_study'),
   path('present_old_study/<str:accession_number>', views.PresentOldStudyView.as_view(), name='present_old_study'),
