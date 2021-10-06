@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class InsuffientPermissionsView(TemplateView):
+class InsufficientPermissionsView(TemplateView):
   template_name = "main_page/insufficient_permissions.html"
 
   def get(self,request):

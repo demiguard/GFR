@@ -19,7 +19,7 @@ let try_login = function() {
         window.location.href = "/list_studies"; //{% url main_page:list_studies %};
       }
       if (data.no_permissions) {
-        window.location.href= "/insuffient_permissions" //{% url main_page:insuffient_permissions %}
+        window.location.href= "/insufficient_permissions" //{% url main_page:insufficient_permissions %}
       }
     },
     error: function() {
