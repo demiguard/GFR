@@ -59,10 +59,10 @@ class Config(models.Model):
 class Department(models.Model):
   id = models.AutoField(primary_key=True)
   name = models.CharField(default='', max_length = 200, null=True)
-
+  ldapPath = models.CharField(default='', max_length=500)
   # Associated hospital for this department
   hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True, blank=True)
-
+  
   config = models.OneToOneField(Config, on_delete=models.SET_NULL, null=True, blank=True)
 
   # Temporarily store daily thinning factors
@@ -89,12 +89,19 @@ class User(AbstractBaseUser):
   department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
   user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)
+  user_ldap_group = 
 
   USERNAME_FIELD = 'username'
   REQUIRED_FIELDS = ['password', 'hospital']
 
   def __str__(self):
     return self.username
+
+class UserDepartmentAssignment(models.Model):
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  department = models.ForeignKey(Department, on_delete=models.CASCADE)
+  class Meta:
+    unique_together = [["user", "department"]]
 
 
 # Maintains a list of examinations sent to PACS

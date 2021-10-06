@@ -59,8 +59,6 @@ AUTH_LDAP_CONNECTION_OPTIONS = {
     ldap.OPT_REFERRALS: 0, # For Active Directory
 }
 
-AUTH_LDAP_TRACE_LEVEL=100
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

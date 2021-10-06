@@ -1,0 +1,25 @@
+{% extends 'main_page/base.html' %}
+
+{% load static %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+
+<div class="row">
+  <p>Din BamID bruger er ikke blevet sat op til at du har rettigheder til at bruge GFR</p>
+  <p>For at kunne bruge GFR skal du sættes op i CBAS til have en gruppe passende til hvilket hospital du arbejder på</p>
+  <ul>
+    <li>RGH-B-SE GFR BFH - Bispebjerg Hospital</li>
+    <li>RGH-B-SE GFR HGH - Herlev Hospital</li>
+    <li>RGH-B-SE GFR HVH - Hvidovre Hospital</li>
+    <li>RGH-B-SE GFR NOH - Nordsjællands Hospital </li>
+    <li>RGH-B-SE GFR RH  - Rigshospitalet  </li>      
+  </ul>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+
+{% endblock %}
