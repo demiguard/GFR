@@ -38,7 +38,7 @@ def CheckGroup(conn : LDAPObject, group_ldap_path : str, BAMID : str) -> bool:
   res = conn.search_s(base_ldap_path, ldap.SCOPE_SUBTREE, searchFilter)
   if res:
     return True
-  else
+  else:
     return False
 
   
