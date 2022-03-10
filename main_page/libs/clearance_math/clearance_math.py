@@ -460,7 +460,7 @@ def generate_gfr_plot(
   ymax = 120
   history_max = 0
   if len(history_clr_n) > 0:
-    history_max = max(history_max)
+    history_max = max(history_clr_n)
   while max(history_max, clearance_norm) > ymax:
     ymax += 20
 
@@ -604,7 +604,7 @@ def generate_gfr_child_plot(
   ymax = 120
   history_max = 0
   if len(history_clr_n) > 0:
-    history_max = max(history_max)
+    history_max = max(history_clr_n)
   while max(history_max, clearance_norm) > ymax:
     ymax += 20
 
