@@ -458,7 +458,10 @@ def generate_gfr_plot(
     )
 
   ymax = 120
-  while clearance_norm > ymax:
+  history_max = 0
+  if len(history_clr_n) > 0:
+    history_max = max(history_max)
+  while max(history_max, clearance_norm) > ymax:
     ymax += 20
 
   xmax = 90
@@ -599,7 +602,10 @@ def generate_gfr_child_plot(
   age = int((datetime.datetime.now() - datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')).days / 365)   
 
   ymax = 120
-  while clearance_norm > ymax:
+  history_max = 0
+  if len(history_clr_n) > 0:
+    history_max = max(history_max)
+  while max(history_max, clearance_norm) > ymax:
     ymax += 20
 
   xmax = 18
