@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 try:
-    from key import SECRET_KEY, LDAP_PASSWORD # Imports sec. key
+    from key import SECRET_KEY, LDAP_PASSWORD, LDAP_CERT_PATH # Imports sec. key
 except ImportError:
     SECRET_KEY = "0"
 
@@ -45,7 +45,7 @@ AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
 AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
 
 AUTH_LDAP_GLOBAL_OPTIONS = {
-    ldap.OPT_X_TLS_CACERTFILE : "/root/GFR/ldapcert.pem",
+    ldap.OPT_X_TLS_CACERTFILE : LDAP_CERT_PATH,
     ldap.OPT_X_TLS_REQUIRE_CERT : ldap.OPT_X_TLS_NEVER,
     ldap.OPT_X_TLS_NEWCTX : 0,
 }
