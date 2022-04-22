@@ -39,6 +39,11 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     # Fetch all registered studies
     curr_department = request.user.department
+    if curr_department == None:
+      UDA = models.UserDepartmentAssignment.objects.all()[0]
+      request.user.department = UDA.department
+      request.user.save()
+      curr_department = UDA.department
     hospital_shortname = curr_department.hospital.short_name
 
     registered_datasets = ris.get_studies(
