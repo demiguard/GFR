@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import (handler400, handler403, handler404, handler500)
 
 #Sooo WhY do we not just import api at this point?
-from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint, ListEndpoint, AddressEndpoint, ServerConfigurationEndpoint
+from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint, ListEndpoint, AddressEndpoint, ServerConfigurationEndpoint, ChangeDepartmentEndpoint
 import main_page.views.views as views
 
 
@@ -61,5 +61,5 @@ urlpatterns = [
   path('api/address/<int:obj_id>', AddressEndpoint.as_view(), name='address'),
   path('api/server_config', ServerConfigurationEndpoint.as_view(), name='server_config'),
   path('api/server_config/<int:obj_id>', ServerConfigurationEndpoint.as_view(), name='server_config'),
- 
+  path('api/changeDepartment/<int:dep_id>', ChangeDepartmentEndpoint.as_view(), name="change_department"),
 ]

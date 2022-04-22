@@ -87,12 +87,15 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     else:
       error_message = ""
 
+    user_groups_assignment = models.UserDepartmentAssignment.objects.all().filter(user=request.user)
+    user_groups = [(UDA.department.id, UDA.department.hospital.name) for UDA in user_groups_assignment]
     # Return rendered view
     context = {
       "title"              : server_config.SERVER_NAME,
       "version"            : server_config.SERVER_VERSION,
       "registered_studies" : registered_studies,
-      "error_message"      : error_message
+      "error_message"      : error_message,
+      "user_groups"        : user_groups,
     }
 
     return render(request, self.template_name, context)

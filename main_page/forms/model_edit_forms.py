@@ -7,12 +7,8 @@ class EditUserForm(forms.ModelForm):
   class Meta:
     model = models.User
     fields = [
-      'username',
+      "username"
     ]
-
-    labels = {
-      'username': 'Brugernavn'
-    }
 
   def __init__(self, *args, **kwargs):
     # Call the base class to allow the form to be constructed using templating
@@ -22,16 +18,12 @@ class EditUserForm(forms.ModelForm):
     # Get object instance this form is instantiated with
     obj_instance = kwargs['instance']
 
-    obj_choice = f"{obj_instance.department.hospital.name} - {obj_instance.department.name}"
-
-    for choice_id, choice_str in self.fields['hosp_depart'].choices:
-      if choice_str == obj_choice:
-        self.initial['hosp_depart'] = choice_id
-        break
+    self.initial['department'] = obj_instance.department
+    self.initial['user_group'] = obj_instance.user_group
 
   # List available hospital choices from the database
-  hosp_depart = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
-
+  department   = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
+  user_group   = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.UserGroup.objects.all())
 
 # Custom choice field to change the displayed labels for the hospitals
 class HospitalChoiceField(forms.ModelChoiceField):
@@ -56,6 +48,7 @@ class EditDepartmentForm(forms.ModelForm):
       'name',
       'hospital',
       'config',
+      'ldapPath'
     ]
 
     labels = {

@@ -34,7 +34,7 @@ def CheckGroup(conn : LDAPObject, group_ldap_path : str, BAMID : str) -> bool:
     Returns
       query_answer : bool - if the user is part of the group or not
   """
-  searchFilter = f"(&(objectClass=user)(memberof:1.2.840.113556.1.4.1941:={group_ldap_path})(cn={BAMID}))"
+  searchFilter = f"(&(objectClass=user)(memberof:1.2.840.113556.1.4.1941:=CN={group_ldap_path},OU=GFR Clearance,OU=Ressource Grupper,OU=FAELLES Administration,OU=Region Hovedstaden,DC=regionh,DC=top,DC=local)(cn={BAMID}))"
   res = conn.search_s(base_ldap_path, ldap.SCOPE_SUBTREE, searchFilter)
   if res:
     return True

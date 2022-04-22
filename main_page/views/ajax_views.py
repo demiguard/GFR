@@ -68,7 +68,8 @@ class AjaxLogin(TemplateView):
         # - RGH-B-SE GFR HGH - Herlev
         # - RGH-B-SE GFR HVH - Hvidovre
         # - RGH-B-SE GFR NOH - Nordsjælland
-        # - RGH-B-SE GFR RH  - Rigshospitalet  
+        # - RGH-B-SE GFR RH Blegdamsvej - Rigshospitalet  
+        # - RGH-B-SE GFR RH Glostrup
         usergroups = UserDepartmentAssignment.objects.filter(user=user)
 
         # I think you can do some stuff with the backend instead of what i did. Instead i wrote my own LDAP connector
@@ -83,7 +84,7 @@ class AjaxLogin(TemplateView):
                 else:
                   UserDepartmentAssignment(user=user, department=department).save()
               else:
-                if userDepartmentAssignment := UserDepartmentAssignment.filter(department=department):
+                if userDepartmentAssignment := UserDepartmentAssignment.objects.all().filter(department=department, user=user):
                   userDepartmentAssignment.delete()
             except FILTER_ERROR:
               logger.error(f"{department.name} ldap path is setup incorrectly")

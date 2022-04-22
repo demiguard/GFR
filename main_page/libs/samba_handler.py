@@ -44,18 +44,22 @@ def open_csv_file(temp_file: NamedTemporaryFile):
   try:
     pandas_ds = pd.read_csv(temp_file.name)
     protocol = pandas_ds['Protocol name'][0]
-    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
   except ParserError:
     # Hidex file
-    pandas_ds = pd.read_csv(temp_file.name, skiprows=[0,1,2,3])
-    pandas_ds = pandas_ds.rename(
-      columns={
-        'Time'                    : 'Measurement date & time',
-        'Vial'                    : 'Pos',
-        'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
-        'Tc-99m (counts)'         : 'Tc-99m Counts'
-      }
-    )
+    try:
+      pandas_ds = pd.read_csv(temp_file.name, skiprows=[0,1,2,3])
+      pandas_ds = pandas_ds.rename(
+        columns={
+          'Time'                    : 'Measurement date & time',
+          'Vial'                    : 'Pos',
+          'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
+          'Tc-99m (counts)'         : 'Tc-99m Counts'
+        }
+      )
+      protocol = "Tc-99, Clearance"
+    except ParserError:
+      pandas_ds = pd.read_csv(temp_file.name, sep=';')
+      protocol = pandas_ds["Protocol name"][0]
 
     # Because Hidex is in american format, we change the data column to the ONLY CORRECT format
     pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)

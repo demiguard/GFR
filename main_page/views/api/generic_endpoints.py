@@ -167,7 +167,6 @@ class PatchEndpoint(View):
     
     # Update model instance
     patch = QueryDict(request.body)
-    
     for key, value in patch.items():      
       # Retreive foreign object if model specifies it
       if value != '':

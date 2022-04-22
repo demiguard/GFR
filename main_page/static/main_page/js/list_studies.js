@@ -55,4 +55,12 @@ $(function() {
   $("#del-day-olds-btn").on("click", function() {
     $("#dayOldModal").modal("toggle");
   });
+
+  $("#ChangeUserGroup").on("change", function(event){
+    console.log(event); 
+    $.ajax({
+      url: 'api/changeDepartment/' + event.target.value,
+      type: 'PUT'
+    }).then(() => {window.location.reload()});
+  });
 });

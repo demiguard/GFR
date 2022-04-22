@@ -36,38 +36,13 @@ class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'id',
     'username',
     'department',
-    'department.name',
-    'department.hospital.id',
-    'department.hospital.name',
     'user_group',
-    'user_group.name',
   ]
 
   foreign_fields = {
     'department': models.Department,
     'user_group': models.UserGroup,
   }
-
-  def patch(self, request, obj_id):
-    # Compute all the corresponding department and hospital combinations 
-    hosp_depart = { }
-    for choice_id, department in enumerate(models.Department.objects.all()):
-      hosp_depart[choice_id + 1] = (department.id, department.hospital.id)
-    
-    # Validate hosp_depart from request
-    request_body = QueryDict(request.body)
-    in_req_depart = int(request_body['hosp_depart']) + 1
-
-    if 'hosp_depart' in request_body:
-      if in_req_depart not in hosp_depart:
-        return HttpResponseNotFound()
-
-    # Modify request - split department to seperate update fields
-    req_depart, _ = hosp_depart[in_req_depart]
-
-    request._body = f"username={str(request_body['username'])}&department={req_depart}".encode()
-
-    return super().patch(request, obj_id)
 
   def post(self, request):
     # Compute all the corresponding department and hospital combinations 
@@ -111,7 +86,8 @@ class DepartmentEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'hospital.name',
     'config',
     'thining_factor',
-    'thining_factor_change_date'
+    'thining_factor_change_date',
+    'ldapPath'
   ]
 
   foreign_fields = {
@@ -546,3 +522,14 @@ class SearchEndpoint(LoginRequiredMixin, View):
     }
 
     return JsonResponse(data)
+
+class ChangeDepartmentEndpoint(LoginRequiredMixin, View):
+  def put(self, request, dep_id):
+    target_department = models.Department.objects.get(id=dep_id)
+    user_groups_ids = [UDA.department.id for UDA in models.UserDepartmentAssignment.objects.all().filter(user=request.user)]
+    if target_department.id in user_groups_ids:
+      print("Hallo")
+      request.user.department = target_department
+      request.user.save()
+
+    return HttpResponse(status=200)
