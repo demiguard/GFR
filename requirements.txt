@@ -3,6 +3,7 @@ beautifulsoup4==4.9.1
 coverage==4.5.3
 cycler==0.10.0
 Django==3.0.8
+django-auth-ldap==4.1.0
 django-bootstrap4==2.1.1
 kiwisolver==1.2.0
 matplotlib==3.2.2
@@ -11,11 +12,13 @@ numpy==1.19.0
 pandas==1.0.5
 Pillow==7.2.0
 pyasn1==0.4.8
+pyasn1-modules==0.2.8
 pydicom==2.0.0
 pynetdicom==1.5.1
 pyparsing==2.4.7
 pysmb==1.2.1
 python-dateutil==2.8.1
+python-ldap==3.4.2
 pytz==2018.9
 scipy==1.5.0
 selenium==3.141.0
