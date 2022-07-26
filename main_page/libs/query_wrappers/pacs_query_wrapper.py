@@ -350,7 +350,7 @@ def start_scp_server(ae_title):
     except:
       return_dataset = pydicom.Dataset()
       return_dataset.Status = 0xC123
-      returndataset.add_new(0x00000902, 'LO', 'Could not load retrieve Dataset')
+      return_dataset.add_new(0x00000902, 'LO', 'Could not load retrieve Dataset')
 
       return return_dataset
     # Infomation Retrieved
@@ -442,11 +442,11 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(
     name,
-    cpr, 
+    cpr,
     date_from,
-    date_to, 
+    date_to,
     accession_number
-  ) 
+  )
 
   # Don't query if no PACS address
   if not config.pacs:
@@ -457,14 +457,14 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   association = ae_controller.connect(
     config.pacs.ip,
     int(config.pacs.port),
-    AE_title, 
+    AE_title,
     config.pacs.ae_title,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
 
   # Send find query and process successful responses
   response_list = [ ]
-  
+
   try:
     ae_controller.send_find(
       association,

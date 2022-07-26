@@ -1,0 +1,39 @@
+# Installing this service is done by the following commands
+# Modify this file such that the Paths points at the correct files
+# Modify this file such that the User is the same the main service most likely: apache
+# sudo cp risFetcherThread.service /lib/systemd/system/risFetcherThread.service
+# sudo ln -s /lib/systemd/system/risFetcherThread.service /etc/systemd/system/risFetcherThread.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable risFetcherThread
+# sudo systemctl start risFetcherThread
+
+# To Determine if the installtion process was successful run the command
+# systemctl status risFetcherThread
+# This command should something similiar to this output (Dates and Path are varied):
+#risFetcherThread.service - This Service runs a Dicom node, more specify a store SCP risFetcherThread
+#     Loaded: loaded (/lib/systemd/system/risFetcherThread.service; enabled; vendor preset: enabled)
+#     Active: active (running) since Tue 2022-07-26 08:57:18 CEST; 14s ago
+#   Main PID: 641108 (python3)
+#      Tasks: 1 (limit: 37951)
+#     Memory: 69.1M
+#        CPU: 864ms
+#     CGroup: /system.slice/risFetcherThread.service
+#             └─641108 /home/christoffer/Documents/clairvoyance/GFR/venv/bin/python3 /home/christoffer/Documents/clairvoyance/GFR/risFetcherThread.py
+#
+#Jul 26 08:57:18 CJEN06682 systemd[1]: Started This Service runs a Dicom node, more specify a store SCP risFetcherThread.
+
+# Note on older unix distributions the systemctl commands might not reconinze the services.
+# In that case replace the risFetcherThread with risFetcherThread.service
+# The service can be restarted with the following command sudo systemctl restart risFetcherThread
+
+
+[Unit]
+Description=This thread pings RIS for the worklist
+
+[Service]
+User=christoffer
+WorkingDirectory=/home/christoffer/Documents/clairvoyance/GFR
+ExecStart=/home/christoffer/Documents/clairvoyance/GFR/venv/bin/python3 /home/christoffer/Documents/clairvoyance/GFR/risFetcherThread.py
+
+[Install]
+WantedBy=multi-user.target

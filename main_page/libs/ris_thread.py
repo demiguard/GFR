@@ -31,8 +31,8 @@ from main_page.libs import dicomio
 
 # Create a logger just for the ris_thread
 logger = log_util.get_logger(
-  __name__, 
-  log_filename="ris_thread.log", 
+  __name__,
+  log_filename="ris_thread.log",
   log_level=server_config.THREAD_LOG_LEVEL
 )
 
@@ -68,15 +68,15 @@ def handle_c_move(dataset, *args, **kwargs):
     logger.critical(f"Got duplicate move response from PACS with accession number: {accession_number}")
 
 
-def get_historic_examination(dataset, *args, **kwargs): 
+def get_historic_examination(dataset, *args, **kwargs):
   """
     Handler for C-FIND query from PACS to get the historic data
   """
   department       = kwargs['department']
-  dataset_dir      = kwargs['dataset_dir'] 
+  dataset_dir      = kwargs['dataset_dir']
   logger           = kwargs['logger']
   accession_number = dataset.AccessionNumber
-  
+
   pacs_move_association = kwargs['pacs_move_association']
 
   ae_controller.send_move(
@@ -101,7 +101,7 @@ def save_resp_to_file(dataset, **kwargs):
     hospital_shortname: current hospital shortname e.g. RH
 
   Throws:
-    Keyerror: When not called with correct parameters  
+    Keyerror: When not called with correct parameters
   """
   department = kwargs['department']
   pacs_find_association = kwargs['pacs_find_association']
@@ -154,7 +154,7 @@ def save_resp_to_file(dataset, **kwargs):
     logger.info(f"Successfully save dataset: {dataset_dir}")
   else:
     logger.info(f"Skipping file: {dataset_dir}, as it already exists or has been handled")
-    
+
 
 def pull_request(ris_find_ae, department, pacs_ae_find, pacs_ae_move, handled_examinations):
   """
@@ -190,7 +190,7 @@ def pull_request(ris_find_ae, department, pacs_ae_find, pacs_ae_move, handled_ex
 
   if pacs_find_assoc == None:
     ris_assoc.release()
-    return  
+    return
 
   pacs_move_assoc = ae_controller.establish_assoc(
     pacs_ae_move,
@@ -205,11 +205,11 @@ def pull_request(ris_find_ae, department, pacs_ae_find, pacs_ae_move, handled_ex
     return
   #Connections has been established
 
-  query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])        
-    
+  query_dataset = dataset_creator.generate_ris_query_dataset(department['ris_calling'])
+
   ae_controller.send_find(
-        ris_assoc, 
-        query_dataset, 
+        ris_assoc,
+        query_dataset,
         save_resp_to_file,
         logger=logger,
         department=department,
@@ -226,10 +226,10 @@ def pull_request(ris_find_ae, department, pacs_ae_find, pacs_ae_move, handled_ex
 
 class RisFetcherThread(Thread):
   """
-  Thread subclass for peridically retreiving studies from RIS 
+  Thread subclass for peridically retreiving studies from RIS
   to be shown on list_studies.
 
-  Once a study has been received it's prior history for GFR studies is 
+  Once a study has been received it's prior history for GFR studies is
   retreieved aswell, since it takes a long time to fetch the previous history
   for the patient, we do it here such that the history is ready once a new
   study is to be computed. (we refer to this a "worklist-prefetching")
@@ -244,7 +244,7 @@ class RisFetcherThread(Thread):
     Retreives or instantiates the thread (this is a singleton class)
 
     Args:
-  
+
     """
     if RisFetcherThread.__instance == None:
       RisFetcherThread(server_ae, delay_min, delay_max)
@@ -273,7 +273,7 @@ class RisFetcherThread(Thread):
     self.today = datetime.datetime.now().day
     self.delay_min = delay_min
     self.delay_max = delay_max
-    self.ris_ae_finds = {} 
+    self.ris_ae_finds = {}
     self.pacs_ae_finds = {}
     self.pacs_ae_moves = {}
     self.departments = {}
@@ -289,8 +289,8 @@ class RisFetcherThread(Thread):
     )
 
     logger.info("Initialization done")
-    
-  
+
+
   def try_delete_old_images(self, hospitals):
     """
     Delete old generated images if more than a day has passed
@@ -306,7 +306,7 @@ class RisFetcherThread(Thread):
           os.remove(image)
       else:
         hosp_image_dir.mkdir()
-      
+
 
   def kill_connections(self, AE):
     """
@@ -315,7 +315,7 @@ class RisFetcherThread(Thread):
     for assoc in AE.active_associations:
       assoc.abort()
 
-  
+
   def update_self(self):
     server_ae = models.ServerConfiguration.objects.get(id=1).AE_title
     ae_titles = []
@@ -328,8 +328,8 @@ class RisFetcherThread(Thread):
         continue
       ae_title = pynetdicom.utils.validate_ae_title(department_config.ris_calling)
       ae_titles.append(ae_title)
-      
-      department_dir = { 
+
+      department_dir = {
         'ris_aet' :     department_config.ris.ae_title,
         'ris_ip'  :     department_config.ris.ip,
         'ris_port':     department_config.ris.port,
@@ -350,8 +350,8 @@ class RisFetcherThread(Thread):
 
       if not(ae_title in self.pacs_ae_moves):
         self.pacs_ae_moves[ae_title] = ae_controller.create_move_AE(server_ae)
-      #End for department for loop 
-      
+      #End for department for loop
+
 
     #1 is a dummy value, what is need is the look up functionality, such that its not a list pythons looks through, but a hash table
     self.handled_examinations = { handled_examination.accession_number : 1 for handled_examination in models.HandledExaminations.objects.all()}   
@@ -359,18 +359,18 @@ class RisFetcherThread(Thread):
     for key in self.ris_ae_finds.keys():
       if not(key in ae_titles):
         del self.ris_ae_finds[key]
-    
+
     for key in self.pacs_ae_finds.keys():
       if not(key in ae_titles):
         del self.pacs_ae_finds[key]
-    
+
     for key in self.pacs_ae_moves.keys():
       if not(key in ae_titles):
         del self.pacs_ae_moves[key]
 
     for key in self.departments.keys():
       if not(key in ae_titles):
-        del self.departments[key]    
+        del self.departments[key]
 
   def run(self):
     """
@@ -379,13 +379,13 @@ class RisFetcherThread(Thread):
     self.running = True
 
     logger.info("Starting run routine")
-    
+
     while self.running:
       logger.info("RIS thread sending response")
       self.update_self()
 
       for ae_title in self.ris_ae_finds.keys():
-        
+
         query_process = multiprocessing.Process(
           target=pull_request,
           args=[
@@ -420,12 +420,11 @@ class RisFetcherThread(Thread):
         cache.clean_cache(self.cache_life_time)
         self.try_delete_old_images(hospitals)
         delete_old_handled_studies()
-      
-      
+
       # Sleep the thread
       delay = random.uniform(self.delay_min, self.delay_max) * 60
       logger.info(f'Ris thread going to sleep for {delay:.2f} sec.')
-      
+
       time.sleep(delay)
 
     logger.info("Terminated ris_thread run loop")

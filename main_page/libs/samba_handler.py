@@ -33,7 +33,7 @@ def valid_dataset(pandas_ds):
 
 def open_csv_file(temp_file: NamedTemporaryFile):
   """
-  Opens a CSV file 
+  Opens a CSV file
 
   Args:
     temp_file an already opened file
@@ -68,7 +68,7 @@ def open_csv_file(temp_file: NamedTemporaryFile):
     # Get protocol
     temp_file.seek(0)
     protocol = temp_file.readline()
-    
+
     temp_file.seek(0)
 
     # Hidex might store these as bytes - convert them to str
@@ -125,7 +125,7 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
   except:
     logger.warn(f'Samba Info: File already exists at path: {store_path}')
 
-  smb_conn.deleteFiles(share_name, fullpath) 
+  smb_conn.deleteFiles(share_name, fullpath)
 
   #logger.info(f"Moved file; '{fullpath}' , to back up")
 
@@ -150,9 +150,9 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (Li
   error_messages = []
 
   conn = SMBConnection(
-    model_server_config.samba_user, 
-    model_server_config.samba_pass, 
-    model_server_config.samba_pc, 
+    model_server_config.samba_user,
+    model_server_config.samba_pass,
+    model_server_config.samba_pc,
     model_server_config.samba_name,
   )
 
@@ -162,14 +162,14 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (Li
   #logger.debug(f'/{server_config.samba_Sample}/{hospital}/')
 
   hospital_sample_folder = f'/{server_config.samba_Sample}/{hospital}/'
-  
+
   #logger.debug(f'Searching Share: {model_server_config.samba_share}, at: {hospital_sample_folder}')
   samba_files = conn.listPath(model_server_config.samba_share, hospital_sample_folder)
   #logger.debug(f'Got Files:{len(samba_files)}')
 
   for samba_file in samba_files:
     if samba_file.filename in ['.', '..']:
-      continue  
+      continue
     temp_file = tempfile.NamedTemporaryFile()
 
     fullpath =  hospital_sample_folder + samba_file.filename
@@ -197,7 +197,7 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (Li
       try:
         conn.rename(model_server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
         #logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
-      except: 
+      except:
         conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + samba_file.filename)
         #logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
 
@@ -252,9 +252,9 @@ def get_backup_file(
 
   # Establish Samba Share connection
   conn = SMBConnection(
-    model_server_config.samba_user, 
-    model_server_config.samba_pass, 
-    model_server_config.samba_pc, 
+    model_server_config.samba_user,
+    model_server_config.samba_pass,
+    model_server_config.samba_pc,
     model_server_config.samba_name
   )
 
@@ -279,7 +279,7 @@ def get_backup_file(
       temp_file = tempfile.NamedTemporaryFile()
 
       fullpath = f"{backup_folder}/{curr_filename}"
-      
+
       try:
         conn.retrieveFile(share_name, fullpath, temp_file, timeout=timeout)
         #logger.debug(f'Successfully retrieved file')

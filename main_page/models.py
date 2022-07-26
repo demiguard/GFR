@@ -85,7 +85,6 @@ class User(AbstractBaseUser):
   id = models.AutoField(primary_key=True)
   username = models.CharField(max_length=120, unique=True)
   password = models.CharField(max_length=120)
-  
   department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
   user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)

@@ -1,6 +1,6 @@
 import ldap
 from ldap.ldapobject import LDAPObject
-from key import LDAP_PASSWORD
+from key import LDAP_PASSWORD, LDAP_CERT_PATH
 
 base_ldap_path = "OU=Region Hovedstaden,DC=regionh,DC=top,DC=local"
 ldap_username  = "REGIONH\RGH-S-GFRLDAP"
@@ -9,13 +9,16 @@ ldap_server    = "ldap://regionh.top.local"
 def initialize_connection():
   """
     Initializes the ldap connection with server side ldap credentials
-  
+
     Returns:
       ldap.LDAPObject - this is a primary object in python-ldap module.
 
     Note you probbally can make this django_auth_ldap module by using group queries, but this includes populating the User with tags.
   """
   conn = ldap.initialize(ldap_server)
+  conn.set_option(ldap.OPT_X_TLS_CACERTFILE, LDAP_CERT_PATH)
+  conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+  conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
   conn.start_tls_s()
   conn.simple_bind_s(ldap_username, LDAP_PASSWORD)
   return conn
@@ -26,10 +29,10 @@ def CheckGroup(conn : LDAPObject, group_ldap_path : str, BAMID : str) -> bool:
     The group name should be an LDAP path.
     Args:
       conn : ldap.LDAPObject - a active ldap connection, use ldap_queries.initialize_connection() to get this object
-      group_ldap_path : str  - A valid ldap group path to be checked for. 
+      group_ldap_path : str  - A valid ldap group path to be checked for.
         Example : CN=RGH-B-SE Jabber Adgang,OU=Jabber,OU=Ressource Grupper,OU=FAELLES Administration,OU=Region Hovedstaden,DC=regionh,DC=top,DC=local
       BAMID : str - The bam id of the user to be checked.
-        Example: 
+        Example:
           AAAA0000
     Returns
       query_answer : bool - if the user is part of the group or not

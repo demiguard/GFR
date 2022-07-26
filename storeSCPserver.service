@@ -1,0 +1,40 @@
+# Installing this service is done by the following commands
+# Modify this file such that the Paths points at the correct files
+# Modify this file such that the User is the same the main service most likely: apache
+# sudo cp storeSCPserver.service /lib/systemd/system/storeSCPserver.service
+# sudo ln -s /lib/systemd/system/storeSCPserver.service /etc/systemd/system/storeSCPserver.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable storeSCPserver
+# sudo systemctl start storeSCPserver
+
+# To Determine if the installtion process was successful run the command
+# systemctl status storeSCPserver
+# This command should something similiar to this output (Dates and Path are varied):
+#storeSCPserver.service - This Service runs a Dicom node, more specify a store SCP storeSCPserver
+#     Loaded: loaded (/lib/systemd/system/storeSCPserver.service; enabled; vendor preset: enabled)
+#     Active: active (running) since Tue 2022-07-26 08:57:18 CEST; 14s ago
+#   Main PID: 641108 (python3)
+#      Tasks: 1 (limit: 37951)
+#     Memory: 69.1M
+#        CPU: 864ms
+#     CGroup: /system.slice/storeSCPserver.service
+#             └─641108 /home/christoffer/Documents/clairvoyance/GFR/venv/bin/python3 /home/christoffer/Documents/clairvoyance/GFR/storeSCPserver.py
+#
+#Jul 26 08:57:18 CJEN06682 systemd[1]: Started This Service runs a Dicom node, more specify a store SCP storeSCPserver.
+
+# Note on older unix distributions the systemctl commands might not reconinze the services.
+# In that case replace the storeSCPserver with storeSCPserver.service
+# The service can be restarted with the following command sudo systemctl restart storeSCPserver
+
+
+[Unit]
+Description=This Service runs a Dicom node, more specify a store SCP storeSCPserver
+
+[Service]
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+User=christoffer
+WorkingDirectory=/home/christoffer/Documents/clairvoyance/GFR
+ExecStart=/home/christoffer/Documents/clairvoyance/GFR/venv/bin/python3 /home/christoffer/Documents/clairvoyance/GFR/storeSCPserver.py
+
+[Install]
+WantedBy=multi-user.target
