@@ -128,7 +128,7 @@ class RisFetcher():
         Boolean : If the connection were successful or not
     """
     self.ris_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(department.ris_calling),
+      ae_controller.create_find_AE(department.config.ris_calling),
       department.config.ris.ip,
       department.config.ris.port,
       department.config.ris.ae_title,
@@ -192,7 +192,7 @@ class RisFetcher():
 
   def fetch_history(self, dataset: Dataset, dataset_dir : Path) -> None:
     history_queryDataset = dataset_creator.create_search_dataset('',dataset.PatientID, '','','')
-    response = self.pacs_find_assoc.send_c_find(history_queryDataset, StudStudyRootQueryRetrieveInformationModelFind)
+    response = self.pacs_find_assoc.send_c_find(history_queryDataset, StudyRootQueryRetrieveInformationModelFind)
     for status, historic_dataset in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE:
