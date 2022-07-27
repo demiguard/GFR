@@ -242,7 +242,7 @@ class RisFetcher():
           continue
 
         # Create associations
-        if not self.associate(): # This function set self.ris_assoc, self.pacs_find_assoc, self.pacs_move_assoc
+        if not self.associate(department): # This function set self.ris_assoc, self.pacs_find_assoc, self.pacs_move_assoc
           continue
         # Do the pull request
         query_dataset = dataset_creator.generate_ris_query_dataset(department.ris_calling)
