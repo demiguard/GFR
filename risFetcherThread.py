@@ -223,7 +223,7 @@ class RisFetcher():
     try_mkdir(dataset_dir, mk_parents=True)
     file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
     try:
-      dicomlib.save_dicom(file_path)
+      dicomlib.save_dicom(file_path, dataset)
     except ValueError as e:
       logger.error(f"Failed to save dicom file at {file_path}, got exception {e}")
       shutil.rmtree(dataset_dir)
