@@ -212,7 +212,7 @@ class RisFetcher():
     dataset_dir = Path(f"{server_config.FIND_RESPONS_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
     delete_dir = Path(f"{server_config.DELETED_STUDIES_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
 
-    if dataset.AssessionNumber in self.handled_examinations or not dataset_dir.exists() or not delete_dir.exists():
+    if dataset.AccessionNumber in self.handled_examinations or not dataset_dir.exists() or not delete_dir.exists():
       return
 
     try_mkdir(dataset_dir, mk_parents=True)
