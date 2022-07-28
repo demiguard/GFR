@@ -136,14 +136,14 @@ class RisFetcher():
     )
 
     self.pacs_find_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(self.sc.ae_title),
+      ae_controller.create_find_AE(self.sc.AE_title),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
       logger
     )
     self.pacs_move_assoc = ae_controller.establish_assoc(
-      ae_controller.create_move_AE(self.sc.ae_title),
+      ae_controller.create_move_AE(self.sc.AE_title),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
@@ -245,13 +245,13 @@ class RisFetcher():
         if not self.associate(department): # This function set self.ris_assoc, self.pacs_find_assoc, self.pacs_move_assoc
           continue
         # Do the pull request
-        query_dataset = dataset_creator.generate_ris_query_dataset(department.ris_calling)
+        query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)
 
         response = self.ris_assoc.send_c_find(query_dataset, StudyRootQueryRetrieveInformationModelFind)
         for status, dataset in response:
           if 'Status' in status:
             if status.Status == DATASET_AVAILABLE:
-              self.handle_ris_find(dataset, department)
+              self.handle_ris_dataset(dataset, department)
             elif status.Status == TRANSFER_COMPLETE:
               pass # The Transfer is compelete and the association can not be closed.
             else:
