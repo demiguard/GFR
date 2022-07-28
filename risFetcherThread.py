@@ -257,6 +257,7 @@ class RisFetcher():
             if status.Status == DATASET_AVAILABLE:
               self.handle_ris_dataset(dataset, department)
             elif status.Status == TRANSFER_COMPLETE:
+              logger.debug(f"Handled respose to {department}")
               pass # The Transfer is compelete and the association can not be closed.
             else:
               logger.info(f"Failed to Transfer dataset with message {status}")
