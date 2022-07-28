@@ -1,3 +1,4 @@
+import logging
 import os
 from xmlrpc.client import Boolean
 import django
@@ -33,7 +34,7 @@ from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, Stu
 logger = log_util.get_logger(
   __name__,
   log_filename="ris_thread.log",
-  log_level=server_config.THREAD_LOG_LEVEL
+  log_level=logging.DEBUG
 )
 
 get_history = False
@@ -207,12 +208,15 @@ class RisFetcher():
 
   def handle_ris_dataset(self, dataset : Dataset, department : Department) -> None:
     if not self.validate_dataset(dataset):
+      logger.error(f"Invalid Dataset:{dataset}")
       return
 
     dataset_dir = Path(f"{server_config.FIND_RESPONS_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
     delete_dir = Path(f"{server_config.DELETED_STUDIES_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
 
     if dataset.AccessionNumber in self.handled_examinations or not dataset_dir.exists() or not delete_dir.exists():
+      logger.info(f"Handled examinations: {self.handled_examinations}")
+      logger.error(f"Dataset_dir path:{dataset_dir}")
       return
 
     try_mkdir(dataset_dir, mk_parents=True)
