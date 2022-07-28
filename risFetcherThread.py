@@ -214,9 +214,10 @@ class RisFetcher():
     dataset_dir = Path(f"{server_config.FIND_RESPONS_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
     delete_dir = Path(f"{server_config.DELETED_STUDIES_DIR}{department.hospital.short_name}/{dataset.AccessionNumber}/")
 
-    if dataset.AccessionNumber in self.handled_examinations or not dataset_dir.exists() or not delete_dir.exists():
-      logger.info(f"Handled examinations: {self.handled_examinations}")
-      logger.error(f"Dataset_dir path:{dataset_dir}")
+    if dataset.AccessionNumber in self.handled_examinations or dataset_dir.exists() or delete_dir.exists():
+      logger.debug(f"Handled examinations: {self.handled_examinations}")
+      logger.debug(f"Path: {dataset_dir} - exists: {dataset_dir.exists()}")
+      logger.debug(f"Path: {delete_dir} - exists: {delete_dir.exists()}")
       return
 
     try_mkdir(dataset_dir, mk_parents=True)
