@@ -137,14 +137,14 @@ class RisFetcher():
     )
 
     self.pacs_find_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(department.config.AE_title),
+      ae_controller.create_find_AE(department.config.ris_calling),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
       logger
     )
     self.pacs_move_assoc = ae_controller.establish_assoc(
-      ae_controller.create_move_AE(department.config.AE_title),
+      ae_controller.create_move_AE(department.config.ris_calling),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
@@ -243,7 +243,7 @@ class RisFetcher():
 
       for department in Department.objects.all():
         # Validate Config
-        if not self.validate_department(department):
+        if not self.validate_department(department): # Logging happens inside of Validate Department
           continue
 
         # Create associations
