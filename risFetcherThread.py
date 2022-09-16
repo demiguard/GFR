@@ -34,7 +34,7 @@ from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, Stu
 logger = log_util.get_logger(
   __name__,
   log_filename="ris_thread.log",
-  log_level=logging.DEBUG
+  log_level=logging.INFO
 )
 
 get_history = False
@@ -137,14 +137,14 @@ class RisFetcher():
     )
 
     self.pacs_find_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(self.sc.AE_title),
+      ae_controller.create_find_AE(department.config.AE_title),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
       logger
     )
     self.pacs_move_assoc = ae_controller.establish_assoc(
-      ae_controller.create_move_AE(self.sc.AE_title),
+      ae_controller.create_move_AE(department.config.AE_title),
       department.config.pacs.ip,
       department.config.pacs.port,
       department.config.pacs.ae_title,
@@ -220,7 +220,7 @@ class RisFetcher():
       logger.debug(f"Path: {delete_dir} - exists: {delete_dir.exists()}")
       return
 
-    try_mkdir(dataset_dir, mk_parents=True)
+    dataset_dir.mkdir(parents=True, exist_ok=True)
     file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
     try:
       dicomlib.save_dicom(file_path, dataset)

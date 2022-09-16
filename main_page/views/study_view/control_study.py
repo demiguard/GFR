@@ -47,7 +47,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     #GrandControlPatient Initiation
     GrandForm = base_forms.GrandControlPatient()
 
-    #ControlPatient6 
+    #ControlPatient
     FormSamples = []
     for i, sample in enumerate(dataset.ClearTest):
       sample_date, sample_time = formatting.splitDateTimeStr(sample.SampleTime)

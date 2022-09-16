@@ -62,7 +62,6 @@ class Department(models.Model):
   ldapPath = models.CharField(default='', max_length=500)
   # Associated hospital for this department
   hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True, blank=True)
-  
   config = models.OneToOneField(Config, on_delete=models.SET_NULL, null=True, blank=True)
 
   # Temporarily store daily thinning factors

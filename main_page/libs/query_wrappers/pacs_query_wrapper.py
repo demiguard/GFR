@@ -151,7 +151,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   # Save the dicom file to be sent to PACS
   try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
   store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
-  
+
   dicomlib.save_dicom(store_file, dicom_object)
 
   if not user.department.config.pacs:
@@ -194,8 +194,8 @@ def thread_store(accession_number, wait_time, max_attempts=5):
 
   TODO: Implement the max cap for attempts
   NOTE: Adding a cap on the number of attempts might be a bad idea,
-        think if PACS is down for the whole day and the cap runs out. 
-        Then a lot of studies are going to get stuck in the queue folder, 
+        think if PACS is down for the whole day and the cap runs out.
+        Then a lot of studies are going to get stuck in the queue folder,
         and aren't sent to PACS until the entire server is reset.
   """
   # Load study and connection configuration - if the files cannot be found don't send

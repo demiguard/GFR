@@ -56,7 +56,7 @@ def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger):
       Ris ae: {aet}
       """)
     return None
-  
+
   return assoc
 
 

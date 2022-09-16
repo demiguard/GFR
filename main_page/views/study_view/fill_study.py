@@ -659,7 +659,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Redirect to correct site based on which action was performed
     if "calculate" in request.POST:
       return redirect('main_page:present_study', accession_number=accession_number)
-    else: 
+    else:
       return redirect('main_page:list_studies')
 
     return self.get(request, accession_number)
