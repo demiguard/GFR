@@ -27,13 +27,12 @@ logger = log_util.get_logger(__name__)
 
 def move_study_from_search_cache(dataset, *args, **kwargs):
   """
-    This is the hanlder 
-  
+    This is the hanlder
+
   """
   accession_number = kwargs['accession_number']
 
   target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
-  
 
   if not(os.path.exists(target_file)):
     logger.error(f'Could not find the file {accession_number} from pacs')
@@ -60,7 +59,7 @@ def move_and_store(dataset, *args, **kwargs):
     raise AttributeError("move_assoc and config is a required keyword")
 
   ae_controller.send_move(
-    move_assoc, 
+    move_assoc,
     AE_title,
     dataset,
     move_study_from_search_cache,
@@ -69,7 +68,7 @@ def move_and_store(dataset, *args, **kwargs):
 
 def get_study(user, accession_number):
   """
-    This function retrieves a completed study with the accession number given. 
+    This function retrieves a completed study with the accession number given.
     Note that this function does not check the cache
 
     Args:
@@ -86,13 +85,14 @@ def get_study(user, accession_number):
   if not config.pacs:
     return None, "Error: No PACS address set for configuration."
 
-  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  AE_title = config.ris_calling
 
   pacs_find_ae = ae_controller.create_find_AE(AE_title)
   pacs_move_ae = ae_controller.create_move_AE(AE_title)
 
   pacs_find_assoc = ae_controller.establish_assoc(
-    pacs_find_ae, 
+    pacs_find_ae,
     config.pacs.ip,
     config.pacs.port,
     config.pacs.ae_title,
@@ -102,7 +102,7 @@ def get_study(user, accession_number):
     return None, "Error"
 
   pacs_move_assoc = ae_controller.establish_assoc(
-    pacs_move_ae, 
+    pacs_move_ae,
     config.pacs.ip,
     config.pacs.port,
     config.pacs.ae_title,
@@ -136,18 +136,19 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
 
   Args:
     dicom_object : pydicom dataset, the dataset to be stored
-    user : a django model user, the user that stores 
+    user : a django model user, the user that stores
 
   KWargs:
     ensure_standart : Bool, if true the function preforms checks, that the given dicom object contains the nessesary tags for a successful
   Returns:
     Success : Bool, returns true on a success full storage, false on failed storage
-    Failure Message : String, A user friendly message of what went wrong. Empty on success. 
+    Failure Message : String, A user friendly message of what went wrong. Empty on success.
   Raises
     Value error: If the dicom set doesn't contain required information to send
   """
   accession_number = dicom_object.AccessionNumber
-  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  AE_title = user.department.config.ris_calling
   # Save the dicom file to be sent to PACS
   try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
   store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
@@ -159,7 +160,7 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
 
   # Write file with connection configurations
   # hey hey hey, I present the newest programming invention:
-  # MULTIPLE FUNCTIONAL ARGUMENTS, no more writing a file, and opening it up 
+  # MULTIPLE FUNCTIONAL ARGUMENTS, no more writing a file, and opening it up
   with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
     fp.write(json.dumps({
       "pacs_calling": AE_title,
@@ -226,7 +227,7 @@ def thread_store(accession_number, wait_time, max_attempts=5):
       status = assoc.send_c_store(ds)
       if status.Status == 0x0000:
         is_sent = True
-    
+
     if not is_sent:
       time.sleep(wait_time)
 
@@ -262,11 +263,11 @@ def send_queue_to_PACS():
 def start_scp_server(ae_title):
   """
   Problems:
-    The server host multiple AE titles 
+    The server host multiple AE titles
       TEMP SOLUTION:
         Accepts all AE title
     Shutting down the server is difficult, since it's on another thread
-    server_instance.shutdown() needs to becalled for normal shutdown 
+    server_instance.shutdown() needs to becalled for normal shutdown
       TEMP SOLUTION:
         ONE DOES NOT SIMPLY SHUTDOWN THE SERVER aka TODO for a designer,
           Potential Solution:
@@ -274,7 +275,7 @@ def start_scp_server(ae_title):
             When Creating Server overwrite global Variable with server instance
             THIS MAY NOT WORK, I*M A SHIT PYTHON PROGRAMMER
     Saving a file, While it's clear that it should be saved in the search_dir.
-    However Saving in subdirectories are difficult 
+    However Saving in subdirectories are difficult
   """
   logger = log_util.get_logger(__name__)
   logger.info('Starting Server')
@@ -283,9 +284,9 @@ def start_scp_server(ae_title):
     Stores a Files upon a C-store
 
       Returns
-        0x0000 - success code for successful store 
+        0x0000 - success code for successful store
 
-    
+
       Retried due to retried functionality of Pynetdicom v 1.4.0
     """
     if 'AccessionNumber' in dataset:
@@ -346,7 +347,7 @@ def start_scp_server(ae_title):
     try:
       retrieved_dataset           = event.dataset
       retrieved_dataset.file_meta = event.file_meta
-    
+
     except:
       return_dataset = pydicom.Dataset()
       return_dataset.Status = 0xC123
@@ -355,7 +356,7 @@ def start_scp_server(ae_title):
       return return_dataset
     # Infomation Retrieved
     # Availble vars retrieved_dataset, retrieved_meta_info
-    
+
     #logger.info(f'Dataset:\n {retrieved_dataset}')
 
     if 'AccessionNumber' in retrieved_dataset:
@@ -370,7 +371,7 @@ def start_scp_server(ae_title):
       return_dataset = pydicom.Dataset()
       return_dataset.Status = 0xCAFE
       return_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber') 
-      return response_dataset
+      return return_dataset
 
 
   def sop_common_handler(event):
@@ -398,9 +399,9 @@ def start_scp_server(ae_title):
     #(evt.EVT_ASYNC_OPS, log_event_handler),
     #(evt.EVT_SOP_COMMON, sop_common_handler),
     #(evt.EVT_SOP_EXTENDED, sop_extended_handler),
-    (evt.EVT_USER_ID, log_event_handler), 
+    (evt.EVT_USER_ID, log_event_handler),
     (evt.EVT_C_STORE, on_c_store_event),
-    (evt.EVT_C_MOVE, on_c_move_event), 
+    (evt.EVT_C_MOVE, on_c_move_event),
     # No Response
     (evt.EVT_ABORTED, log_event_handler),
     (evt.EVT_CONN_OPEN, connection_open_handler),
@@ -412,7 +413,7 @@ def start_scp_server(ae_title):
   server_ae = AE(ae_title=ae_title)
   server_ae.supported_contexts = StoragePresentationContexts
   #
-  #server_ae.on_c_store = on_store 
+  #server_ae.on_c_store = on_store
   #server_ae.on_c_move = on_move
 
   server_instance = server_ae.start_server(('', 104), block=False, evt_handlers=event_handlers) # Production
@@ -435,10 +436,11 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
         'date'            : formatting.format_date(dataset.StudyDate)
       })
     except Exception as e:
-      logger.info(f"Failed to process incoming search dataset, got exception {e}")  
+      logger.info(f"Failed to process incoming search dataset, got exception {e}")
   #End helper
 
-  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  AE_title = config.ris_calling
   # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(
     name,

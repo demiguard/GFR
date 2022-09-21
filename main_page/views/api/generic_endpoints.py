@@ -14,7 +14,7 @@ class GetEndpoint(View):
   Defines an api endpoint which allows for retreival of object information
   through GET requests for either all objects or a specific object given an id.
   """
-  
+
   def get(self, request: Type[WSGIRequest], obj_id: Union[int, str]=None) -> HttpResponse:
     """
     Handles incoming GET requests to the endpoint
@@ -25,16 +25,16 @@ class GetEndpoint(View):
     Kwargs:
       obj_id: if given only returns information about the object related to the
               objects id.
-    
+
     Returns:
       JSONResponse containing the requested information about the model,
       otherwise 404 on failure (e.g. if a requested field is not contained 
       within the model).
     """
     context = { }
-    
+
     serializer = JSONSerializer()
-    
+
     # Get specific object if id is given
     if obj_id:
       try:
@@ -60,7 +60,7 @@ class DeleteEndpoint(View):
   Defines an api endpoint which allows for deletion of object instances,
   by a given object id.
   """
-  
+
   def delete(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
     """
     Handles incoming DELETE requests to the endpoint
@@ -79,7 +79,7 @@ class DeleteEndpoint(View):
       return HttpResponseNotFound()
 
     obj.delete()
-  
+
     return JsonResponse({'action': 'success'})
 
 
@@ -104,7 +104,7 @@ class PostEndpoint(View):
     Returns:
       JSONResponse containing information regarding the status of the action.
     """
-    
+
     # Create the new instance
     obj = self.model()
 
@@ -132,7 +132,7 @@ class PostEndpoint(View):
           value = foreign_model.objects.get(pk=int(value))
 
       setattr(obj, key, value)
-    
+
     obj.save()
 
     resp = JsonResponse({'action': 'success'})
@@ -158,29 +158,29 @@ class PatchEndpoint(View):
       JSONResponse containing information regarding the status of the action,
       otherwise 404 on failure.
     """
-    
+
     # Retreive object instance
     try:
       obj = self.model.objects.get(pk=obj_id)
     except ObjectDoesNotExist:
       return HttpResponseNotFound()
-    
+
     # Update model instance
     patch = QueryDict(request.body)
-    for key, value in patch.items():      
+    for key, value in patch.items():
       # Retreive foreign object if model specifies it
       if value != '':
         if 'foreign_fields' in dir(self):
           if key in self.foreign_fields:
             foreign_model = self.foreign_fields[key]
-            value = foreign_model.objects.get(pk=int(value)) 
+            value = foreign_model.objects.get(pk=int(value))
       else:
         value = None
-        
+
       setattr(obj, key, value)
 
     obj.save()
-    
+
     return JsonResponse({'action': 'success'})
 
 
@@ -205,4 +205,3 @@ class RESTEndpoint(GetEndpoint, DeleteEndpoint, PatchEndpoint, PutEndpoint, Post
 
   def post(self, request: Type[WSGIRequest]) -> HttpResponse:
     return super().post(request)
-  

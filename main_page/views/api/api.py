@@ -31,7 +31,7 @@ logger = log_util.get_logger(__name__)
 
 class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.User
-  
+
   fields = [
     'id',
     'username',
@@ -49,7 +49,7 @@ class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     hosp_depart = { }
     for choice_id, department in enumerate(models.Department.objects.all()):
       hosp_depart[choice_id + 1] = (department.id, department.hospital.id)
-    
+
     # Validate hosp_depart from request
     request_body = request.POST
 
@@ -64,7 +64,7 @@ class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
 
     return super().post(request)
 
-  
+
 class HospitalEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.Hospital
 
@@ -78,7 +78,7 @@ class HospitalEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
 
 class DepartmentEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
   model = models.Department
-  
+
   fields = [
     'id',
     'name',
@@ -187,7 +187,7 @@ class ProcedureMappingsEndpoint(LoginRequiredMixin, RESTEndpoint):
   def post(self, request):
     # Modify request to contain correct config id instead of department id
     request_body = request.POST
-   
+
     department_id = request_body['department']
     config_id = models.Department.objects.get(pk=department_id).config.id
 
@@ -215,7 +215,7 @@ class SambaBackupEndpoint(LoginRequiredMixin, View):
 
     try:
       backup_data = samba_handler.get_backup_file(date, hospital, model_server_config)
-    except NotConnectedError as err: 
+    except NotConnectedError as err:
       logger.warn(f"Error during handling of Samba Share files, got error: {err}")
 
       return HttpResponseServerError()
@@ -231,7 +231,7 @@ class SambaBackupEndpoint(LoginRequiredMixin, View):
 
     # Reformat data and present in Json for response
     context = { }
-    
+
     USED_COLUMNS = ['Measurement date & time', 'Pos', 'Rack', 'Tc-99m CPM']
     for df in backup_data:
       # Remove unused columns
@@ -243,7 +243,7 @@ class SambaBackupEndpoint(LoginRequiredMixin, View):
       # Put in dict. Assuming 2 tests cannot be made at the exact same time. If they are, they will be overwritten
       _, time_of_messurement = df['Measurement date & time'][0].split(' ')
       context[time_of_messurement] = df.to_dict()
-    
+
     return JsonResponse(context)
 
 
@@ -276,7 +276,7 @@ class StudyEndpoint(LoginRequiredMixin, View):
     logger.info(
       f"Attempting to recover study w/ accession number: {accession_number}"
     )
-    
+
     resp = JsonResponse({ })
 
     # Attempt to create directory of active studies
@@ -323,8 +323,8 @@ class StudyEndpoint(LoginRequiredMixin, View):
     return resp
 
   def delete(
-    self, 
-    request: Type[WSGIRequest], 
+    self,
+    request: Type[WSGIRequest],
     accession_number: str
     ) -> HttpResponse:
     """
@@ -335,7 +335,7 @@ class StudyEndpoint(LoginRequiredMixin, View):
       accession_number: accession_number of study to delete
     """
     user_hosp = request.user.department.hospital.short_name
-    
+
     request_body = QueryDict(request.body)
     resp = JsonResponse({ })
 
@@ -364,10 +364,10 @@ class StudyEndpoint(LoginRequiredMixin, View):
         "Attempting to move study to trash "
         f"with accession number: {accession_number}"
       )
-      
+
       # Create deleted studies directory if doesn't exist
       deletion_dir = Path(
-        server_config.DELETED_STUDIES_DIR, 
+        server_config.DELETED_STUDIES_DIR,
         user_hosp
       )
       try_mkdir(str(deletion_dir), mk_parents=True)
@@ -402,7 +402,7 @@ class ListEndpoint(AdminRequiredMixin, LoginRequiredMixin, View):
   Endpoint for handling performing actions on the directory for list_studies
   and delete_studies (e.g. actions on all dicom objects in a directory)
   """
-  def delete(self, request): # hard purge everything, e.g. nuke    
+  def delete(self, request): # hard purge everything, e.g. nuke
     request_body = QueryDict(request.body)
     hospital_shortname = ""
     context = { 'action': 'failed' }
@@ -414,7 +414,7 @@ class ListEndpoint(AdminRequiredMixin, LoginRequiredMixin, View):
 
     if hospital_shortname:
       del_dir = ""
-      
+
       if 'list_studies' in request_body:
         del_dir = Path(server_config.FIND_RESPONS_DIR, hospital_shortname)
       elif 'deleted_studies' in request_body:
@@ -436,7 +436,7 @@ class CsvEndpoint(LoginRequiredMixin, View):
     Args:
       request: incoming HTTP request
       accession_number: accession number of study to export to csv
-    
+
     Returns:
       HTTP file reponse of content type 'text/csv' with the export file
     """
@@ -445,17 +445,17 @@ class CsvEndpoint(LoginRequiredMixin, View):
     csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
     csv_file_path = f'{csv_dir}{accession_number}.csv'
     dataset_file_path = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}/{accession_number}.dcm'
-    
+
     try:
       dataset = dicomlib.dcmread_wrapper(dataset_file_path)
     except: # Unable to find dicom object
       logger.info(f"Unable to export study to csv for accession number: {accession_number}")
       return HttpResponseNotFound()
-    
+
     # Create csv file
     try_mkdir(csv_dir,mk_parents=True)
     export_status = dicomlib.export_dicom(dataset, csv_file_path)
-    
+
     # Create response if csv file creation was successful
     if export_status == 'OK':
       with open(csv_file_path, 'r') as csv_file:
@@ -476,7 +476,7 @@ class CsvEndpoint(LoginRequiredMixin, View):
     hospital_sn = user.department.hospital.short_name
     csv_dir = f'{server_config.CSV_DIR}/{hospital_sn}/'
     csv_file_path = f'{csv_dir}{accession_number}.csv'
-    
+
     if os.path.exists(csv_file_path):
       os.remove(csv_file_path)
 
@@ -492,7 +492,7 @@ class SearchEndpoint(LoginRequiredMixin, View):
   """
   Handles search requests api
   """
-  def get(self, request):  
+  def get(self, request):
     # Extract search parameters
     # logger.info(f'Received Search request by {request.user.username} by {request.META}\n{dir(request.META)}')
 

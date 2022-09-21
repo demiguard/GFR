@@ -65,7 +65,7 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
     # Display
     img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
     try_mkdir(img_resp_dir)
-    
+
     pixel_data = dataset.get("PixelData")
     if pixel_data:
       pixel_data = np.frombuffer(dataset.PixelData, dtype=np.uint8)
@@ -78,7 +78,7 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
       ))
 
     plot_path = f"main_page/images/{hospital}/{accession_number}.png" 
-    
+
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
