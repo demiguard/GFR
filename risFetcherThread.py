@@ -221,7 +221,7 @@ class RisFetcher():
       return
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    file_path = f"{dataset_dir}{dataset.AccessionNumber}.dcm"
+    file_path = f"{dataset_dir}/{dataset.AccessionNumber}"
     try:
       dicomlib.save_dicom(file_path, dataset)
     except ValueError as e:
