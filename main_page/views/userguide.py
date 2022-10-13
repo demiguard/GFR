@@ -15,6 +15,6 @@ class UserGuideView(View):
 
 
     return FileResponse(
-      open(f'{server_config.STATIC_DIR}main_page/static/main_page/pdf/brugervejledning-metode.pdf', 'rb'),
+      open(f'{server_config.STATIC_DIR}pdf/brugervejledning-metode.pdf', 'rb'),
       content_type='application/pdf'
     )
