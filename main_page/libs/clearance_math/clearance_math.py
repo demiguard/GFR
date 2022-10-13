@@ -125,7 +125,7 @@ def calc_clearance(
     # Inulin Korrigering for 24 prøver 
     if delta_times[-1] > 1200:
       clearance_normalized  = clearance_normalized - 0.5
-      clearance = clearance_normalized * BSA * 1.73
+      clearance = clearance_normalized * BSA / 1.73
 
       return clearance, clearance_normalized
   else:
