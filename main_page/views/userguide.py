@@ -1,10 +1,9 @@
 from django.views.generic import View
 from django.http import FileResponse
-import logging
 
-from main_page import log_util
 
-logger = log_util.get_logger(__name__)
+from main_page.libs import server_config
+
 
 
 class UserGuideView(View):
@@ -13,9 +12,9 @@ class UserGuideView(View):
     Generates the file response for the documentation pdf page
     """
 
-    logger.info("SOMEONE OPENED THE USERGUIDE!") 
+
 
     return FileResponse(
-      open('main_page/static/main_page/pdf/brugervejledning-metode.pdf', 'rb'),
+      open(f'{server_config.STATIC_DIR}main_page/static/main_page/pdf/brugervejledning-metode.pdf', 'rb'),
       content_type='application/pdf'
     )

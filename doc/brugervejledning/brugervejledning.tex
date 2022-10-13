@@ -10,10 +10,10 @@
 \hypersetup{
     colorlinks=true,
     linkcolor=black,%blue,
-    filecolor=magenta,      
+    filecolor=magenta,
     urlcolor=blue,%cyan,
 }
- 
+
 \urlstyle{same}
 % URL styling - end
 
@@ -23,7 +23,7 @@
 \begin{document}
 \tableofcontents
 \section*{Introduktion}
-Brugervejledningen er skrevet til version 1.1.x af GFRcalc.\\
+Brugervejledningen er skrevet til version 1.2.x af GFRcalc.\\
 
 Dette dokument beskriver dagligt brug af GFRcalc. Dette dokument er skrevet så det kan læses af alle bruger. Til udvikling og vedligeholdelse af GFRcalc bør du referer til dokumentet: "code-documentation.pdf".\\
 
@@ -39,14 +39,14 @@ Alt data; \textit{Navne, cpr numre og test data}, i brugervejledningen er fabrik
 	\item[RIS]		- Radiology Information System
 \end{itemize}
 \section*{Formål}
-GFRcalc er et værktøj som kan tilgås på hjemmesiden \url{http://gfr} eller \url{http://gfr.petnet.rh.dk}. værktøjet benyttes til udregning af Clearance undersøgelser. Mere specifik til at udregne GFR. 
+GFRcalc er et værktøj som kan tilgås på hjemmesiden \url{http://gfr01} eller \url{http://gfr.regionh.top.local}. værktøjet benyttes til udregning af Clearance undersøgelser. Mere specifik til at udregne GFR. 
 \newpage
 \section{Til dagligt brug}
 For at kunne benytte nogle GFRcalc funktioner, skal der logges ind.
 \subsection{Hurtig Guide}
 Udfylding af undersøgelsen.
 \begin{enumerate}
-	\item Gå til hjemmesiden \url{http://gfr.petnet.rh.dk}.
+	\item Gå til hjemmesiden \url{http://gfr.regionh.top.local}.
 	\item Log in, og navigerer til "Åben undersøgelse" fra sidebaren. 
 	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen.
 	\item Udfyld undersøgelsen ved at indtaste relevant data.
@@ -56,9 +56,9 @@ Udfylding af undersøgelsen.
 	\item Klik “Beregn”, hvorefter en graf vil blive genereret som beskriver undersøgelsen.
 	\item Klik “Send til Kontrol” Hvis graffen er korrekt.
 \end{enumerate} 
-Kontrol af undersøgelsen 
+Kontrol af undersøgelsen
 \begin{enumerate}
-	\item Gå til hjemmesiden \url{http://gfr.petnet.rh.dk}.
+	\item Gå til hjemmesiden \url{http://gfr.regionh.top.local}.
 	\item Log in, og navigerer til "Kontrol" fra sidebaren. 
 	\item Vælg den relevante undersøgelse, ved at klikke på undersøgelsen.
 	\item Godkend alle data felter og skriv dit bamID i det tomme felt
@@ -77,9 +77,9 @@ En undersøgelses information kan tilgås via at klikke på den. \\
 Man kan aflæse, hvor meget information, der findes inde i en undersøgelse via farven på clipboardet (i søjlen med "status"):
 \begin{itemize}
 	\item[Grøn] - Undersøgelsen har alle information og afventer at blive godkendt og sendt til kontrol.
-	\item[Gul] - Undersøgelsen har nogle bruger indtastet informationer, men har ikke udregnet clearance endnu. 
-	\item[Rød] - Undersøgelse har ingen bruger indtastet informationer. 
-\end{itemize} 
+	\item[Gul] - Undersøgelsen har nogle bruger indtastet informationer, men har ikke udregnet clearance endnu.
+	\item[Rød] - Undersøgelse har ingen bruger indtastet informationer.
+\end{itemize}
 \textbf{Bemærk:} For nogle hospitaler kan der findes flere tabel indgange til samme undersøgelse. Det er vigtigt, at den rigtige undersøgelse udfyldes for at  SP kan genere, de korrekte reporter.
 
 \subsection{Udfyldning af undersøgelser}\label{fill_study}
@@ -124,7 +124,7 @@ Der præsenteres et billede med en graf og information indtaste med undersøgels
 	\item \textbf{Billede til printning} - Navigerer til et fuldt skærmbillede af billede uden hjemmeside navigation, denne side er velegnet til printning af undersøgelsen.
 	\item \textbf{Send til kontrol} - Sender undersøgelsen til sekundær kontrol før undersøgelsen sendes til PACS, hvor den kan tilgås fra "Kontrol"\ siden.
 	%\item \textbf{Send til PACS} - Færdiggøre undersøgelsen og sender billede til PACS. Undersøgelsen bliver slettet fra GFRcalc, hvis GFRcalc succesfuldt sender billedet til PACS.\\ Det er ikke muligt at rette i undersøgelsen efter at den er sendt til PACS.\\
-	%Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.   
+	%Hvis et billede med fejl bliver send til PACS, så skal du kontakt både en PACS ansvarlig og en GFRcalc admin. Oplyse dem om at der er sket en fejl.
 	\item \textbf{QA-plot} \textit{Denne knap vises kun ved "flere prøve"\ metoden} - Navigerer til skærmbillede hvor man kan se et plot over hvor tæt prøveresultaterne ligger på den generetet linje.
 \end{itemize}
 
@@ -142,11 +142,11 @@ Man kan søge på:
 	\item Dato
 	\item Navn
 	\item CPR number
-	\item AccessionNummer 
+	\item AccessionNummer
 \end{itemize}
 Efter at man klikker på søg, kan man sorterer søgeresultaterne efter søjlerne i tabellen ved at klikke på toppen af søjlen. Man kan se et søge resultat ved at klikke på resultatet.\\
 
-\textbf{Bemærk} Søgetiden kan reduceres ved at man indskrænker sin søgning. 
+\textbf{Bemærk} Søgetiden kan reduceres ved at man indskrænker sin søgning.
 
 \subsection{Tilføj/Fjerne procedure filter}
 Listen af undersøgelser på siden "Åbn undersøgelse"\ kan filtreres, så undersøgelser med bestemte "Procedure"\ navne ikke bliver vist. For eksempel hvis man ikke ønsker at se undersøgelser af Procedure typen "Clearance blodprøve 2. gang". For opsætning af sådanne filter gør følgende:
@@ -169,8 +169,9 @@ Filtre kan ligeledes fjernes ved at:
 \end{enumerate}
 
 \subsection{Metode Dokumentation}\label{Documentation}
-Dokumentation beskriver metoden hvordan GFR værdierne er udregnet.\\ 
-Den kan man tilgå via sidebaren ved at klippe på linket »Documentation« (eller via. linket: \url{http://gfr/documentation}). 
+Metode dokumentationen kan findes efter den tekniske Dokumentation
+
+
 
 \section{Teknisk documentation}
 Denne sektion er for tekniske side af GFR, så den har ikke noget information om daglig brug af GFRcalc.\\
@@ -244,7 +245,7 @@ GFRcalc laver dicom-objecter, med føglende tags, Tags som ikke er private føgl
 		(0023,103F) & SQ & Liste af Historiske undersøgelser: En historisk undersøgelse har føglende tags: AccessionNumber, StudyDate, PatientSize, PatientWeight, Clearance Værdi (0023,1011), Normalized Clearance (0023,1012),  Injektions tidpunktet (0023,1018), Prøver fra undersøgelsen (0023,1020) \\ \hline
 		(0023,1040) & LT & Kommentar til intern brug  \\ \hline
 		\end{tabular}
-	\end{center}	
+	\end{center}
 	\caption{Private tags manipuleret af GFRcalc}
 \end{table}
 
