@@ -215,7 +215,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     Returns:
       Tuple with the zipped data and the length of the data
-    
+
     Raises:
       ConnectionError: if no connection to the Samba Share can be made
     """
@@ -227,11 +227,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       logger.warning(f'SMB Connection Failed: {E}')
       raise ConnectionError('Hjemmesiden kunne ikke få kontakt til serveren med prøve resultater.\n Kontakt din lokale IT-ansvarlige \n Server kan ikke få kontakt til sit Samba-share.')
 
-    # Read requested data from each csv file  
+    # Read requested data from each csv file
     csv_present_names = []
     csv_data = []
     data_indicies = []
-    
+
     for data_file in data_files:
       selected = data_file[['Rack', 'Pos', 'Tc-99m CPM']]
 
@@ -241,13 +241,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       measurement_date = formatting.convert_date_to_danish_date(measurement_date, sep='-')
 
       csv_present_names.append( f'{measurement_time} - {measurement_date}')
-      
+
       # Cast to int, as to remove dots when presenting on the site
       csv_data.append(
         [[int(rack), int(pos), int(cnt)]
           for rack, pos, cnt in selected.to_numpy().tolist()]
         )
-      
+
       data_indicies.append(selected.index.tolist())
 
     # Flatten list of lists

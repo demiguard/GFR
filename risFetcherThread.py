@@ -1,6 +1,5 @@
 import logging
 import os
-from xmlrpc.client import Boolean
 import django
 
 # Init Django, note this is needed before you import django such as models.
@@ -221,7 +220,7 @@ class RisFetcher():
       return
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    file_path = f"{dataset_dir}/{dataset.AccessionNumber}"
+    file_path = f"{dataset_dir}/{dataset.AccessionNumber}.dcm"
     try:
       dicomlib.save_dicom(file_path, dataset)
     except ValueError as e:

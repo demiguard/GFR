@@ -31,7 +31,7 @@ new_dict_items = {
   0x00231002 : ('LO', '1', 'GFR Version', '', 'GFRVersion'), # Version 1.
   0x00231010 : ('LO', '1', 'GFR Method', '', 'GFRMethod'),
   0x00231011 : ('LO', '1', 'Body Surface Method', '', 'BSAmethod'),
-  0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),   
+  0x00231012 : ('DS', '1', 'clearance', '', 'clearance'),
   0x00231014 : ('DS', '1', 'normalized clearance', '', 'normClear'),
   0x00231018 : ('DT', '1', 'Injection time', '', 'injTime'),     # Tags Added
   0x00231019 : ('US', '1', 'Vial number', '', 'VialNumber'),

@@ -44,6 +44,7 @@ def open_csv_file(temp_file: NamedTemporaryFile):
   try:
     pandas_ds = pd.read_csv(temp_file.name)
     protocol = pandas_ds['Protocol name'][0]
+    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
   except ParserError:
     # Hidex file
     try:
@@ -80,7 +81,7 @@ def open_csv_file(temp_file: NamedTemporaryFile):
       protocol = protocol.replace("\n", "")
       protocol = protocol.replace("\r", "")
       protocol = protocol.replace("\"", "")
-  
+
   return pandas_ds, datestring, protocol
 
 
@@ -137,7 +138,7 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (Li
 
   Args:
     hospital: short name for the hospital
-    
+
   Kwargs:
     timeout: how long the connection can be kept alive
 
@@ -174,8 +175,12 @@ def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (Li
 
     fullpath =  hospital_sample_folder + samba_file.filename
     #logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
-
-    conn.retrieveFile(model_server_config.samba_share, fullpath, temp_file)
+    try:
+      conn.retrieveFile(model_server_config.samba_share, fullpath, temp_file)
+    except Exception as E:
+      logger.error(f"Could not retrieve file {fullpath}")
+      temp_file.close()
+      continue
 
     temp_file.seek(0)
     try:

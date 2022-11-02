@@ -115,8 +115,8 @@ def calc_clearance(
     log_tec99_cnt = [np.log(x) for x in tec99_cnt]
 
     slope, intercept, _, _, _ =  linregress(delta_times, log_tec99_cnt)
-  
-    clearance_1 = (dosis * (-slope)) / np.exp(intercept) 
+
+    clearance_1 = (dosis * (-slope)) / np.exp(intercept)
 
     clearance =  clearance_1 / (1 + 0.0032 * BSA ** (-1.3) * clearance_1)
 

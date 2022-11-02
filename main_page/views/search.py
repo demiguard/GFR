@@ -26,7 +26,7 @@ class SearchView(LoginRequiredMixin, TemplateView):
   Search view dislaying studies which have been sent to PACS
   """
   template_name = 'main_page/search.html'
-  
+
   def get(self, request):
     search_form = base_forms.SearchForm()
 
