@@ -81,7 +81,7 @@ class RisFetcher():
         department (Department): The Department to be validated
 
     Returns:
-        Boolean: If the department is valid
+        Bool: If the department is valid
     """
     correctly_configured = True
     if department.hospital == None:
@@ -102,14 +102,14 @@ class RisFetcher():
         correctly_configured = False
     return correctly_configured
 
-  def validate_dataset(self, dataset : Dataset) -> Boolean:
+  def validate_dataset(self, dataset : Dataset) -> bool:
     """Checks if a dataset have all the nessesary keys
 
     Args:
         dataset (Dataset): dataset to be validated
 
     Returns:
-        Boolean: Validity of dataset
+        Bool: Validity of dataset
     """
     valid_dataset = True
     if 'AccessionNumber' not in dataset:
@@ -125,7 +125,7 @@ class RisFetcher():
         department (Department): _description_
 
     Returns:
-        Boolean : If the connection were successful or not
+        bool : If the connection were successful or not
     """
     self.ris_assoc = ae_controller.establish_assoc(
       ae_controller.create_find_AE(department.config.ris_calling),
