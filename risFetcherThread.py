@@ -36,7 +36,7 @@ logger = log_util.get_logger(
   log_level=logging.INFO
 )
 
-get_history = False
+get_history = True
 
 class RisFetcher():
   def __init__(self) -> None:
@@ -118,7 +118,7 @@ class RisFetcher():
       valid_dataset = False
     return valid_dataset
 
-  def associate(self, department : Department):
+  def associate(self, department: Department):
     """Creates the associations nessesary for sending a find query
 
     Args:
@@ -176,7 +176,7 @@ class RisFetcher():
     else:
       logger.error(f"Historic dataset not found for Accession Number: {historic_dataset.AccessionNumber}")
 
-  def get_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
+  def get_historic_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
     response = self.pacs_move_assoc.send_c_move(historic_dataset, StudyRootQueryRetrieveInformationModelMove)
     for status, identifier in response:
       if 'Status' in status:
@@ -193,10 +193,11 @@ class RisFetcher():
   def fetch_history(self, dataset: Dataset, dataset_dir : Path) -> None:
     history_queryDataset = dataset_creator.create_search_dataset('',dataset.PatientID, '','','')
     response = self.pacs_find_assoc.send_c_find(history_queryDataset, StudyRootQueryRetrieveInformationModelFind)
+    logger.debug("Fetching history")
     for status, historic_dataset in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE:
-          self.getDataset(historic_dataset, dataset_dir)
+          self.get_historic_dataset(historic_dataset, dataset_dir)
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
@@ -230,6 +231,8 @@ class RisFetcher():
 
     if self.get_history: # Fetches the history of datasets
       self.fetch_history(dataset, dataset_dir)
+    else:
+      logger.info("Skipping fetching history")
 
   def run(self) -> None:
     date_last_iteration = date.today().day - 1

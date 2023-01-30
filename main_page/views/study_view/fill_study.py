@@ -335,11 +335,11 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
-      height = math.floor(height * 10000) / 100
+      height = math.ceil(math.floor(height * 10000) / 100)
       """
       we use:
         height = height * 1000 / 10
-      as opposed to 
+      as opposed to
         height *= 100
       As Python does some weird things with floating-point numbers in specific
       cases, e.g. if height = 1.16, then
