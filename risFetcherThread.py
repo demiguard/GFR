@@ -177,7 +177,7 @@ class RisFetcher():
       logger.error(f"Historic dataset not found for Accession Number: {historic_dataset.AccessionNumber}")
 
   def get_historic_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
-    response = self.pacs_move_assoc.send_c_move(historic_dataset, StudyRootQueryRetrieveInformationModelMove)
+    response = self.pacs_move_assoc.send_c_move(historic_dataset, self.sc.AE_title, StudyRootQueryRetrieveInformationModelMove)
     for status, identifier in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE:
