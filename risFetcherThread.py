@@ -168,7 +168,7 @@ class RisFetcher():
     return fully_connected
 
   def move_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
-    target_file = Path(f"{server_config.SEARCH_DIR}{historic_dataset.accessionNumber}.dcm")
+    target_file = Path(f"{server_config.SEARCH_DIR}{historic_dataset.AccessionNumber}.dcm")
     destination = dataset_dir / f"{historic_dataset.AccessionNumber}.dcm"
 
     if target_file.exists():
