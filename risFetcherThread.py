@@ -153,11 +153,11 @@ class RisFetcher():
     )
     # Validate connections
     fully_connected = True
-    if self.ris_assoc == None or not self.ris_assoc.is_established:
+    if self.ris_assoc is None or not self.ris_assoc.is_established:
       fully_connected = False
-    if self.pacs_find_assoc == None or not self.pacs_find_assoc.is_established:
+    if self.pacs_find_assoc is None or not self.pacs_find_assoc.is_established:
       fully_connected = False
-    if self.pacs_move_assoc == None or not self.pacs_move_assoc.is_established:
+    if self.pacs_move_assoc is None or not self.pacs_move_assoc.is_established:
       fully_connected = False
     if not fully_connected:
       if self.ris_assoc != None and self.ris_assoc.is_established: # If this connected release the connection
