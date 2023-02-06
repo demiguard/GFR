@@ -17,6 +17,8 @@ import random
 import shutil
 import time
 
+from typing import Dict, Tuple
+
 from main_page.libs import cache
 from main_page.libs import dicomlib
 from main_page.libs import server_config
@@ -44,7 +46,7 @@ class RisFetcher():
     self.get_history = get_history
     self.delay_min = server_config.SLEEP_DELAY_MIN
     self.delay_max = server_config.SLEEP_DELAY_MAX
-
+    self.failed_datasets: Dict[str,Tuple[Dataset,Path]] = {}
 
   def delete_old_handled_studies(self):
     """
@@ -230,7 +232,11 @@ class RisFetcher():
       return
 
     if self.get_history: # Fetches the history of datasets
-      self.fetch_history(dataset, dataset_dir)
+      try:
+        self.fetch_history(dataset, dataset_dir)
+      except:
+        logger.error(f"Failed to fetch history from {dataset.AccessionNumber}")
+        self.failed_datasets[dataset.AccessionNumber] = (dataset, dataset_dir)
     else:
       logger.info("Skipping fetching history")
 
@@ -260,15 +266,32 @@ class RisFetcher():
             if status.Status == DATASET_AVAILABLE:
               self.handle_ris_dataset(dataset, department)
             elif status.Status == TRANSFER_COMPLETE:
-              logger.debug(f"Handled respose to {department}")
+              logger.debug(f"Handled response to {department}")
               pass # The Transfer is compelete and the association can not be closed.
             else:
               logger.info(f"Failed to Transfer dataset with message {status}")
 
+        for dataset, dataset_dir in self.failed_datasets.values():
+          attempts = 0
+          while attempts < 3:
+            if self.associate(department):
+              try:
+                self.fetch_history(dataset, dataset_dir)
+                break
+              except:
+                logger.error(f"Failed to retrieve history for {dataset.AccessionNumber}")
+                time.sleep(1)
+            attempts += 1
+
+        self.failed_datasets = {}
+
         # Free connections
-        self.ris_assoc.release()
-        self.pacs_find_assoc.release()
-        self.pacs_move_assoc.release()
+        if self.ris_assoc is not None:
+          self.ris_assoc.release()
+        if self.pacs_find_assoc is not None:
+          self.pacs_find_assoc.release()
+        if self.pacs_move_assoc is not None:
+          self.pacs_move_assoc.release()
       #End of Department for loop
 
       today = date.today().day #mabye just save the entire object
