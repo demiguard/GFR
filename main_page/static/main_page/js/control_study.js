@@ -42,15 +42,16 @@ function checkboxes_filled(event) {
   }
 
   // Check BamID
+  
   var bamID_str = $('#id_bamID').val()
-  is_valid = is_valid && (bamID_str.length == 8);
+  is_valid = is_valid && (bamID_str.length > 0);
 
   if (!is_valid) {
     alerter.add_alert("failed_bamid", "Bam ID er ikke blevet udfyldt", "danger");
     alerter.show_alerts();
     return false;
   }
-
+  
   return true;
 }
 
