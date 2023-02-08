@@ -38,6 +38,8 @@ logger = log_util.get_logger(
   log_level=logging.INFO
 )
 
+logger.setLevel(logging.INFO)
+
 get_history = True
 
 class RisFetcher():

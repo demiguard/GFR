@@ -92,7 +92,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     port = int(port)
 
   try:
-    ae = pynetdicom.AE(ae_title=calling_aet)
+    ae = AE(ae_title=calling_aet)
   except ValueError:
     # If AET is empty then a ValueError is thrown by pynetdicom
     logger.info(f"Failed to create AE with calling aet: '{calling_aet}'")
@@ -132,33 +132,21 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
   return association
 
 
-def create_find_AE(ae_title):
+def create_find_AE(ae_title: str) -> AE:
   """
     Creates an pynetdicom.AE object with the find Context, ready to send a find
   """
-  try:
-    ae = pynetdicom.AE(ae_title=ae_title)
-  except ValueError:
-    # If AET is empty then a ValueError is thrown by pynetdicom
-    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
-    return None
-
+  ae = AE(ae_title=ae_title)
   ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
 
   return ae
 
 
-def create_move_AE(ae_title):
+def create_move_AE(ae_title: str) -> AE:
   """
     Creates an pynetdicom.AE object with the find Context, ready to send a move
   """
-  try:
-    ae = pynetdicom.AE(ae_title=ae_title)
-  except ValueError:
-    # If AET is empty then a ValueError is thrown by pynetdicom
-    logger.error(f"Failed to create AE with calling aet: '{ae_title}'")
-    return None
-
+  ae = AE(ae_title=ae_title)
   ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
 
   return ae
