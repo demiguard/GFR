@@ -111,23 +111,22 @@
             <div class="form-group col-md-2">Tælletal</div>
             <div class="form-group col-md-2">Afvigelse</div>
           </div>
-          
           <!-- Place where JS inserts new test data -->
-
           {% for sample in Samples %}
           <div class="form-group">
             <div class="form-row">
-              {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-2' %}                            
-              {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}                        
+              {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-2' %}
+              {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}
               {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-2' %}
               {% bootstrap_field sample.sample_devi layout='inline' form_group_class='col-md-2' %}
-              {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}                        
+              {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}
             </div>
           </div>
           {% endfor %}
         </div>
+
         <!-- Add test info -->
-        <hr>     
+        <hr>
         {% bootstrap_field GrandForm.bamID layout='inline' %}
         {% buttons %}
           <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">

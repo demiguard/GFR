@@ -153,12 +153,12 @@ def dosis(inj, fac, stc):
 def calculate_age(cprnr):
   """
   Determine the age of a patient based on CPR
-  
+
   Params:
-    cprnr: CPR number on the form DDMMYY-CCCC or DDMMYYCCCC, 
+    cprnr: CPR number on the form DDMMYY-CCCC or DDMMYYCCCC,
            where D - Day, M - Month, Y - year, C - control
-  
-  Returns: 
+
+  Returns:
     Age as int
   """
   try:
@@ -182,21 +182,21 @@ def calculate_age(cprnr):
     return 1
 
   current_time = datetime.datetime.now()
-  
+
   century = []
-  
+
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
   if control in [0,1,2,3] or (control in [4,9] and 37 <= year_of_birth ): 
     century.append(1900)
   elif (control in [4,9] and year_of_birth <= 36) or (control in [5,6,7,8] and year_of_birth <= 57):
     century.append(2000)
-  #The remaining CPR-numbers is used by people from the 19-century AKA dead. 
+  #The remaining CPR-numbers is used by people from the 19-century AKA dead.
 
 # Age with no birthday
   if 2000 in century :
     age = current_time.year - 2000 - year_of_birth - 1
-  elif 1900 in century : 
-    age = current_time.year - 1900 - year_of_birth - 1  
+  elif 1900 in century :
+    age = current_time.year - 1900 - year_of_birth - 1
   else:  #This is only used if resurrect dead people, Necromancy I guess
     age = current_time.year - 1800 - year_of_birth - 1
 
@@ -219,7 +219,7 @@ def calculate_age_in_days(cpr):
 
   Remarks:
     This function is intended to be used on people born in the 21th centry, e.g. 20xx
-    This function assumes correct formatting and validity of the cpr number 
+    This function assumes correct formatting and validity of the cpr number
   """
   day_of_birth = int(cpr[0:2])
   month_of_birth = int(cpr[2:4])
@@ -240,21 +240,21 @@ def calculate_sex(cprnr):
     return 'M'
 
 
-def kidney_function(clearance_norm: float, birthdate: Type[datetime.datetime], gender: Type[enums.Gender]) -> str:
+def kidney_function(clearance_norm: float, birthdate: datetime.datetime, gender: enums.Gender) -> Tuple[str, float]:
   """
   Calculate the Kidney function compared to their age and gender
-  
+
   Args:
     clearence_norm: computed clearence of the patient
     birthdate: birthdate of patient (format: YYYYMMDD)
     gender: gender of patient
-  
+
   Returns:
     String describing the kidney function of the patient
   """
-  # Calulcate age in days and years
+  # Calculate age in days and years
   now = datetime.datetime.today()
-  
+
   age_in_days = (now - birthdate).days
   age = int(age_in_days / 365)
 
@@ -275,7 +275,7 @@ def kidney_function(clearance_norm: float, birthdate: Type[datetime.datetime], g
   else: # Elders
     if gender == enums.Gender.MALE:
       Mean_GFR = -1.16 * age + 157.8
-    else:  
+    else:
       Female_reference_pct = 0.929
       Mean_GFR = (-1.16 * age + 157.8) * Female_reference_pct
 
@@ -283,7 +283,7 @@ def kidney_function(clearance_norm: float, birthdate: Type[datetime.datetime], g
   index_GFR = 100 * (Mean_GFR - clearance_norm) / Mean_GFR
 
   # From the index GFR, Conclude on the kidney function
-  if index_GFR < 25: 
+  if index_GFR < 25:
     return "Normal", index_GFR
   elif index_GFR < 48:
     return "Moderat nedsat", index_GFR
