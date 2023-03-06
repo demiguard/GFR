@@ -51,7 +51,7 @@ class ClearanceMathTestCase(TestCase):
 class TestKidneyFunction(unittest.TestCase):
   def test_kidney_function_production_fail_1(self):
     """
-    This test showcases a test of an old patient from 2017 from production at 
+    This test showcases a test of an old patient from 2017 from production at
     Glostrup which reported a kidney function of "Moderat nedsat" in the side
     description when the corresponding graph showed a kidney function of "Normal"
     """

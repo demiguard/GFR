@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import datetime
 
-from typing import Type, Tuple, List, IO, Any
+from typing import Type, Tuple, List, IO, Any, Union, Optional
 
 from main_page import models
 from main_page.libs import enums
@@ -62,9 +62,9 @@ def get_recovered_date(
     return None
 
 
-def get_study_date(dataset: Type[Dataset]) -> str:
+def get_study_date(dataset: Dataset) -> Optional[str]:
   """
-  Attempts to retreieve the study date of a dataset, by check first on StudyDate
+  Attempts to retrieve the study date of a dataset, by check first on StudyDate
   then on ScheduledProcedureStepSequence[0].ScheduledProcedureStepStartDate
 
   Args:
@@ -88,9 +88,9 @@ def get_study_date(dataset: Type[Dataset]) -> str:
       return None
 
   return study_date_str
-    
 
-def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Type[Dataset]:
+
+def dcmread_wrapper(filepath: Union[str, Path], is_little_endian: bool=True, is_implicit_VR: bool=True) -> Dataset:
   """
   Takes a file path and reads it, update the private tags accordingly
 
@@ -113,13 +113,13 @@ def dcmread_wrapper(filepath: IO[Any], is_little_endian: bool=True, is_implicit_
   return obj
 
 
-def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
+def update_tags(obj: Dataset, is_little_endian: bool=True, is_implicit_VR: bool=True) -> Dataset:
   """
   Resolves unknown private tags
 
   Args:
     obj: dataset/dataelement to resolve
-    
+
   Kwargs:
     is_little_endian: whether or not the obj should be in little endian form
     is_implicit_VR: whether or not the obj should is implicit VR
@@ -157,7 +157,7 @@ def update_tags(obj, is_little_endian: bool=True, is_implicit_VR: bool=True):
   return obj
 
 
-def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
+def save_dicom(filepath: Union[str, Path], ds: Dataset) -> None:
   """
   Saves a dicom file to a given filepath
 
@@ -184,13 +184,13 @@ def save_dicom(filepath: IO[Any], ds: Type[Dataset]) -> None:
       fill_dicom(ds, update_dicom=True)
     else:
       raise ValueError('Cannot create SOPInstanceUID without AccessionNumber!')
-  
+
   ds.fix_meta_info()
   logger.info(f'Saving Dicom file at: {filepath}')
   ds.save_as(filepath, write_like_original=False)
 
 
-def try_add_new(ds: Type[Dataset], tag: int, VR: str, value, check_val: bool=True) -> None:
+def try_add_new(ds: Dataset, tag: int, VR: str, value, check_val: bool=True) -> None:
   """
   Attempts to add a new value by tag, if the value is not None or empty
 
@@ -207,14 +207,14 @@ def try_add_new(ds: Type[Dataset], tag: int, VR: str, value, check_val: bool=Tru
     ds.add_new(tag, VR, value)
 
 
-def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
+def try_update_exam_meta_data(ds: Dataset, update_dicom: bool) -> None:
   """
   Attempts to update meta data for the examination
 
   Args:
     ds: dataset to update meta data for
     update_dicom: whether or not to update the meta data
-  
+
   Remark:
     This function assumes the AccessionNumber is already set in the dataset
     and that it's atleast 4 characters long
@@ -227,7 +227,7 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
     ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
     ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
-    
+
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'
 
     ds.SOPClassUID = '1.2.840.10008.5.1.4.1.1.7' # Secoundary Image Capture
@@ -236,7 +236,7 @@ def try_update_exam_meta_data(ds: Type[Dataset], update_dicom: bool) -> None:
     ds.SOPInstanceUID = uid.generate_uid(prefix='1.3.', entropy_srcs=[now, 'SOP'])
 
 
-def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -> None:
+def try_add_department(ds: Dataset, department: Type[models.Department]) -> None:
   """
   Attempts to add department information to the dataset
 
@@ -250,7 +250,7 @@ def try_add_department(ds: Type[Dataset], department: Type[models.Department]) -
     ds.InstitutionalDepartmentName = department.name
 
 
-def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: str) -> None:
+def try_update_study_date(ds: Dataset, update_date: bool, study_datetime: str) -> None:
   """
   Attempts to update the study date for the dataset
 
@@ -291,7 +291,7 @@ def try_update_study_date(ds: Type[Dataset], update_date: bool, study_datetime: 
         ds.SeriesDate  = datetime.datetime.today().strftime('%Y%m%d')
         ds.SeriesTime  = '0800'
 
-def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
+def try_update_scheduled_procedure_step_sequence(ds: Dataset) -> None:
   """
   Attempts to update the scheduled procedure step sequence for the dataset
 
@@ -307,7 +307,7 @@ def try_update_scheduled_procedure_step_sequence(ds: Type[Dataset]) -> None:
     ds.Modality = ds.ScheduledProcedureStepSequence[0].Modality
 
 
-def try_add_bamID(ds: Type[Dataset], bamID: str) -> None:
+def try_add_bamID(ds: Dataset, bamID: str) -> None:
   """
   Adds Additional bamID to the operators
 
@@ -352,7 +352,7 @@ def try_add_age(ds: Type[Dataset], age: int) -> None:
     ds.PatientAge = f"{age:03d}"
 
 
-def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
+def try_add_gender(ds: Dataset, gender: enums.Gender) -> None:
   """
   Attempts to add the gender to the dataset
 
@@ -365,7 +365,7 @@ def try_add_gender(ds: Type[Dataset], gender: enums.Gender) -> None:
     ds.PatientSex = enums.GENDER_SHORT_NAMES[gender.value]
 
 
-def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.datetime, float, float]]) -> None:
+def try_add_sample_sequence(ds: Dataset, sample_seq: List[Tuple[datetime.datetime, float, float]]) -> None:
   """
   Attempts to add the sample sequence to the dataset
 
@@ -390,12 +390,12 @@ def try_add_sample_sequence(ds: Type[Dataset], sample_seq: List[Tuple[datetime.d
     logger.info('Removing Seqence')
     del ds[0x00231020]
 
-def try_add_dicom_history(ds: Type[Dataset], dicom_history):
+def try_add_dicom_history(ds: Dataset, dicom_history):
   if dicom_history:
     ds.clearancehistory = Sequence(dicom_history)
 
 
-def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
+def try_add_pixeldata(ds: Dataset, pixel_bytes: Optional[bytes]) -> None:
   """
   Attempts to add the pixeldata to the dataset
 
@@ -409,14 +409,14 @@ def try_add_pixeldata(ds: Type[Dataset], pixeldata: bytes) -> None:
 
     The dicom dataset should have TransferSyntax to Little Endian Explicit
     to avoid any corruption of the pixeldata.
-    
+
     During development of previous versions we've found that when TransferSyntax
     is set to Little Endian Implicit, that the pixeldata gets distorted with a
     blue/greenish tint when uploaded to PACS.
   """
-  if pixeldata:
+  if pixel_bytes is not None:
     # Save in DICOM pixel data encoding format
-    pixeldata = np.frombuffer(pixeldata, dtype=np.uint8) # Reads byte array to 1D numpy array
+    pixeldata = np.frombuffer(pixel_bytes, dtype=np.uint8) # Reads byte array to 1D numpy array
     pixeldata = np.reshape(pixeldata, (1920, 1080, 3))   # Reshapes to DICOM conformat pixel data encoding (for more details see: https://dicom.innolitics.com/ciods/segmentation/image-pixel/7fe00010)
 
     # Set additional meta data about the image
@@ -629,7 +629,7 @@ def export_dicom(ds, file_path):
   for i in range(1, 7):
     header_row.append(f"Sample Value {i}")
     header_row.append(f"Sample Time {i}")
-  
+
   try:
     for sample_ds in ds.ClearTest:
       data_row.append(sample_ds[0x00231022].value)
@@ -637,7 +637,7 @@ def export_dicom(ds, file_path):
   except AttributeError as e: # Missing attribute in dicom object
     logger.info(f'Error in writing to CSV: {e}')
     return 'Incomplete Dicom 2'
-  
+
   # Write header and data row to the csv file
   with open(file_path, mode='w', newline='') as csv_file:
     csv_writer = csv.writer(

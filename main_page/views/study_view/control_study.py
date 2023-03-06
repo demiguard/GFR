@@ -125,7 +125,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
     if not os.path.exists(plot_path_full):
       img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
       try_mkdir(img_resp_dir)
-    
+
       pixel_arr = np.frombuffer(dataset.PixelData, dtype=np.uint8)
       pixel_arr = np.reshape(pixel_arr, (1920, 1080, 3))
       pixel_arr = np.reshape(pixel_arr, (1080, 1920, 3))
@@ -133,16 +133,16 @@ class ControlView(LoginRequiredMixin, TemplateView):
       if pixel_arr.shape[0] != 0:
         Im = PIL.Image.fromarray(pixel_arr)
         Im.save(f'{img_resp_dir}{AccessionNumber}.png')
-    
+
     static_path = f'main_page/images/{hospital}/{AccessionNumber}.png'
 
     if dataset.PatientSex == 'M':
       present_sex = 0
     else:
       present_sex = 1
-      
-    injeciton_date, injeciton_time = formatting.splitDateTimeStr( dataset.injTime )
-  
+
+    injection_date, injection_time = formatting.splitDateTimeStr(dataset.injTime)
+
     image_comments = dataset.get("ClearenceComment")
     if image_comments == None:
       image_comments = dataset.get("ImageComments")
@@ -154,10 +154,10 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'vial_number'         : dataset.VialNumber,
       'height'              : formatting.float_dec_to_comma(dataset.PatientSize * 100),
       'weight'              : formatting.float_dec_to_comma(dataset.PatientWeight),
-      'vial_weight_before'  : formatting.float_dec_to_comma(dataset.injbefore),      
-      'vial_weight_after'   : formatting.float_dec_to_comma(dataset.injafter),      
-      'injection_time'      : injeciton_time,      
-      'injection_date'      : injeciton_date,
+      'vial_weight_before'  : formatting.float_dec_to_comma(dataset.injbefore),
+      'vial_weight_after'   : formatting.float_dec_to_comma(dataset.injafter),
+      'injection_time'      : injection_time,
+      'injection_date'      : injection_date,
       'thin_fac'            : formatting.float_dec_to_comma(dataset.thiningfactor),
       'study_type'          : dataset.GFRMethod,
       'comment'             : image_comments,
@@ -169,8 +169,9 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'version' : server_config.SERVER_VERSION,
       'info'    : InfoDir,
       'AccessionNumber' : AccessionNumber,
-      'static_path'     : static_path
+      'static_path' : static_path,
     }
     context.update(self.init_forms(dataset))
 
     return render(request, self.template_name, context=context)
+

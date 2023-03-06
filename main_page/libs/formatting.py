@@ -4,13 +4,13 @@ import re
 import logging
 from datetime import datetime
 
-from typing import Union
-
+from typing import Union, Optional, Any
+from pydicom.valuerep import PersonName
 from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
-def person_name_to_name(name: str) -> str:
+def person_name_to_name(name: Union[str, PersonName]) -> str:
   """
   Formats dicom person names to names of form: Firstname [Middlenames] Lastnames
 
@@ -23,11 +23,20 @@ def person_name_to_name(name: str) -> str:
   Remark:
     Specification for person names: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     Examples at: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.1
-
-    TODO: Pydicom have a special type for person name called PersonName3 in pydicom.valuerep.PersonName, 
-    it's not a string and it breaks if you try to put it in. Work around str(name) before function call.
-    I find this to be a suboptimal, since the function name is person_name_to_... indicating a personname class should pass through this
   """
+
+  if isinstance(name, PersonName):
+    constructed_name = f"{name.given_name}"
+    if name.middle_name:
+      constructed_name += f" {name.middle_name}"
+    if name.family_name:
+      constructed_name += f" {name.family_name}"
+    if name.name_prefix:
+      constructed_name = f"{name.name_prefix} {constructed_name}"
+    if name.name_suffix:
+      constructed_name += f" {name.name_suffix}"
+
+    return constructed_name
 
 
   if '*' in name:
@@ -42,7 +51,7 @@ def person_name_to_name(name: str) -> str:
 
   name_split = name.split('^')
 
-  # Append empty str, to avoid IndexErrors  
+  # Append empty str, to avoid IndexErrors
   for _ in range(len(name_split), EXPECTED_LENGTH):
     name_split.append('')
 
@@ -94,7 +103,7 @@ def format_cpr(cpr: str) -> str:
   return cpr[:DASH_IDX] + '-' + cpr[DASH_IDX:]
 
 
-def format_date(date: str) -> str:
+def format_date(date_string: str) -> str:
   """
   Formats a date string of form YYYYMMDD to DD/MM-YYYY
 
@@ -104,11 +113,11 @@ def format_date(date: str) -> str:
   Returns:
     Date string in DD/MM-YYYY format
   """
-  date = datetime.strptime(date, "%Y%m%d")
-  return date.strftime("%d/%m-%Y")
+  date_object = datetime.strptime(date_string, "%Y%m%d")
+  return date_object.strftime("%d/%m-%Y")
 
 
-def check_cpr(cpr):  
+def check_cpr(cpr: str) -> Optional[str]:
   """
   Checks whether a given cpr number, as a string, is valid
 
@@ -245,11 +254,11 @@ def is_valid_study(cpr, name, study_date, accession_number):
   return not(bool(errors)), errors
 
 
-def name_to_person_name(name: str) -> str:
+def name_to_person_name(name: Optional[str]) -> Optional[str]:
   """
   Converts a normally formatted name, e.g. "Jens Jensen" to a dicom person name
   (for more details see: http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
-  
+
   Args:
     name: string with name to convert
 
@@ -280,9 +289,9 @@ def name_to_person_name(name: str) -> str:
     ret = lastname + '^' + firstname + '^'
 
   return ret + '^^'
-  
 
-def convert_cpr_to_cpr_number(cpr):
+
+def convert_cpr_to_cpr_number(cpr: str) -> str:
   """
   Takes a cpr number on format XXXXXX-XXXX, where X is numbers,
   and converts it to XXXXXXXXXX. If it's on format, returns the CPR number as is
@@ -290,15 +299,9 @@ def convert_cpr_to_cpr_number(cpr):
   Args:
     cpr
   Ret:
-    String 
+    String
   """
-  try:
-    if cpr[6] == '-':
-      return cpr.replace('-','') 
-    else:
-      return cpr
-  except IndexError:
-    return cpr
+  return cpr.replace('-','')
 
 def convert_american_date_to_reasonable_date_format(unreasonable_time_format):
   """
@@ -316,16 +319,16 @@ def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
 
   Args:
     date_str : String, on format  YYYYMMDD, YYYY-MM-DD, YYYY/MM/DD, where the string corospond to a date
-  
+
   Kwargs:
     sep : String, this string is put in between the time
-  
+
   Returns:
     String on format DD{sep}MM{sep}YYYY
   """
   VALID_FORMATS = ('%Y%m%d', '%Y-%m-%d', '%Y/%m/%d')
   date = ''
-  
+
   for date_format in VALID_FORMATS:
     try:
       date = datetime.strptime(date_str, date_format)
@@ -333,14 +336,14 @@ def convert_date_to_danish_date(date_str: str, sep: str='') -> str:
     except ValueError:
       # Unable to parse, try next one
       continue
-  
+
   if date:
     return date.strftime(f'%d{sep}%m{sep}%Y')
-  
+
   raise ValueError(f"Unable to parse date string: '{date_str}'")
 
 
-def xstr(s: str) -> str:
+def xstr(s: Any) -> str:
   """
   Args:
     s: string to transform
@@ -351,18 +354,19 @@ def xstr(s: str) -> str:
   Remark:
     This function exists since str will return 'None' for None objects, e.g.:
 
+  Example:
     >>> x = None
     >>> str(x)
     'None'
     >>> xstr(x)
     ''
   """
-  if not s:
+  if s is None:
     return ''
 
   return str(s)
 
-def splitDateTimeStr(input_str):
+def splitDateTimeStr(input_str: str) -> str:
   """
     Converts a valid datestring from a dicom object to 2 strings on the format:
     date :  DD-MM-YYYY

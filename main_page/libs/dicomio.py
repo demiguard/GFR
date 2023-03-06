@@ -1,6 +1,7 @@
 import pathlib
 import datetime
 import glob
+import shutil
 
 from pydicom import Dataset
 from typing import List
@@ -32,7 +33,7 @@ def get_history(dataset, active_hospital):
   Retrives Historical information about a study
 
   Args:
-    cpr: string The cpr number without a string 
+    cpr: string The cpr number without a string
     age: Datetime object with day of birth
 
   Returns:
@@ -40,7 +41,7 @@ def get_history(dataset, active_hospital):
     age_list:             A float list. Element is calculated age at time of examination. The lenght is 'm'
     clearence_norm_list:  A float list. The n'th element is float
   """
-  #Init 
+  #Init
   age_list            = []
   clearence_norm_list = []
   date_list           = []
@@ -53,7 +54,7 @@ def get_history(dataset, active_hospital):
   dicom_filepaths = glob.glob(f'{server_config.FIND_RESPONS_DIR}{active_hospital}/{dataset.AccessionNumber}/*.dcm')
   #Filter the already opened dataset out
   history_filepaths = filter(lambda x: x != curr_dicom_path, dicom_filepaths)
-  print(history_filepaths, dicom_filepaths, curr_dicom_path)
+
   #Iterate through the datasets
   for history_filepath in history_filepaths:
     #Open the dataset
@@ -62,7 +63,7 @@ def get_history(dataset, active_hospital):
     try:
       date_of_examination = datetime.datetime.strptime(history_dataset.StudyDate,'%Y%m%d')
       age_at_examination = (date_of_examination - birthday).days / 365
-      
+
       age_list.append(age_at_examination)
       date_list.append(date_of_examination)
       clearence_norm_list.append(history_dataset.normClear)
@@ -73,23 +74,21 @@ def get_history(dataset, active_hospital):
       sequence_dataset.StudyDate        = history_dataset.StudyDate
       sequence_dataset.PatientSize      = history_dataset.PatientSize
       sequence_dataset.PatientWeight    = history_dataset.PatientWeight
-      #Private tags 
-      sequence_dataset.clearance        = history_dataset.clearance 
-      sequence_dataset.normClear        = history_dataset.normClear 
-      sequence_dataset.ClearTest        = history_dataset.ClearTest 
-      sequence_dataset.injTime          = history_dataset.injTime   
+      #Private tags
+      sequence_dataset.clearance        = history_dataset.clearance
+      sequence_dataset.normClear        = history_dataset.normClear
+      sequence_dataset.ClearTest        = history_dataset.ClearTest
+      sequence_dataset.injTime          = history_dataset.injTime
       history_sequence.append(sequence_dataset)
     except AttributeError as E:
       logger.error(f'Sequence dataset {history_filepath} has invalid format with {E}')
 
   dicomlib.fill_dicom(dataset, dicom_history=history_sequence)
-  
+
   return date_list, age_list, clearence_norm_list
 
 
-def get_studies(
-  directory: str, 
-  ) -> List[Dataset]:
+def get_studies(directory: str) -> List[Dataset]:
   """
   Get the list of studies from a directory
 
@@ -99,7 +98,7 @@ def get_studies(
 
   Args:
     directory: path to directory containing studies
-    
+
   Returns:
     List of pydicom datasets of all studies currently in the
     datasets_dir directory
@@ -110,7 +109,7 @@ def get_studies(
     accession_number = dataset_dir.name
     dataset_dir = f"{directory}/{accession_number}"
     dataset_filepath = f"{dataset_dir}/{accession_number}.dcm"
-    
+
     try:
       datasets.append(dicomlib.dcmread_wrapper(dataset_filepath))
     except FileNotFoundError:

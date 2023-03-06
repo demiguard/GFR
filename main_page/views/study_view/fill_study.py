@@ -39,12 +39,13 @@ from main_page.libs import enums
 from main_page.forms import base_forms
 from main_page import models
 from main_page.libs.clearance_math import clearance_math
+from main_page.libs.clearance_math import plotting
 from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
 # Dict. used for extraction of large request parameters in fill_study.post
-REQUEST_PARAMETER_TYPES = { 
+REQUEST_PARAMETER_TYPES = {
   'cpr': str,
   'name': str,
   'sex': int,
@@ -93,10 +94,10 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
   vial_number = post_req.get('vial_number')
   inj_time = post_req.get("injection_time")
   inj_date = post_req.get("injection_date")
-  
+
   if inj_time and inj_date:
     tmp = datetime.datetime.strptime(
-      f"{inj_date} {inj_time}", 
+      f"{inj_date} {inj_time}",
       "%d-%m-%Y %H:%M"
     )
     injection_datetime = tmp.strftime("%Y%m%d%H%M")
@@ -156,21 +157,21 @@ def store_form(post_req: dict, dataset: pydicom.Dataset) -> pydicom.Dataset:
     times_cnt = len(sample_times)
     values_cnt = len(sample_values)
     deviation_cnt = len(sample_deviations)
-    
+
     if dates_cnt != times_cnt or dates_cnt != values_cnt:
       min_len = min(dates_cnt, times_cnt, values_cnt)
       sample_dates = sample_dates[:min_len]
       sample_times = sample_times[:min_len]
       sample_values = sample_values[:min_len]
       sample_deviations = sample_deviations[:min_len]
-    
+
     # Combine dates and times to %Y%m%d%H%M format
     for date, time, value, deviation in zip(sample_dates, sample_times, sample_values, sample_deviations):
       date_tmp = datetime.datetime.strptime(
         f"{date} {time}", "%d-%m-%Y %H:%M"
       ).strftime("%Y%m%d%H%M")
 
-      seq.append((date_tmp, value, deviation))  
+      seq.append((date_tmp, value, deviation))
 
   # Store everything into dicom object
   dicomlib.fill_dicom(
@@ -237,7 +238,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       base_name = data_file['Measurement date & time'][0]
 
-      measurement_date, measurement_time = base_name.split(' ') 
+      measurement_date, measurement_time = base_name.split(' ')
       measurement_date = formatting.convert_date_to_danish_date(measurement_date, sep='-')
 
       csv_present_names.append( f'{measurement_time} - {measurement_date}')
@@ -263,7 +264,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       test_forms: This form is for Samples. Since you can have multiple samples per study,
                     we need to replicate the sample form, else where
       backup_form: This form is used by getting backup samples, and have nothing to do with the study.
-                  
+
     Returns:
       Dict containing the initialized forms
     """
@@ -277,7 +278,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     cpr = dataset.get("PatientID")
     patient_sex = dataset.get("PatientSex")
     vial_number = dataset.get("VialNumber")
-    
     if patient_sex:
       present_sex = enums.GENDER_SHORT_NAMES.index(patient_sex)
     else:
@@ -287,7 +287,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
           clearance_math.calculate_sex(cpr))
       except ValueError: # Failed to cast cpr nr. to int, i.e. weird cpr nr.
         present_sex = 1
-    
+
     # Get patient birthdate
     try:
       birthdate = dataset.get("PatientBirthDate")
@@ -301,14 +301,14 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         try:
           patient_birthday = formatting.convert_date_to_danish_date(clearance_math.calculate_birthdate(dataset.get("PatientID")), sep='-')
         except:
-          patient_birthday = "00-00-0000"    
+          patient_birthday = "00-00-0000"
     except ValueError:
       patient_birthday = "00-00-0000"
 
     today = datetime.date.today()
     inj_date = today.strftime('%d-%m-%Y')
     inj_time = None
-    
+
     ds_inj_time = dataset.get("injTime")
     if ds_inj_time:
       ds_inj_datetime = datetime.datetime.strptime(
@@ -331,7 +331,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       thin_fac_save_inital = False
 
     # Check to avoid resetting the thining factor when clicking 'beregn'
-    
+
     # Get patient height
     height = dataset.get("PatientSize")
     if height:
@@ -347,7 +347,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       height = 1.16 * 1000 / 10 = 1160.0 / 10 = 116.0
       whilst, height *= 100, becomes:
       height = 1.16 * 100 = 115.99999999999999
-      
+
       The multiplication has to be done as the DICOM standard and pydicom
       expects PatientSize to be stored in meters.
 
@@ -358,7 +358,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Get patient name
     name = dataset.get("PatientName")
     if name:
-      name = formatting.person_name_to_name(str(name))
+      name = formatting.person_name_to_name(name)
 
     comment = dataset.get('ClearenceComment')
     if not(comment):
@@ -388,7 +388,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     test_form = base_forms.FillStudyTest(initial={
       'study_date': today.strftime('%d-%m-%Y')
     })
-    
+
     # Backup
     get_backup_date_form = base_forms.GetBackupDateForm(initial={
       'dateofmessurement' : today.strftime('%d-%m-%Y')
@@ -408,7 +408,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     Args:
       dataset: pydicom Dataset contaning previous study samples
-    
+
     Returns:
       list of the previous sample data
     """
@@ -446,7 +446,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       request: the incoming HTTP request
       accession_number: RIS number for the study
     """
-    hospital = request.user.department.hospital.short_name
+    hospital = request.user.department.hospital.short_name # type: ignore #failure ensured by login required
     hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
 
     logger.info(f"Accessing study with accession_number: {accession_number}")
@@ -504,8 +504,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         Handling different POST-request methods
 
     """
-    hospital_shortname = request.user.department.hospital.short_name
-    department = request.user.department
+    hospital_shortname = request.user.department.hospital.short_name # type: ignore
+    department = request.user.department # type: ignore
 
     # Load in dataset to work with based on accession number
     dataset_filepath = Path(
@@ -514,13 +514,13 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       accession_number,
       f"{accession_number}.dcm"
     )
-    
+
     dataset = dicomlib.dcmread_wrapper(dataset_filepath)
 
     # Extract POST request parameters with safer handling of special characters
     try:
       post_req = formatting.extract_request_parameters(
-        request.POST, 
+        request.POST,
         REQUEST_PARAMETER_TYPES
       )
     except ValueError as E: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
@@ -530,7 +530,6 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     dataset = store_form(post_req, dataset)
 
     # Update department thinning factor if neccessary
-    
     if 'save_fac' in post_req and 'thin_fac' in post_req:
       thin_fac = post_req['thin_fac']
       if thin_fac:
@@ -548,15 +547,14 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     # Use parameters fillout in store_form to compute GFR of patient
     if "calculate" in request.POST:
       # Comupute body surface area
-      height = math.floor(dataset.PatientSize * 10000) / 100
+      height = math.ceil(math.floor(dataset.PatientSize * 10000) / 100)
       """
       we use: math.floor(height * 10000) / 100, as height * 100 results in floating-point
-      errors, due to weird Python behavior 
+      errors, due to weird Python behavior
       (for details see: https://docs.python.org/3.6/tutorial/floatingpoint.html)
       """
 
       weight = dataset.PatientWeight
-      
       BSA = clearance_math.surface_area(height, weight)
 
       # Compute dosis
@@ -571,7 +569,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         dataset.injTime,
         "%Y%m%d%H%M",
       )
-      
+
       sample_datetimes = [ ]
       tec_counts = [ ]
       for sample in dataset.ClearTest:
@@ -579,7 +577,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
           sample.SampleTime,
           "%Y%m%d%H%M"
         )
-        sample_datetimes.append(tmp_date)        
+        sample_datetimes.append(tmp_date)
         tec_counts.append(sample.cpm)
 
       study_type = enums.StudyType(post_req["study_type"])
@@ -600,7 +598,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       gender_name = enums.GENDER_NAMINGS[gender.value]
 
       gfr_str, gfr_index = clearance_math.kidney_function(
-        clearance_norm, 
+        clearance_norm,
         birthdate,
         gender
       )
@@ -620,37 +618,20 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       name = dataset.PatientName
       study_type_name = dataset.GFRMethod
 
-      pixel_data = clearance_math.generate_gfr_plot(
-        weight,
-        height,
-        BSA,
-        clearance,
-        clearance_norm,
-        gfr_str,
-        birthdate.strftime("%Y-%m-%d"),
-        gender_name,
-        accession_number,
-        cpr=cpr,
-        index_gfr=gfr_index,
-        hosp_dir=request.user.department.hospital.short_name,
-        hospital_name=request.user.department.hospital.name,
-        history_age=history_age,
-        history_clr_n=history_clrN,
-        method=study_type_name,
-        injection_date=inj_datetime.strftime('%d-%b-%Y'),
-        name=formatting.person_name_to_name(str(name)),
-        vial_num=vial_num,
-        procedure_description=dataset.RequestedProcedureDescription
-      )
-
-      # Insert plot (as byte string) into dicom object
       dicomlib.fill_dicom(
         dataset,
         gfr            = gfr_str,
         clearance      = clearance,
         clearance_norm = clearance_norm,
-        pixeldata      = pixel_data,
         exam_status    = 2
+      )
+
+      pixel_data = plotting.generate_plot_from_dataset(dataset)
+
+      # Insert plot (as byte string) into dicom object
+      dicomlib.fill_dicom(
+        dataset,
+        pixeldata      = pixel_data
       )
     # end "calculate" if
 

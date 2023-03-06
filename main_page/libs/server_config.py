@@ -19,12 +19,6 @@ STATIC_DIR = "./main_page/static/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 CSV_DIR = f"{STATIC_DIR}csv/"
 
-#Legacy remove this 
-BASE_FIND_QUERY = f"{BASE_QUERY_DIR}base_find_query.dcm"                              # Used for the list studies page
-BASE_IMG_QUERY_PATH = f"{BASE_QUERY_DIR}base_img_query.dcm"                          # Used for retreiving images
-BASE_SEARCH_FILE = f"{BASE_QUERY_DIR}base_search_query.dcm"                            # Used for the searching page
-BASE_RIGS_QUERY = f"{BASE_QUERY_DIR}base_rigs_query.dcm"                             # Used for retreiving examinations from rigs booking system
-
 # Private Dicom tag definitions
 new_dict_items = {
   0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), # Normal, Moderat Nedsat, Svært nedsat

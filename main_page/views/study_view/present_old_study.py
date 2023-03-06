@@ -21,6 +21,7 @@ from pandas import DataFrame
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
+from main_page.libs.clearance_math.clearance_math import kidney_function
 from main_page.libs import dataset_creator
 from main_page.libs import server_config
 from main_page.libs import samba_handler
@@ -140,13 +141,13 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       #Generate QA plot for Study
       # Get injection time
       qa_inj_time = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M') 
-    
+
       # Get Thining Factor
       thin_fact = dataset.thiningfactor
 
       # Create list of timedeltas from timedates
       delta_times = [(time - qa_inj_time).seconds / 60 + 86400 * (time - qa_inj_time).days for time in previous_datetime_injections]
-    
+
       qa_image_bytes = clearance_math.generate_QA_plot(delta_times, previous_sample_counts, thin_fact, accession_number)
       qa_plot_path = f"{img_resp_dir}/QA_{accession_number}.png"
       qa_image = PIL.Image.frombytes('RGB', (1920,1080), qa_image_bytes)
@@ -163,7 +164,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       ('Vægt:', f"{patient_weight} kg")]
     if 'VialNumber' in dataset:
       study_data += [("Sprøjte Nr: ", f"{dataset.VialNumber}")]
-      
+
     study_data += [
       ('Sprøjtevægt før inj.:', f"{inj_weight_before} g"),
       ('Sprøjtevægt efter inj.:', f"{inj_weight_after} g"),
@@ -179,16 +180,39 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     elif 'ImageComments' in dataset:
       study_data += [('Kommentar', dataset.ImageComments)]
 
-    
     if 'PixelData' in dataset:
       # Reads DICOM conformant image to PIL displayable image
       pixel_arr = np.frombuffer(dataset.PixelData, dtype=np.uint8)
       pixel_arr = np.reshape(pixel_arr, (1080, 1920, 3))
- 
+
       Im = PIL.Image.fromarray(pixel_arr, mode="RGB")
       Im.save(f'{img_resp_dir}{accession_number}.png')
-    
+
     plot_path = f'main_page/images/{hospital}/{accession_number}.png'
+    history = []
+    has_history = False
+
+    if 'clearancehistory' in dataset:
+      has_history = True
+      patient_birth_day = datetime.datetime.strptime(dataset.PatientBirthDate,"%Y%m%d")
+      if dataset.PatientSex == 'M': # Binary? It's a tough world out there.
+        gender = enums.Gender.MALE
+      else:
+        gender = enums.Gender.FEMALE
+
+      for history_dataset in dataset.clearancehistory:
+        _indexGFR, kidney_diagnose = kidney_function(
+          history_dataset.normClear,
+          patient_birth_day,
+          gender,
+          now=datetime.datetime.strptime(history_dataset.StudyDate,"%Y%m%d")
+        )
+        history.append({
+          'date' : history_dataset.StudyDate,
+          'clearance' : history_dataset.clearance,
+          'clearance_norm' : history_dataset.normClear,
+          'kidneyFunction' : kidney_diagnose
+        })
 
     context = {
       'title'     : server_config.SERVER_NAME,
@@ -196,7 +220,9 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       'image_path': plot_path,
       'previous_samples': [previous_samples],
       'accession_number': accession_number,
-      'study_data': study_data,
+      'study_data' : study_data,
+      'hasHistory' : has_history,
+      'history' : history,
     }
     if dataset.GFRMethod == enums.STUDY_TYPE_NAMES[2]:  # "Flere blodprøver"
       context['qa_plot_path'] = qa_plot_path
