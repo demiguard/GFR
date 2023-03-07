@@ -21,11 +21,15 @@ from main_page.libs import server_config
 from main_page.libs.clearance_math.clearance_math import kidney_function, surface_area, _age_string, calculate_birthdate, calc_mean_gfr_for_toddlers
 
 
-# Common constants.
+# Plotting constants
 SAMPLE_COLOR = "blue"
 REFERENCE_COLOR = "black"
 TEXT_LINE_COLOR = "grey"
 
+KIDNEY_FUNCTION_NORMAL_COLOR = "#EFEFEF"
+KIDNEY_FUNCTION_MINORLY_REDUCED_COLOR = "#FFA71A"
+KIDNEY_FUNCTION_REDUCED_COLOR = "#FBA0A0"
+KIDNEY_FUNCTION_MAJORLY_REDUCED_COLOR = "#F96564"
 
 @dataclass
 class GraphTexts:
@@ -283,8 +287,6 @@ def figure_text_factory(dataset: Dataset) -> Union[HistoricFigureTextDataClass, 
   else:
     return FigureTextDataClass.from_dataset(dataset)
 
-
-
 def __draw_color_area(
     axes: Axes,
     x_min: int,
@@ -300,10 +302,10 @@ def __draw_color_area(
   axes.set_xlim(x_min, x_max)
   axes.set_ylim(0, y_max)
 
-  axes.fill_between(x_axes, numpy.zeros_like(yellow_y), light_gray_y, facecolor='#EFEFEF', label=graph_texts.kidney_function_normal) # type: ignore
-  axes.fill_between(x_axes, numpy.zeros_like(light_red_y), yellow_y, facecolor='#FFA71A', label=graph_texts.kidney_function_lightly_reduced) # type: ignore
-  axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), light_red_y, facecolor='#FBA0A0', label=graph_texts.kidney_function_reduced) # type: ignore
-  axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), dark_red_y, facecolor='#F96564', label=graph_texts.kidney_function_majorly_reduced) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(yellow_y), light_gray_y, facecolor=KIDNEY_FUNCTION_NORMAL_COLOR, label=graph_texts.kidney_function_normal) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(light_red_y), yellow_y, facecolor=KIDNEY_FUNCTION_MINORLY_REDUCED_COLOR, label=graph_texts.kidney_function_lightly_reduced) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), light_red_y, facecolor=KIDNEY_FUNCTION_REDUCED_COLOR, label=graph_texts.kidney_function_reduced) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), dark_red_y, facecolor=KIDNEY_FUNCTION_MAJORLY_REDUCED_COLOR, label=graph_texts.kidney_function_majorly_reduced) # type: ignore
   axes.plot(x_axes, reference_gfr, color=REFERENCE_COLOR, label=graph_texts.kidney_function_reference)
 
 
@@ -349,6 +351,36 @@ def __draw_text_axes(axes: Axes, input: Union[FigureTextDataClass, HistoricFigur
 def __plot_single_point(axes,x, y):
   axes.scatter(x, y, s=64, label=graph_texts.legend_gfr, color=SAMPLE_COLOR)
 
+def __calculate_kidney_function_yearly(dataset, today=datetime.datetime.now()):
+  dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
+  years_old = (today - dateTimeOfBirth).days // 365
+
+  x_max = int(max(years_old * 1.1, 90))
+  x_axes = numpy.arange(0.00001,2, 1/365)
+  reference_gfr = calc_mean_gfr_for_toddlers(x_axes, 1)
+  dark_red_y = 0.28 * reference_gfr
+  light_red_y = 0.52 * reference_gfr
+  yellow_y = 0.75 * reference_gfr
+  y_max = max(reference_gfr.max(), dataset.normClear) * 1.2
+  light_grey_y = y_max + x_axes
+
+  if dataset.PatientSex == 'M':
+    #after age of 2
+    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
+    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52, 31.08, 31.08, 0.28 * (-1.16*x_max + 157.8)]))
+    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 57.72, 57.72, 0.52 * (-1.16*x_max + 157.8)]))
+    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 83.25, 83.25, 0.75 * (-1.16*x_max + 157.8)]))
+    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
+    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 111, 111, -1.16 * x_max + 157.8]))
+  else:
+    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
+    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52,28.84, 28.84, 0.28 *(-1.16*x_max + 157.8) * 0.929]))
+    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 53.56, 53.36, 0.52 * (-1.16*x_max + 157.8) * 0.929]))
+    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 77.25, 77.25, 0.75 * (-1.16*x_max + 157.8) * 0.929]))
+    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
+    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 103, 103, (-1.16*x_max + 157.8) * 0.929]))
+
+  return y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y
 
 def __calculate_background_colors(birthdate : datetime.datetime, date_of_examination: datetime.datetime, sex:str, y_max: float ) -> List[float]:
   days_old = (date_of_examination - birthdate).days
@@ -436,9 +468,6 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
   reference += [res[3]]
   light_grey_y += [res[4]]
 
-  #axes.set_ylim(0, y_max)
-  #axes.set_xlim(data_x_coloring[0], data_x_coloring[-1])
-
   axes.xaxis.set_major_locator(MonthLocator())
   axes.xaxis.set_major_formatter(DateFormatter("%b - %Y"))
   axes.set_xlabel(graph_texts.x_axis_historic_label, fontsize=server_config.AXIS_FONT_SIZE)
@@ -468,8 +497,6 @@ def __draw_graph_baby(axes: Axes, dataset: Dataset, today=datetime.datetime.toda
 
   days_axis = numpy.arange(start_x, end_x, 1)
   reference_gfr = 10 ** (0.209 * numpy.log10(days_axis) + 1.44)
-
-  y_min = 0
   y_max = max(dataset.normClear, reference_gfr.max()) * 1.2
 
   axes.set_xticks([0, 90, 180, 270, 365, 455, 545, 635, 730])
@@ -510,31 +537,7 @@ def __draw_graph_baby(axes: Axes, dataset: Dataset, today=datetime.datetime.toda
 def __draw_graph_child(axes: Axes, dataset: Dataset, today=datetime.datetime.now()):
   dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
   years_old = (today - dateTimeOfBirth).days // 365
-
-  x_axes = numpy.arange(0.00001,2, 1/365)
-
-  reference_gfr = calc_mean_gfr_for_toddlers(x_axes, 1)
-  dark_red_y = 0.28 * reference_gfr
-  light_red_y = 0.52 * reference_gfr
-  yellow_y = 0.75 * reference_gfr
-  y_max = max(reference_gfr.max(), dataset.normClear) * 1.2
-  light_grey_y = y_max + numpy.zeros_like(x_axes)
-
-  if dataset.PatientSex == 'M':
-    #after age of 2
-    x_axes = numpy.concatenate((x_axes, [2, 18, 18]))
-
-    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52, 31.08]))
-    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 57.72]))
-    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 83.25]))
-    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max]))
-    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 111]))
-  else:
-    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52,28.84]))
-    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 53.56]))
-    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 77.25]))
-    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max]))
-    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 103]))
+  y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y = __calculate_kidney_function_yearly(dataset)
 
   __draw_color_area(
     axes=axes,
@@ -558,30 +561,7 @@ def __draw_graph_grown_up(axes: Axes, dataset: Dataset, today=datetime.datetime.
   dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
   years_old = (today - dateTimeOfBirth).days // 365
   x_max = int(max(years_old * 1.1, 90))
-
-  x_axes = numpy.arange(0.00001,2, 1/365)
-  reference_gfr = calc_mean_gfr_for_toddlers(x_axes, 1)
-  dark_red_y = 0.28 * reference_gfr
-  light_red_y = 0.52 * reference_gfr
-  yellow_y = 0.75 * reference_gfr
-  y_max = max(reference_gfr.max(), dataset.normClear) * 1.2
-  light_grey_y = y_max + x_axes
-
-  if dataset.PatientSex == 'M':
-    #after age of 2
-    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
-    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52, 31.08, 31.08, 0.28 * (-1.16*x_max + 157.8)]))
-    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 57.72, 57.72, 0.52 * (-1.16*x_max + 157.8)]))
-    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 83.25, 83.25, 0.75 * (-1.16*x_max + 157.8)]))
-    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
-    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 111, 111, -1.16 * x_max + 157.8]))
-  else:
-    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
-    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52,28.84, 28.84, 0.28 *(-1.16*x_max + 157.8) * 0.929]))
-    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 53.56, 53.36, 0.52 * (-1.16*x_max + 157.8) * 0.929]))
-    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 77.25, 77.25, 0.75 * (-1.16*x_max + 157.8) * 0.929]))
-    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
-    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 103, 103, (-1.16*x_max + 157.8) * 0.929]))
+  y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y = __calculate_kidney_function_yearly(dataset)
 
   __draw_color_area(
     axes=axes,
@@ -599,6 +579,7 @@ def __draw_graph_grown_up(axes: Axes, dataset: Dataset, today=datetime.datetime.
   axes.xaxis.set_minor_locator(AutoMinorLocator())
   axes.set_xlabel(graph_texts.x_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
   __plot_single_point(axes, years_old, dataset.normClear)
+
 
 def __draw_graph_axes(axes: Axes, dataset: Dataset, now=datetime.datetime.now()):
   age = int((datetime.datetime.now() - datetime.datetime.strptime(dataset.PatientBirthDate, '%Y%m%d')).days / 365)
