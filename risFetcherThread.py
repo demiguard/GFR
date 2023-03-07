@@ -26,19 +26,12 @@ from main_page.libs import ae_controller
 from main_page.libs import dataset_creator
 from main_page.models import ServerConfiguration, Department, HandledExaminations, Hospital
 from main_page.libs.dirmanager import try_mkdir
-from main_page import log_util
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
 
 # Create a logger just for the ris_thread
-logger = log_util.get_logger(
-  __name__,
-  log_filename="ris_thread.log",
-  log_level=logging.INFO
-)
-
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("RisThread")
 
 get_history = True
 

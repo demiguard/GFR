@@ -27,37 +27,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['gfr2.petnet.rh.dk', 'gfr2', '172.16.186.190', '193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
 
 AUTH_USER_MODEL = 'main_page.User'
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',    
+    'django_auth_ldap.backend.LDAPBackend',
     'main_page.backends.SimpleBackend'
 ]
 
 AUTH_LDAP_SERVER_URI = 'ldap://regionh.top.local'
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
-# AUTH LOGIN
-AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
-AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
-
-AUTH_LDAP_GLOBAL_OPTIONS = {
-    ldap.OPT_X_TLS_CACERTFILE : LDAP_CERT_PATH,
-    ldap.OPT_X_TLS_REQUIRE_CERT : ldap.OPT_X_TLS_NEVER,
-    ldap.OPT_X_TLS_NEWCTX : 0,
-}
-
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch("OU=Region Hovedstaden,dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(cn=%(user)s)")
-)
-
-AUTH_LDAP_CONNECTION_OPTIONS = {
-    ldap.OPT_DEBUG_LEVEL: 1, # 0 to 255
-    ldap.OPT_REFERRALS: 0, # For Active Directory
-}
+# AUTH LOGINENV_VAR_SEARCH_CACHE_PATH
 
 LOGGING = {
     "version": 1,
@@ -116,17 +99,22 @@ WSGI_APPLICATION = 'clairvoyance.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+GFR_DATABASE_NAME = os.environ.get("GFR_DATABASE_NAME", "gfrdb")
+GFR_DATABASE_USER = os.environ.get("GFR_DATABASE_NAME", "gfr")
+GFR_DATABASE_PW = os.environ.get("GFR_DATABASE_NAME", "gfr")
+GFR_DATABASE_HOST = os.environ.get("GFR_DATABASE_NAME", "localhost")
+
 DATABASES = {
     'default': {
       #'ENGINE': 'django.db.backends.sqlite3',
       #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
       #'CONN_MAX_AGE': 1,
       'ENGINE'    : 'django.db.backends.mysql',
-      'NAME'      : 'gfrdb',
-      'USER'      : 'gfr',
-      'PASSWORD'  : 'gfr',
-      'HOST'      : 'localhost',
-      'PORT'      : '3306' 
+      'NAME'      : GFR_DATABASE_NAME,
+      'USER'      : GFR_DATABASE_USER,
+      'PASSWORD'  : GFR_DATABASE_PW,
+      'HOST'      : GFR_DATABASE_HOST,
+      'PORT'      : '3306'
     }
 }
 
@@ -170,3 +158,64 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "main_page/static/")
+
+GFR_LOGGER_PATH = os.environ.get("GFR_LOG_PATH", "./log/gfr_log.log")
+RIS_THREAD_LOG_PATH = os.environ.get("RIS_THREAD_LOG_PATH", "./log/gfr_log.log")
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false' : {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true' : {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        },
+        'GFRFormatter': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '{server_time} {funcName} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter' : 'django.server'
+        },
+        'GFRHandler': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': GFR_LOGGER_PATH,
+            'formatter': 'GFRFormatter',
+            'when': 'D',
+            'backupCount': 0, # Keeps all backups
+        },
+        'RisThreadHandler': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': RIS_THREAD_LOG_PATH,
+            'formatter': 'GFRFormatter',
+            'when': 'D',
+            'backupCount': 0, # Keeps all backups
+        }
+    },
+    'loggers' : {
+        'GFRLogger' : {
+            'handlers' : ['GFRHandler'],
+            'level': 'INFO'
+        },
+        'RisThread' : {
+            'handlers' : ['RisThreadHandler'],
+            'level': 'INFO',
+        },
+    },
+}

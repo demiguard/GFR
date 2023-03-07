@@ -2,15 +2,14 @@ import pynetdicom
 from pydicom import Dataset
 
 import logging
-from typing import Type, Union
+from typing import Type, Union, Callable
 from pynetdicom import AE
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
-from main_page import log_util
 
 
-logger = log_util.get_logger(__name__)
+ae_logger = logging.getLogger('GFRLogger')
 
 
 FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
@@ -19,7 +18,7 @@ MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 #Dev notes: Sooo a pretty major flaw with using this is that send_xxx doesn't return anything
 
-def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger):
+def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger: logging.Logger):
   """
     From an AE establish an connection.
 
@@ -70,8 +69,8 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     port: port to connect over
     calling_aet: your AET
     aet: AET to connect to
-    context: context of the connection 
-            (e.g. FINDStudyRootQueryRetrieveInformationModel, 
+    context: context of the connection
+            (e.g. FINDStudyRootQueryRetrieveInformationModel,
             MOVEStudyRootQueryRetrieveInformationModel)
 
   Returns:
@@ -83,9 +82,10 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     This have been made obsolitte and is no longer used, I vote to remove this function
   """
   if 'logger' in kwargs:
-    logger = kwargs['logger']
+    logger: logging.Logger = kwargs['logger']
   else:
-    logger = log_util.get_logger(__name__)
+    logger = ae_logger
+
 
   # Handle both integer and string ports
   if isinstance(port, str):
@@ -113,6 +113,7 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     return None
   except RuntimeError:
     logger.info(f"Got no or invalid context: '{context}'")
+    return None
 
   if not association.is_established:
     logger.info(
@@ -152,7 +153,7 @@ def create_move_AE(ae_title: str) -> AE:
   return ae
 
 
-def __handle_find_resp(resp, process, *args, **kwargs):
+def __handle_find_resp(resp, process: Callable, *args, **kwargs):
   """
   Passes each successful response on to the user defined process function
 
@@ -161,14 +162,14 @@ def __handle_find_resp(resp, process, *args, **kwargs):
     process: function for processing successful response identifiers (datasets)
 
   Remarks:
-    TRANSFER_COMPLETE is the last thing received from a C-FIND, 
-    since it's empty we can just ignore it and 
+    TRANSFER_COMPLETE is the last thing received from a C-FIND,
+    since it's empty we can just ignore it and
     release the association if no futher queries are to be made.
   """
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = log_util.get_logger(__name__)
+    logger = ae_logger
 
   for status, identifier in resp:
     if 'Status' in status:
@@ -199,7 +200,7 @@ def __handle_move_resp(resp, process, *args, **kwargs):
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = log_util.get_logger(__name__)
+    logger = ae_logger
 
   for status, identifier in resp:
     if 'Status' in status:
@@ -240,7 +241,7 @@ def send_find(association, query_ds, process, query_model=StudyRootQueryRetrieve
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = log_util.get_logger(__name__)
+    logger = ae_logger
 
   # Perform query
   logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
@@ -248,7 +249,7 @@ def send_find(association, query_ds, process, query_model=StudyRootQueryRetrieve
   __handle_find_resp(resp, process, *args, **kwargs)
 
 
-def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_model=StudyRootQueryRetrieveInformationModelMove, *args, **kwargs) -> None:
+def send_move(association, to_aet, query_ds, process: Callable, query_model=StudyRootQueryRetrieveInformationModelMove, *args, **kwargs) -> None:
   """
   Sends a C_FIND query request to an association using the supplied dataset
 
@@ -276,8 +277,8 @@ def send_move(association, to_aet, query_ds, process: lambda x, y: None, query_m
   if 'logger' in kwargs:
     logger = kwargs['logger']
   else:
-    logger = log_util.get_logger(__name__)
-  
+    logger = ae_logger
+
   # Perform query
   logger.info(f"Sending C_MOVE query to {association.acceptor.ae_title}")
   resp = association.send_c_move(query_ds, to_aet, query_model=query_model)

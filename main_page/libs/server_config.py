@@ -1,18 +1,24 @@
 import logging
+import os
+
+ENV_VAR_CONTROL_STUDIES_PATH = "GFR_CONTROL_STUDY_PATH"
+ENV_VAR_DELETE_PATH          = "GFR_DELETE_PATH"
+ENV_VAR_LOG_FILE_PATH        = "GFR_LOG_PATH"
+ENV_VAR_FIND_RESPONSE_PATH   = "GFR_FIND_RESPONSE_PATH"
+ENV_VAR_SEARCH_CACHE_PATH    = "GFR_SEARCH_CACHE_PATH"
+ENV_VAR_SEARCH_DIR_PATH      = "GFR_SEARCH_PATH"
+ENV_VAR_STATIC_DIR_PATH      = "GFR_STATIC_PATH"
 
 # NOTE: All directories MUST end in a '/'
 DAYS_THRESHOLD = 30                                # How long dicom files should be kept stored on the server
 
-BASE_QUERY_DIR      = "./base_queries/"              # Directory contaning all base query files
-SEARCH_DIR          = "./search_dir/"                # Directory for temporarily storing search responses
-FIND_RESPONS_DIR    = "./active_dicom_objects/"      # Directory for temporarily storing find responses ### This name is very bad and should be changed
-BLANK_DICOM_FILE    = f"{BASE_QUERY_DIR}blank_dicom.dcm"
-DELETED_STUDIES_DIR = "./deleted_studies/"            # Directory for temporarily storing deleted studies (i.e. the trashcan)
-CONTROL_STUDIES_DIR = "./control_studies/"
-SEARCH_CACHE_DIR    = "./search_cache/"
-PACS_QUEUE_DIR = "./pacs_study_queue/"
-PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
+CONTROL_STUDIES_DIR = os.environ.get(ENV_VAR_CONTROL_STUDIES_PATH,"./control_studies/")
+DELETED_STUDIES_DIR = os.environ.get(ENV_VAR_DELETE_PATH,"./deleted_studies/")            # Directory for temporarily storing deleted studies (i.e. the trashcan)
+SEARCH_DIR          = os.environ.get(ENV_VAR_SEARCH_DIR_PATH,"./search_dir/")                # Directory for temporarily storing search responses
+FIND_RESPONS_DIR    = os.environ.get(ENV_VAR_FIND_RESPONSE_PATH,"./active_dicom_objects/")      # Directory for temporarily storing find responses ### This name is very bad and should be changed
+SEARCH_CACHE_DIR    = os.environ.get(ENV_VAR_SEARCH_CACHE_PATH,"./search_cache/")
 
+PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
 RECOVERED_FILENAME = "recovered" # Filename of recovery file containing timestamp of when a study was recovered
 
 STATIC_DIR = "./main_page/static/main_page/"
@@ -81,11 +87,11 @@ HOSPITALS = {
 
 
 # --- SCP Server --- #
-SERVER_AE_TITLE = 'HVHFBERGHK7'
-STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7', 'BFHKFNMGFR1', 'HIKFARGFR13']
+#SERVER_AE_TITLE = 'HVHFBERGHK7'
+#STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7', 'BFHKFNMGFR1', 'HIKFARGFR13']
 
 SERVER_NAME    = 'GFRCalc'
-SERVER_VERSION = 'v1.3'
+SERVER_VERSION = 'v1.4'
 
 
 # --- ris_thread --- #
