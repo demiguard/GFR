@@ -18,7 +18,8 @@ except ImportError:
 
 import environ
 
-env = environ.Env.read_env()
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,10 +101,10 @@ WSGI_APPLICATION = 'clairvoyance.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-GFR_DATABASE_NAME = env.get("GFR_DATABASE_NAME")
-GFR_DATABASE_USER = env.get("GFR_DATABASE_NAME")
-GFR_DATABASE_PW   = env.get("GFR_DATABASE_NAME")
-GFR_DATABASE_HOST = env.get("GFR_DATABASE_NAME")
+GFR_DATABASE_NAME = env("GFR_DATABASE_NAME")
+GFR_DATABASE_USER = env("GFR_DATABASE_USER")
+GFR_DATABASE_PW   = env("GFR_DATABASE_PW")
+GFR_DATABASE_HOST = env("GFR_DATABASE_HOST")
 
 DATABASES = {
     'default': {
@@ -160,8 +161,8 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "main_page/static/")
 
-GFR_LOGGER_PATH = env.get("GFR_LOG_PATH")
-RIS_THREAD_LOG_PATH = env.get("RIS_THREAD_LOG_PATH")
+GFR_LOGGER_PATH = env("GFR_LOG_PATH")
+RIS_THREAD_LOG_PATH = env("RIS_THREAD_LOG_PATH")
 
 LOGGING = {
     'version': 1,

@@ -41,6 +41,7 @@ log/
 *.log
 
 *.coverage
+.env
 
 # Latex files
 *.synctex.gz
@@ -54,6 +55,7 @@ log/
 *.blg
 # vscode hidden dir
 .vscode/
+
 
 # Test webdrivers
 main_page/tests/selenium_drivers/

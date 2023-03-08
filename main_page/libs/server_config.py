@@ -1,6 +1,11 @@
 import logging
 import os
 
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
+
 ENV_VAR_CONTROL_STUDIES_PATH = "GFR_CONTROL_STUDY_PATH"
 ENV_VAR_DELETE_PATH          = "GFR_DELETE_PATH"
 ENV_VAR_LOG_FILE_PATH        = "GFR_LOG_PATH"
@@ -12,11 +17,11 @@ ENV_VAR_STATIC_DIR_PATH      = "GFR_STATIC_PATH"
 # NOTE: All directories MUST end in a '/'
 DAYS_THRESHOLD = 30                                # How long dicom files should be kept stored on the server
 
-CONTROL_STUDIES_DIR = os.environ.get(ENV_VAR_CONTROL_STUDIES_PATH,"./control_studies/")
-DELETED_STUDIES_DIR = os.environ.get(ENV_VAR_DELETE_PATH,"./deleted_studies/")            # Directory for temporarily storing deleted studies (i.e. the trashcan)
-SEARCH_DIR          = os.environ.get(ENV_VAR_SEARCH_DIR_PATH,"./search_dir/")                # Directory for temporarily storing search responses
-FIND_RESPONS_DIR    = os.environ.get(ENV_VAR_FIND_RESPONSE_PATH,"./active_dicom_objects/")      # Directory for temporarily storing find responses ### This name is very bad and should be changed
-SEARCH_CACHE_DIR    = os.environ.get(ENV_VAR_SEARCH_CACHE_PATH,"./search_cache/")
+CONTROL_STUDIES_DIR = env(ENV_VAR_CONTROL_STUDIES_PATH)
+DELETED_STUDIES_DIR = env(ENV_VAR_DELETE_PATH)            # Directory for temporarily storing deleted studies (i.e. the trashcan)
+SEARCH_DIR          = env(ENV_VAR_SEARCH_DIR_PATH)                # Directory for temporarily storing search responses
+FIND_RESPONS_DIR    = env(ENV_VAR_FIND_RESPONSE_PATH)      # Directory for temporarily storing find responses ### This name is very bad and should be changed
+SEARCH_CACHE_DIR    = env(ENV_VAR_SEARCH_CACHE_PATH)
 
 PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
 RECOVERED_FILENAME = "recovered" # Filename of recovery file containing timestamp of when a study was recovered
@@ -58,13 +63,6 @@ TITLE_FONT_SIZE = 28
 AXIS_FONT_SIZE = 18
 TEXT_FONT_SIZE = 18
 LEGEND_SIZE = 18
-
-
-# --- Logging --- #
-LOG_FILENAME = "gfr.log"
-LOG_DIR = "./log/"
-LOG_LEVEL = logging.DEBUG #logging.INFO
-THREAD_LOG_LEVEL = logging.DEBUG
 
 
 # --- Samba Share --- #

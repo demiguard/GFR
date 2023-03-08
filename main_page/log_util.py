@@ -15,8 +15,6 @@ this module and it's functions as it will effect logging in all other modules!
 
 def get_logger(
   name,
-  log_filename=server_config.LOG_FILENAME,
-  log_level=server_config.LOG_LEVEL
   ):
   """
   Creates a new logger
@@ -31,27 +29,29 @@ def get_logger(
   Remark:
     Allow for logging to multiple files without overlap.
   """
-  log_filepath = Path(server_config.LOG_DIR, log_filename)
+  return logging.getLogger("GFRLogger")
 
-  try_mkdir(server_config.LOG_DIR)
+  #log_filepath = Path(server_config.LOG_DIR, log_filename)
 
-  logger = logging.getLogger(name) # Get the root logger
-  log_format = "%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s"
-  handler = logging.handlers.TimedRotatingFileHandler(
-    log_filepath,
-    when="midnight",
-    interval=1
-  )
+  #try_mkdir(server_config.LOG_DIR)
 
-  handler.setLevel(server_config.LOG_LEVEL)
-  formatter = logging.Formatter(log_format)
-  handler.setFormatter(formatter)
-  handler.suffix = "%Y-%m-%d"
-  handler.extMatch = re.compile(r"^\d{8}$")
-  logger.addHandler(handler)
+  #logger = logging.getLogger(name) # Get the root logger
+  #log_format = "%(asctime)s (%(filename)s/%(funcName)s) - [%(levelname)s] : %(message)s"
+  #handler = logging.handlers.TimedRotatingFileHandler(
+  #  log_filepath,
+  #  when="midnight",
+  #  interval=1
+  #)
+
+  #handler.setLevel(server_config.LOG_LEVEL)
+  #formatter = logging.Formatter(log_format)
+  #handler.setFormatter(formatter)
+  #handler.suffix = "%Y-%m-%d"
+  #handler.extMatch = re.compile(r"^\d{8}$")
+  #logger.addHandler(handler)
 
   # Set the root logging level - required for child loggers to have this or
   # higher effective log level
-  logger.setLevel(server_config.LOG_LEVEL)
+  #logger.setLevel(server_config.LOG_LEVEL)
 
-  return logger
+  #return logger
