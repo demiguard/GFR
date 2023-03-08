@@ -196,7 +196,7 @@ LOGGING = {
         'GFRHandler': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': GFR_LOGGER_PATH,
+            'filename': '/var/www/html/GFR/log/gfr_log.log',
             'formatter': 'GFRFormatter',
             'when': 'D',
             'backupCount': 0, # Keeps all backups
@@ -204,7 +204,7 @@ LOGGING = {
         'RisThreadHandler': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': RIS_THREAD_LOG_PATH,
+            'filename': '/var/www/html/GFR/log/ris_thread.log',
             'formatter': 'GFRFormatter',
             'when': 'D',
             'backupCount': 0, # Keeps all backups
