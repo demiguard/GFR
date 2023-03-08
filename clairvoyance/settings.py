@@ -16,8 +16,9 @@ try:
 except ImportError:
     SECRET_KEY = "0"
 
-from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
-import ldap
+import environ
+
+env = environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -99,10 +100,10 @@ WSGI_APPLICATION = 'clairvoyance.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-GFR_DATABASE_NAME = os.environ.get("GFR_DATABASE_NAME", "gfrdb")
-GFR_DATABASE_USER = os.environ.get("GFR_DATABASE_NAME", "gfr")
-GFR_DATABASE_PW = os.environ.get("GFR_DATABASE_NAME", "gfr")
-GFR_DATABASE_HOST = os.environ.get("GFR_DATABASE_NAME", "localhost")
+GFR_DATABASE_NAME = env.get("GFR_DATABASE_NAME")
+GFR_DATABASE_USER = env.get("GFR_DATABASE_NAME")
+GFR_DATABASE_PW   = env.get("GFR_DATABASE_NAME")
+GFR_DATABASE_HOST = env.get("GFR_DATABASE_NAME")
 
 DATABASES = {
     'default': {
@@ -159,8 +160,8 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "main_page/static/")
 
-GFR_LOGGER_PATH = os.environ.get("GFR_LOG_PATH", "./log/gfr_log.log")
-RIS_THREAD_LOG_PATH = os.environ.get("RIS_THREAD_LOG_PATH", "./log/gfr_log.log")
+GFR_LOGGER_PATH = env.get("GFR_LOG_PATH")
+RIS_THREAD_LOG_PATH = env.get("RIS_THREAD_LOG_PATH")
 
 LOGGING = {
     'version': 1,
