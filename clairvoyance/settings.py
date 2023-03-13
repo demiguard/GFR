@@ -51,6 +51,14 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
     ldap.OPT_X_TLS_NEWCTX : 0,
 }
 
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
+    LDAPSearch("OU=Region Hovedstaden,dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(cn=%(user)s)")
+)
+
+AUTH_LDAP_CONNECTION_OPTIONS = {
+    ldap.OPT_DEBUG_LEVEL: 1, # 0 to 255
+    ldap.OPT_REFERRALS: 0, # For Active Directory
+}
 
 LOGGING = {
     "version": 1,
