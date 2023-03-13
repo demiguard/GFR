@@ -33,7 +33,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['gfr02', 'gfr02.regionh.top.local', 'plnxgfr02', 'plnxgfr02.unix.regionh.top.local']
 
 AUTH_USER_MODEL = 'main_page.User'
 AUTHENTICATION_BACKENDS = [
