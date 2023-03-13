@@ -17,6 +17,8 @@ except ImportError:
     SECRET_KEY = "0"
 
 import environ
+from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
+import ldap
 
 env = environ.Env()
 environ.Env.read_env()
@@ -31,7 +33,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['gfr2.petnet.rh.dk', 'gfr2', '172.16.186.190', '193.3.238.103', '172.16.78.176', '127.0.0.1', 'localhost', 'kylle', 'gfr', 'gfr.petnet.rh.dk', 'kylle.petnet.rh.dk']
+ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'main_page.User'
 AUTHENTICATION_BACKENDS = [
@@ -43,6 +45,12 @@ AUTH_LDAP_SERVER_URI = 'ldap://regionh.top.local'
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
 
 # AUTH LOGINENV_VAR_SEARCH_CACHE_PATH
+AUTH_LDAP_GLOBAL_OPTIONS = {
+    ldap.OPT_X_TLS_CACERTFILE : LDAP_CERT_PATH,
+    ldap.OPT_X_TLS_REQUIRE_CERT : ldap.OPT_X_TLS_NEVER,
+    ldap.OPT_X_TLS_NEWCTX : 0,
+}
+
 
 LOGGING = {
     "version": 1,
@@ -163,6 +171,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "main_page/static/")
 
 GFR_LOGGER_PATH = env("GFR_LOG_PATH")
 RIS_THREAD_LOG_PATH = env("RIS_THREAD_LOG_PATH")
+DJANGO_AUTH_LDAP_PATH = env("DJANGO_AUTH_LDAP_PATH")
 
 LOGGING = {
     'version': 1,
@@ -208,7 +217,15 @@ LOGGING = {
             'formatter': 'GFRFormatter',
             'when': 'D',
             'backupCount': 0, # Keeps all backups
-        }
+        },
+        'django_auth_ldap': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': DJANGO_AUTH_LDAP_PATH,
+            'formatter': 'GFRFormatter',
+            'when': 'D',
+            'backupCount' : 8,
+        },
     },
     'loggers' : {
         'GFRLogger' : {
@@ -218,6 +235,10 @@ LOGGING = {
         'RisThread' : {
             'handlers' : ['RisThreadHandler'],
             'level': 'INFO',
+        },
+        "django_auth_ldap": {
+            "level": "INFO",
+            "handlers": ["django_auth_ldap"],
         },
     },
 }
