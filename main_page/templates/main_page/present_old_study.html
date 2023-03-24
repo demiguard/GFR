@@ -51,28 +51,6 @@
       </table>
     {% endfor %}
 
-    {% if hasHistory %}
-      <h5>Historik</h5>
-        <table>
-          <thead>
-            <th>Dato</th>
-            <th>GFR</th>
-            <th>norm. GFR</th>
-            <th>Nyrefunktion</th>
-          </thead>
-          <tbody>
-          {% for historic in history }
-          <tr>
-            <td>{{ historic.date }}</td>
-            <td>{{ historic.clearance }}</td>
-            <td>{{ historic.clearance_norm }}</td>
-            <td>{{ historic.kidneyFunction }}</td>
-          </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-        {% endif %}
-
     <form method="POST">
       {% csrf_token %}
       {% buttons %}

@@ -414,8 +414,7 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
 
   study_date_time = datetime.datetime.strptime(dataset.StudyDate,"%Y%m%d")
 
-  data_x = []
-  data_y = []
+  data = []
   color_points = []
 
   if not isinstance(dataset.clearancehistory, Sequence):
@@ -426,8 +425,14 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
     if (study_date_time - historic_study_date).days > 365 * 5: # if greater than 5 years skip adding
       continue
     historic_dataset.PatientSex = dataset.PatientSex
-    data_x.append(numpy.datetime64(historic_study_date))
-    data_y.append(historic_dataset.normClear)
+    data.append((numpy.datetime64(historic_study_date), dataset.normClear, historic_study_date))
+
+  data.sort(key=lambda x: x[0])
+
+  data_x = []
+  data_y = []
+
+  for _data_point_x, _data_point_y, historic_study_date in data:
     color_points.append(__calculate_background_colors(birthdate, historic_study_date, dataset.PatientSex, dataset.normClear))
     if historic_study_date < earliest_datetime:
       earliest_datetime = historic_study_date
