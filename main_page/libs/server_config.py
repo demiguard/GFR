@@ -3,6 +3,8 @@ import os
 
 import environ
 
+from django.conf import settings
+
 env = environ.Env()
 environ.Env.read_env()
 
@@ -26,7 +28,7 @@ SEARCH_CACHE_DIR    = env(ENV_VAR_SEARCH_CACHE_PATH)
 PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
 RECOVERED_FILENAME = "recovered" # Filename of recovery file containing timestamp of when a study was recovered
 
-STATIC_DIR = "./main_page/static/main_page/"
+STATIC_DIR = f"{settings.STATIC_ROOT}/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 CSV_DIR = f"{STATIC_DIR}csv/"
 
@@ -45,7 +47,7 @@ new_dict_items = {
   0x0023101C : ('DS', '1', 'Vial weight after injection', '', 'injafter'),
   0x00231020 : ('SQ', '1', 'Clearance Tests', '', 'ClearTest'),
   0x00231021 : ('DT', '1', 'Sample Time', '', 'SampleTime'), # Sequence Item
-  0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'), #Sequnce Item
+  0x00231022 : ('DS', '1', 'Count Per Minuts', '', 'cpm'), #Sequence Item
   0x00231023 : ('DS', '1', 'Deviation on Sample','','Deviation'), #Sequence Item
   0x00231024 : ('DS', '1', 'Standart Counts Per', '', 'stdcnt'),
   0x00231028 : ('DS', '1', 'Thining Factor', '', 'thiningfactor'),

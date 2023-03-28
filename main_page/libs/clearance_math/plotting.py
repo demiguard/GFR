@@ -414,8 +414,7 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
 
   study_date_time = datetime.datetime.strptime(dataset.StudyDate,"%Y%m%d")
 
-  data_x = [numpy.datetime64(latest_datetime)]
-  data_y = [dataset.normClear]
+  data = []
   color_points = []
 
   if not isinstance(dataset.clearancehistory, Sequence):
@@ -426,14 +425,21 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
     if (study_date_time - historic_study_date).days > 365 * 5: # if greater than 5 years skip adding
       continue
     historic_dataset.PatientSex = dataset.PatientSex
-    data_x.append(numpy.datetime64(historic_study_date))
-    data_y.append(historic_dataset.normClear)
+    data.append((numpy.datetime64(historic_study_date), dataset.normClear, historic_study_date))
+
+  data.sort(key=lambda x: x[0])
+
+  data_x = []
+  data_y = []
+
+  for _data_point_x, _data_point_y, historic_study_date in data:
     color_points.append(__calculate_background_colors(birthdate, historic_study_date, dataset.PatientSex, dataset.normClear))
     if historic_study_date < earliest_datetime:
       earliest_datetime = historic_study_date
 
   color_points.append(__calculate_background_colors(birthdate, study_date_time, dataset.PatientSex, dataset.normClear))
-  data_x = sorted(data_x) #type: ignore # it works
+  data_x.append(numpy.datetime64(latest_datetime))
+  data_y.append(dataset.normClear)
 
   data_x_coloring = [data_x[0] - numpy.timedelta64(datetime.timedelta(days=14))] + data_x + [data_x[-1] + numpy.timedelta64(datetime.timedelta(days=14))]
   y_max = 0
@@ -468,8 +474,8 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
   reference += [res[3]]
   light_grey_y += [res[4]]
 
-  axes.xaxis.set_major_locator(MonthLocator())
-  axes.xaxis.set_major_formatter(DateFormatter("%b - %Y"))
+  #axes.xaxis.set_major_locator(MonthLocator())
+  axes.xaxis.set_major_formatter(DateFormatter("%b\n%Y"))
   axes.set_xlabel(graph_texts.x_axis_historic_label, fontsize=server_config.AXIS_FONT_SIZE)
 
   __draw_color_area(
