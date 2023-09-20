@@ -55,7 +55,7 @@ log/
 *.blg
 # vscode hidden dir
 .vscode/
-
+.env
 
 # Test webdrivers
 main_page/tests/selenium_drivers/

@@ -302,9 +302,9 @@ def __draw_color_area(
   axes.set_xlim(x_min, x_max)
   axes.set_ylim(0, y_max)
 
-  axes.fill_between(x_axes, numpy.zeros_like(yellow_y), light_gray_y, facecolor=KIDNEY_FUNCTION_NORMAL_COLOR, label=graph_texts.kidney_function_normal) # type: ignore
-  axes.fill_between(x_axes, numpy.zeros_like(light_red_y), yellow_y, facecolor=KIDNEY_FUNCTION_MINORLY_REDUCED_COLOR, label=graph_texts.kidney_function_lightly_reduced) # type: ignore
-  axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), light_red_y, facecolor=KIDNEY_FUNCTION_REDUCED_COLOR, label=graph_texts.kidney_function_reduced) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(light_gray_y), light_gray_y, facecolor=KIDNEY_FUNCTION_NORMAL_COLOR, label=graph_texts.kidney_function_normal) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(yellow_y), yellow_y, facecolor=KIDNEY_FUNCTION_MINORLY_REDUCED_COLOR, label=graph_texts.kidney_function_lightly_reduced) # type: ignore
+  axes.fill_between(x_axes, numpy.zeros_like(light_red_y), light_red_y, facecolor=KIDNEY_FUNCTION_REDUCED_COLOR, label=graph_texts.kidney_function_reduced) # type: ignore
   axes.fill_between(x_axes, numpy.zeros_like(dark_red_y), dark_red_y, facecolor=KIDNEY_FUNCTION_MAJORLY_REDUCED_COLOR, label=graph_texts.kidney_function_majorly_reduced) # type: ignore
   axes.plot(x_axes, reference_gfr, color=REFERENCE_COLOR, label=graph_texts.kidney_function_reference)
 
