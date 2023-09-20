@@ -1,6 +1,6 @@
 from pydicom import Dataset, Sequence
 from dataclasses import dataclass, field
-
+from pprint import pprint
 from typing import List, Optional, Tuple, Union
 
 import numpy
@@ -12,8 +12,6 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.dates import DateFormatter, DateLocator, MonthLocator
-
-
 
 from main_page.libs import formatting
 from main_page.libs import enums
@@ -255,6 +253,8 @@ class HistoricFigureTextDataClass:
 
     reference_percentage = f"{(100.0 - reference_percentage_number):.1f}"
 
+    history.sort(key=lambda t: datetime.datetime.strptime(t[0],'%d/%m/%Y'), reverse=True)
+
     return cls(
       name, cpr, injection_date, accession_number, age, gender, height, weight,
       body_surface_area, vial_number, gfr_method, clearance, clearance_normalized,
@@ -311,7 +311,7 @@ def __draw_color_area(
 
 def __draw_text_axes(axes: Axes, input: Union[FigureTextDataClass, HistoricFigureTextDataClass]) -> None:
   axes.set_xlim(0, 1)
-  axes.set_ylim(0, 1)
+  axes.set_ylim(-0.121, 1)
   axes.axis('off')
   if isinstance(input, FigureTextDataClass):
     axes.plot([0, 1], [0.155, 0.155], color='grey')
@@ -324,10 +324,11 @@ def __draw_text_axes(axes: Axes, input: Union[FigureTextDataClass, HistoricFigur
     axes.text(0.52, table_y + 0.01, graph_texts.historic_table_gfr_normalized, ha='left', fontsize=server_config.TEXT_FONT_SIZE)
     axes.text(0.73, table_y + 0.01, graph_texts.historic_table_reference, ha='left', fontsize=server_config.TEXT_FONT_SIZE)
 
+    axes.plot([0.05, 0.95], [table_y + 0.26, table_y + 0.26],color = TEXT_LINE_COLOR)
     axes.plot([0.05, 0.95], [table_y + 0.06, table_y + 0.06],color = TEXT_LINE_COLOR)
-    axes.plot([0.05, 0.95], [table_y + 0.29, table_y + 0.29],color = TEXT_LINE_COLOR)
 
     inputs = 0
+
 
     for date_str, clearance_str, clearance_norm_str, index in input.historic:
       if inputs < 5:
@@ -346,6 +347,7 @@ def __draw_text_axes(axes: Axes, input: Union[FigureTextDataClass, HistoricFigur
       axes.text(0.53, table_y, clearance_norm_str , ha='left', fontsize=server_config.TEXT_FONT_SIZE)
       axes.text(0.73, table_y, index + "%", ha='left', fontsize=server_config.TEXT_FONT_SIZE)
       table_y -= 0.01
+      print(table_y)
     axes.plot([0.09, 0.92],[table_y, table_y], color=TEXT_LINE_COLOR) # bottom line of the table
 
 def __plot_single_point(axes,x, y):
@@ -425,7 +427,7 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
     if (study_date_time - historic_study_date).days > 365 * 5: # if greater than 5 years skip adding
       continue
     historic_dataset.PatientSex = dataset.PatientSex
-    data.append((numpy.datetime64(historic_study_date), dataset.normClear, historic_study_date))
+    data.append((numpy.datetime64(historic_study_date), historic_dataset.normClear, historic_study_date))
 
   data.sort(key=lambda x: x[0])
 
@@ -434,6 +436,8 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
 
   for _data_point_x, _data_point_y, historic_study_date in data:
     color_points.append(__calculate_background_colors(birthdate, historic_study_date, dataset.PatientSex, dataset.normClear))
+    data_x.append(_data_point_x)
+    data_y.append(_data_point_y)
     if historic_study_date < earliest_datetime:
       earliest_datetime = historic_study_date
 
