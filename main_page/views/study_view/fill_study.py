@@ -42,7 +42,7 @@ from main_page.libs.clearance_math import clearance_math
 from main_page.libs.clearance_math import plotting
 from main_page import log_util
 
-logger = log_util.get_logger(__name__)
+logger = log_util.get_logger('GFRLogger')
 
 # Dict. used for extraction of large request parameters in fill_study.post
 REQUEST_PARAMETER_TYPES = {
@@ -605,6 +605,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       # Get historical data from PACS
       try:
+        # Side effect this function saves the history in the dataset as well
         history_dates, history_age, history_clrN = dicomio.get_history(dataset, hospital_shortname)
       except ValueError as E: # Handle empty AET for PACS connection
         logger.error(f'Value error detected {E}')
@@ -613,17 +614,14 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
         history_clrN = [ ]
         history_dates = [ ]
 
-      # Generate plot to display
-      cpr = dataset.PatientID
-      name = dataset.PatientName
-      study_type_name = dataset.GFRMethod
 
       dicomlib.fill_dicom(
         dataset,
         gfr            = gfr_str,
         clearance      = clearance,
         clearance_norm = clearance_norm,
-        exam_status    = 2
+        exam_status    = 2,
+
       )
 
       pixel_data = plotting.generate_plot_from_dataset(dataset)

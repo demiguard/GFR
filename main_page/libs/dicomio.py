@@ -3,14 +3,14 @@ import datetime
 import glob
 import shutil
 
-from pydicom import Dataset
+from pydicom import Dataset, Sequence
 from typing import List
 
 from main_page.libs import dicomlib
 from main_page.libs import server_config
 from main_page import log_util
 
-logger = log_util.get_logger(__name__)
+logger = log_util.get_logger('GFRLogger')
 
 def filter_dicom(dicom_list, tag, tag_value):
   passed = []
@@ -28,7 +28,7 @@ def filter_dicom(dicom_list, tag, tag_value):
   return passed, failed
 
 
-def get_history(dataset, active_hospital):
+def get_history(dataset: Dataset, active_hospital):
   """
   Retrives Historical information about a study
 
@@ -83,7 +83,8 @@ def get_history(dataset, active_hospital):
     except AttributeError as E:
       logger.error(f'Sequence dataset {history_filepath} has invalid format with {E}')
 
-  dicomlib.fill_dicom(dataset, dicom_history=history_sequence)
+  if len(history_sequence):
+    dataset.add_new(0x0023103F, 'SQ', Sequence(history_sequence))
 
   return date_list, age_list, clearence_norm_list
 

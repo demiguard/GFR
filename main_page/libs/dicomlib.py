@@ -18,7 +18,7 @@ from . import server_config
 from . import formatting
 from main_page import log_util
 
-logger = log_util.get_logger(__name__)
+logger = log_util.get_logger("GFRLogger")
 
 
 def update_private_tags() -> None:
@@ -54,7 +54,7 @@ def get_recovered_date(
     accession_number,
     recovered_filename
   )
-  
+
   try:
     with open(recover_filepath, 'r') as fp:
       return fp.readline()
