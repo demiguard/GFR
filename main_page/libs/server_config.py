@@ -15,6 +15,7 @@ ENV_VAR_FIND_RESPONSE_PATH   = "GFR_FIND_RESPONSE_PATH"
 ENV_VAR_SEARCH_CACHE_PATH    = "GFR_SEARCH_CACHE_PATH"
 ENV_VAR_SEARCH_DIR_PATH      = "GFR_SEARCH_PATH"
 ENV_VAR_STATIC_DIR_PATH      = "GFR_STATIC_PATH"
+ENV_VAR_PACS_QUEUE_DIR       = "GFR_PACS_QUEUE_DIR"
 
 # NOTE: All directories MUST end in a '/'
 DAYS_THRESHOLD = 30                                # How long dicom files should be kept stored on the server
@@ -24,6 +25,7 @@ DELETED_STUDIES_DIR = env(ENV_VAR_DELETE_PATH)            # Directory for tempor
 SEARCH_DIR          = env(ENV_VAR_SEARCH_DIR_PATH)                # Directory for temporarily storing search responses
 FIND_RESPONS_DIR    = env(ENV_VAR_FIND_RESPONSE_PATH)      # Directory for temporarily storing find responses ### This name is very bad and should be changed
 SEARCH_CACHE_DIR    = env(ENV_VAR_SEARCH_CACHE_PATH)
+PACS_QUEUE_DIR      = env(ENV_VAR_PACS_QUEUE_DIR)
 
 PACS_QUEUE_WAIT_TIME = 60 * 5 # Number of seconds to wait before attempting to send a file to PACS if failed
 RECOVERED_FILENAME = "recovered" # Filename of recovery file containing timestamp of when a study was recovered
