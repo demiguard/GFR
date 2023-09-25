@@ -144,13 +144,13 @@ class FigureTextDataClass:
       gender = enums.GENDER_NAMINGS[1]
       gender_enum = enums.Gender.FEMALE
     age = _age_string(dateOfBirth)
-    height = f"{(dataset.PatientSize * 100):.0f}" # type: ignore
-    weight = f"{(dataset.PatientWeight):.1f}"
-    body_surface_area = f"{surface_area(dataset.PatientSize * 100, dataset.PatientWeight):.2f}" #type: ignore # Don't Care about numerical stability
+    height = f"{round(dataset.PatientSize * 100)}" # type: ignore
+    weight = f"{round(dataset.PatientWeight,1)}"
+    body_surface_area = f"{round(surface_area(dataset.PatientSize * 100, dataset.PatientWeight),2)}" #type: ignore # Don't Care about numerical stability
     vial_number = f"{dataset.VialNumber}"
     gfr_method = f"{dataset.GFRMethod}"
-    clearance = f"{dataset.clearance:.0f}"
-    clearance_normalized = f"{dataset.normClear:.0f}"
+    clearance = f"{round(dataset.clearance)}"
+    clearance_normalized = f"{round(dataset.normClear)}"
     kidney_result, reference_percentage_number = kidney_function(
       dataset.normClear,
       dateTimeOfBirth,
@@ -228,13 +228,13 @@ class HistoricFigureTextDataClass:
       gender = enums.GENDER_NAMINGS[1]
       gender_enum = enums.Gender.FEMALE
     age = _age_string(dateOfBirth)
-    height = f"{(dataset.PatientSize * 100):.0f}" #type: ignore
+    height = f"{round(dataset.PatientSize * 100)}" #type: ignore
     weight = f"{(dataset.PatientWeight):.1f}"
     body_surface_area = f"{surface_area(dataset.PatientSize * 100, dataset.PatientWeight):.2f}" #type: ignore # Don't Care about numerical stability
     vial_number = f"{dataset.VialNumber}"
     gfr_method = f"{dataset.GFRMethod}"
-    clearance = f"{dataset.clearance:.0f}"
-    clearance_normalized = f"{dataset.normClear:.0f}"
+    clearance = f"{round(dataset.clearance)}"
+    clearance_normalized = f"{round(dataset.normClear)}"
     kidney_result, reference_percentage_number = kidney_function(
       dataset.normClear,
       dateTimeOfBirth,
@@ -249,7 +249,7 @@ class HistoricFigureTextDataClass:
       historic_study_date = datetime.datetime.strptime(historic_dataset.StudyDate,"%Y%m%d")
       _ , index_gfr = kidney_function(historic_dataset.normClear, dateTimeOfBirth, dataset.PatientSex, now=historic_study_date)
       historic_study_date_str = historic_study_date.strftime("%d/%m/%Y")
-      history.append((historic_study_date_str,f"{historic_dataset.clearance:.1f}", f"{historic_dataset.normClear:.1f}",f"{(100.0 - index_gfr):.1f}"))
+      history.append((historic_study_date_str,f"{round(historic_dataset.clearance)}", f"{round(historic_dataset.normClear)}",f"{round(100.0 - index_gfr)}"))
 
     reference_percentage = f"{(100.0 - reference_percentage_number):.1f}"
 
