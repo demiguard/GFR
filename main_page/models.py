@@ -52,6 +52,8 @@ class Config(models.Model):
   # Configuration to PACS server
   pacs = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='pacs')
 
+  storage = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="storage_ae", default=None)
+
   def __str__(self):
     return str(self.id)
 
