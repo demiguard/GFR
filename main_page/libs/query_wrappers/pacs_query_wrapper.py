@@ -12,6 +12,7 @@ import threading
 import time
 import json
 
+
 from main_page import log_util
 from main_page import models
 
@@ -23,7 +24,7 @@ from main_page.libs import formatting
 from main_page.libs.clearance_math import clearance_math
 from main_page.libs.dirmanager import try_mkdir
 
-logger = log_util.get_logger(__name__)
+logger = log_util.get_logger("")
 
 def move_study_from_search_cache(dataset, *args, **kwargs):
   """
@@ -164,9 +165,9 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
     fp.write(json.dumps({
       "pacs_calling": AE_title,
-      "pacs_ip":    user.department.config.pacs.ip,
-      "pacs_port":  user.department.config.pacs.port,
-      "pacs_aet":   user.department.config.pacs.ae_title,
+      "pacs_ip":    user.department.config.storage.ip,
+      "pacs_port":  user.department.config.storage.port,
+      "pacs_aet":   user.department.config.storage.ae_title,
     }))
 
   # Spawn background thread to send study
@@ -229,6 +230,7 @@ def thread_store(accession_number, wait_time, max_attempts=5):
         is_sent = True
 
     if not is_sent:
+      logger.error(f"Failed to send study to PACS: {ds_file}, with parmeters: {conf['pacs_ip']} - {conf['pacs_port']} aet: {conf['pacs_aet']} aec: {conf['pacs_calling']}")
       time.sleep(wait_time)
 
   # Clean up or report if failed to send to PACS
@@ -252,6 +254,7 @@ def send_queue_to_PACS():
 
     store_thread = threading.Thread(
       target=thread_store,
+      daemon=True,
       args=(
         accession_number,
         server_config.PACS_QUEUE_WAIT_TIME
