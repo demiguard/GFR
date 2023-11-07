@@ -185,28 +185,30 @@ def calculate_age(cprnr) -> int:
   current_time = datetime.datetime.now()
 
   century = []
+  try:
+    # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
+    if control in [0,1,2,3] or (control in [4,9] and 37 <= year_of_birth ):
+      century.append(1900)
+    elif (control in [4,9] and year_of_birth <= 36) or (control in [5,6,7,8] and year_of_birth <= 57):
+      century.append(2000)
+    #The remaining CPR-numbers is used by people from the 19-century AKA dead.
+  except ValueError:
+    century.append(1900) # CPR is fucked, assume 1900
 
-  # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  if control in [0,1,2,3] or (control in [4,9] and 37 <= year_of_birth ):
-    century.append(1900)
-  elif (control in [4,9] and year_of_birth <= 36) or (control in [5,6,7,8] and year_of_birth <= 57):
-    century.append(2000)
-  #The remaining CPR-numbers is used by people from the 19-century AKA dead.
+#   Age with no birthday
+    if 2000 in century :
+      age = current_time.year - 2000 - year_of_birth - 1
+    elif 1900 in century :
+      age = current_time.year - 1900 - year_of_birth - 1
+    else:  #This is only used if resurrect dead people, Necromancy I guess
+      age = current_time.year - 1800 - year_of_birth - 1
 
-# Age with no birthday
-  if 2000 in century :
-    age = current_time.year - 2000 - year_of_birth - 1
-  elif 1900 in century :
-    age = current_time.year - 1900 - year_of_birth - 1
-  else:  #This is only used if resurrect dead people, Necromancy I guess
-    age = current_time.year - 1800 - year_of_birth - 1
+#   Have you had your birthday this year
 
-# Have you had your birthday this year
-
-  if month_of_birth < current_time.month:
-    age += 1
-  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
-    age += 1
+    if month_of_birth < current_time.month:
+      age += 1
+    elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
+      age += 1
 
   return age
 
