@@ -133,7 +133,7 @@ class RisFetcher():
     )
 
     self.pacs_find_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE_worklist(self.sc.AE_title),
+      ae_controller.create_find_AE_study(self.sc.AE_title),
       department.config.storage.ip,
       department.config.storage.port,
       department.config.storage.ae_title,
