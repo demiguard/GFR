@@ -112,12 +112,15 @@ class ConfigEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
     'ris_calling',
     'black_list',
     'ris',
-    'pacs'
+    'pacs',
+    'storage'
+
   ]
 
   foreign_fields = {
     'ris' : models.Address,
-    'pacs': models.Address
+    'pacs': models.Address,
+    'storage' : models.Address
   }
 
 
