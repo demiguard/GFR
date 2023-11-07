@@ -327,12 +327,15 @@ def calculate_birthdate(cpr: str) -> str:
   control = cpr[6] #string
 
   # Logic and reason can be found at https://www.cpr.dk/media/17534/personnummeret-i-cpr.pdf
-  if int(control) in [0,1,2,3] or (int(control) in [4,9] and 37 <= int(last_digits_year_of_birth)):
+  try:
+    if int(control) in [0,1,2,3] or (int(control) in [4,9] and 37 <= int(last_digits_year_of_birth)):
+      first_digits_year_of_birth = '19'
+    elif (int(control) in [4,9] and int(last_digits_year_of_birth) <= 36) or (int(control) in [5,6,7,8] and int(last_digits_year_of_birth) <= 57):
+      first_digits_year_of_birth = '20'
+    else:
+      raise ValueError('Dead person Detected')
+  except ValueError:
     first_digits_year_of_birth = '19'
-  elif (int(control) in [4,9] and int(last_digits_year_of_birth) <= 36) or (int(control) in [5,6,7,8] and int(last_digits_year_of_birth) <= 57):
-    first_digits_year_of_birth = '20'
-  else:
-    raise ValueError('Dead person Detected')
   # The remaining CPR-numbers is used by people from the 19-century AKA dead.
 
   returnString = f'{first_digits_year_of_birth}{last_digits_year_of_birth}-{month_of_birth}-{day_of_birth}'
