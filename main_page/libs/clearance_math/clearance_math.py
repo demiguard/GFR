@@ -195,20 +195,20 @@ def calculate_age(cprnr) -> int:
   except ValueError:
     century.append(1900) # CPR is fucked, assume 1900
 
-#   Age with no birthday
-    if 2000 in century :
-      age = current_time.year - 2000 - year_of_birth - 1
-    elif 1900 in century :
-      age = current_time.year - 1900 - year_of_birth - 1
-    else:  #This is only used if resurrect dead people, Necromancy I guess
-      age = current_time.year - 1800 - year_of_birth - 1
+  #   Age with no birthday
+  if 2000 in century :
+    age = current_time.year - 2000 - year_of_birth - 1
+  elif 1900 in century :
+    age = current_time.year - 1900 - year_of_birth - 1
+  else:  #This is only used if resurrect dead people, Necromancy I guess
+    age = current_time.year - 1800 - year_of_birth - 1
 
-#   Have you had your birthday this year
+  #   Have you had your birthday this year
 
-    if month_of_birth < current_time.month:
-      age += 1
-    elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
-      age += 1
+  if month_of_birth < current_time.month:
+    age += 1
+  elif current_time.month == month_of_birth and day_of_birth <= current_time.day:
+    age += 1
 
   return age
 
