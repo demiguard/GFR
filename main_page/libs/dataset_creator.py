@@ -163,7 +163,7 @@ def generate_ris_query_dataset(ris_calling: str='') -> Type[Dataset]:
   ds.add_new(0x00080018, 'UI', '')      # SOPInstanceUID These values may be discarded
   ds.add_new(0x00080020, 'DA', '')      # Study date
   ds.add_new(0x00080050, 'SH', '')      # Accession Number
-  ds.add_new(0x00080052, 'CS', 'STUDY') # Root SOP Class level
+  ds.add_new(0x00080052, 'CS', 'WORKLIST') # Root SOP Class level
   ds.add_new(0x00081110, 'SQ', '')      # ReferencedStudySequence
   ds.add_new(0x00100010, 'PN', '')      # Patitent name
   ds.add_new(0x00100020, 'LO', '')      # PatientID / CPR NUMBER

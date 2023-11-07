@@ -28,7 +28,7 @@ from main_page.models import ServerConfiguration, Department, HandledExamination
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 
-from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind 
 
 # Create a logger just for the ris_thread
 logger = logging.getLogger("RisThread")
@@ -125,7 +125,7 @@ class RisFetcher():
         bool : If the connection were successful or not
     """
     self.ris_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(department.config.ris_calling),
+      ae_controller.create_find_AE_worklist(department.config.ris_calling),
       department.config.ris.ip,
       department.config.ris.port,
       department.config.ris.ae_title,
@@ -133,17 +133,17 @@ class RisFetcher():
     )
 
     self.pacs_find_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE(department.config.ris_calling),
-      department.config.pacs.ip,
-      department.config.pacs.port,
-      department.config.pacs.ae_title,
+      ae_controller.create_find_AE_worklist(self.sc.AE_title),
+      department.config.storage.ip,
+      department.config.storage.port,
+      department.config.storage.ae_title,
       logger
     )
     self.pacs_move_assoc = ae_controller.establish_assoc(
-      ae_controller.create_move_AE(department.config.ris_calling),
-      department.config.pacs.ip,
-      department.config.pacs.port,
-      department.config.pacs.ae_title,
+      ae_controller.create_move_AE(self.sc.AE_title),
+      department.config.storage.ip,
+      department.config.storage.port,
+      department.config.storage.ae_title,
       logger
     )
     # Validate connections
@@ -255,7 +255,7 @@ class RisFetcher():
         # Do the pull request
         query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)
 
-        response = self.ris_assoc.send_c_find(query_dataset, StudyRootQueryRetrieveInformationModelFind)
+        response = self.ris_assoc.send_c_find(query_dataset, ModalityWorklistInformationFind)
         for status, dataset in response:
           if 'Status' in status:
             if status.Status == DATASET_AVAILABLE:

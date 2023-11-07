@@ -225,7 +225,7 @@ def try_update_exam_meta_data(ds: Dataset, update_dicom: bool) -> None:
     ds.add_new(0x00080064, 'CS', 'SYN')                                       # ds.ConversionType
     ds.add_new(0x00230010, 'LO', 'Clearance - Denmark - Region Hovedstaden')  # Our PrivateCreator tag (0x00230010)
     ds.add_new(0x00080090, 'PN', '')  # request.user.name or BAMID.name       # ds.ReferringPhysicianName
-    ds.add_new(0x00200010, 'SH', 'GFR#' + ds.AccessionNumber[4:])             # ds.StudyID
+    ds.add_new(0x00200010, 'SH', 'GFR' + ds.AccessionNumber[6:])              # ds.StudyID
     ds.add_new(0x00200013, 'IS', '1')                                         # ds.InstanceNumber
 
     ds.SoftwareVersions = f'{server_config.SERVER_NAME} - {server_config.SERVER_VERSION}'

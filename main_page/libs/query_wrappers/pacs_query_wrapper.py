@@ -83,43 +83,42 @@ def get_study(user, accession_number):
       This is overhauled version of move_from_pacs
   """
   config = user.department.config
-  if not config.pacs:
+  if not config.storage:
     return None, "Error: No PACS address set for configuration."
 
-  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
-  AE_title = config.ris_calling
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
 
-  pacs_find_ae = ae_controller.create_find_AE(AE_title)
-  pacs_move_ae = ae_controller.create_move_AE(AE_title)
+  storage_find_ae = ae_controller.create_find_AE_study(AE_title)
+  storage_move_ae = ae_controller.create_move_AE(AE_title)
 
-  pacs_find_assoc = ae_controller.establish_assoc(
-    pacs_find_ae,
-    config.pacs.ip,
-    config.pacs.port,
-    config.pacs.ae_title,
+  storage_find_assoc = ae_controller.establish_assoc(
+    storage_find_ae,
+    config.storage.ip,
+    config.storage.port,
+    config.storage.ae_title,
     logger
   )
-  if not(pacs_find_assoc):
+  if not storage_find_assoc:
     return None, "Error"
 
-  pacs_move_assoc = ae_controller.establish_assoc(
-    pacs_move_ae,
-    config.pacs.ip,
-    config.pacs.port,
-    config.pacs.ae_title,
-    logger )
+  storage_move_assoc = ae_controller.establish_assoc(
+    storage_move_ae,
+    config.storage.ip,
+    config.storage.port,
+    config.storage.ae_title,
+    logger)
 
-  if not(pacs_move_assoc):
-    pacs_find_assoc.release()
+  if not storage_move_assoc:
+    storage_find_assoc.release()
     logger.error('Could not etablish with pacs find assoc!')
     return None, "Error"
 
   find_dataset = dataset_creator.create_search_dataset('', '', '', '', accession_number )
   ae_controller.send_find(
-    pacs_find_assoc,
+    storage_find_assoc,
     find_dataset,
     move_and_store,
-    move_assoc=pacs_move_assoc,
+    move_assoc=storage_move_assoc,
     AE_title=AE_title)
 
   target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
@@ -165,13 +164,14 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
   with open(f"{server_config.PACS_QUEUE_DIR}{accession_number}.json", "w") as fp:
     fp.write(json.dumps({
       "pacs_calling": AE_title,
-      "pacs_ip":    user.department.config.storage.ip,
-      "pacs_port":  user.department.config.storage.port,
-      "pacs_aet":   user.department.config.storage.ae_title,
+      "pacs_ip":    user.department.config.pacs.ip,
+      "pacs_port":  user.department.config.pacs.port,
+      "pacs_aet":   user.department.config.pacs.ae_title,
     }))
 
   # Spawn background thread to send study
   store_thread = threading.Thread(
+    daemon=True,
     target=thread_store,
     args=(
       accession_number,
