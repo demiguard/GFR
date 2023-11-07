@@ -4,7 +4,7 @@ from pydicom import Dataset
 import logging
 from typing import Type, Union, Callable
 from pynetdicom import AE
-from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind 
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 
@@ -12,7 +12,7 @@ from main_page.libs.dirmanager import try_mkdir
 ae_logger = logging.getLogger('GFRLogger')
 
 
-FINDStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.1'
+
 MOVEStudyRootQueryRetrieveInformationModel = '1.2.840.10008.5.1.4.1.2.2.2'
 
 
@@ -70,8 +70,6 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
     calling_aet: your AET
     aet: AET to connect to
     context: context of the connection
-            (e.g. FINDStudyRootQueryRetrieveInformationModel,
-            MOVEStudyRootQueryRetrieveInformationModel)
 
   Returns:
     The establish association, None if unable to connect
@@ -133,14 +131,21 @@ def connect(ip: str, port: Union[int, str], calling_aet: str, aet: str, context:
   return association
 
 
-def create_find_AE(ae_title: str) -> AE:
+def create_find_AE_worklist(ae_title: str) -> AE:
   """
     Creates an pynetdicom.AE object with the find Context, ready to send a find
   """
   ae = AE(ae_title=ae_title)
-  ae.add_requested_context(FINDStudyRootQueryRetrieveInformationModel)
+  ae.add_requested_context(ModalityWorklistInformationFind)
 
   return ae
+
+def create_find_AE_study(ae_title: str) -> AE:
+  ae = AE(ae_title=ae_title)
+  ae.add_requested_context(StudyRootQueryRetrieveInformationModelFind)
+
+  return ae
+
 
 
 def create_move_AE(ae_title: str) -> AE:
@@ -148,7 +153,7 @@ def create_move_AE(ae_title: str) -> AE:
     Creates an pynetdicom.AE object with the find Context, ready to send a move
   """
   ae = AE(ae_title=ae_title)
-  ae.add_requested_context(MOVEStudyRootQueryRetrieveInformationModel)
+  ae.add_requested_context(StudyRootQueryRetrieveInformationModelMove)
 
   return ae
 

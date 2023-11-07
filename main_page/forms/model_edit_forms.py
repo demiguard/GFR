@@ -69,7 +69,7 @@ class EditConfigForm(forms.ModelForm):
 
   ris  = AddressChocieField(queryset=models.Address.objects.all(), label="RIS")
   pacs = AddressChocieField(queryset=models.Address.objects.all(), label="PACS")
-
+  storage = AddressChocieField(queryset=models.Address.objects.all(), label="Storage")
 
 class EditProcedureForm(forms.ModelForm):
   class Meta:
