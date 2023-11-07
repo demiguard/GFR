@@ -91,7 +91,7 @@ class RisFetcher():
       if department.config.ris == None:
         logger.info(f"{department} doesn't have a configured RIS address")
         correctly_configured = False
-      if department.config.pacs == None:
+      if department.config.storage == None:
         logger.info(f"{department} doesn't have a configured PACS address")
         correctly_configured = False
       if department.config.ris_calling == None:
