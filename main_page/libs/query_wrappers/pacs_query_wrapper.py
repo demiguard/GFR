@@ -462,7 +462,7 @@ def search_query_pacs(config, logger, name="", cpr="", accession_number="", date
     int(config.storage.port),
     AE_title,
     config.storage.ae_title,
-    ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+    StudyRootQueryRetrieveInformationModelFind,
     logger=logger
   )
   logger.info(f"Got Association: {association}")
