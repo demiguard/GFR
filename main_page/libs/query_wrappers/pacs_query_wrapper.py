@@ -424,7 +424,7 @@ def start_scp_server(ae_title):
 
   return server_instance
 
-def search_query_pacs(config, name="", cpr="", accession_number="", date_from="", date_to=""):
+def search_query_pacs(config, logger, name="", cpr="", accession_number="", date_from="", date_to=""):
   """
   Return list of responses, None if PACS connection failed
   """
@@ -462,7 +462,8 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
     int(config.storage.port),
     AE_title,
     config.storage.ae_title,
-    ae_controller.FINDStudyRootQueryRetrieveInformationModel
+    ae_controller.FINDStudyRootQueryRetrieveInformationModel,
+    logger=logger
   )
   logger.info(f"Got Association: {association}")
   # Send find query and process successful responses
@@ -473,6 +474,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
       association,
       search_dataset,
       process_incoming_dataset,
+      logger=logger,
     )
   except ValueError:
     logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.ae_title}")

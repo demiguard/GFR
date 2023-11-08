@@ -507,12 +507,15 @@ class SearchEndpoint(LoginRequiredMixin, View):
 
     search_results = pacs.search_query_pacs(
       request.user.department.config,
+      logger,
       name=search_name,
       cpr=search_cpr,
       accession_number=search_accession_number,
       date_from=search_date_from,
       date_to=search_date_to,
     )
+
+    logger.info(f'search_date_from:{search_date_from}, search_date_to:{search_date_to}')
 
     # If None as search_results, we got an error
     if isinstance(search_results, type(None)):
