@@ -225,12 +225,11 @@ def create_search_dataset(
   ds.AccessionNumber = accession_number
   ds.PatientID = cpr
   ds.PatientName = formatting.name_to_person_name(name)
-  ds.QueryRetrieveLevel = 'STUDY'
+  ds.QueryRetrieveLevel = 'SERIES'
   ds.SOPClassUID = ''
   ds.SOPInstanceUID = ''
   ds.SeriesInstanceUID = ''
   ds.StudyInstanceUID = ''
-  ds.Modality = 'OT'
-  ds.StudyID = 'GFR*'
+  ds.SeriesDescription = "Clearance*"
 
   return ds
