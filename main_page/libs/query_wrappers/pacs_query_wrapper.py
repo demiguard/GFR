@@ -429,8 +429,6 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
   Return list of responses, None if PACS connection failed
   """
   def process_incoming_dataset(dataset, *args, **kwargs):
-    if 'logger' in kwargs:
-      logger = kwargs['logger']
     try:
       response_list.append({
         'accession_number': dataset.AccessionNumber,
@@ -466,7 +464,7 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
     config.storage.ae_title,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
-
+  logger.info(f"Got Association: {association}")
   # Send find query and process successful responses
   response_list = [ ]
 
@@ -475,7 +473,6 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
       association,
       search_dataset,
       process_incoming_dataset,
-      logger=logger
     )
   except ValueError:
     logger.error(f"Failed to establish association to PACS with parameters:\npacs_ip: {config.pacs.ip}, pacs_port: {config.pacs.port}, pacs_calling: {AE_title}, pacs_aet: {config.pacs.ae_title}")

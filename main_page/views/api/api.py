@@ -24,9 +24,7 @@ from main_page.views.api.generic_endpoints import RESTEndpoint, GetEndpoint, Pos
 from main_page.views.mixins import AdminRequiredMixin, LoggingMixin
 from main_page import models
 
-from main_page import log_util
-
-logger = log_util.get_logger(__name__)
+logger = logging.getLogger("GFRLogger")
 
 
 class UserEndpoint(AdminRequiredMixin, LoginRequiredMixin, RESTEndpoint):
