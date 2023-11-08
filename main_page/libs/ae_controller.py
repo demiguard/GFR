@@ -249,7 +249,7 @@ def send_find(association, query_ds, process, query_model=StudyRootQueryRetrieve
     logger = ae_logger
 
   # Perform query
-  logger.info(f"Sending C_FIND query to {association.acceptor.ae_title}")
+  logger.info(f"Sending C_FIND query to {association.acceptor.ae_title} with {query_ds}")
   resp = association.send_c_find(query_ds, query_model=query_model)
   __handle_find_resp(resp, process, *args, **kwargs)
 
