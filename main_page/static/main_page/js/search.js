@@ -42,12 +42,12 @@ let ajax_search = function() {
   let name = $('#id_name').val();
   var cpr = $('#id_cpr').val();
 
-  let re_alpha = /[a-zA-Z]/;    
+  let re_alpha = /[a-zA-Z]/;
   if (cpr.includes('-') && !re_alpha.test(cpr)) {
     cpr = cpr.replace('-', '');
   }
   let accession_number = $('#id_accession_number').val();
-  
+
   let dfa = $('#id_from_date').val().split('-');
   let dta = $('#id_to_date').val().split('-');
   var date_from, date_to;
@@ -77,7 +77,7 @@ let ajax_search = function() {
     },
     success: function(data) {
       console.debug("Successful search");
-      
+
       // Insert search results into table
       search_results = data.search_results;
 
@@ -179,7 +179,7 @@ let ajax_search = function() {
       } else {
         err_text = "Fejl: Kunne ikke forbinde til PACS";
       }
-      
+
       // Display appropriate error message
       var error_msg = document.createElement('p');
       error_msg.innerHTML = err_text;
@@ -207,7 +207,7 @@ let init_search_fields = function() {
   }
 
   let year = today.getFullYear();
-  
+
   let today_str = day + '-' + month + '-' + year;
 
   // Get date one week ago
@@ -246,7 +246,7 @@ let init_datepickers = function() {
 
 $(function() {
   init_datepickers();
-  
+
   // hide_loading();
   show_loading();
 

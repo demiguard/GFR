@@ -442,8 +442,8 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
       logger.info(f"Failed to process incoming search dataset, got exception {e}")
   #End helper
 
-  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
-  AE_title = config.ris_calling
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  #AE_title = config.ris_calling
   # Construct Search Dataset
   search_dataset = dataset_creator.create_search_dataset(
     name,
@@ -460,10 +460,10 @@ def search_query_pacs(config, name="", cpr="", accession_number="", date_from=""
 
   # Establish association to PACS
   association = ae_controller.connect(
-    config.pacs.ip,
-    int(config.pacs.port),
+    config.storage.ip,
+    int(config.storage.port),
     AE_title,
-    config.pacs.ae_title,
+    config.storage.ae_title,
     ae_controller.FINDStudyRootQueryRetrieveInformationModel
   )
 
