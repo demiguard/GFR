@@ -226,6 +226,7 @@ def create_search_dataset(
   ds.PatientID = cpr
   ds.PatientName = formatting.name_to_person_name(name)
   ds.QueryRetrieveLevel = 'SERIES'
+  ds.Modality = 'OT'
   ds.SOPClassUID = ''
   ds.SOPInstanceUID = ''
   ds.SeriesInstanceUID = ''
