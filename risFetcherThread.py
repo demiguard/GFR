@@ -125,7 +125,7 @@ class RisFetcher():
         bool : If the connection were successful or not
     """
     self.ris_assoc = ae_controller.establish_assoc(
-      ae_controller.create_find_AE_worklist(self.sc.AE_title),
+      ae_controller.create_find_AE_worklist(department.config.ris_calling),
       department.config.ris.ip,
       department.config.ris.port,
       department.config.ris.ae_title,
@@ -289,7 +289,7 @@ class RisFetcher():
           self.pacs_move_assoc.release()
       #End of Department for loop
 
-      today = date.today().day #mabye just save the entire object
+      today = date.today().day #mabye just save the entire object. But muh bytes
       if today != date_last_iteration:
         #logger.info('Cleaning Cache and Image directory')
         cache.clean_cache(14)
