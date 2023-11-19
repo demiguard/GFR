@@ -147,8 +147,8 @@ def store_dicom_pacs(dicom_object, user, ensure_standart=True):
     Value error: If the dicom set doesn't contain required information to send
   """
   accession_number = dicom_object.AccessionNumber
-  #AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
-  AE_title = user.department.config.ris_calling
+  AE_title = models.ServerConfiguration.objects.get(id=1).AE_title
+  #AE_title = user.department.config.ris_calling
   # Save the dicom file to be sent to PACS
   try_mkdir(server_config.PACS_QUEUE_DIR, mk_parents=True)
   store_file = f"{server_config.PACS_QUEUE_DIR}{accession_number}.dcm"
