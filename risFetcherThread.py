@@ -188,7 +188,7 @@ class RisFetcher():
 
 
   def fetch_history(self, dataset: Dataset, dataset_dir : Path) -> None:
-    history_queryDataset = dataset_creator.create_search_dataset('',dataset.PatientID, '','',dataset.AccessionNumber)
+    history_queryDataset = dataset_creator.create_search_dataset('',dataset.PatientID, '','', '')
     response = self.pacs_find_assoc.send_c_find(history_queryDataset, StudyRootQueryRetrieveInformationModelFind)
     logger.debug("Fetching history")
     for status, historic_dataset in response:
