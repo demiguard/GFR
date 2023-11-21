@@ -231,6 +231,6 @@ def create_search_dataset(
   ds.SOPInstanceUID = ''
   ds.SeriesInstanceUID = ''
   ds.StudyInstanceUID = ''
-  ds.SeriesDescription = "Clearance*"
+  ds.SeriesDescription = None
 
   return ds

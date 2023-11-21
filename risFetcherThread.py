@@ -194,7 +194,8 @@ class RisFetcher():
     for status, historic_dataset in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE:
-          self.get_historic_dataset(historic_dataset, dataset_dir)
+          if 'SeriesDescription' in historic_dataset and historic_dataset.SeriesDescription.startswith('Clearance'):
+            self.get_historic_dataset(historic_dataset, dataset_dir)
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
