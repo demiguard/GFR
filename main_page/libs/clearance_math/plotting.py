@@ -611,8 +611,7 @@ def __set_gfr_figure(figure: Figure, dataset: Dataset) -> None:
   figure.set_figheight(server_config.PLOT_HEIGHT)
   figure.set_figwidth(server_config.PLOT_WIDTH)
 
-  title = f"""{graph_texts.title_hospital_prefix} {dataset.InstitutionName}
-    {dataset.StudyDescription}"""
+  title = f"""{graph_texts.title_hospital_prefix} {dataset.InstitutionName}"""
 
   figure.suptitle(title, fontsize=server_config.TITLE_FONT_SIZE)
 
