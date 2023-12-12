@@ -6,4 +6,4 @@ def try_mkdir(dirPath: Union[str, Path], mk_parents: bool=False) -> None:
   if isinstance(dirPath, str):
     dirPath = Path(dirPath)
 
-  dirPath.mkdir(parents=mk_parents)
+  dirPath.mkdir(parents=mk_parents, exist_ok=True)
