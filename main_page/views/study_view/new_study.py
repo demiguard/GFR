@@ -124,7 +124,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
     if validation_status:
       study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
-      
+
       hospital_sn = request.user.department.hospital.short_name
       study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{ris_nr}/'
       try_mkdir(study_directory, mk_parents=True)
@@ -136,68 +136,8 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         ris_nr,
         hospital_sn
       )
-      
-      # Get history from pacs if PACS address is present
-      user_config = request.user.department.config
 
-      if user_config.pacs:
-        #CPR is valid, so we can retrieve history from pacs
-        # So there's a serverConfig(database entry) and server_config(file)
-        # See models for explination
-        serverConfig = models.ServerConfiguration.objects.get(id=1)
-        pacs_find_association = ae_controller.connect(
-          user_config.pacs.ip,
-          user_config.pacs.port,
-          serverConfig.AE_title, #This should be changed to serverConfig.AE_title
-          user_config.pacs.ae_title,
-          ae_controller.FINDStudyRootQueryRetrieveInformationModel,
-          logger=logger
-        )
-        
-        failed_connection = False
-
-        if not pacs_find_association:
-          logger.info(f"Unable to create pacs_find_association for retreiving new study history.")
-          failed_connection |= True
-
-          pacs_move_association = ae_controller.connect(
-            user_config.pacs.ip,
-            user_config.pacs.port,
-            serverConfig.AE_title, #This should be changed to serverConfig.AE_title
-            user_config.pacs.ae_title,
-            ae_controller.MOVEStudyRootQueryRetrieveInformationModel,
-            logger=logger
-          )
-
-          if not pacs_move_association:
-            logger.info(f"Unable to create pacs_move_association for retreiving new study history.")
-            failed_connection |= True
-
-          if not failed_connection: # Only send find if connection was established
-            find_query_dataset = dataset_creator.create_search_dataset(
-              '',
-              cpr,
-              '',
-              '',
-              ''
-            )
-            ae_controller.send_find(
-              pacs_find_association,
-              find_query_dataset, 
-              handle_find,
-              logger=logger,
-              pacs_move_association=pacs_move_association,
-              serverConfig=serverConfig,
-              study_directory=study_directory,
-            )
-
-            pacs_find_association.release()
-            pacs_move_association.release()
-      else:
-        # Error Message should be handled by front end
-        pass
-
-      dicomlib.save_dicom( 
+      dicomlib.save_dicom(
         f'{study_directory}{ris_nr}.dcm',
         dataset
       )
