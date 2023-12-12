@@ -102,13 +102,13 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
     cpr = request.POST['cpr'].strip()
     name = request.POST['name'].strip()
     study_date = request.POST['study_date'].strip()
-    ris_nr = request.POST['rigs_nr'].strip()
+    accession_number = request.POST['rigs_nr'].strip()
 
     new_study_form = base_forms.NewStudy(initial={
       'cpr': cpr,
       'name': name,
       'study_date': study_date,
-      'rigs_nr': ris_nr
+      'rigs_nr': accession_number
     })
 
     context = {
@@ -120,30 +120,30 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
     # Ensure validity of study
     validation_status, error_messages = formatting.is_valid_study(
-      cpr, name, study_date, ris_nr)
+      cpr, name, study_date, accession_number)
 
     if validation_status:
       study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
 
       hospital_sn = request.user.department.hospital.short_name
-      study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{ris_nr}/'
+      study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}/'
       try_mkdir(study_directory, mk_parents=True)
 
       dataset = dataset_creator.get_blank(
         cpr,
         name,
         study_date,
-        ris_nr,
+        accession_number,
         hospital_sn
       )
 
       dicomlib.save_dicom(
-        f'{study_directory}{ris_nr}.dcm',
+        f'{study_directory}{accession_number}.dcm',
         dataset
       )
 
       # redirect to fill_study/ris_nr
-      return redirect('main_page:fill_study', accession_number=ris_nr)
+      return redirect('main_page:fill_study', accession_number=accession_number)
     else:
       context['error_messages'] = error_messages
       return render(request, self.template_name, context)
