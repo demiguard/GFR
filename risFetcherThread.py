@@ -182,8 +182,7 @@ class RisFetcher():
         elif status.Status == TRANSFER_COMPLETE:
           self.move_dataset(historic_dataset, dataset_dir)
         else:
-          logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
-          logger.info(f"Failed to transfer dataset, with status: {status}")
+          self.log_dicom_message_error('Query Historic ', status, historic_dataset)
       else:
         logger.error(f'Dataset does not have status attribute\n Status:\n{status}')
 
@@ -200,9 +199,8 @@ class RisFetcher():
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
-          logger.error(f"Failed to transfer dataset with message: {hex(status)}")
-          logger.error(f"Response Message: {status}")
-          logger.error(f"Query Dataset: {history_queryDataset}")
+          self.log_dicom_message_error('Query Historic ', status, history_queryDataset)
+
       else:
         logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
 
@@ -239,6 +237,12 @@ class RisFetcher():
     else:
       logger.info("Skipping fetching history")
 
+  def log_dicom_message_error(self, function_name, message_response, query_dataset):
+    logger.error(f"Error encountered in dicom protocol in function {function_name}")
+    logger.error(f"Got error code: {hex(message_response.status)}")
+    logger.error(f"Response Message {message_response}")
+    logger.error(f"query message {query_dataset}")
+
   def run(self) -> None:
     date_last_iteration = date.today().day - 1
     while True:
@@ -268,7 +272,7 @@ class RisFetcher():
               logger.debug(f"Handled response to {department}")
               pass # The Transfer is compelete and the association can not be closed.
             else:
-              logger.info(f"Failed to Transfer dataset with message {status}")
+              self.log_dicom_message_error('Query RIS', status, query_dataset)
 
         for dataset, dataset_dir in self.failed_datasets.values():
           attempts = 0
