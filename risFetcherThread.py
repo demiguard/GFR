@@ -183,6 +183,7 @@ class RisFetcher():
           self.move_dataset(historic_dataset, dataset_dir)
         else:
           logger.info(f"Failed to transfer dataset, with status: {hex(status.Status)}")
+          logger.info(f"Failed to transfer dataset, with status: {status}")
       else:
         logger.error(f'Dataset does not have status attribute\n Status:\n{status}')
 
@@ -199,7 +200,9 @@ class RisFetcher():
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
-          logger.error(f"Failed to transfer dataset with message: {status}")
+          logger.error(f"Failed to transfer dataset with message: {hex(status)}")
+          logger.error(f"Response Message: {status}")
+          logger.error(f"Query Dataset: {history_queryDataset}")
       else:
         logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
 
