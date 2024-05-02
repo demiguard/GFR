@@ -239,7 +239,6 @@ class RisFetcher():
 
   def log_dicom_message_error(self, function_name, message_response, query_dataset):
     logger.error(f"Error encountered in dicom protocol in function {function_name}")
-    logger.error(f"Got error code: {hex(message_response.status)}")
     logger.error(f"Response Message {message_response}")
     logger.error(f"query message {query_dataset}")
 
