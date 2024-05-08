@@ -351,8 +351,8 @@ def age_string(dataset: Dataset, today=None) -> str:
   if today is None:
     today = datetime.datetime.today()
 
-  if 0x00100030 in dataset:
-    date_of_birth = datetime.datetime.strptime(dataset.PatientsBirthDate, "%Y%m%d")
+  if 'PatientBirthDate' in dataset:
+    date_of_birth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
   else:
     day_of_birth = calculate_birthdate(dataset.PatientID)
     date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
