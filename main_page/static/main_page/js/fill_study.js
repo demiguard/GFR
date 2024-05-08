@@ -535,8 +535,9 @@ function initialize_calculate_button(alerter) {
     if(test_count == 0){
       alerter.add_alert(
         'model_tests_selected',
-        "Der skal vælges mindst 1 prøve før udregning kan laves!"
-      )
+        "Der skal vælges mindst 1 prøve før udregning kan laves!",
+        "danger"
+      );
       return false;
     }
 
