@@ -3,7 +3,7 @@ var csv_handler;
 /*
 Initializes the correct sizing of the select test div on window resizing
 
-Remarks: 
+Remarks:
   This is just a temporary fix and should idealy be fixed in css
 */
 function init_test_div_resizer() {
@@ -15,7 +15,7 @@ function init_test_div_resizer() {
     var test_div = $('#right_side')
     var doc_height = $(document).innerHeight();
     var new_height = 0;
-    
+
     if (doc_height <= screen_diff) {
       new_height = (doc_height - test_div.position().top) - smallscreen_offset;
     } else {
@@ -27,12 +27,12 @@ function init_test_div_resizer() {
 };
 
 function get_backup_measurements() {
-  /* 
+  /*
   This function is called when the button 'Hent målling'
   */
   // Extract url parameters
   var date = helper.convert_danish_date_to_date_format($('#id_dateofmessurement').val());
-  
+
   if (!helper.is_valid_date(date)) {
     console.log('Not a valid date format');
     return;
@@ -55,15 +55,15 @@ function get_backup_measurements() {
 
       // Generate New table
       for (timestamp in data) {
-        
+
         // Initialzation
         let dataset_id = timestamp.split(':').join('');
         let dataset = data[timestamp];
-      
+
         // Generate div containers for accordion
         var card_div = document.createElement('div');
         card_div.classList.add('card');
-        
+
         var card_header_div = document.createElement('div');
         card_header_div.classList.add('card-header');
         card_header_div.id = 'heading-' + dataset_id;
@@ -104,7 +104,7 @@ function get_backup_measurements() {
 
         var table_head = document.createElement('thead');
         card_table.appendChild(table_head);
-        
+
         var table_head_row = document.createElement('tr');
         let TABLE_HEADERS = ['Rack', 'Position', 'Tc-99m CPM'];
         let DATASET_NAMES = ['Rack', 'Pos', 'Tc-99m CPM'];
@@ -115,7 +115,7 @@ function get_backup_measurements() {
           table_head_row.appendChild(th);
         }
         table_head.appendChild(table_head_row);
-        
+
         // Generate: table body
         var table_body = document.createElement('tbody');
         card_table.appendChild(table_body);
@@ -128,13 +128,13 @@ function get_backup_measurements() {
           // Generate entries for each corresponding table head
           for (i in DATASET_NAMES) {
             var td = document.createElement('td');
-            
+
             if (i == 2) {
               td.innerText = Math.round(dataset[DATASET_NAMES[i]][datapoint]); // Round to remove decimals
             } else {
               td.innerText = dataset[DATASET_NAMES[i]][datapoint];
             }
-            
+
             tr.appendChild(td);
           }
 
@@ -175,7 +175,7 @@ function get_backup_measurements() {
 
 
 function remove_backup_measurement() {
-  /* 
+  /*
     This Function happens when the button 'Tilbage til Dagens Mållinger' is clicked:
 
     The purpose of this function is to hide the historical data, and redisplay the old data
@@ -191,7 +191,7 @@ function remove_backup_measurement() {
   } else {
     $('#server-error-msg').show();
   }
-  
+
   document.getElementById("dynamic_generate_history").style.display='none';
 }
 
@@ -199,7 +199,7 @@ function remove_backup_measurement() {
 function add_threshold_checking(field_alerter) {
   /*
   Adds threshold checking on number fields
-  
+
   Args:
     field_alerter: field alerter used to register the input handler
   */
@@ -212,7 +212,7 @@ function add_threshold_checking(field_alerter) {
     "#id_thin_fac"           : "Fortyndingsfaktor",
     "#id_standcount"         : "Standardtælletal"
   }
-  
+
   let id_thresholds = [
     {'id': '#id_height',              'min_val': 0,    'max_val': 210},
     {'id': '#id_weight',              'min_val': 3.5,    'max_val': 500},
@@ -221,13 +221,13 @@ function add_threshold_checking(field_alerter) {
     {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 10000},
     {'id': '#id_standcount',          'min_val': 0,     'max_val': 100000}
   ];
-  
+
   for (var i = 0; i < id_thresholds.length; i++) {
     let curr_row = id_thresholds[i]
     let curr_field = $(curr_row.id);
 
     field_alerter.add_input_field_alert(
-      curr_field, 
+      curr_field,
       FIELD_NAME_MAPPINGS[curr_row.id] + " ligger udenfor det forventede interval.",
       "warning",
       function(val) {
@@ -243,7 +243,7 @@ function add_threshold_checking(field_alerter) {
 function add_inj_comparison(field_alerter) {
   /*
   Adds checking for injection weight fields
-  
+
   Args:
     field_alerter: field alerter used to register the input handler
   */
@@ -281,7 +281,7 @@ function add_inj_comparison(field_alerter) {
       // Safely handle commas in the fields before checking
       let comp_field = $("#id_vial_weight_after");
       let comp_val = helper.str_to_float(comp_field.val());
-      let f_val = helper.str_to_float(val);      
+      let f_val = helper.str_to_float(val);
 
       if (trigger_after) {
         trigger_before = false;
@@ -297,12 +297,12 @@ function add_inj_comparison(field_alerter) {
 function add_datetime_checking(field_alerter) {
   /*
   Adds checking on time fields to ensure that dates and timestamps are correctly formatted
-  
+
   Args:
     field_alerter: field alerter used to register the input handler
   */
   // Mappings from field ids to their danish display text for alert messages
-  let ID_NAME_MAPPINGS = { 
+  let ID_NAME_MAPPINGS = {
     "#id_injection_time": "Injektionstidspunkt",
     "#id_study_time": "Prøvetidspunkt",
     "#id_injection_date": "Injektionsdato",
@@ -322,7 +322,7 @@ function add_datetime_checking(field_alerter) {
     { "id": "#id_dateofmessurement", "alert_type": "warning" },
     { "id": "#id_birthdate", "alert_type": "danger" },
   ];
-  
+
   // Add to time fields
   for (var i = 0; i < time_ids.length; i++) {
     let curr_row = time_ids[i];
@@ -531,7 +531,15 @@ function initialize_calculate_button(alerter) {
     alerter.remove_alert('test_before');
 
     let test_count = $('#test-data-container .form-row').length;
-    
+
+    if(test_count == 0){
+      alerter.add_alert(
+        'model_tests_selected',
+        "Der skal vælges mindst 1 prøve før udregning kan laves!"
+      )
+      return false;
+    }
+
     if (test_count == 1 && $('id_study_type_2').is(":checked")) {
       alerter.add_alert(
         'model_tests_selected',
@@ -565,7 +573,7 @@ function initialize_calculate_button(alerter) {
       "#id_standcount",
       "#id_birthdate",
     ];
-    
+
 
 
 
@@ -603,12 +611,7 @@ function initialize_calculate_button(alerter) {
         is_valid = false;
         break;
       }
-      
     }
-
-
-
-
 
     if (!is_valid) {
       const ErrorMap = new Map();
@@ -628,7 +631,7 @@ function initialize_calculate_button(alerter) {
       ErrorMap.set("#id_birthdate",    "Fødselsdags feltet")
       ErrorMap.set(".sample_time_field", "En prøves tids felt")
       ErrorMap.set(".sample_count_field", "En prøves count felt")
-  
+
       const ErrorFieldText = ErrorMap.get(failed_id)
 
       alerter.add_alert(
@@ -636,7 +639,7 @@ function initialize_calculate_button(alerter) {
         ErrorFieldText +' er ikke udfyldt korrekt.',
         'danger'
       );
-    
+
       // alerter.add_field_alert($(failed_id), 'danger');
       alerter.show_alerts();
       return false;
@@ -705,10 +708,10 @@ function initialize_calculate_button(alerter) {
 
 $(function() {
   let field_alerter = new FieldAlerter($("#error-message-container"));
-  
+
   init_test_div_resizer();
   helper.disable_enter_form_submit($('#fill-study-form'));
-  
+
   add_timefield_auto_colons();
 
   initialize_date_fields();
@@ -722,7 +725,7 @@ $(function() {
   initialize_save_button(field_alerter);
 
   initialize_calculate_button(field_alerter);
-  
+
   initialize_csv_handler(field_alerter);
 
   // Initialize alerters
