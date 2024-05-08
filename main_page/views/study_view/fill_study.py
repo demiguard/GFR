@@ -572,13 +572,14 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
       sample_datetimes = [ ]
       tec_counts = [ ]
-      for sample in dataset.ClearTest:
-        tmp_date = datetime.datetime.strptime(
-          sample.SampleTime,
-          "%Y%m%d%H%M"
-        )
-        sample_datetimes.append(tmp_date)
-        tec_counts.append(sample.cpm)
+      if 'ClearTest' in dataset: 
+        for sample in dataset.ClearTest:
+          tmp_date = datetime.datetime.strptime(
+            sample.SampleTime,
+            "%Y%m%d%H%M"
+          )
+          sample_datetimes.append(tmp_date)
+          tec_counts.append(sample.cpm)
 
       study_type = enums.StudyType(post_req["study_type"])
 
