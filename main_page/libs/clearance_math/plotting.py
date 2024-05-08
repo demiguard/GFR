@@ -16,7 +16,7 @@ from matplotlib.dates import DateFormatter, DateLocator, MonthLocator
 from main_page.libs import formatting
 from main_page.libs import enums
 from main_page.libs import server_config
-from main_page.libs.clearance_math.clearance_math import kidney_function, surface_area, _age_string, calculate_birthdate, calc_mean_gfr_for_toddlers
+from main_page.libs.clearance_math.clearance_math import kidney_function, surface_area, age_string, calculate_birthdate, calc_mean_gfr_for_toddlers
 
 
 # Plotting constants
@@ -134,7 +134,6 @@ class FigureTextDataClass:
     name = formatting.person_name_to_name(dataset.PatientName)
     cpr = formatting.format_cpr(dataset.PatientID)
     injection_date =  datetime.datetime.strptime(dataset.injTime,"%Y%m%d%H%M").strftime('%d-%b-%Y')
-    dateOfBirth = calculate_birthdate(cpr)
     dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
     accession_number = dataset.AccessionNumber
     if dataset.PatientSex == 'M':
@@ -143,7 +142,7 @@ class FigureTextDataClass:
     else:
       gender = enums.GENDER_NAMINGS[1]
       gender_enum = enums.Gender.FEMALE
-    age = _age_string(dateOfBirth)
+    age = age_string(dataset)
     height = f"{round(dataset.PatientSize * 100)}" # type: ignore
     weight = f"{round(dataset.PatientWeight,1)}"
     body_surface_area = f"{round(surface_area(dataset.PatientSize * 100, dataset.PatientWeight),2)}" #type: ignore # Don't Care about numerical stability
@@ -218,7 +217,6 @@ class HistoricFigureTextDataClass:
     name = formatting.person_name_to_name(dataset.PatientName)
     cpr = formatting.format_cpr(dataset.PatientID)
     injection_date =  datetime.datetime.strptime(dataset.injTime,"%Y%m%d%H%M").strftime('%d-%b-%Y')
-    dateOfBirth = calculate_birthdate(cpr)
     dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
     accession_number = dataset.AccessionNumber
     if dataset.PatientSex == 'M':
@@ -227,7 +225,8 @@ class HistoricFigureTextDataClass:
     else:
       gender = enums.GENDER_NAMINGS[1]
       gender_enum = enums.Gender.FEMALE
-    age = _age_string(dateOfBirth)
+
+    age = age_string(dataset)
     height = f"{round(dataset.PatientSize * 100)}" #type: ignore
     weight = f"{(dataset.PatientWeight):.1f}"
     body_surface_area = f"{surface_area(dataset.PatientSize * 100, dataset.PatientWeight):.2f}" #type: ignore # Don't Care about numerical stability
@@ -280,6 +279,9 @@ class HistoricFigureTextDataClass:
     {graph_texts.figure_text_reference_percentage} {self.reference_percentage}%
     """
     return string
+
+def get_patient_age(dataset) -> int:
+  return int((datetime.datetime.now() - datetime.datetime.strptime(dataset.PatientBirthDate, '%Y%m%d')).days / 365)
 
 def figure_text_factory(dataset: Dataset) -> Union[HistoricFigureTextDataClass, FigureTextDataClass]:
   if 'clearancehistory' in dataset:
@@ -592,7 +594,7 @@ def __draw_graph_grown_up(axes: Axes, dataset: Dataset, today=datetime.datetime.
 
 
 def __draw_graph_axes(axes: Axes, dataset: Dataset, now=datetime.datetime.now()):
-  age = int((datetime.datetime.now() - datetime.datetime.strptime(dataset.PatientBirthDate, '%Y%m%d')).days / 365)
+  age = get_patient_age(dataset)
   axes.grid(color='black')
   axes.set_ylabel(graph_texts.y_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
 

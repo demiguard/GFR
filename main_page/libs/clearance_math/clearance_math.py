@@ -11,7 +11,7 @@ from pydicom import Dataset
 import datetime
 import logging
 from scipy.stats import linregress
-from typing import List, Tuple, Type
+from typing import List, Tuple
 
 from .. import server_config
 from main_page.libs import enums
@@ -343,11 +343,19 @@ def calculate_birthdate(cpr: str) -> str:
   return returnString
 
 
-def _age_string(day_of_birth: str, today=datetime.datetime.today()) -> str:
+def age_string(dataset: Dataset, today=None) -> str:
   """
 
   """
-  date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
+
+  if today is None:
+    today = datetime.datetime.today()
+
+  if 'PatientsBirthDate' in dataset:
+    date_of_birth = datetime.datetime.strptime(dataset.PatientsBirthDate, "%Y%m%d")
+  else:
+    day_of_birth = calculate_age(dataset.PatientID)
+    date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
 
   diff = today - date_of_birth
 
