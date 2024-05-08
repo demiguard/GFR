@@ -354,7 +354,7 @@ def age_string(dataset: Dataset, today=None) -> str:
   if 'PatientsBirthDate' in dataset:
     date_of_birth = datetime.datetime.strptime(dataset.PatientsBirthDate, "%Y%m%d")
   else:
-    day_of_birth = calculate_age(dataset.PatientID)
+    day_of_birth = calculate_birthdate(dataset.PatientID)
     date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
 
   diff = today - date_of_birth
