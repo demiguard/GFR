@@ -1,91 +1,28 @@
+# Python standard library
+import datetime
+import logging
+
+# Third party packages
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
-from django.template import loader
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 
-import shutil
-import os
-import datetime
-import logging
-import PIL
-import glob
-from pandas import DataFrame
-from typing import Type, List, Tuple, Union, Generator, Dict
+from pydicom.uid import generate_uid
 
-from main_page.libs.dirmanager import try_mkdir
-from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
-from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import dataset_creator
+# Clairvoyance Packages
+from constants import GFR_LOGGER_NAME
 from main_page.libs import server_config
-from main_page.libs import samba_handler
-from main_page.libs import formatting
-from main_page.libs import dicomlib
-from main_page.libs import enums
-from main_page.libs import ae_controller
 from main_page.forms import base_forms
 from main_page import models
 
-
-from main_page import log_util
-
-logger = log_util.get_logger(__name__)
-
-def handle_find(dataset, *args, **kwargs ):
-  # This function is handling the response from a find send to pacs
-  #Check
-  if 'logger' in kwargs:
-    logger = kwargs['logger']
-  if 'pacs_move_association' in kwargs:
-    pacs_move_association = kwargs['pacs_move_association']
-  else:
-    raise Exception('handlefind requires a pacs_move_association as a kwarg')
-  if 'serverConfig' in kwargs:
-    serverConfig = kwargs['serverConfig']
-  else:
-    raise Exception('handlefind requires a serverConfig as a kwarg')
-  if 'study_directory' in kwargs:
-    study_directory = kwargs['study_directory']
-  else:
-    raise Exception('handlefind requires a study_directory as a kwarg')
-
-  accession_number = dataset.AccessionNumber
-  ae_controller.send_move(
-    pacs_move_association,
-    serverConfig.AE_title,
-    dataset,
-    handle_move,
-    logger=logger,
-    study_directory=study_directory,
-    accession_number=accession_number
-  )
-
-
-def handle_move(dataset, *args, **kwargs):
-  if 'logger' in kwargs:
-    logger = kwargs['logger']
-  if 'study_directory' in kwargs:
-    study_directory = kwargs['study_directory']
-  else:
-    raise Exception('handlefind requires a study_directory as a kwarg')
-  if 'hospital_sn' in kwargs:
-    hospital_sn = kwargs['hospital_sn']
-  else:
-    raise Exception('handlefind requires a hospital_sn as a kwargs')
-  if 'accession_number' in kwargs:
-    accession_number = kwargs['accession_number']
-
-  target_file = f"{server_config.SEARCH_DIR}{accession_number}.dcm"
-  destination = f"{study_directory}{accession_number}.dcm"
-  shutil.move(target_file, destination)
-
+logger = logging.getLogger(GFR_LOGGER_NAME)
 
 class NewStudyView(LoginRequiredMixin, TemplateView):
   template_name = 'main_page/new_study.html'
 
-  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+  def get(self, request: WSGIRequest) -> HttpResponse:
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
@@ -97,19 +34,32 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, context)
 
-  def post(self, request: Type[WSGIRequest]) -> HttpResponse:
-    # Create and store dicom object for new study
-    cpr = request.POST['cpr'].strip()
-    name = request.POST['name'].strip()
-    study_date = request.POST['study_date'].strip()
-    accession_number = request.POST['rigs_nr'].strip()
+  def post(self, request: WSGIRequest) -> HttpResponse:
+    user: models.User = request.user
 
-    new_study_form = base_forms.NewStudy(initial={
-      'cpr': cpr,
-      'name': name,
-      'study_date': study_date,
-      'rigs_nr': accession_number
-    })
+    if user.department is None:
+      raise Exception
+
+    # Create and store dicom object for new study
+    new_study_form = base_forms.NewStudy(request.POST)
+
+    if new_study_form.is_valid():
+      models.GFRStudy.objects.create(
+        StudyUID=generate_uid,
+        StudyStatus=models.StudyStatus.INITIAL,
+        AccessionNumber=new_study_form.cleaned_data['rigs_nr'],
+        StudyID=new_study_form.cleaned_data['rigs_nr'],
+        StationName=user.department.config.ris_calling,
+        PatientName=new_study_form.cleaned_data['name'],
+        PatientBirthDate=None,
+        PatientID=new_study_form.cleaned_data['cpr'],
+        StudyDateTime=new_study_form.cleaned_data['study_date'],
+        StudyDescription='GFR NØD OPRETTET',
+        Department=user.department,
+      )
+      return redirect('main_page:fill_study', accession_number=new_study_form.cleaned_data['rigs_nr'])
+    else:
+      print("INVALID!")
 
     context = {
       'title'     : server_config.SERVER_NAME,
@@ -117,35 +67,3 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
       'study_form': new_study_form,
       'error_message' : ''
     }
-
-    # Ensure validity of study
-    validation_status, error_messages = formatting.is_valid_study(
-      cpr, name, study_date, accession_number)
-
-    if validation_status:
-      study_date = datetime.datetime.strptime(study_date, '%d-%m-%Y').strftime('%Y%m%d')
-
-      hospital_sn = request.user.department.hospital.short_name
-      study_directory = f'{server_config.FIND_RESPONS_DIR}{hospital_sn}/{accession_number}/'
-      try_mkdir(study_directory, mk_parents=True)
-
-      dataset = dataset_creator.get_blank(
-        cpr,
-        name,
-        study_date,
-        accession_number,
-        hospital_sn
-      )
-
-      dicomlib.save_dicom(
-        f'{study_directory}{accession_number}.dcm',
-        dataset
-      )
-
-      # redirect to fill_study/ris_nr
-      return redirect('main_page:fill_study', accession_number=accession_number)
-    else:
-      context['error_messages'] = error_messages
-      return render(request, self.template_name, context)
-
-

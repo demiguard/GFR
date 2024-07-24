@@ -1,6 +1,5 @@
 {% extends 'main_page/base.html' %}
 
-{% load bootstrap4 %}
 {% load static %}
 
 {% block head %}
@@ -13,7 +12,7 @@
 
 <div class="row">
   <div class="col-md-4">
-    
+
     <table class="col-md-12">
       <tbody>
         {% for present_name, value in study_data %}
@@ -30,7 +29,7 @@
     <h5>Prøver:</h5>
     {% for previous_test in previous_samples %}
       <!-- <h5>Prøve nr. {{ forloop.counter }}</h5> -->
-  
+
       <table class="table table-bordered">
         <thead>
           <th>Dato</th>

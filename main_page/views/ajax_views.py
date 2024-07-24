@@ -1,36 +1,21 @@
+# Python standard library
+import datetime
+from ldap import FILTER_ERROR
+
+# Third party packages
 from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import auth
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 
-import os
-import shutil
-import time
-import datetime
-import logging
-from smb.base import NotConnectedError
-
-from django_auth_ldap.backend import LDAPBackend
-
-import ldap
-from ldap import FILTER_ERROR
-
 from main_page.models import UserGroup, Department, UserDepartmentAssignment
-from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
-from main_page.libs import samba_handler
-from main_page.libs import server_config
 from main_page.libs.status_codes import *
-from main_page.libs.dirmanager import try_mkdir
 from main_page.forms import base_forms
 
 
 from main_page import log_util
 from main_page.libs import ldap_queries
-
-from key import LDAP_PASSWORD
-
 logger = log_util.get_logger(__name__)
 
 
@@ -54,7 +39,7 @@ class AjaxLogin(TemplateView):
 
       # If authentication was successful a user is returned else nothing is returned.
       if user:
-        # User group determines if a user have access to the admin panel and other fun stuff. 
+        # User group determines if a user have access to the admin panel and other fun stuff.
         # When a user log in for the first time, they need a user group. In this case 2
         # Although you should probbally change this to a default in the model.User.user_group
         if user.user_group == None:
@@ -68,7 +53,7 @@ class AjaxLogin(TemplateView):
         # - RGH-B-SE GFR HGH - Herlev
         # - RGH-B-SE GFR HVH - Hvidovre
         # - RGH-B-SE GFR NOH - Nordsjælland
-        # - RGH-B-SE GFR RH Blegdamsvej - Rigshospitalet  
+        # - RGH-B-SE GFR RH Blegdamsvej - Rigshospitalet
         # - RGH-B-SE GFR RH Glostrup
         userGroups = UserDepartmentAssignment.objects.filter(user=user)
 
@@ -78,7 +63,7 @@ class AjaxLogin(TemplateView):
         for department in Department.objects.all():
           if ldap_group_name := department.ldapPath: # If the departments is set up correctly. If this is a problem you should put some sort of validating on the ldap_path
             try:
-              if ldap_queries.CheckGroup(ldap_connection, ldap_group_name, user.username): 
+              if ldap_queries.CheckGroup(ldap_connection, ldap_group_name, user.username):
                 if userGroups.filter(department=department):
                   pass
                 else:
@@ -151,7 +136,7 @@ class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
     """
       Ajax from list_studies, called from list_studies.js
 
-      Handles and updates thining factor 
+      Handles and updates thining factor
     """
     logger.info(f"{request.user.username} Updated thining factor to {request.POST['thining_factor']}")
     request.user.department.thining_factor = float(request.POST['thining_factor'])

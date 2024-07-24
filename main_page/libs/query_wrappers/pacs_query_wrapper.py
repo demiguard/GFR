@@ -1,18 +1,17 @@
-import pydicom, pynetdicom
-from pydicom.dataset import Dataset
-from pydicom.sequence import Sequence
-from pydicom.datadict import DicomDictionary, keyword_dict
-from pynetdicom import AE, StoragePresentationContexts, evt
-from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
+# Python standard library
 import os
-import shutil
 import glob
-import datetime
 import threading
 import time
 import json
 
+# Third party packages
+import pydicom
+from pydicom import Dataset
+from pynetdicom import AE, StoragePresentationContexts, evt
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove
 
+# Clairvoyance Packages
 from main_page import log_util
 from main_page import models
 
@@ -21,7 +20,6 @@ from main_page.libs import dicomlib, dataset_creator
 from main_page.libs import server_config
 from main_page.libs import formatting
 
-from main_page.libs.clearance_math import clearance_math
 from main_page.libs.dirmanager import try_mkdir
 
 logger = log_util.get_logger("")
@@ -33,7 +31,7 @@ def move_study_from_search_cache(dataset, *args, **kwargs):
   """
   accession_number = kwargs['accession_number']
 
-  target_file = f'{server_config.SEARCH_DIR}/{accession_number}.dcm'
+  target_file = f'{accession_number}.dcm'
 
   if not(os.path.exists(target_file)):
     logger.error(f'Could not find the file {accession_number} from pacs')
@@ -43,7 +41,7 @@ def move_study_from_search_cache(dataset, *args, **kwargs):
 def move_and_store(dataset, *args, **kwargs):
   """
     This function is a response to a C_find moves it over to the cache.
-    This means if a user searches for the same study twice on the same day, it's 
+    This means if a user searches for the same study twice on the same day, it's
     only downloaded once
 
     args:
@@ -373,7 +371,7 @@ def start_scp_server(ae_title):
     else:
       return_dataset = pydicom.Dataset()
       return_dataset.Status = 0xCAFE
-      return_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber') 
+      return_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber')
       return return_dataset
 
 
@@ -485,4 +483,3 @@ def search_query_pacs(config, logger, name="", cpr="", accession_number="", date
   logger.info(f'Returning search list of {len(response_list)}')
 
   return response_list
-

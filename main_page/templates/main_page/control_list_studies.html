@@ -1,7 +1,6 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_list_studies.css' %}">
@@ -20,7 +19,7 @@
     </div>
   {% endif %}
 
-  <table class="table table-hover" id="new_studies"> 
+  <table class="table table-hover" id="new_studies">
     <thead>
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>

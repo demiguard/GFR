@@ -1,7 +1,6 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_study.css' %}">
@@ -15,7 +14,7 @@
 
   <form method="POST" id="Contorl-study-form">
     {% csrf_token %}
-    
+
     <!-- Add patient info -->
     <div class="row">
       <div class="col-md-4">

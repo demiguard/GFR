@@ -1,11 +1,18 @@
+# Python Standard Module
 import datetime
+from datetime import date
+from typing import Any, Dict, Optional
 
+# Third party modules
+from pydicom import Dataset
+from pydicom.uid import SecondaryCaptureImageStorage, generate_uid
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-from .libs import server_config
+# GFR modules
 
+from main_page.libs import server_config, classproperty
 
 class Hospital(models.Model):
   id = models.AutoField(primary_key=True)
@@ -51,12 +58,10 @@ class Config(models.Model):
 
   # Configuration to PACS server
   pacs = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='pacs')
-
   storage = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="storage_ae", default=None)
 
   def __str__(self):
     return str(self.id)
-
 
 class Department(models.Model):
   id = models.AutoField(primary_key=True)
@@ -97,6 +102,7 @@ class User(AbstractBaseUser):
     return self.username
 
 class UserDepartmentAssignment(models.Model):
+  id = models.AutoField(primary_key=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   department = models.ForeignKey(Department, on_delete=models.CASCADE)
   class Meta:
@@ -110,7 +116,7 @@ class HandledExaminations(models.Model):
   handle_day       = models.DateField(default=timezone.now)
 
 # So Stuff breaks if there's no ServerConfiguration with an id=1 !IMPORTANT !NOTICE
-# All server configs with an id differtn from 1 is ignored.
+# All server configs with an id different from 1 is ignored.
 # This is something YOU have to check and ensure
 # TODO: Put this in some more official documentation
 class ServerConfiguration(models.Model):
@@ -127,4 +133,166 @@ class ServerConfiguration(models.Model):
   def __str__(self):
     return self.AE_title
 
+class StudyStatus(models.IntegerChoices):
+  INITIAL = 0
+  PARTIAL_FILLED = 1
+  READY = 2
+  CONTROL = 3
+  DELETED = 4
 
+class GFROptions(models.TextChoices):
+  NORMAL = "Normal"
+  MODERATE = "Moderat nedsat"
+  MAJOR = "Middelsvært nedsat"
+  STRONGLY = "Svært nedsat"
+
+class BodySurfaceMethods(models.TextChoices):
+  DU_BOIS = "Du Bois"
+  MOSTELLER = "Mosteller"
+  HAYCOCK = "HAYCOCK"
+
+class GFRMethods(models.TextChoices):
+  SINGLE = "En blodprøve, Voksen"
+  CHILD = "En blodprøve, Barn"
+  Multi = "Flere blodprøver"
+
+  @classproperty
+  def form_choices(cls):
+    return ((choice, choice.value) for choice in cls)
+
+class GFRStudy(models.Model):
+  # Core fields
+  StudyUID = models.CharField(max_length=128, primary_key=True)
+  StudyStatus = models.IntegerField(default=StudyStatus.INITIAL)
+  AccessionNumber = models.CharField(max_length=24, unique=True)
+  StudyID = models.CharField(max_length=24)
+  StationName = models.CharField(max_length=24)
+  PatientName = models.CharField(max_length=128)
+  PatientBirthDate = models.DateField(null=True, default=None, blank=True)
+  PatientID = models.CharField(max_length=10)
+  StudyDateTime = models.DateTimeField()
+  StudyDescription= models.CharField(max_length=26)
+  Department = models.ForeignKey(Department, on_delete=models.RESTRICT)
+  GFRVersion = models.CharField(max_length=20, default=f"GFRcalc - {server_config.SERVER_VERSION}")
+  # Optional fields
+  GFR = models.TextField(choices=GFROptions.choices, blank=True, default=None, null=True)
+  GFRMethod = models.TextField(choices=GFRMethods.choices, default=None, null=True, blank=True)
+  BodySurfaceMethod=models.TextField(choices=BodySurfaceMethods.choices, default=None, null=True, blank=True)
+  PatientSex = models.BooleanField(default=None, null=True)
+  PatientHeightCM = models.FloatField(default=None, null=True, blank=True)
+  PatientWeightKg = models.FloatField(default=None, null=True, blank=True)
+  Clearance=models.FloatField(default=None, null=True, blank=True)
+  ClearanceNormalized=models.FloatField(default=None, null=True, blank=True) # This is just here for convenience
+  InjectionDateTime=models.DateTimeField(default=None, null=True, blank=True)
+  VialNumber=models.SmallIntegerField(default=None, null=True, blank=True)
+  InjectionWeightBefore = models.FloatField(default=None, null=True, blank=True)
+  InjectionWeightAfter = models.FloatField(default=None, null=True, blank=True)
+  Standard=models.FloatField(default=None, null=True, blank=True)
+  ThinningFactor=models.FloatField(default=None, null=True, blank=True)
+  Comment=models.CharField(max_length=250, default=None, null=None, blank=True)
+
+  class Meta:
+    indexes = [
+      models.Index(fields=['StudyDateTime','Department'])
+    ]
+
+  def get_injections(self):
+    return InjectionSample.objects.filter(study=self)
+
+  def to_dataset(self):
+    status = self.calculate_status()
+
+    if status != StudyStatus.CONTROL:
+      return None
+
+    dataset = Dataset()
+
+    dataset.SOPClassUID = SecondaryCaptureImageStorage
+    dataset.SOPInstanceUID = generate_uid()
+    dataset.StudyDate = self.StudyDateTime.date()
+    dataset.StudyTime = self.StudyDateTime.time()
+    dataset.SeriesDate = self.StudyDateTime.date()
+    dataset.SeriesTime = self.StudyDateTime.time()
+    dataset.AccessionNumber = self.AccessionNumber
+    dataset.Modality = 'OT'
+    dataset.ConversionType = 'SYN'
+    if self.Department.hospital is not None:
+      dataset.InstitutionName = self.Department.hospital.name
+      dataset.InstitutionAddress = self.Department.hospital.address
+      dataset.InstitutionalDepartmentName = self.Department.name
+    dataset.StudyUID = self.StudyUID
+    dataset.StationName = self.StationName
+    dataset.StudyDescription = self.StudyDescription
+    dataset.SeriesDescription = self.GFRMethod
+    dataset.PatientName = self.PatientName
+    dataset.PatientID = self.PatientID
+
+
+    return dataset
+
+  @classmethod
+  def from_dataset(cls, dataset: Dataset) -> Optional[Dataset]:
+    ris_sequence = dataset.ScheduledProcedureStepSequence[0]
+    study_date_string = ris_sequence.ScheduledProcedureStepStartDate
+    study_time_string = ris_sequence.ScheduledProcedureStepStartTime
+
+    return cls.objects.create(
+      StudyUID=dataset.StudyUID,
+      AccessionNumber=dataset.AccessionNumber,
+      StudyID=dataset.StudyID,
+      PatientName=dataset.PatientName,
+      PatientBirthDate=date(
+        int(dataset.PatientBirthDate[0:4]),
+        int(dataset.PatientBirthDate[4:6]),
+        int(dataset.PatientBirthDate[6:8])
+      ),
+      PatientID=dataset.PatientID,
+      StudyDateTime=datetime.datetime(
+        int(study_date_string[0:4]),
+        int(study_date_string[4:6]),
+        int(study_date_string[6:8]),
+        int(study_time_string[0:2]),
+        int(study_time_string[2:4]),
+        int(study_time_string[4:6])
+      ),
+      StudyDescription=dataset.StudyDescription
+    )
+
+  def calculate_status(self) -> 'StudyStatus':
+    optional_any = False
+
+    for field in self._meta.get_fields():
+      if not isinstance(field, models.Field):
+        continue
+
+      if not field.null: # Optional
+        continue
+
+      optional_any |= self.__getattribute__(field.name) is not None
+
+    if optional_any:
+      return StudyStatus.PARTIAL_FILLED
+
+    return StudyStatus.INITIAL
+
+  def set_deleted(self, deleted: bool):
+    if deleted:
+      self.StudyStatus = StudyStatus.DELETED
+    else:
+      self.StudyStatus = self.calculate_status()
+    self.save()
+
+  def set_control(self, control: bool):
+    if control:
+      self.StudyStatus = StudyStatus.CONTROL
+    else:
+      self.StudyStatus = self.calculate_status()
+    self.save()
+
+
+class InjectionSample(models.Model):
+  id = models.BigAutoField(primary_key=True)
+  study = models.ForeignKey(GFRStudy, on_delete=models.CASCADE)
+  datetime = models.DateTimeField()
+  CountPerMinutes = models.FloatField()
+  deviation_percentage = models.FloatField()

@@ -12,8 +12,6 @@ class UserGuideView(View):
     Generates the file response for the documentation pdf page
     """
 
-
-
     return FileResponse(
       open(f'{server_config.STATIC_DIR}pdf/brugervejledning-metode.pdf', 'rb'),
       content_type='application/pdf'

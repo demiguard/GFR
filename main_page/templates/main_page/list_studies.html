@@ -1,7 +1,6 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/list_studies.css' %}">
@@ -49,7 +48,7 @@
     </div>
   {% endif %}
 
-  <table class="table table-hover" id="new_studies"> 
+  <table class="table table-hover" id="new_studies">
     <thead>
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
@@ -65,12 +64,13 @@
       <!-- Make each row redirect to fill_study/rigsnr with rigsnr being the rigs nr. of the patient clicked -->
       {% for study in registered_studies %}
         <tr>
-          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.name }}</td>
-          <td class="exam-status-column" onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'"><span class="oi oi-clipboard exam-status-{{ study.exam_status }}"></span></td>
-          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.cpr }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.study_date }}</td>
-          <td onclick="document.location='{% url "main_page:fill_study" study.accession_number %}'">{{ study.accession_number }}</td>
-          <td class="non-clickable">{{ study.procedure }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.AccessionNumber %}'">{{ study.PatientName }}</td>
+          <td class="exam-status-column" onclick="document.location='{% url "main_page:fill_study" study.AccessionNumber %}'">
+            <span class="oi oi-clipboard exam-status-{{ study.StudyStatus }}"></span></td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.AccessionNumber %}'">{{ study.PatientID }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.AccessionNumber %}'">{{ study.StudyDateTime.date }}</td>
+          <td onclick="document.location='{% url "main_page:fill_study" study.AccessionNumber %}'">{{ study.AccessionNumber }}</td>
+          <td class="non-clickable">{{ study.StudyDescription }}</td>
           <td>
             <button type="button" class="trash-btn btn btn-link">
               <span title="Fjern undersøgelse" class="oi oi-trash" aria-hidden="true"></span>

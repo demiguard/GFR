@@ -3,21 +3,18 @@ from django import forms
 from main_page import models
 from main_page.libs.enums import GENDER_NAMINGS
 
-# Login form
 class LoginForm(forms.Form):
   username = forms.CharField()
   password = forms.CharField(widget=forms.PasswordInput())
 
-
-# Ny undersøgelse
 class NewStudy(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.')
   name = forms.CharField(label='Navn')
-  study_date = forms.DateField(label='Dato (DD-MM-ÅÅÅÅ)')
+  study_date = forms.DateTimeField(
+    input_formats=['%d-%m-%Y'],
+    label='Dato')
   rigs_nr = forms.CharField(label='Accession nr.')
 
-
-#Form Control Study
 class GrandControlPatient(forms.Form):
   #Init
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
@@ -31,14 +28,14 @@ class GrandControlPatient(forms.Form):
   bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
 
   #Confirmation Fields
-  cpr_confirm                 = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
+  cpr_confirm                 = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   name_confirm                = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   sex_confirm                 = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   height_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   weight_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   vial_number_confirm         = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   vial_weight_before_confirm  = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-  vial_weight_after_confirm   = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")  
+  vial_weight_after_confirm   = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   injection_time_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   injection_date_confirm      = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   thin_fac_confirm            = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
@@ -62,12 +59,12 @@ class ControlPatient6(forms.Form):
     field_id = kwargs["field_id"]
 
     super(ControlPatient6, self).__init__( *args, { })
-    
-    self.fields['sample_time'].widget.attrs['readonly'] = True    
-    self.fields['sample_date'].widget.attrs['readonly'] = True  
+
+    self.fields['sample_time'].widget.attrs['readonly'] = True
+    self.fields['sample_date'].widget.attrs['readonly'] = True
     self.fields['sample_cnt' ].widget.attrs['readonly'] = True
     self.fields['sample_devi'].widget.attrs['readonly'] = True
-    self.fields['sample_time'].widget.attrs['class']    = 'form-input sample_time_field'    
+    self.fields['sample_time'].widget.attrs['class']    = 'form-input sample_time_field'
     self.fields['sample_date'].widget.attrs['class']    = 'form-input'
     self.fields['sample_cnt'].widget.attrs['class']     = 'form-input sample_count'
     self.fields['sample_devi'].widget.attrs['class']    = 'form-input Deviation'
@@ -111,13 +108,13 @@ class FillStudyGrandForm(forms.Form):
     (2, 'Flere blodprøver')
   ]
   sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
-  
+
   #Fields
   birthdate           = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
   cpr                 = forms.CharField(label='CPR', required=False)
   height              = forms.CharField(label='Højde (cm)', required=False)
   injection_time      = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
-  injection_date      = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)  
+  injection_date      = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)
   name                = forms.CharField(label='Navn', required=False)
   save_fac            = forms.BooleanField(required=False, label='Gem')
   sex                 = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
@@ -127,9 +124,9 @@ class FillStudyGrandForm(forms.Form):
   vial_number         = forms.IntegerField(label="Sprøjte nr.", min_value=0, max_value=99, required=False)
   vial_weight_after   = forms.CharField(label='Sprøjtevægt efter injektion (g)', required=False)
   vial_weight_before  = forms.CharField(label='Sprøjtevægt før injektion (g)', required=False)
-  weight              = forms.CharField( label='Vægt (kg)', required=False)
-  comment_field       = forms.CharField(label="Kommentar", 
-                                        required=False, 
+  weight              = forms.CharField(label='Vægt (kg)', required=False)
+  comment_field       = forms.CharField(label="Kommentar",
+                                        required=False,
                                         widget=forms.Textarea(attrs={
                                           "style": "height:75px;",
                                           "class": "col-md-8"
@@ -141,7 +138,6 @@ class FillStudyGrandForm(forms.Form):
     super(FillStudyGrandForm, self).__init__(*args, **kwargs)
     self.fields['cpr'].widget.attrs['readonly'] = True
     self.fields['name'].widget.attrs['readonly'] = True
-
 
 class GetBackupDateForm(forms.Form):
   dateofmessurement = forms.DateField(label='Backup fra dato (DD-MM-ÅÅÅÅ)', required=False)

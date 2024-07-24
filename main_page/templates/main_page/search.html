@@ -1,7 +1,6 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/search.css' %}">
@@ -43,7 +42,7 @@
         {% buttons %}
           <input type="button" name="search" value="Søg" id="search-btn">
         {% endbuttons %}
-    
+
         <div class="loader" id="searchloader"></div> <!-- Spinner animation -->
       </div>
     </form>

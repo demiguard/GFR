@@ -1,7 +1,6 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
 <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/deleted_studies.css' %}">
@@ -9,7 +8,7 @@
 
 {% block content %}
   <h2>Slettede undersøgelser</h2> <br>
-  <table class="table" id="deleted_studies"> 
+  <table class="table" id="deleted_studies">
     <thead>
       <tr>
         <th onclick="sort_table(0, 'deleted_studies')">Navn</th>

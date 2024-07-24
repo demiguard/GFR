@@ -2,7 +2,6 @@
 
 
 {% load static %}
-{% load bootstrap4 %}
 
 {% block head %}
 
@@ -18,7 +17,7 @@
     <tr id='Filter_{{ id }}'>
       <td class="col-md-3"> {{ active_filter }} </td>
       <td class="col-md-1"></td>
-      <td> <input 
+      <td> <input
         type="button"
         id="delete_button_{{ active_filter }}"
         name="{{ id }}"

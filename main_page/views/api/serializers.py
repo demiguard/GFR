@@ -49,7 +49,7 @@ class JSONSerializer:
     return getattr(obj, field.name)
 
 
-  def serialize(self, obj: Type[models.Model], fields=None) -> Dict:
+  def serialize(self, obj: models.Model, fields=None) -> Dict:
     """
     Serializes a django Model object to JSON
 

@@ -32,8 +32,8 @@ def update_private_tags() -> None:
 def get_recovered_date(
   accession_number: str,
   hospital_shortname: str,
-  active_studies_dir: str=server_config.FIND_RESPONS_DIR,
-  recovered_filename: str=server_config.RECOVERED_FILENAME
+  active_studies_dir: str="",
+  recovered_filename: str=""
   ) -> str:
   """
   Attempts to get the recovery date of a study
@@ -144,7 +144,7 @@ def update_tags(obj: Dataset, is_little_endian: bool=True, is_implicit_VR: bool=
         for sq in ds_sq:
           sq = update_tags(sq, is_little_endian=is_little_endian, is_implicit_VR=is_implicit_VR)
           seq_list.append(sq)
-        obj.add_new(ds.tag, new_dict_items[ds.tag][0], Sequence(seq_list)) 
+        obj.add_new(ds.tag, new_dict_items[ds.tag][0], Sequence(seq_list))
       elif new_dict_items[ds.tag][0] == 'LO':
         new_val = convert_string(ds.value, is_little_endian)
         obj.add_new(ds.tag, new_dict_items[ds.tag][0], new_val)
@@ -376,7 +376,7 @@ def try_add_sample_sequence(ds: Dataset, sample_seq: List[Tuple[datetime.datetim
   if sample_seq:
     logger.info('adding Seqence:{0}'.format(sample_seq))
     seq_list = []
-    
+
     # Add Information About the Sample
     for sample in sample_seq:
       seq_elem = Dataset()
@@ -384,7 +384,7 @@ def try_add_sample_sequence(ds: Dataset, sample_seq: List[Tuple[datetime.datetim
       seq_elem.add_new(0x00231022, 'DS', sample[1])
       seq_elem.add_new(0x00231023, 'DS', sample[2])
       seq_list.append(seq_elem)
-    
+
     ds.add_new(0x00231020, 'SQ', Sequence(seq_list))
   elif sample_seq == [] and 'ClearTest' in ds:
     logger.info('Removing Seqence')
@@ -477,7 +477,7 @@ def fill_dicom(ds,
 
   Kwargs:
     age                 : int, Age of the patient
-    birthday            : 
+    birthday            :
     bsa_method          : string, Method used to calculate Body Surface area
     clearance           : float, Clearance Value
     clearance_norm      : float, Clearance Value Normalized to 1.73m²
@@ -486,7 +486,7 @@ def fill_dicom(ds,
     dicom_history       : list[class:pydicom:dataset], contains the history of the patient
     exam_status         : int, status of the exam, e.g. to be reviewed, ready to send to packs, etc.
     gender              :
-    gfr                 : string, either 'Normal', 'Moderat Nedsat', 'Nedsat', 'Stærkt nedsat' 
+    gfr                 : string, either 'Normal', 'Moderat Nedsat', 'Nedsat', 'Stærkt nedsat'
     gfr_type            : string, Method used to calculate GFR
     height              : float, Height of patient wished to be stored
     injection_after     : float, Weight of Vial After Injection
@@ -496,7 +496,7 @@ def fill_dicom(ds,
     name                : string, Name on format Firstname<1 space>Middlenames sperated by 1 space<1 space>Lastname
     pixeldata           : image represented as byte-string
     ris_nr              : string, Accession number of dataset
-    sample_seq          : list of lists where every list is on the format: 
+    sample_seq          : list of lists where every list is on the format:
       *List_elem_1      : string on format 'YYYYMMDDHHMM', describing sample taken time
       *List_elem_2      : float, cpm of sample
       *List_elem_3      : float, stdcnt of the sample
@@ -526,11 +526,11 @@ def fill_dicom(ds,
           https://pydicom.github.io/pydicom/stable/release-notes.html
           or
           https://github.com/pydicom/pydicom/issues/799
-  
+
   TODO: Move all formatting out of this function, it should be handled by higher level functions
   """
   update_private_tags()
-  
+
   # Dictionary defining which arguments to run through __try_add_new
   try_adds_dict = {
     0x00080050 : ('SH', ris_nr),                                              # ds.AccessionNumber
@@ -558,15 +558,15 @@ def fill_dicom(ds,
     0x00231028 : ('DS', thiningfactor),                                       # ds.thiningfactor
     0x00231040 : ('LT', image_comment),                                       # ds.ClearenceComment
   }
-  
+
   for tag, args in try_adds_dict.items():
     VR, value = args[:2]
-    
+
     # Get check_val if available
     check_val = True
     if len(args) == 3:
       check_val = args[2]
-    
+
     try_add_new(ds, tag, VR, value, check_val=check_val)
 
   # Dictionary defining custom functions and corresponding arguments for more
@@ -643,7 +643,7 @@ def export_dicom(ds, file_path):
     csv_writer = csv.writer(
       csv_file,
       delimiter=',',
-      quotechar='"'     
+      quotechar='"'
     )
 
     csv_writer.writerow(header_row)

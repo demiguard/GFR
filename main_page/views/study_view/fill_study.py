@@ -1,48 +1,42 @@
-from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
-from django.template import loader
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, Http404
-from django.core.handlers.wsgi import WSGIRequest
-
-import shutil
-import os
-import datetime
+# Python standard library
 import logging
-import PIL
+import datetime
 import glob
 import math
-from pandas import DataFrame
-from dateutil import parser as date_parser
+from pathlib import Path
+from typing import Type, List, Tuple, Union, Generator, Dict
+
+# Third party Modules
+from django.views.generic import TemplateView
+from django.shortcuts import render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse, HttpResponseNotFound
+from django.core.handlers.wsgi import WSGIRequest
+from django.core.exceptions import ObjectDoesNotExist
+
 import pydicom
 from pydicom import uid
-import pandas
-import numpy as np
-from pathlib import Path
 
-from typing import Type, List, Tuple, Union, Generator, Dict
+# Clairvoyance packages
+from constants import GFR_LOGGER_NAME
+
+
+from main_page import models
+from main_page.models import User
+from main_page.forms import base_forms, FillStudyForm, GFRStudyForm
+from main_page.libs import enums
+from main_page.libs import dicomio
+from main_page.libs import dicomlib
+from main_page.libs import formatting
+from main_page.libs import server_config
+from main_page.libs import samba_handler
+from main_page.libs.clearance_math import clearance_math
+from main_page.libs.clearance_math import plotting
+
 # Custom type - for representation of csv files to be loaded on to page
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
-
-from main_page.libs.dirmanager import try_mkdir
-from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
-from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import dataset_creator
-from main_page.libs import server_config
-from main_page.libs import samba_handler
-from main_page.libs import formatting
-from main_page.libs import dicomlib
-from main_page.libs import dicomio
-from main_page.libs import enums
-from main_page.forms import base_forms
-from main_page import models
-from main_page.libs.clearance_math import clearance_math
-from main_page.libs.clearance_math import plotting
-from main_page import log_util
-
-logger = log_util.get_logger('GFRLogger')
+logger = logging.getLogger(GFR_LOGGER_NAME)
 
 # Dict. used for extraction of large request parameters in fill_study.post
 REQUEST_PARAMETER_TYPES = {
@@ -209,7 +203,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
   def get_counter_data(self, hospital: str) -> CsvDataType:
     """
-    Tries to retrieve counter data from the Samba Share to display on the site 
+    Tries to retrieve counter data from the Samba Share to display on the site
 
     Args:
       hospital: short name of the hospital to retrieve data from
@@ -272,16 +266,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     try:
       study_type = enums.STUDY_TYPE_NAMES.index(dataset.get("GFRMethod"))
     except (ValueError, AttributeError):
-      # Default to StudyType(0)
-      study_type = 0
-
+      pass
+      # Default to StudyType(0)FillStudyGrandForm, self
     cpr = dataset.get("PatientID")
     patient_sex = dataset.get("PatientSex")
     vial_number = dataset.get("VialNumber")
     if patient_sex:
       present_sex = enums.GENDER_SHORT_NAMES.index(patient_sex)
     else:
-      # Only attempt to determine sex from cpr nr. if nothing about sex is present in the dicom dataset 
+      # Only attempt to determine sex from cpr nr. if nothing about sex is present in the dicom dataset
       try:
         present_sex = enums.GENDER_SHORT_NAMES.index(
           clearance_math.calculate_sex(cpr))
@@ -438,7 +431,7 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     return previous_samples
 
 
-  def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
+  def get(self, request: WSGIRequest, accession_number: str) -> HttpResponse:
     """
     Handles GET requests to the view, i.e. the presentation side
 
@@ -447,10 +440,15 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       accession_number: RIS number for the study
     """
     hospital = request.user.department.hospital.short_name # type: ignore #failure ensured by login required
-    hospital_dir = f"{server_config.FIND_RESPONS_DIR}{hospital}/"
 
-    logger.info(f"Accessing study with accession_number: {accession_number}")
+    try:
+      study = models.GFRStudy.objects.get(AccessionNumber=accession_number)
+    except ObjectDoesNotExist:
+      return HttpResponseNotFound(request)
 
+
+
+    study_form = GFRStudyForm(instance=study)
     # Retrieve counter data to display from Samba Share
     error_message = "Der er ikke lavet nogen prøver de sidste 24 timer"
     try:
@@ -459,42 +457,19 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       csv_data, csv_data_len = [], 0
       error_message = conn_err
 
-    obj_filepath = Path(
-      hospital_dir,
-      accession_number,
-      f"{accession_number}.dcm"
-    )
-
-    dataset = dicomlib.dcmread_wrapper(obj_filepath)
-
-    # Get previous information for the study
-    previous_samples = self.get_previous_samples(dataset)
-
-    # Read previously entered samples
-    view_forms = self.initialize_forms(request, dataset)
-
-    # Initialize forms - concat forms into the context
-
-    # Get History
-    historic_studies = [study.split('/')[-1].split('.')[0] for study in glob.glob(f'{hospital_dir}/{accession_number}/*') if server_config.RECOVERED_FILENAME not in study]
-    historic_studies = list(filter(lambda study: not(study == accession_number), historic_studies))
-    historic_studies = ", ".join(historic_studies)
-
     context = {
+      'grand_form' : study_form,
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'rigsnr': accession_number,
-      'previous_samples': previous_samples,
-      'historic_studies': historic_studies,
       'csv_data': csv_data,
       'csv_data_len': csv_data_len,
       'error_message' : error_message
     }
-    context.update(view_forms)
 
     return render(request, self.template_name, context=context)
 
-  def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
+  def post(self, request: WSGIRequest, accession_number: str) -> HttpResponse:
     """
       This function handles the post request of /fill_study/accession_number
 
@@ -502,144 +477,51 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       In other words the responsiblity for this function is:
         Updating Department based thining factor
         Handling different POST-request methods
-
     """
-    hospital_shortname = request.user.department.hospital.short_name # type: ignore
-    department = request.user.department # type: ignore
 
-    # Load in dataset to work with based on accession number
-    dataset_filepath = Path(
-      server_config.FIND_RESPONS_DIR,
-      hospital_shortname,
-      accession_number,
-      f"{accession_number}.dcm"
-    )
+    hospital = request.user.department.hospital.short_name # type: ignore #failure ensured by login required
 
-    dataset = dicomlib.dcmread_wrapper(dataset_filepath)
-
-    # Extract POST request parameters with safer handling of special characters
     try:
-      post_req = formatting.extract_request_parameters(
-        request.POST,
-        REQUEST_PARAMETER_TYPES
-      )
-    except ValueError as E: # Handle edge cases where e.g. as user typed two commas in a float field and/or somehow got text into it
-      return HttpResponse("Server fejl: Et eller flere felter var ikke formateret korrekt!")
-
-    # Store form information in dataset regardless of submission type
-    dataset = store_form(post_req, dataset)
-
-    # Update department thinning factor if neccessary
-    if 'save_fac' in post_req and 'thin_fac' in post_req:
-      thin_fac = post_req['thin_fac']
-      if thin_fac:
-        logger.info(f"User: '{request.user}', updated thining factor to {thin_fac}")
-        department.thining_factor = thin_fac
-        department.thining_factor_change_date = datetime.date.today()
-        department.save()
-
-    dicomlib.fill_dicom(
-      dataset,
-      department=department,
-      station_name=department.config.ris_calling
-    )
-
-    # Use parameters fillout in store_form to compute GFR of patient
-    if "calculate" in request.POST:
-      # Comupute body surface area
-      height = math.ceil(math.floor(dataset.PatientSize * 10000) / 100)
-      """
-      we use: math.floor(height * 10000) / 100, as height * 100 results in floating-point
-      errors, due to weird Python behavior
-      (for details see: https://docs.python.org/3.6/tutorial/floatingpoint.html)
-      """
-
-      weight = dataset.PatientWeight
-      BSA = clearance_math.surface_area(height, weight)
-
-      # Compute dosis
-      inj_weight = dataset.injWeight
-      thin_fac = dataset.thiningfactor
-      std_cnt = dataset.stdcnt
-      vial_num = dataset.VialNumber
-      dosis = clearance_math.dosis(inj_weight, thin_fac, std_cnt)
-
-      # Compute clearance and normalized clearance
-      inj_datetime = datetime.datetime.strptime(
-        dataset.injTime,
-        "%Y%m%d%H%M",
-      )
-
-      sample_datetimes = [ ]
-      tec_counts = [ ]
-      if 'ClearTest' in dataset: 
-        for sample in dataset.ClearTest:
-          tmp_date = datetime.datetime.strptime(
-            sample.SampleTime,
-            "%Y%m%d%H%M"
-          )
-          sample_datetimes.append(tmp_date)
-          tec_counts.append(sample.cpm)
-
-      study_type = enums.StudyType(post_req["study_type"])
-
-      clearance, clearance_norm = clearance_math.calc_clearance(
-        inj_datetime,
-        sample_datetimes,
-        tec_counts,
-        BSA,
-        dosis,
-        study_type
-      )
-
-      # Compute kidney function
-      birthdate = datetime.datetime.strptime(dataset.PatientBirthDate,"%Y%m%d")
-      gender_num = post_req["sex"]
-      gender = enums.Gender(gender_num)
-      gender_name = enums.GENDER_NAMINGS[gender.value]
-
-      gfr_str, gfr_index = clearance_math.kidney_function(
-        clearance_norm,
-        birthdate,
-        gender
-      )
-
-      # Get historical data from PACS
-      try:
-        # Side effect this function saves the history in the dataset as well
-        history_dates, history_age, history_clrN = dicomio.get_history(dataset, hospital_shortname)
-      except ValueError as E: # Handle empty AET for PACS connection
-        logger.error(f'Value error detected {E}')
-        print(f'Value error detected {E}')
-        history_age = [ ]
-        history_clrN = [ ]
-        history_dates = [ ]
+      study = models.GFRStudy.objects.get(AccessionNumber=accession_number)
+    except ObjectDoesNotExist:
+      return HttpResponseNotFound(request)
 
 
-      dicomlib.fill_dicom(
-        dataset,
-        gfr            = gfr_str,
-        clearance      = clearance,
-        clearance_norm = clearance_norm,
-        exam_status    = 2,
+    error_message = "Der er ikke lavet nogen prøver de sidste 24 timer"
+    try:
+      csv_data, csv_data_len, error_messages = self.get_counter_data(hospital)
+    except ConnectionError as conn_err:
+      csv_data, csv_data_len = [], 0
+      error_message = conn_err
 
-      )
+    context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'rigsnr': accession_number,
+      'csv_data': csv_data,
+      'csv_data_len': csv_data_len,
+      'error_message' : error_message
+    }
 
-      pixel_data = plotting.generate_plot_from_dataset(dataset)
+    study_form = GFRStudyForm(request.POST, instance=study)
 
-      # Insert plot (as byte string) into dicom object
-      dicomlib.fill_dicom(
-        dataset,
-        pixeldata      = pixel_data
-      )
-    # end "calculate" if
-
-    # Save the filled out dataset
-    dicomlib.save_dicom(dataset_filepath, dataset)
-    # Redirect to correct site based on which action was performed
-    if "calculate" in request.POST:
-      return redirect('main_page:present_study', accession_number=accession_number)
+    if study_form.is_valid():
+      study = study_form.save(True)
     else:
-      return redirect('main_page:list_studies')
+      print(study_form.errors)
 
-    return self.get(request, accession_number)
+    if 'calculate' or 'save' in request.POST:
+      calculating = 'calculate' in request.POST
+
+    context = {
+      'grand_form' : study_form,
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'rigsnr': accession_number,
+      'csv_data': csv_data,
+      'csv_data_len': csv_data_len,
+      'error_message' : error_message
+    }
+
+
+    return render(request, self.template_name, context=context)

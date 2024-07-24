@@ -1,25 +1,19 @@
 {% extends 'main_page/base.html' %}
 
-{% load bootstrap4 %}
-
 {% block content %}
   <h2>Lav ny undersøgelse</h2> <br>
 
   <div id="form-container" class="col-md-4">
     <form method="POST" class="form">
       {% csrf_token %}
-      {% bootstrap_form study_form %}
-      
+      {{ study_form }}
       {% for err_msg in error_messages %}
         <div class="alert alert-danger" role="alert">
           Fejl: {{ err_msg }}
         </div>
       {% endfor %}
-
-      {% buttons %}
         <input type="submit" value="Opret">
         <input type="button" value="Annuller" onclick="document.location='{% url 'main_page:list_studies' %}'">
-      {% endbuttons %}
     </form>
   </div>
 {% endblock content %}

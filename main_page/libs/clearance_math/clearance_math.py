@@ -386,12 +386,12 @@ def calc_mean_gfr_for_toddlers(years_old: np.ndarray, factor: float):
 
 
 def generate_QA_plot(
-  delta_times,
-  tec99_cnt,
-  thining_factor,
-  accession_number,
-  image_height=server_config.PLOT_HEIGHT,
-  image_width=server_config.PLOT_WIDTH
+    delta_times,
+    tec99_cnt,
+    thinning_factor,
+    accession_number,
+    image_height=server_config.PLOT_HEIGHT,
+    image_width=server_config.PLOT_WIDTH
   ):
   """
   Generates a plot showing the predicted regression line
@@ -459,7 +459,7 @@ def generate_QA_plot(
   # Right side - text information
   r_value_str         = f"R Værdi: {r_value**2:.6f}\n"
   std_err_str         = f"Standard fejl: {standard_error:.6}\n"
-  thining_factor_str  = f"Fortyndingsfaktor: {thining_factor}\n"
+  thining_factor_str  = f"Fortyndingsfaktor: {thinning_factor}\n"
 
   text_str = f"""
     {thining_factor_str}

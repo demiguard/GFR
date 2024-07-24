@@ -8,7 +8,6 @@ class Gender(Enum):
 GENDER_NAMINGS = ['Mand', 'Kvinde']
 GENDER_SHORT_NAMES = ['M', 'F']
 
-
 class StudyType(Enum):
   ONE_SAMPLE_ADULT = 0  # 'En blodprøve, Voken'
   ONE_SAMPLE_CHILD = 1  # 'En blodprøve, Barn'

@@ -1,7 +1,7 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
-{% load bootstrap4 %}
+{% load gfr_tags %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/fill_study.css' %}">
@@ -19,35 +19,35 @@
 
   <form method="POST" id="fill-study-form">
     {% csrf_token %}
-    
+
     <!-- Add patient info -->
     <div class="form-row">
       <div class = "form-group col-md-3">
-        {% bootstrap_field grand_form.cpr %}
-        {% bootstrap_field grand_form.name %}
-        {% bootstrap_field grand_form.sex %}
-        {% bootstrap_field grand_form.birthdate %}
+        <div class="form-group">{{grand_form.PatientID.errors }}{{ grand_form.PatientID.label_tag }}{{ grand_form.PatientID }}</div>
+        <div class="form-group">{{grand_form.PatientName.errors }}{{ grand_form.PatientName.label_tag }}{{ grand_form.PatientName }}</div>
+        <div class="form-group">{{grand_form.PatientSex.errors }}{{ grand_form.PatientSex.label_tag }}{{ grand_form.PatientSex }}</div>
+        <div class="form-group">{{grand_form.PatientBirthDate.errors }}{{ grand_form.PatientBirthDate.label_tag }}{{ grand_form.PatientBirthDate }}</div>
       </div>
       <div class = "form-group col-md-3">
-        {% bootstrap_field grand_form.height %}
-        {% bootstrap_field grand_form.weight %}
-        {% bootstrap_field grand_form.injection_time %}
-        {% bootstrap_field grand_form.injection_date %}
+        <div class="form-group">{{grand_form.PatientHeightCM.errors }}{{grand_form.PatientHeightCM.label_tag}}{{ grand_form.PatientHeightCM }}</div>
+        <div class="form-group">{{grand_form.PatientWeightKg.errors }}{{grand_form.PatientWeightKg.label_tag}}{{ grand_form.PatientWeightKg }}</div>
+        <div class="form-group">{{grand_form.InjectionTime.errors }}{{grand_form.InjectionTime.label_tag}}{{ grand_form.InjectionTime }}</div>
+        <div class="form-group">{{grand_form.InjectionDate.errors }}{{grand_form.InjectionDate.label_tag}}{{ grand_form.InjectionDate }}</div>
       </div>
       <div class="form-group col-md-3">
-        {% bootstrap_field grand_form.vial_number %}
-        {% bootstrap_field grand_form.vial_weight_before %}
-        {% bootstrap_field grand_form.vial_weight_after %}
-        
-      </div>  
+        <div class="form-group">{{ grand_form.VialNumber.errors }}{{ grand_form.VialNumber.label_tag }}{{ grand_form.VialNumber }}</div>
+        <div class="form-group">{{ grand_form.InjectionWeightBefore.errors }}{{ grand_form.InjectionWeightBefore.label_tag }}{{ grand_form.InjectionWeightBefore }}</div>
+        <div class="form-group">{{ grand_form.InjectionWeightAfter.errors }}{{ grand_form.InjectionWeightAfter.label_tag }}{{ grand_form.InjectionWeightAfter }}</div>
+      </div>
       <div class = "form-group col-md-3">
-        {% bootstrap_field grand_form.thin_fac  %}
-        {% bootstrap_field grand_form.save_fac %}
+        <div class="form-group">{{ grand_form.ThinningFactor.label_tag }}{{ grand_form.ThinningFactor }}</div>
         <small><a id="reset_thin_fac" href="#">Hent fortyndingsfaktor</a></small>
-        {% bootstrap_field grand_form.study_type %}
+        <div>
+          {{ grand_form.Method.label_tag }}{{ grand_form.Method }}
+        </div>
       </div>
     </div>
-    
+
     <hr>
 
     <!-- Second Half -->
@@ -57,13 +57,11 @@
         <!-- Display test info -->
         <div class="form-row">
           <div class="form-group col-md-6">
-            {% bootstrap_field grand_form.standcount %}
-          </div>
-          {% buttons %}
+            {{ grand_form.standcount.label_tag }}{{ grand_form.standcount }}
             <input type="button" value="Tilføj standard" id="add-standard">
-          {% endbuttons %}      
+          </div>
         </div>
-        
+
         <h5>Blodprøvedata</h5>
         <div class="form-row">
           <div class="form-group col-md-2">PrøveDato</div>
@@ -99,7 +97,7 @@
           </div>
         {% endfor %}
         </div>
-        <!-- Add test info -->     
+        <!-- Add test info -->
         <div id="add-test-container">
           <strong>Tilføj prøve:</strong>
           <div class="form-row" id="form-top">
@@ -112,23 +110,21 @@
               {{ test_form.study_time }}
             </div>
           </div>
-          {% buttons %}
-            <input type="button" value="Tilføj tælletal" id="add-test">
-            <input type="button" value="Nulstil valgte prøver" id="reset-selected">
-          {% endbuttons %}
+          <input type="button" value="Tilføj tælletal" id="add-test">
+          <input type="button" value="Nulstil valgte prøver" id="reset-selected">
         </div>
-        
-        {% bootstrap_field grand_form.comment_field %}
 
-        {% buttons%}
-          <input type="submit" name="calculate" value="Beregn" id="calculate">
-          <input type="submit" name="save" value="Gem" id="save">
-          <input type="submit" name="cancel" value="Annuller" id="cancel">
-        {% endbuttons %}
+        <div class="form-group">
+          {{ grand_form.comment_field.label_tag }} {{ grand_form.comment_field }}
+        </div>
+
+        <input type="submit" name="calculate" value="Beregn" id="calculate">
+        <input type="submit" name="save" value="Gem" id="save">
+        <input type="submit" name="cancel" value="Annuller" id="cancel">
 
         <!-- Container for error/alert messages -->
         <div id="error-message-container">
-  
+
         </div>
       <!-- Left Closing -->
       </div>
@@ -147,7 +143,7 @@
                       </button>
                     </h2>
                   </div> <!-- card header closing-->
-        
+
                   <div id="collapse-{{ id }}" class="collapse" aria-labelledby="heading-{{ id }}" data-parent="#accordionContainer">
                     <div class="card-body">
                       <table class="table table-bordered table-hover">
@@ -171,7 +167,7 @@
                     </div> <!-- card-body Closing -->
                   </div> <!--collapse-ID closing -->
                 </div> <!-- card Closing -->
-                
+
                 <br>
               {% endfor %}
             </div> <!-- AccordingContainer Closing -->
@@ -182,15 +178,15 @@
 
         <div id="dynamic_generate_history">
           <input type="button" value="Tilbage til dagens målinger" id="remove-backup-btn">
-          
+
           <br><br>
-          
+
           <div id="history_container">
 
           </div> <!--history_container Closing-->
         </div> <!-- dynamic_generate_history Closing-->
-        
-        {% bootstrap_form get_backup_date_form %}
+
+        {{ get_backup_date_form }}
         <input type="button" value="Hent målinger" id="get-backup-btn">
       </div> <!-- Right closing-->
     </div>

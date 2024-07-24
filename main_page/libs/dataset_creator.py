@@ -5,9 +5,8 @@ import inspect
 
 from datetime import datetime, date
 
-from . import dicomlib
-from . import server_config
-from . import formatting
+from main_page.libs import dicomlib
+from main_page.libs import formatting
 from main_page import log_util
 
 logger = log_util.get_logger(__name__)
