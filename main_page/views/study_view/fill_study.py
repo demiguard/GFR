@@ -23,7 +23,7 @@ from constants import GFR_LOGGER_NAME
 
 from main_page import models
 from main_page.models import User
-from main_page.forms import base_forms, FillStudyForm, GFRStudyForm
+from main_page.forms import base_forms, GFRStudyForm, SampleForm
 from main_page.libs import enums
 from main_page.libs import dicomio
 from main_page.libs import dicomlib
@@ -457,7 +457,10 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
       csv_data, csv_data_len = [], 0
       error_message = conn_err
 
+    sampleForm = SampleForm()
+
     context = {
+      'sample_form' : sampleForm,
       'grand_form' : study_form,
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
@@ -480,6 +483,8 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
     """
 
     hospital = request.user.department.hospital.short_name # type: ignore #failure ensured by login required
+
+    sampleForm = SampleForm()
 
     try:
       study = models.GFRStudy.objects.get(AccessionNumber=accession_number)
@@ -505,15 +510,17 @@ class FillStudyView(LoginRequiredMixin, TemplateView):
 
     study_form = GFRStudyForm(request.POST, instance=study)
 
-    if study_form.is_valid():
-      study = study_form.save(True)
-    else:
-      print(study_form.errors)
 
     if 'calculate' or 'save' in request.POST:
       calculating = 'calculate' in request.POST
+      if study_form.is_valid():
+        study = study_form.save(True)
+      else:
+        print("Not valid need some tests here")
+
 
     context = {
+      'sample_form' : sampleForm,
       'grand_form' : study_form,
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,

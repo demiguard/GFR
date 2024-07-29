@@ -2,11 +2,11 @@ var helper = (function() {
   var within_bound = function(val, low, high) {
     /*
     Checks if given value is with a specified bound
-  
+
     Args:
       val: integer or float value to check against
       args: dict containing arguments "low" and "high"
-  
+
     Returns:
       True, if val is within low and high or if val is empty. False otherwise
     */
@@ -63,7 +63,7 @@ var helper = (function() {
 
   /*
   Validates if a given date string is in the format: YYYY-MM-DD (ISO 8601)
-  
+
   Args:
     date_str: string to validate against
 
@@ -100,7 +100,7 @@ var helper = (function() {
     let day = date_str.substr(8,2);
     let month = date_str.substr(5,2);
     let year = date_str.substr(0,4);
-    return day + '-' + month + '-' + year;  
+    return day + '-' + month + '-' + year;
   };
 
   var convert_danish_date_to_date_format = function(date_str){
@@ -123,12 +123,12 @@ var helper = (function() {
   */
   var auto_char = function(field, c, n) {
     const BACKSPACE_KEY = 8;
-    
+
     field.bind('keypress', function(key) {
 
       if (key.which !== BACKSPACE_KEY) {
         let number_of_chars = $(this).val().length;
-        
+
         if (number_of_chars === n  && String.fromCharCode(key.which) !== c){
           let prev_val = $(this).val();
           $(this).val(prev_val + c);

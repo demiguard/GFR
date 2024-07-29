@@ -154,7 +154,7 @@ class BodySurfaceMethods(models.TextChoices):
 class GFRMethods(models.TextChoices):
   SINGLE = "En blodprøve, Voksen"
   CHILD = "En blodprøve, Barn"
-  Multi = "Flere blodprøver"
+  MULTI = "Flere blodprøver"
 
   @classproperty
   def form_choices(cls):
@@ -292,7 +292,7 @@ class GFRStudy(models.Model):
 
 class InjectionSample(models.Model):
   id = models.BigAutoField(primary_key=True)
-  study = models.ForeignKey(GFRStudy, on_delete=models.CASCADE)
-  datetime = models.DateTimeField()
+  Study = models.ForeignKey(GFRStudy, on_delete=models.CASCADE)
+  DateTime = models.DateTimeField()
   CountPerMinutes = models.FloatField()
-  deviation_percentage = models.FloatField()
+  DeviationPercentage = models.FloatField()

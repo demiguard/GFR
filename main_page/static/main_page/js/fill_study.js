@@ -210,7 +210,7 @@ function add_threshold_checking(field_alerter) {
     "#id_vial_weight_before" : "Sprøjtevægt før injektion",
     "#id_vial_weight_after"  : "Sprøjtevægt efter injektion",
     "#id_thin_fac"           : "Fortyndingsfaktor",
-    "#id_standcount"         : "Standardtælletal"
+    "#id_Standard"           : "Standardtælletal"
   }
 
   let id_thresholds = [
@@ -219,7 +219,7 @@ function add_threshold_checking(field_alerter) {
     {'id': '#id_vial_weight_before',  'min_val': 2,     'max_val': 5},
     {'id': '#id_vial_weight_after',   'min_val': 0,     'max_val': 5},
     {'id': '#id_thin_fac',            'min_val': 3500,  'max_val': 10000},
-    {'id': '#id_standcount',          'min_val': 0,     'max_val': 100000}
+    {'id': '#id_Standard',          'min_val': 0,     'max_val': 100000}
   ];
 
   for (var i = 0; i < id_thresholds.length; i++) {
@@ -303,24 +303,24 @@ function add_datetime_checking(field_alerter) {
   */
   // Mappings from field ids to their danish display text for alert messages
   let ID_NAME_MAPPINGS = {
-    "#id_injection_time": "Injektionstidspunkt",
-    "#id_study_time": "Prøvetidspunkt",
-    "#id_injection_date": "Injektionsdato",
-    "#id_study_date": "Prøvedato",
+    "#id_InjectionTime": "Injektionstidspunkt",
+    "#id_SampleTime": "Prøvetidspunkt",
+    "#id_InjectionDate": "Injektionsdato",
+    "#id_SampleDate": "Prøvedato",
     "#id_dateofmessurement": "Hent fra backup dato",
-    "#id_birthdate": "Fødselsdato",
+    "#PatientBirthDate": "Fødselsdato",
   };
 
   let time_ids = [
-    { "id": "#id_injection_time", "alert_type": "danger"},
-    { "id": "#id_study_time", "alert_type": "danger" },
+    { "id": "#id_InjectionTime", "alert_type": "danger"},
+    { "id": "#id_SampleTime", "alert_type": "danger" },
   ];
 
   let date_ids = [
-    { "id": "#id_injection_date", "alert_type": "danger" },
-    { "id": "#id_study_date", "alert_type": "danger" },
+    { "id": "#id_InjectionDate", "alert_type": "danger" },
+    { "id": "#id_SampleDate", "alert_type": "danger" },
     { "id": "#id_dateofmessurement", "alert_type": "warning" },
-    { "id": "#id_birthdate", "alert_type": "danger" },
+    { "id": "#id_PatientBirthDate", "alert_type": "danger" },
   ];
 
   // Add to time fields
@@ -355,8 +355,8 @@ function add_timefield_auto_colons() {
   Initializes time fields:
   automatically add colons after the second character has been typed
   */
-  helper.auto_char($("input[name='injection_time']"), ':', 2);
-  helper.auto_char($("input[name='study_time']"), ':', 2);
+  helper.auto_char($("input[name='InjectionTime']"), ':', 2);
+  helper.auto_char($("input[name='SampleTime']"), ':', 2);
   helper.auto_char($(".sample_time_field"), ':', 2)
 }
 
@@ -366,11 +366,10 @@ function initialize_date_fields() {
   add datepicker widgets to each field
   */
   // Add date pickers to date fields
-  $('#id_injection_date').datepicker({format: 'dd-mm-yyyy'});
-  $('#id_study_date').datepicker({format: 'dd-mm-yyyy'});
-  $('#id_birthdate').datepicker({format:'dd-mm-yyyy'});
-  $('#id_dateofmessurement').datepicker({format:'dd-mm-yyyy'});
-}
+  $('#id_SampleDate').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_InjectionDate').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_PatientBirthDate').datepicker({format:'dd-mm-yyyy'});
+  $('#id_dateofmessurement').datepicker({format:'dd-mm-yyyy'});}
 
 function initialize_number_fields() {
   /*
@@ -568,10 +567,10 @@ function initialize_calculate_button(alerter) {
       "#id_vial_weight_before",
       "#id_vial_weight_after",
       "#id_injection_time",
-      "#id_injection_date",
+      "#id_InjectionDate",
       "#id_std_cnt",
       "#id_thin_fac",
-      "#id_standcount",
+      "#id_Standard",
       "#id_birthdate",
     ];
 
@@ -624,11 +623,11 @@ function initialize_calculate_button(alerter) {
       ErrorMap.set("#id_weight", "Vægt feltet")
       ErrorMap.set("#id_vial_weight_before", "SprøjteVægt før feltet")
       ErrorMap.set("#id_vial_weight_after", "Sprøjtevægt efter feltet")
-      ErrorMap.set("#id_injection_time", "injektions tidpunktet feltet")
-      ErrorMap.set("#id_injection_date", "injektions datoen feltet")
+      ErrorMap.set("#id_InjectionTime", "injektions tidpunktet feltet")
+      ErrorMap.set("#id_InjectionDate", "injektions datoen feltet")
       ErrorMap.set("#id_std_cnt", "Standard tælletals feltet")
       ErrorMap.set("#id_thin_fac", "Fortydningstals felt")
-      ErrorMap.set("#id_standcount", "Standard tælletals feltet")
+      ErrorMap.set("#id_Standard", "Standard tælletals feltet")
       ErrorMap.set("#id_birthdate",    "Fødselsdags feltet")
       ErrorMap.set(".sample_time_field", "En prøves tids felt")
       ErrorMap.set(".sample_count_field", "En prøves count felt")
@@ -648,8 +647,8 @@ function initialize_calculate_button(alerter) {
 
     // Check that injection date isn't in the future
     var now = new Date();
-    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
-    var inj_time_val = $('#id_injection_time').val();
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_InjectionDate').val());
+    var inj_time_val = $('#id_InjectionTime').val();
     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
     var dt = Date.parse(dt_str);
 
@@ -680,8 +679,8 @@ function initialize_calculate_button(alerter) {
     var date_fields = $("#test-data-container [name='sample_date']");
     var time_fields = $("#test-data-container [name='sample_time']");
 
-    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
-    var inj_time_val = $('#id_injection_time').val();
+    var inj_date_val = helper.convert_danish_date_to_date_format($('#id_InjectionDate').val());
+    var inj_time_val = $('#id_InjectionTime').val();
     var dt_str = inj_date_val + ' ' + inj_time_val + ':00';
     var dt = Date.parse(dt_str);
 
@@ -717,11 +716,8 @@ $(function() {
 
   initialize_date_fields();
 
-  initialize_number_fields();
 
   initialize_before_unload_handler();
-
-  initialize_thin_fac();
 
   initialize_save_button(field_alerter);
 
@@ -736,6 +732,4 @@ $(function() {
   add_inj_comparison(field_alerter);
 
   add_datetime_checking(field_alerter);
-
-
 });

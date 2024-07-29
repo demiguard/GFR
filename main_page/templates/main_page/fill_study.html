@@ -57,9 +57,9 @@
         <!-- Display test info -->
         <div class="form-row">
           <div class="form-group col-md-6">
-            {{ grand_form.standcount.label_tag }}{{ grand_form.standcount }}
-            <input type="button" value="Tilføj standard" id="add-standard">
+            {{ grand_form.Standard.label_tag }}{{ grand_form.Standard }}
           </div>
+            <input type="button" value="Tilføj standard" id="add-standard">
         </div>
 
         <h5>Blodprøvedata</h5>
@@ -102,12 +102,12 @@
           <strong>Tilføj prøve:</strong>
           <div class="form-row" id="form-top">
             <div class="form-group col-md-4">
-              {{ test_form.study_date.label }}
-              {{ test_form.study_date }}
+              {{ sample_form.SampleDate.label }}
+              {{ sample_form.SampleDate }}
             </div>
             <div class="form-group col-md-4">
-              {{ test_form.study_time.label }}
-              {{ test_form.study_time }}
+              {{ sample_form.SampleTime.label }}
+              {{ sample_form.SampleTime }}
             </div>
           </div>
           <input type="button" value="Tilføj tælletal" id="add-test">

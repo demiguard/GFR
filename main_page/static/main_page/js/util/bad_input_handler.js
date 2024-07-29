@@ -1,14 +1,11 @@
-
-
-
-var bad_input_handler = (function() {
+const bad_input_handler = (function() {
   const BACKSPACE_KEY = 8;
 
   var remove_decimal_values = function (Value){
     var string = Value.split(".")
     return string[0]
   }
-  
+
   var replace_dots_with_commas = function (Value) {
     var string = Value.split(".");
     var zero_test = /^0+$/;

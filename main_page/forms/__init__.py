@@ -7,58 +7,36 @@ from typing import Any, Mapping
 from django import forms
 from django.core.files.base import File
 from django.db.models.base import Model
+from django.utils.timezone import get_current_timezone
 from django.forms.utils import ErrorList
 
 # Clairvoyance Modules
+from main_page.forms.fields import DanishDateField, DanishFloatField, SecondLessTimeField
 from main_page.libs.enums import GENDER_NAMINGS
-from main_page.models import GFRStudy, GFRMethods
+from main_page.models import GFRStudy, GFRMethods, InjectionSample
 
-class FillStudyForm(forms.Form):
+class SampleForm(forms.ModelForm):
   class Meta:
-    widgets = {
+    model = InjectionSample
+    fields = [
+      'DateTime',
+      'CountPerMinutes',
+      'DeviationPercentage'
+    ]
 
-    }
+  SampleTime = SecondLessTimeField(label="Injektionstidspunkt (tt:mm)",
+                                  localize=True,
+                                  required=False)
 
-  #init
-  types = [
-    (0, 'En blodprøve, voksen'),
-    (1, 'En blodprøve, barn'),
-    (2, 'Flere blodprøver')
-  ]
-  sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
+  SampleDate = DanishDateField(label="Injektionsdato",
+                                  localize=True,
+                                  required=False)
 
-  #Fields
-  birthdate           = forms.DateField(label='Fødselsdato (DD-MM-ÅÅÅÅ)', required=False)
-  cpr                 = forms.CharField(label='CPR', required=False)
-  height              = forms.FloatField(label='Højde (cm)', required=False, localize=True)
-  injection_time      = forms.TimeField(label='Injektionstidspunkt (tt:mm)', required=False)
-  injection_date      = forms.DateField(label='Injektionsdato (DD-MM-ÅÅÅÅ)', required=False)
-  name                = forms.CharField(label='Navn', required=False)
-  sex                 = forms.ChoiceField(choices=sex_options, label='Køn', required=False)
-  standcount          = forms.FloatField(label="Standardtælletal", required=False, localize=True)
-  study_type          = forms.ChoiceField(label='Metode', choices=types, widget=forms.RadioSelect())
-  thin_fac            = forms.FloatField(label='Fortyndingsfaktor', required=False)
-  vial_number         = forms.IntegerField(label="Sprøjte nr.", min_value=0, max_value=99, required=False)
-  vial_weight_after   = forms.FloatField(label='Sprøjtevægt efter injektion (g)', required=False, localize=True)
-  vial_weight_before  = forms.FloatField(label='Sprøjtevægt før injektion (g)', required=False, localize=True)
-  weight              = forms.FloatField(label='Vægt (kg)', required=False, localize=True)
-  comment_field       = forms.CharField(label="Kommentar",
-                                        required=False,
-                                        widget=forms.Textarea(attrs={
-                                          "style": "height:75px;",
-                                          "class": "col-md-8"
-                                          })
-                                        )
-
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
-    self.fields['cpr'].widget.attrs['readonly'] = True
-    self.fields['name'].widget.attrs['readonly'] = True
 
     for field in self.fields:
-      if field not in ['study_type']:
-        self.fields[field].widget.attrs['class'] = 'form-control'
-
+      self.fields[field].widget.attrs['class'] = 'form-control'
 
 class GFRStudyForm(forms.ModelForm):
   class Meta:
@@ -66,7 +44,6 @@ class GFRStudyForm(forms.ModelForm):
     fields = [
       'PatientID',
       'PatientName',
-      'PatientSex',
       'PatientBirthDate',
       'PatientHeightCM',
       'PatientWeightKg',
@@ -98,48 +75,44 @@ class GFRStudyForm(forms.ModelForm):
       'ThinningFactor' : "Fortyndingsfaktor",
       'Comment' : "Kommentar",
     }
-    widgets = {
-
+    field_classes = {
+      'PatientHeightCM' : DanishFloatField,
+      'PatientWeightKg' : DanishFloatField,
+      'Standard' : DanishFloatField,
+      'InjectionWeightBefore' : DanishFloatField,
+      'InjectionWeightAfter' : DanishFloatField,
+      'ThinningFactor' : DanishFloatField,
     }
 
-  PatientBirthDate = forms.DateField(input_formats=[
-                                    '%d-%m-%Y',
-                                    '%d/%m/%Y',
-                                    '%Y-%m-%d',
-                                    '%Y/%m/%d',
-                                  ],
-                                  label="Fødseldag",
-                                  localize=True,
-                                  required=True,
-                                  widget=forms.DateInput(attrs={'type' : 'date'}, format="%d/%m/%Y"))
+  PatientSex = forms.ChoiceField(
+    choices=[(i, gender) for i, gender in enumerate(GENDER_NAMINGS)],
+    label="Køn"
+  )
 
-  InjectionTime = forms.TimeField(label="Injektionstidspunkt (tt:mm)",
+  PatientBirthDate = DanishDateField(label="Fødseldag",
+                                  localize=True,
+                                  required=True)
+
+  InjectionTime = SecondLessTimeField(label="Injektionstidspunkt (tt:mm)",
                                   localize=True,
                                   required=False)
 
-  InjectionDate = forms.DateField(input_formats=[
-                                    '%d-%m-%Y',
-                                    '%d/%m/%Y',
-                                    '%Y-%m-%d',
-                                    '%Y/%m/%d',
-                                  ],
-                                  label="Injektionsdato",
+  InjectionDate = DanishDateField(label="Injektionsdato",
                                   localize=True,
-                                  required=False, widget=forms.DateInput({'type' : 'date', "pattern" : "dd-mm-yyyy", 'min' : "1900-01-01", 'max' : "2099-12-31" }, format="%d/%m/%Y"))
+                                  required=False)
 
   Method = forms.ChoiceField(choices=GFRMethods.form_choices,
                              widget=forms.RadioSelect,
                              required=False)
 
   def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     instance: Optional[GFRStudy] = kwargs.get('instance')
 
-    if instance:
+    if isinstance(instance, GFRStudy):
       if instance.InjectionDateTime is not None:
-        instance['InjectionTime'] = instance.InjectionDateTime.time()
-        instance['InjectionDate'] = instance.InjectionDateTime.date()
-
-    super().__init__(*args, **kwargs)
+        self.fields['InjectionTime'].initial = instance.InjectionDateTime.astimezone(get_current_timezone()).time()
+        self.fields['InjectionDate'].initial = instance.InjectionDateTime.date()
 
     self.fields['PatientID'].widget.attrs['readonly'] = True
     self.fields['PatientName'].widget.attrs['readonly'] = True
@@ -147,19 +120,28 @@ class GFRStudyForm(forms.ModelForm):
     for field in self.fields:
       if field not in ['Method']:
         self.fields[field].widget.attrs['class'] = 'form-control'
-
+      elif isinstance(instance, GFRStudy) and field == 'Method':
+        bound_field = self.fields['Method']
+        if instance.GFRMethod is not None:
+          bound_field.initial = GFRMethods(instance.GFRMethod)
 
   def save(self, commit=True):
-    form: GFRStudy = super(GFRStudyForm, self).save(commit=False)
+    study: GFRStudy = super(GFRStudyForm, self).save(commit=False)
 
     if self.cleaned_data['InjectionTime'] is not None and \
        self.cleaned_data['InjectionDate'] is not None:
 
-      form.InjectionDateTime = datetime.combine(
+      study.InjectionDateTime = datetime.combine(
         self.cleaned_data['InjectionDate'],
-        self.cleaned_data['InjectionTime']
+        self.cleaned_data['InjectionTime'],
+        tzinfo=get_current_timezone()
       )
 
+    if self.cleaned_data['Method']:
+      for option in GFRMethods:
+        if option.value == self.cleaned_data['Method']:
+          study.GFRMethod = option
+
     if commit:
-      form.save()
-    return form
+      study.save()
+    return study

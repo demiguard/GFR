@@ -13,7 +13,7 @@ class CSVHandler {
     this.selected_row_ids = [ ]; // List of which rows have been currently selected
 
     this.test_count = 0; // Counter of how many tests have been added
-  
+
     // Set click events and test_count
     let old_locks = $('.row-lock-btn');
     let old_locks_len = old_locks.length;
@@ -35,7 +35,7 @@ class CSVHandler {
   init_row_selector(row_class) {
     /*
     Adds the on click event to each row in every csv file
-  
+
     Args:
       row_class: class assigned to each row in the csv accordion
     */
@@ -46,7 +46,7 @@ class CSVHandler {
 
       if (csv_handler.selected_row_ids.includes(row_id)) { // If already selected - deselect it
         $(this).removeClass('row-selected');
-        
+
         let idx = csv_handler.selected_row_ids.indexOf(row_id);
         csv_handler.selected_row_ids.splice(idx, 1);
       } else if (csv_handler.selected_row_ids.length < MAX_SELECT_COUNT) {
@@ -63,11 +63,11 @@ class CSVHandler {
     // Initializes the click event for 'Tilføj prøve'
     // */
     let csv_handler = this;
-    
-    add_test_btn.on('click', function() {    
+
+    add_test_btn.on('click', function() {
       if (csv_handler.check_selected_count()) {
         // Add average over selected samples
-        csv_handler.add_test(csv_handler.compute_selected_avg); 
+        csv_handler.add_test(csv_handler.compute_selected_avg);
       } else {
         // Add empty test, if no samples were selected
         csv_handler.add_test(function() { return 0; });
@@ -78,7 +78,7 @@ class CSVHandler {
   add_test(selected_avg_func) {
     /*
     adds a new sample to the list of tests
-  
+
     Args:
       selected_avg_func: function which computes the average of selected csv rows
     */
@@ -86,8 +86,8 @@ class CSVHandler {
     let alerter = this.alerter;
 
     // Check if time and date fields are correctly formatted
-    let study_time_field = $('#id_study_time');
-    let study_date_field = $('#id_study_date');
+    let study_time_field = $('#id_InjectionTime');
+    let study_date_field = $('#id_InjectionDate');
 
     alerter.remove_alert('deviation')
     var deviation = 0;
@@ -102,24 +102,27 @@ class CSVHandler {
     if (this.difference_check(MAX_DIFFERENCE)) {
       alerter.add_alert(
         'diff_check',
-        'Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!', 
+        'Datapunkterne har meget stor numerisk forskel, Tjek om der ikke er sket en tastefejl!',
         'warning'
       );
     }
 
     // Check if time difference between injection time and test time is within a set threshold
-    let inj_date_val = helper.convert_danish_date_to_date_format($('#id_injection_date').val());
-    let inj_time_val = $('#id_injection_time').val();
+
+    const sampleDateValue = $('#id_SampleDate').val();
+    console.log(sampleDateValue)
+    let inj_date_val = helper.convert_danish_date_to_date_format(sampleDateValue);
+    let inj_time_val = $('#id_SampleTime').val();
     let inj_datetime_str = inj_date_val + 'T' + inj_time_val + ':00';
 
     let time_of_inj = new Date(inj_datetime_str);
-    
+
     let study_date_val = helper.convert_danish_date_to_date_format(study_date_field.val());
     let study_time_val = study_time_field.val();
     let study_datetime_str = study_date_val + 'T' + study_time_val + ':00';
 
     let time_of_study = new Date(study_datetime_str);
-    
+
     let time_diff = time_of_study - time_of_inj;
     console.log("time_diff: " + time_diff);
 
@@ -128,7 +131,7 @@ class CSVHandler {
     if (time_of_study < time_of_inj) {
       // alerter.add_field_alert(study_date_field, 'danger');
       // alerter.add_field_alert(study_time_field, 'danger');
-      
+
       alerter.add_alert(
         'inj_diff',
         'Prøve tidspunktet kan ikke være før injektionstidspunktet.',
@@ -198,7 +201,7 @@ class CSVHandler {
     time_input.readOnly = true;
     time_field_div.appendChild(time_input);
     helper.auto_char($(time_input),':',2)
-    
+
     var count_field_div = document.createElement('div');
     count_field_div.classList.add('form-group');
     count_field_div.classList.add('col-md-2');
@@ -252,7 +255,7 @@ class CSVHandler {
     lock_btn.classList.add('btn-light');
     lock_btn.classList.add('row-lock-btn');
     lock_btn_div.appendChild(lock_btn);
-    
+
     // Append everything to the DOM
     $('#test-data-container').append(row_div);
     $('#test-data-container .form-row').last().append(date_field_div);
@@ -280,9 +283,9 @@ class CSVHandler {
 
   /**
    * Calculates the deviation of the Samples
-   * 
-   * @param {List of numbers for the devation to be caculated from} numbers 
-   * 
+   *
+   * @param {List of numbers for the devation to be caculated from} numbers
+   *
    * See Flemmings mail from 2020-05-06
    */
   deviation(numbers ){
@@ -294,7 +297,7 @@ class CSVHandler {
       }
       if (max_number < numbers[i]){
         max_number = numbers[i];
-      } 
+      }
     }
     return (max_number-min_number) / (max_number+min_number) * 100;
 
@@ -307,7 +310,7 @@ class CSVHandler {
     var numbers = [];
 
     for(var i = 0; i < this.selected_row_ids.length; i++){
-      numbers.push(this.get_row_count(this.selected_row_ids[i])); 
+      numbers.push(this.get_row_count(this.selected_row_ids[i]));
     }
 
     return numbers;
@@ -318,18 +321,18 @@ class CSVHandler {
     /*
     Checks whether any two rows in the selected rows array (this.selected_row_ids)
     has a large numerical difference between them.
-  
+
     Args:
       threshold: the threshold for the difference
-  
-    Returns: 
+
+    Returns:
       True if there are two rows with a large numerical difference, false otherwise.
     */
     // Ignore multiple test studies, always return false
     if (this.selected_row_ids.length <= 1) {
       return false;
     }
-    
+
     // Check all rows if just one test
     var ret = true;
 
@@ -368,7 +371,7 @@ class CSVHandler {
     if (row_id[0] === '#') {
       clean_id = row_id.substring(1, row_id.length);
     }
-    
+
     let text = $('#' + clean_id).children().eq(COUNT_COLUMN_NUMBER).text().replace(',','.');
     return parseFloat(text);
   }
@@ -379,10 +382,10 @@ class CSVHandler {
     */
     lock_btn.on("click", function() {
       var form_parent = $(this).parent().parent();
-      
+
       var readonly_fields = form_parent.children('.readonly-field');
       let readonly_fields_len = readonly_fields.length;
-      
+
       for (var i = 0; i < readonly_fields_len; i++) {
         readonly_fields[i].firstElementChild.readOnly = false;
       }
@@ -413,7 +416,7 @@ class CSVHandler {
   */
   check_test_count() {
     let study_method = $('input[name=study_type]:checked').val();
-    
+
     if (study_method <= 1) {          // 'Et punkt voksen' eller 'Et punkt voksen'
       let test_count = $('#test-data-container .form-row').length;
       if (test_count >= 1) {
@@ -445,13 +448,13 @@ class CSVHandler {
   resolve_tests(max_tests) {
     /*
     Removes tests until there is only max_tests number of the latest tests left
-  
+
     Args:
       max_tests: number of tests to leave be
     */
     var test_rows = $('#test-data-container .form-row');
     let test_rows_len = test_rows.length;
-    
+
     for (var i = 0; i < test_rows_len - max_tests; i++) {
       test_rows[i].parentNode.removeChild(test_rows[i]);
     }
@@ -460,14 +463,14 @@ class CSVHandler {
   compute_selected_avg() {
     /*
     Computes the average of all selected rows
-  
+
     Returns:
       The average of selected rows
     */
     var sum = 0;
     let rows = $(".row-selected");
     let row_count = rows.length;
-    
+
     for (var i = 0; i < row_count; i++) {
       sum += parseFloat(bad_input_handler.convert_comma_to_float(rows[i].children[COUNT_COLUMN_NUMBER].innerText));
     }
@@ -484,10 +487,10 @@ class CSVHandler {
   check_selected_count() {
     /*
     Checks if the number of selected rows is greater than 0
-  
+
     Returns:
       True, if the number of selected row is greater than 0, false otherwise.
-  
+
     Remark:
       This function might set alerts based on the number of selected rows.
     */
@@ -552,14 +555,14 @@ class CSVHandler {
       if (csv_handler.difference_check(MAX_DIFFERENCE)) {
         csv_handler.alerter.add_alert(
           'standard_diff',
-          'Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.', 
+          'Datapunkterne har meget stor numerisk forskel. Tjek om der ikke er sket en tastefejl.',
           'warning'
         );
       }
 
       // Add the computed avg. to the standard field
       let average = csv_handler.compute_selected_avg();
-      $('#id_standcount').val(average);
+      $('#id_Standard').val(average);
 
       // Remove selection
       csv_handler.clear_selected_rows();
@@ -570,13 +573,13 @@ class CSVHandler {
   init_study_method() {
     /*
     Triggers whenever a radio button for the study method is clicked
-    
+
     Remark:
       Selected tests won't be deselected
     */
     let csv_handler = this;
 
-    $('input[name="study_type"]').on("click", function() { 
+    $('input[name="study_type"]').on("click", function() {
       csv_handler.check_test_count();
     });
   }
