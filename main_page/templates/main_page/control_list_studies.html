@@ -1,6 +1,7 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
+{% load gfr_tags %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_list_studies.css' %}">
@@ -23,7 +24,6 @@
     <thead>
       <tr>
         <th onclick="sort_table(0, 'new_studies')">Navn</th>
-        <th class="exam-status-column" onclick="sort_table(1, 'new_studies')">Status</th>
         <th onclick="sort_table(2, 'new_studies')">Cpr nr.</th>
         <th onclick="sort_table(3, 'new_studies')">Dato</th>
         <th onclick="sort_table(4, 'new_studies')"> Procedure</th>
@@ -34,12 +34,11 @@
       <!-- Make each row redirect to control_study/accessionNumber with Accession Number being the accession Number of the patient clicked -->
       {% for study in registered_studies %}
         <tr>
-          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.name }}</td>
-          <td class="exam-status-column" onclick="document.location='{% url "main_page:control_study" study.accession_number %}'"><span class="oi oi-clipboard exam-status-{{ study.exam_status }}"></span></td>
-          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.cpr }}</td>
-          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.study_date }}</td>
-          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.procedure }}</td>
-          <td onclick="document.location='{% url "main_page:control_study" study.accession_number %}'">{{ study.accession_number }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.AccessionNumber %}'">{{ study.PatientName }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.AccessionNumber %}'">{{ study.PatientID|format_cpr }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.AccessionNumber %}'">{{ study.StudyDateTime|date }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.AccessionNumber %}'">{{ study.StudyDescription }}</td>
+          <td onclick="document.location='{% url "main_page:control_study" study.AccessionNumber %}'">{{ study.AccessionNumber }}</td>
         </tr>
       {% endfor %}
     </tbody>

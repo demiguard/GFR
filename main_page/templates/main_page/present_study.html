@@ -14,8 +14,7 @@
       <input type="button" value="Tilbage til redigering" onclick="document.location='{% url "main_page:fill_study" accession_number %}'">
       <input type="button" value="Tilbage til undersøgelser" onclick="document.location='{% url "main_page:list_studies" %}'">
       <input type="button" value="Billede til printning" onclick="document.location='{% static image_path %}'">
-      <input type="button" value="Hent csv fil"          onclick="document.location='{% url "main_page:csv" accession_number %}'">
-      <input type="submit" value="Send til Kontrol">
+      <input type="submit" name="control" value="Send til Kontrol">
 
       {% if show_QA_button %}
         <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" accession_number %}'">

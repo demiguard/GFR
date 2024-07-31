@@ -304,21 +304,21 @@ function add_datetime_checking(field_alerter) {
   // Mappings from field ids to their danish display text for alert messages
   let ID_NAME_MAPPINGS = {
     "#id_InjectionTime": "Injektionstidspunkt",
-    "#id_SampleTime": "Prøvetidspunkt",
+    "#id_NewSampleTime": "Prøvetidspunkt",
     "#id_InjectionDate": "Injektionsdato",
-    "#id_SampleDate": "Prøvedato",
+    "#id_NewSampleDate": "Prøvedato",
     "#id_dateofmessurement": "Hent fra backup dato",
     "#PatientBirthDate": "Fødselsdato",
   };
 
   let time_ids = [
     { "id": "#id_InjectionTime", "alert_type": "danger"},
-    { "id": "#id_SampleTime", "alert_type": "danger" },
+    { "id": "#id_NewSampleTime", "alert_type": "danger" },
   ];
 
   let date_ids = [
     { "id": "#id_InjectionDate", "alert_type": "danger" },
-    { "id": "#id_SampleDate", "alert_type": "danger" },
+    { "id": "#id_NewSampleDate", "alert_type": "danger" },
     { "id": "#id_dateofmessurement", "alert_type": "warning" },
     { "id": "#id_PatientBirthDate", "alert_type": "danger" },
   ];
@@ -356,7 +356,7 @@ function add_timefield_auto_colons() {
   automatically add colons after the second character has been typed
   */
   helper.auto_char($("input[name='InjectionTime']"), ':', 2);
-  helper.auto_char($("input[name='SampleTime']"), ':', 2);
+  helper.auto_char($("input[name='NewSampleTime']"), ':', 2);
   helper.auto_char($(".sample_time_field"), ':', 2)
 }
 
@@ -366,7 +366,7 @@ function initialize_date_fields() {
   add datepicker widgets to each field
   */
   // Add date pickers to date fields
-  $('#id_SampleDate').datepicker({format: 'dd-mm-yyyy'});
+  $('#id_NewSampleDate').datepicker({format: 'dd-mm-yyyy'});
   $('#id_InjectionDate').datepicker({format: 'dd-mm-yyyy'});
   $('#id_PatientBirthDate').datepicker({format:'dd-mm-yyyy'});
   $('#id_dateofmessurement').datepicker({format:'dd-mm-yyyy'});}
@@ -444,7 +444,7 @@ function initialize_before_unload_handler() {
   $(window).on("beforeunload", unload_func);
 
   // 'Afbryd' click event
-  /*$("#cancel").on('click', function() {
+  $("#cancel").on('click', function() {
     confirm_cancel_study(
       function() {
         // Redirect on success
@@ -453,7 +453,7 @@ function initialize_before_unload_handler() {
       function() { }
     );
   });
-  */
+
   // Sidemenu item clicked
   $(".menu-item").click(function() {
     $(window).off("beforeunload");
@@ -573,11 +573,6 @@ function initialize_calculate_button(alerter) {
       "#id_Standard",
       "#id_birthdate",
     ];
-
-
-
-
-
 
     is_valid = true;
     failed_id = "";
@@ -715,7 +710,6 @@ $(function() {
   add_timefield_auto_colons();
 
   initialize_date_fields();
-
 
   initialize_before_unload_handler();
 

@@ -45,7 +45,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
 
     if new_study_form.is_valid():
       models.GFRStudy.objects.create(
-        StudyUID=generate_uid,
+        StudyUID=generate_uid(),
         StudyStatus=models.StudyStatus.INITIAL,
         AccessionNumber=new_study_form.cleaned_data['rigs_nr'],
         StudyID=new_study_form.cleaned_data['rigs_nr'],
@@ -54,7 +54,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         PatientBirthDate=None,
         PatientID=new_study_form.cleaned_data['cpr'],
         StudyDateTime=new_study_form.cleaned_data['study_date'],
-        StudyDescription='GFR NØD OPRETTET',
+        StudyDescription='GFR NØDOPRETTET',
         Department=user.department,
       )
       return redirect('main_page:fill_study', accession_number=new_study_form.cleaned_data['rigs_nr'])

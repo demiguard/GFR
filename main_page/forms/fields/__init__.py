@@ -4,7 +4,7 @@ from math import floor, modf
 
 # Third party packages
 from typing import Any
-from django.forms import DateField, FloatField, TimeField
+from django.forms import DateField, FloatField, TimeField, TextInput
 from django.utils.translation import gettext_lazy as _
 # Clairvoyance modules
 
@@ -22,6 +22,8 @@ class DanishDateField(DateField):
     '%Y/%m/%d',
   ]
 
+  widget=TextInput(attrs={'class' : 'form-control'})
+
   def prepare_value(self, value: Any) -> Any:
     if isinstance(value, date):
       return f"{datify(value.day)}-{datify(value.month)}-{datify(value.year)}"
@@ -29,8 +31,10 @@ class DanishDateField(DateField):
     return super().prepare_value(value)
 
 class DanishFloatField(FloatField):
+  widget=TextInput(attrs={'class' : 'form-control'})
   def clean(self, value: str) -> Any:
-    value = value.replace(',', '.')
+    if value:
+      value = value.replace(',', '.')
 
     return super().clean(value)
 
@@ -46,6 +50,8 @@ class DanishFloatField(FloatField):
     return super().prepare_value(value)
 
 class SecondLessTimeField(TimeField):
+  widget=TextInput(attrs={'class' : 'form-control'})
+
   def prepare_value(self, value: Any) -> Any:
     if isinstance(value, time):
       return f"{datify(value.hour)}:{datify(value.minute)}"

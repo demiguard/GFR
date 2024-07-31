@@ -1,23 +1,32 @@
-from pydicom import Dataset, Sequence
+# Python Standard Library
+import datetime
+from datetime import date
 from dataclasses import dataclass, field
-from pprint import pprint
-from typing import List, Optional, Tuple, Union
+from io import BytesIO
+
+# Third party packages
+from pydicom import Dataset, Sequence
+
+from typing import List, Tuple, Union
 
 import numpy
-import datetime
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
-from matplotlib.dates import DateFormatter, DateLocator, MonthLocator
+from matplotlib.dates import DateFormatter
 
+from main_page.models import GFRStudy, HistoricStudy
 from main_page.libs import formatting
 from main_page.libs import enums
 from main_page.libs import server_config
 from main_page.libs.clearance_math.clearance_math import kidney_function, surface_area, age_string, calculate_birthdate, calc_mean_gfr_for_toddlers
 
+
+def dt(date_: date) -> datetime.datetime:
+  return datetime.datetime(date_.year, date_.month, date_.day,0,0,0)
 
 # Plotting constants
 SAMPLE_COLOR = "blue"
@@ -122,6 +131,43 @@ class FigureTextDataClass:
   reference_percentage : str
 
   @classmethod
+  def from_study(cls, study: GFRStudy):
+    name = formatting.person_name_to_name(study.PatientName)
+    cpr = formatting.format_cpr(study.PatientID)
+    injection_date =  study.InjectionDateTime.strftime('%d-%b-%Y')
+
+    height = f"{round(study.PatientHeightCM)}"
+    weight = f"{round(study.PatientWeightKg)}"
+
+
+    age = age_string(study)
+    birthDateTime = dt(study.PatientBirthDate)
+    if study.PatientSex:
+      gender = enums.GENDER_NAMINGS[enums.Gender.FEMALE.value]
+      gender_sm = enums.GENDER_SHORT_NAMES[enums.Gender.FEMALE.value]
+    else:
+      gender = enums.GENDER_NAMINGS[enums.Gender.MALE.value]
+      gender_sm = enums.GENDER_SHORT_NAMES[enums.Gender.MALE.value]
+
+    body_surface_area = round(surface_area(study.PatientHeightCM, study.PatientWeightKg),2)
+
+    kidney_result, reference_percentage_number = kidney_function(
+      study.ClearanceNormalized,
+      birthDateTime,
+      gender_sm
+    )
+
+    clearance = f"{round(study.Clearance)}"
+    clearance_normalized = f"{round(study.ClearanceNormalized)}"
+    reference_percentage = f"{(100.0 - reference_percentage_number):.1f}"
+
+    return cls(
+      name, cpr, injection_date, study.AccessionNumber, age, gender, height, weight,
+      body_surface_area, study.VialNumber, study.GFRMethod, clearance, clearance_normalized,
+      kidney_result, reference_percentage
+    )
+
+  @classmethod
   def from_dataset(cls, dataset : Dataset) -> 'FigureTextDataClass':
     """Alternative constructor from a dataset
 
@@ -205,6 +251,52 @@ class HistoricFigureTextDataClass:
   historic: list[Tuple[str,str,str,str]] = field(default_factory=list)
 
   @classmethod
+  def from_study(cls, study: GFRStudy, historic_studies: List[GFRStudy]):
+    age = age_string(study)
+    injection_date = study.InjectionDateTime.date()
+    dateTimeOfBirth = dt(study.PatientBirthDate)
+    if study.PatientSex:
+      gender = enums.GENDER_NAMINGS[enums.Gender.FEMALE.value]
+      gender_sm = enums.GENDER_SHORT_NAMES[enums.Gender.FEMALE.value]
+    else:
+      gender = enums.GENDER_NAMINGS[enums.Gender.MALE.value]
+      gender_sm = enums.GENDER_SHORT_NAMES[enums.Gender.MALE.value]
+
+    body_surface_area = surface_area(study.PatientHeightCM, study.PatientWeightKg)
+
+    kidney_result, reference_percentage_number = kidney_function(
+      study.ClearanceNormalized,
+      dateTimeOfBirth,
+      gender_sm
+    )
+
+    reference_percentage = f"{(100.0 - reference_percentage_number):.1f}"
+
+    historic_text = []
+    for historic_study in historic_studies:
+      historic_study_date = historic_study.StudyDateTime
+
+      _ , index_gfr = kidney_function(historic_study.ClearanceNormalized,
+                                      dateTimeOfBirth,
+                                      gender_sm, now=historic_study_date)
+      historic_study_date_str = historic_study_date.strftime("%d/%m/%Y")
+      historic_text.append((historic_study_date_str,f"{round(historic_study.Clearance)}",
+                            f"{round(historic_study.ClearanceNormalized)}",
+                            f"{round(100.0 - index_gfr)}"
+                          ))
+
+    reference_percentage = f"{(100.0 - reference_percentage_number):.1f}"
+
+    historic_text.sort(key=lambda t: datetime.datetime.strptime(t[0],'%d/%m/%Y'), reverse=True)
+
+    return cls(
+      study.PatientName, study.PatientID, injection_date, study.AccessionNumber, age, gender, study.PatientHeightCM, study.PatientWeightKg,
+      body_surface_area, study.VialNumber, study.GFRMethod, study.Clearance, study.ClearanceNormalized,
+      kidney_result, reference_percentage, historic_text
+
+    )
+
+  @classmethod
   def from_dataset(cls, dataset : Dataset) -> 'HistoricFigureTextDataClass':
     """Alternative constructor from a dataset
 
@@ -283,11 +375,21 @@ class HistoricFigureTextDataClass:
 def get_patient_age(dataset) -> int:
   return int((datetime.datetime.now() - datetime.datetime.strptime(dataset.PatientBirthDate, '%Y%m%d')).days / 365)
 
-def figure_text_factory(dataset: Dataset) -> Union[HistoricFigureTextDataClass, FigureTextDataClass]:
-  if 'clearancehistory' in dataset:
-    return HistoricFigureTextDataClass.from_dataset(dataset)
+def get_patient_age_study(study: GFRStudy) -> int:
+  return int((datetime.datetime.now() - dt(study.PatientBirthDate)).days / 365)
+
+def figure_text_factory(dataset: Union[GFRStudy,Dataset]) -> Union[HistoricFigureTextDataClass, FigureTextDataClass]:
+  if isinstance(dataset, Dataset):
+    if 'clearancehistory' in dataset:
+      return HistoricFigureTextDataClass.from_dataset(dataset)
+    else:
+      return FigureTextDataClass.from_dataset(dataset)
   else:
-    return FigureTextDataClass.from_dataset(dataset)
+    historic_studies = [hs.historic_study for hs in HistoricStudy.objects.filter(active_study=dataset)]
+    if len(historic_studies) == 0:
+      return FigureTextDataClass.from_study(dataset)
+    else:
+      return HistoricFigureTextDataClass.from_study(dataset, historic_studies)
 
 def __draw_color_area(
     axes: Axes,
@@ -369,6 +471,40 @@ def __calculate_kidney_function_yearly(dataset, today=datetime.datetime.now()):
   light_grey_y = y_max + x_axes
 
   if dataset.PatientSex == 'M':
+    #after age of 2
+    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
+    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52, 31.08, 31.08, 0.28 * (-1.16*x_max + 157.8)]))
+    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 57.72, 57.72, 0.52 * (-1.16*x_max + 157.8)]))
+    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 83.25, 83.25, 0.75 * (-1.16*x_max + 157.8)]))
+    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
+    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 111, 111, -1.16 * x_max + 157.8]))
+  else:
+    x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
+    dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52,28.84, 28.84, 0.28 *(-1.16*x_max + 157.8) * 0.929]))
+    light_red_y = numpy.concatenate((light_red_y, [56.68, 56.68, 53.56, 53.36, 0.52 * (-1.16*x_max + 157.8) * 0.929]))
+    yellow_y = numpy.concatenate((yellow_y, [81.75, 81.75, 77.25, 77.25, 0.75 * (-1.16*x_max + 157.8) * 0.929]))
+    light_grey_y = numpy.concatenate((light_grey_y, [y_max, y_max, y_max, y_max, y_max]))
+    reference_gfr = numpy.concatenate((reference_gfr, [109, 109, 103, 103, (-1.16*x_max + 157.8) * 0.929]))
+
+  return y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y
+
+def __calculate_kidney_function_yearly_study(study:GFRStudy, today=None):
+  if today is None:
+    today = datetime.datetime.now()
+
+  dateTimeOfBirth = dt(study.PatientBirthDate)
+  years_old = (today - dateTimeOfBirth).days // 365
+
+  x_max = int(max(years_old * 1.1, 90))
+  x_axes = numpy.arange(0.00001,2, 1/365)
+  reference_gfr = calc_mean_gfr_for_toddlers(x_axes, 1)
+  dark_red_y = 0.28 * reference_gfr
+  light_red_y = 0.52 * reference_gfr
+  yellow_y = 0.75 * reference_gfr
+  y_max = max(reference_gfr.max(), study.ClearanceNormalized) * 1.2
+  light_grey_y = y_max + x_axes
+
+  if not study.PatientSex:
     #after age of 2
     x_axes = numpy.concatenate((x_axes, [2, 20, 20, 40, x_max]))
     dark_red_y = numpy.concatenate((dark_red_y,[30.52, 30.52, 31.08, 31.08, 0.28 * (-1.16*x_max + 157.8)]))
@@ -499,6 +635,191 @@ def __draw_graph_historic(axes: Axes, dataset: Dataset):
 
   axes.plot(data_x, data_y, marker='o',markersize=12, label=graph_texts.legend_gfr, linestyle='dashed', color=SAMPLE_COLOR)
 
+def __draw_graph_historic_study(axes: Axes, study: GFRStudy, historic: List[GFRStudy]):
+  birthdate = dt(study.PatientBirthDate)
+  latest_datetime = study.StudyDateTime
+  earliest_datetime = latest_datetime
+
+  study_date_time = study.StudyDateTime
+
+  data = []
+  color_points = []
+
+
+  for historic_study in historic:
+    historic_study_date = historic_study.StudyDateTime
+    if (study_date_time - historic_study_date).days > 365 * 5: # if greater than 5 years skip adding
+      continue
+    data.append((numpy.datetime64(historic_study_date), historic_study.ClearanceNormalized, historic_study_date))
+
+  data.sort(key=lambda x: x[0])
+
+  data_x = []
+  data_y = []
+
+  if study.PatientSex:
+    sex_letter = 'F'
+  else:
+    sex_letter = 'M'
+
+  for _data_point_x, _data_point_y, historic_study_date in data:
+
+    color_points.append(__calculate_background_colors(birthdate, historic_study_date, sex_letter, study.ClearanceNormalized))
+    data_x.append(_data_point_x)
+    data_y.append(_data_point_y)
+    if historic_study_date < earliest_datetime:
+      earliest_datetime = historic_study_date
+
+  color_points.append(__calculate_background_colors(birthdate, study_date_time, sex_letter, study.ClearanceNormalized))
+  data_x.append(numpy.datetime64(latest_datetime))
+  data_y.append(study.ClearanceNormalized)
+
+  data_x_coloring = [data_x[0] - numpy.timedelta64(datetime.timedelta(days=14))] + data_x + [data_x[-1] + numpy.timedelta64(datetime.timedelta(days=14))]
+  y_max = 0
+
+  res = __calculate_background_colors(birthdate, (data_x[0] - numpy.timedelta64(datetime.timedelta(days=14))).astype(datetime.datetime), sex_letter, 0)
+
+  for color_row in color_points:
+    y_max = max(y_max, color_row[-1])
+
+  zeroes: List[float] = [0]
+  dark_red_y: List[float] = [res[0]]
+  light_red_y: List[float] = [res[1]]
+  yellow_y: List[float] = [res[2]]
+  reference: List[float] = [res[3]]
+  light_grey_y: List[float] = [y_max]
+
+  for color_row in color_points:
+    color_row[-1] = y_max
+    zeroes.append(0)
+    dark_red_y.append(color_row[0])
+    light_red_y.append(color_row[1])
+    yellow_y.append(color_row[2])
+    reference.append(color_row[3])
+    light_grey_y.append(y_max)
+
+  res = __calculate_background_colors(birthdate, (data_x[-1] + numpy.timedelta64(datetime.timedelta(days=14))).astype(datetime.datetime), sex_letter, 0)
+
+  zeroes += [0]
+  dark_red_y += [res[0]]
+  light_red_y += [res[1]]
+  yellow_y += [res[2]]
+  reference += [res[3]]
+  light_grey_y += [res[4]]
+
+  #axes.xaxis.set_major_locator(MonthLocator())
+  axes.xaxis.set_major_formatter(DateFormatter("%b\n%Y"))
+  axes.set_xlabel(graph_texts.x_axis_historic_label, fontsize=server_config.AXIS_FONT_SIZE)
+
+  __draw_color_area(
+    axes,
+    data_x_coloring[0],
+    data_x_coloring[-1],
+    y_max,
+    numpy.array(data_x_coloring),
+    numpy.array(reference),
+    numpy.array(dark_red_y),
+    numpy.array(light_red_y),
+    numpy.array(yellow_y),
+    numpy.array(light_grey_y),
+  )
+
+  axes.plot(data_x, data_y, marker='o',markersize=12, label=graph_texts.legend_gfr, linestyle='dashed', color=SAMPLE_COLOR)
+
+
+def __draw_graph_baby(axes: Axes, dataset: Dataset, today=datetime.datetime.today()):
+  start_x = 1 # Days
+  end_x = 730 # Days
+
+  dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
+  days_old = (today - dateTimeOfBirth).days
+
+  days_axis = numpy.arange(start_x, end_x, 1)
+  reference_gfr = 10 ** (0.209 * numpy.log10(days_axis) + 1.44)
+  y_max = max(dataset.normClear, reference_gfr.max()) * 1.2
+
+  axes.set_xticks([0, 90, 180, 270, 365, 455, 545, 635, 730])
+  axes.set_xticklabels([
+    f'0 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'3 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'6 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'9 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'12 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'15 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'18 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'21 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'24 {graph_texts.x_axis_toddler_tick_suffix}',
+  ], rotation = 45)
+
+  x_axes = 0 * days_axis
+  dark_red_y = 0.28 * reference_gfr
+  light_red_y = 0.52 * reference_gfr
+  yellow_y = 0.75 * reference_gfr
+  light_gray_y = x_axes + y_max
+
+  __draw_color_area(
+    axes=axes,
+    x_min=0,
+    x_max=730,
+    y_max=y_max,
+    x_axes=days_axis,
+    reference_gfr=reference_gfr,
+    dark_red_y=dark_red_y,
+    light_red_y=light_red_y,
+    yellow_y=yellow_y,
+    light_gray_y=light_gray_y
+  )
+
+  axes.set_xlabel(graph_texts.x_axis_toddler_label, fontsize=server_config.AXIS_FONT_SIZE)
+  __plot_single_point(axes, days_old, dataset.normClear)
+
+def __draw_graph_baby_study(axes: Axes, study: GFRStudy, today=None):
+  if today is None:
+    today = datetime.datetime.now()
+  start_x = 1 # Days
+  end_x = 730 # Days
+
+  dateTimeOfBirth = study
+  days_old = (today - dateTimeOfBirth).days
+
+  days_axis = numpy.arange(start_x, end_x, 1)
+  reference_gfr = 10 ** (0.209 * numpy.log10(days_axis) + 1.44)
+  y_max = max(study.ClearanceNormalized, reference_gfr.max()) * 1.2
+
+  axes.set_xticks([0, 90, 180, 270, 365, 455, 545, 635, 730])
+  axes.set_xticklabels([
+    f'0 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'3 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'6 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'9 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'12 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'15 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'18 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'21 {graph_texts.x_axis_toddler_tick_suffix}',
+    f'24 {graph_texts.x_axis_toddler_tick_suffix}',
+  ], rotation = 45)
+
+  x_axes = 0 * days_axis
+  dark_red_y = 0.28 * reference_gfr
+  light_red_y = 0.52 * reference_gfr
+  yellow_y = 0.75 * reference_gfr
+  light_gray_y = x_axes + y_max
+
+  __draw_color_area(
+    axes=axes,
+    x_min=0,
+    x_max=730,
+    y_max=y_max,
+    x_axes=days_axis,
+    reference_gfr=reference_gfr,
+    dark_red_y=dark_red_y,
+    light_red_y=light_red_y,
+    yellow_y=yellow_y,
+    light_gray_y=light_gray_y
+  )
+
+  axes.set_xlabel(graph_texts.x_axis_toddler_label, fontsize=server_config.AXIS_FONT_SIZE)
+  __plot_single_point(axes, days_old, study.ClearanceNormalized)
 
 def __draw_graph_baby(axes: Axes, dataset: Dataset, today=datetime.datetime.today()):
   start_x = 1 # Days
@@ -568,6 +889,31 @@ def __draw_graph_child(axes: Axes, dataset: Dataset, today=datetime.datetime.now
   axes.set_xlabel(graph_texts.x_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
   __plot_single_point(axes, years_old, dataset.normClear)
 
+def __draw_graph_child_study(axes: Axes, study: GFRStudy, today=None):
+  if today is None:
+    today = datetime.datetime.now()
+  dateTimeOfBirth = dt(study.PatientBirthDate)
+  years_old = (today - dateTimeOfBirth).days // 365
+  y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y = __calculate_kidney_function_yearly_study(study)
+
+  __draw_color_area(
+    axes=axes,
+    x_min=0,
+    x_max=18,
+    y_max=y_max,
+    x_axes=x_axes,
+    reference_gfr=reference_gfr,
+    dark_red_y=dark_red_y,
+    light_red_y=light_red_y,
+    yellow_y=yellow_y,
+    light_gray_y=light_grey_y
+  )
+
+  axes.xaxis.set_minor_locator(AutoMinorLocator())
+  axes.set_xlabel(graph_texts.x_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
+  __plot_single_point(axes, years_old, study.ClearanceNormalized)
+
+
 
 def __draw_graph_grown_up(axes: Axes, dataset: Dataset, today=datetime.datetime.now()):
   dateTimeOfBirth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
@@ -592,8 +938,34 @@ def __draw_graph_grown_up(axes: Axes, dataset: Dataset, today=datetime.datetime.
   axes.set_xlabel(graph_texts.x_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
   __plot_single_point(axes, years_old, dataset.normClear)
 
+def __draw_graph_grown_up_study(axes: Axes, study: GFRStudy, today=None):
+  if today is None:
+    today = datetime.datetime.now()
+  dateTimeOfBirth = dt(study.PatientBirthDate)
 
-def __draw_graph_axes(axes: Axes, dataset: Dataset, now=datetime.datetime.now()):
+  years_old = (today - dateTimeOfBirth).days // 365
+  x_max = int(max(years_old * 1.1, 90))
+  y_max, x_axes, dark_red_y, light_red_y, yellow_y, reference_gfr, light_grey_y = __calculate_kidney_function_yearly_study(study)
+
+  __draw_color_area(
+    axes=axes,
+    x_min=0,
+    x_max=x_max,
+    y_max=y_max,
+    x_axes=x_axes,
+    reference_gfr=reference_gfr,
+    dark_red_y=dark_red_y,
+    light_red_y=light_red_y,
+    yellow_y=yellow_y,
+    light_gray_y=light_grey_y
+  )
+
+  axes.xaxis.set_minor_locator(AutoMinorLocator())
+  axes.set_xlabel(graph_texts.x_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
+  __plot_single_point(axes, years_old, study.ClearanceNormalized)
+
+
+def __draw_graph_axes(axes: Axes, dataset: Dataset):
   age = get_patient_age(dataset)
   axes.grid(color='black')
   axes.set_ylabel(graph_texts.y_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
@@ -609,6 +981,25 @@ def __draw_graph_axes(axes: Axes, dataset: Dataset, now=datetime.datetime.now())
 
   axes.legend(framealpha=1.0 , prop={'size': server_config.LEGEND_SIZE})
 
+def __draw_graph_axes_study(axes: Axes, study: GFRStudy):
+  age = get_patient_age_study(study)
+  axes.grid(color='black')
+  axes.set_ylabel(graph_texts.y_axis_label, fontsize=server_config.AXIS_FONT_SIZE)
+
+  historic_studies = [record.historic_study for record in HistoricStudy.objects.filter(
+    active_study=study
+  )]
+
+  if len(historic_studies) > 0:
+    __draw_graph_historic_study(axes, study, historic_studies)
+  elif age < 2:
+    __draw_graph_baby_study(axes, study)
+  elif age < 19:
+    __draw_graph_child_study(axes, study)
+  else:
+    __draw_graph_grown_up_study(axes, study)
+
+
 def __set_gfr_figure(figure: Figure, dataset: Dataset) -> None:
   figure.set_figheight(server_config.PLOT_HEIGHT)
   figure.set_figwidth(server_config.PLOT_WIDTH)
@@ -617,6 +1008,13 @@ def __set_gfr_figure(figure: Figure, dataset: Dataset) -> None:
 
   figure.suptitle(title, fontsize=server_config.TITLE_FONT_SIZE)
 
+def __set_gfr_figure_study(figure: Figure, study: GFRStudy):
+  figure.set_figheight(server_config.PLOT_HEIGHT)
+  figure.set_figwidth(server_config.PLOT_WIDTH)
+
+  title = f"""{graph_texts.title_hospital_prefix} {study.Department.hospital.name}"""
+
+  figure.suptitle(title, fontsize=server_config.TITLE_FONT_SIZE)
 
 def generate_plot_from_dataset(dataset : Dataset) -> bytes:
   """Generates the bytes for an image in rgb
@@ -648,3 +1046,21 @@ def generate_plot_from_dataset(dataset : Dataset) -> bytes:
   fig.canvas.draw()
   image_bytes: bytes = fig.canvas.tostring_rgb() # type: ignore # method is added by draw call
   return image_bytes
+
+def generate_plot_from_study(study: GFRStudy) -> bytes:
+  fig, ax = plt.subplots(nrows = 1, ncols=2)
+
+  __set_gfr_figure_study(fig, study)
+
+  __draw_graph_axes_study(ax[0], study)
+
+  figure_text_data = figure_text_factory(study)
+  __draw_text_axes(ax[1], figure_text_data)
+
+  fig.canvas.draw()
+  bytesIO = BytesIO()
+  fig.savefig(bytesIO, format='rgba')
+  bytesIO.seek(0)
+  bytes_rgba = bytesIO.read()
+
+  return bytes([b for i, b in enumerate(bytes_rgba) if i % 4 != 3])

@@ -1,13 +1,13 @@
 {% extends 'main_page/base.html' %}
 
 {% load static %}
+{% load gfr_tags %}
 
 {% block head %}
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/control_study.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/alerter.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/util/csv-row.css' %}">
 {% endblock head %}
-
 
 {% block content %}
   <strong>Accession nr.:</strong><p>{{ AccessionNumber }}</p>
@@ -21,80 +21,76 @@
         <table class="study_table col-md-12">
           <tbody>
             <tr>
-              <td>{% bootstrap_field GrandForm.cpr_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>CPR:</td>
-              <td>{{ info.cpr }}</td>
+              <td>{{ study.PatientID|format_cpr }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.name_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Navn: </td>
-              <td>{{ info.name }}</td>
+              <td>{{ study.PatientName }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.sex_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Køn: </td>
-              <td>{{ info.sex }}</td>
+              <td>{{ study.PatientSex }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.height_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Højde: </td>
-              <td>{{ info.height }} cm</td>
+              <td>{{ study.PatientHeightCM|danish_number }} cm</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.weight_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Vægt: </td>
-              <td>{{ info.weight }} kg</td>
+              <td>{{ study.PatientWeightKg|danish_number }} kg</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.vial_number_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Sprøjte nr.:</td>
-              <td>{{ info.vial_number }} </td>
+              <td>{{ study.VialNumber }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.vial_weight_before_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Sprøjtevægt før inj:</td>
-              <td>{{ info.vial_weight_before }} g</td>
+              <td>{{ study.InjectionWeightBefore|danish_number }} g</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.vial_weight_after_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Sprøjtevægt efter inj: </td>
-              <td>{{ info.vial_weight_after }} g</td>
+              <td>{{ study.InjectionWeightAfter|danish_number }} g</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.injection_time_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Injektion Tidspunkt:</td>
-              <td>{{ info.injection_time }}</td>
+              <td>{{ study.InjectionDateTime|time:"H:i" }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.injection_date_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Injektion Dato: </td>
-              <td>{{ info.injection_date }}</td>
+              <td>{{ study.InjectionDateTime|date  }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.thin_fac_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Fortyndingsfaktor: </td>
-              <td>{{ info.thin_fac }}</td>
+              <td>{{ study.ThinningFactor|danish_number }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.stdCnt_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Standardtælletal: </td>
-              <td>{{ info.stdCnt }}</td>
+              <td>{{ study.Standard|danish_number }}</td>
             </tr>
             <tr>
-              <td>{% bootstrap_field GrandForm.study_type_confirm form_group_class='.form-super-group' %}</td>
+              <td></td>
               <td>Undersøgelses type: </td>
-              <td>{{ info.study_type }}</td>
+              <td>{{ study.GFRMethod }}</td>
             </tr>
           </tbody>
         </table>
-        {% if info.comment %}
-          <p>Kommentar: {{ info.comment }}</p>
-        {% else %}
-          <p>Ingen kommentar fundet.</p>
-        {% endif %}
+
       </div>
       <div class="col-md-8">
-        <img class="PresentationImage" width="100%" src="{% static static_path %}" alt="Image not generated, {{ image_path }}" >
+        <img class="PresentationImage" width="100%" src="{% static image_path %}" alt="Image not generated, {{ image_path }}" >
       </div>
     </div>
     <!-- Second Half -->
@@ -111,14 +107,9 @@
             <div class="form-group col-md-2">Afvigelse</div>
           </div>
           <!-- Place where JS inserts new test data -->
-          {% for sample in Samples %}
+          {% for sample in samples %}
           <div class="form-group">
             <div class="form-row">
-              {% bootstrap_field sample.sample_date layout='inline' form_group_class='col-md-2' %}
-              {% bootstrap_field sample.sample_time layout='inline' form_group_class='col-md-2' %}
-              {% bootstrap_field sample.sample_cnt  layout='inline' form_group_class='col-md-2' %}
-              {% bootstrap_field sample.sample_devi layout='inline' form_group_class='col-md-2' %}
-              {% bootstrap_field sample.sample_confirm              form_group_class='col-md-1' %}
             </div>
           </div>
           {% endfor %}
@@ -126,12 +117,9 @@
 
         <!-- Add test info -->
         <hr>
-        {% bootstrap_field GrandForm.bamID layout='inline' %}
-        {% buttons %}
-          <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
-          <input type="submit" name="control" value="Afvis og rediger" id="deny">
-          <input type="submit" name="control" value="Annuller" id="cancel">
-        {% endbuttons %}
+        <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
+        <input type="submit" name="edit" value="Afvis og rediger" id="deny">
+        <input type="submit" name="control" value="Annuller" id="cancel">
 
         <!-- Container for error/alert messages -->
       <div id="error-message-container"></div>

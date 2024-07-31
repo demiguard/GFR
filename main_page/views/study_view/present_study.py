@@ -1,39 +1,35 @@
-from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
-from django.template import loader
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.core.handlers.wsgi import WSGIRequest
+"""This view is showing the user the result they have just calculated"""
 
-import numpy as np
+# Python Standard library
+from logging import getLogger
 from pathlib import Path
 import shutil
-import os
-import datetime
-import logging
-import PIL
-import glob
-from pandas import DataFrame
-from typing import Type, List, Tuple, Union, Generator, Dict
+from typing import Type, List, Tuple, Union, Generator
 
-from main_page.libs.dirmanager import try_mkdir
-from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
-from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import dataset_creator
+
+# Third Party Packages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.handlers.wsgi import WSGIRequest
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView
+
+# Clairvoyance Packages
+from constants import GFR_LOGGER_NAME
+from main_page.models import GFRStudy, InjectionSample, StudyStatus
+from main_page.libs.image_generation import generate_standard_plot
 from main_page.libs import server_config
-from main_page.libs import samba_handler
-from main_page.libs import formatting
-from main_page.libs import dicomlib
-from main_page.libs import enums
-from main_page import models
+
+
+
+
 
 # Custom type
 CsvDataType = Tuple[Generator[List[str], List[List[List[Union[int, float]]]], List[int]], int]
 
-from main_page import log_util
+logger = getLogger(GFR_LOGGER_NAME)
 
-logger = log_util.get_logger(__name__)
 
 class PresentStudyView(LoginRequiredMixin, TemplateView):
   """
@@ -46,63 +42,63 @@ class PresentStudyView(LoginRequiredMixin, TemplateView):
 
   template_name = 'main_page/present_study.html'
 
-  def get(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
-    hospital = request.user.department.hospital.short_name
+  def get(self, request: WSGIRequest, accession_number: str) -> HttpResponse:
+    try:
+      study = GFRStudy.objects.get(AccessionNumber=accession_number)
+    except ObjectDoesNotExist:
+      return HttpResponseNotFound()
 
-    dataset = dicomlib.dcmread_wrapper(Path(
-      server_config.FIND_RESPONS_DIR,
-      hospital,
-      accession_number,
-      f"{accession_number}.dcm"
-    ))
+    samples = [sample for sample in InjectionSample.objects.filter(Study=study)]
 
-    # Determine whether QA plot should be displayable - i.e. the study has multiple
-    # test values
-    n_len = lambda obj: 0 if not obj else len(obj) # Helper function which asigns length 0 to None objects
-
-    show_QA_button = (n_len(dataset.get("ClearTest")) > 1)
-
-    # Display
-    img_resp_dir = f"{server_config.IMG_RESPONS_DIR}{hospital}/"
-    try_mkdir(img_resp_dir)
-
-    pixel_data = dataset.get("PixelData")
-    if pixel_data:
-      pixel_data = np.frombuffer(dataset.PixelData, dtype=np.uint8)
-      pixel_data = np.reshape(pixel_data, (1080, 1920, 3)) # Reshape to presentable shape
-
-      img = PIL.Image.fromarray(pixel_data)
-      img.save(Path(
-        img_resp_dir,
-        f"{accession_number}.png"
-      ))
-
-    plot_path = f"main_page/images/{hospital}/{accession_number}.png" 
+    try:
+      plot_path = generate_standard_plot(
+        study,
+        samples
+      )
+    except ValueError:
+      logger.error(f"Could not generate an image for {accession_number}")
+      return redirect('main_page:fill_study', accession_number=accession_number)
 
     context = {
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
-      'name': dataset.get("PatientName"),
-      'date': dataset.get("StudyDate"),
+      'name': study.PatientName,
+      'date': study.StudyDateTime,
       'accession_number': accession_number,
       'image_path': plot_path,
-      'show_QA_button': show_QA_button,
     }
 
     return render(request, self.template_name, context=context)
 
-  def post(self, request: Type[WSGIRequest], accession_number: str) -> HttpResponse:
-    # Send information to PACS
-    hosp_sn = request.user.department.hospital.short_name
-
-    control_dir = f"{server_config.CONTROL_STUDIES_DIR}{hosp_sn}/{accession_number}/"
-    obj_dir     = f"{server_config.FIND_RESPONS_DIR}{hosp_sn}/{accession_number}/"
-    
-    # Remove the file + history
+  def post(self, request: WSGIRequest, accession_number: str) -> HttpResponse:
     try:
-      shutil.move(obj_dir, control_dir)
-      logger.debug(f"Successfully moved {obj_dir} to {control_dir}")
-    except OSError as error:
-      logger.error(f'Could not remove directory: {obj_dir} to {control_dir}')
-  
-    return redirect('main_page:list_studies')
+      study = GFRStudy.objects.get(AccessionNumber=accession_number)
+    except ObjectDoesNotExist:
+      return HttpResponseNotFound()
+
+    if 'control' in request.POST:
+      study.StudyStatus = StudyStatus.CONTROL
+      study.save()
+      return redirect('main_page:list_studies')
+
+    samples = [sample for sample in InjectionSample.objects.filter(Study=study)]
+
+    try:
+      plot_path = generate_standard_plot(
+        study,
+        samples
+      )
+    except ValueError:
+      logger.error(f"Could not generate an image for {accession_number}")
+      return redirect('main_page:fill_study', accession_number=accession_number)
+
+    context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'name': study.PatientName,
+      'date': study.StudyDateTime,
+      'accession_number': accession_number,
+      'image_path': plot_path,
+    }
+
+    return render(request, self.template_name, context=context)

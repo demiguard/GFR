@@ -1,25 +1,30 @@
-import numpy as np
+# Python Standard library
+import datetime
+from typing import List, Tuple, Union
+from logging import getLogger
+
+# Third party packages
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from dataclasses import dataclass
-
-from matplotlib.axes import Axes
-
+import numpy as np
 from pydicom import Dataset
-import datetime
-import logging
 from scipy.stats import linregress
-from typing import List, Tuple
 
-from .. import server_config
+# Clairvoyance modules
+
+from constants import GFR_LOGGER_NAME
+from main_page.libs import server_config
 from main_page.libs import enums
-from main_page import log_util
-from main_page.libs import formatting
+from main_page import models
 
-logger = log_util.get_logger(__name__)
+logger = getLogger(GFR_LOGGER_NAME)
 
+
+def dt(date_: datetime.date) -> datetime.datetime:
+  return datetime.datetime(date_.year, date_.month, date_.day,0,0,0)
 
 def surface_area(height: float, weight: float, method: str="Haycock") -> float:
   """
@@ -47,19 +52,19 @@ def surface_area(height: float, weight: float, method: str="Haycock") -> float:
 
 
 def calc_clearance(
-  inj_time: datetime.date,
-  sample_times: List[datetime.date],
+  inj_time: datetime.datetime,
+  sample_times: List[datetime.datetime],
   tec99_cnt: List[float],
   BSA: float,
   dosis: float,
   study_type: enums.StudyType
   ) -> Tuple[float, float]:
   """
-  Calculate the clearence as specified in the pdf documentation found under: 
+  Calculate the clearence as specified in the pdf documentation found under:
   GFR/main_page/static/main_page/pdf/GFR_Tc-DTPA-harmonisering_20190223.pdf
 
   Args:
-    inj_time: A date object containing information when the injection happened 
+    inj_time: A date object containing information when the injection happened
     sample_times: a list of date objects containing formation when the bloodsample was taken
     tec99_cnt: A list of floats containing the counts from the samples
     BSA: a float, the estimated body surface area, see function: surface_area
@@ -123,7 +128,7 @@ def calc_clearance(
 
     clearance_normalized = clearance * 1.73 / BSA
 
-    # Inulin Korrigering for 24 prøver 
+    # Inulin Korrigering for 24 prøver
     if delta_times[-1] > 1200:
       clearance_normalized  = clearance_normalized - 0.5
       clearance = clearance_normalized * BSA / 1.73
@@ -247,7 +252,7 @@ def kidney_function(
     clearance_norm: float,
     birthdate: datetime.datetime,
     gender: enums.Gender,
-    now=datetime.datetime.today()
+    now=None
   ) -> Tuple[str, float]:
   """
   Calculate the Kidney function compared to their age and gender
@@ -260,6 +265,9 @@ def kidney_function(
   Returns:
     String describing the kidney function of the patient
   """
+  if now is None:
+    now = datetime.datetime.now()
+
   # Calculate age in days and years
 
   age_in_days = (now - birthdate).days
@@ -343,7 +351,7 @@ def calculate_birthdate(cpr: str) -> str:
   return returnString
 
 
-def age_string(dataset: Dataset, today=None) -> str:
+def age_string(dataset: Union[Dataset, 'models.GFRStudy'], today=None) -> str:
   """
 
   """
@@ -351,11 +359,14 @@ def age_string(dataset: Dataset, today=None) -> str:
   if today is None:
     today = datetime.datetime.today()
 
-  if 'PatientBirthDate' in dataset:
-    date_of_birth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
-  else:
-    day_of_birth = calculate_birthdate(dataset.PatientID)
-    date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
+  if isinstance(dataset, Dataset):
+    if 'PatientBirthDate' in dataset:
+      date_of_birth = datetime.datetime.strptime(dataset.PatientBirthDate, "%Y%m%d")
+    else:
+      day_of_birth = calculate_birthdate(dataset.PatientID)
+      date_of_birth = datetime.datetime.strptime(day_of_birth, '%Y-%m-%d')
+  elif isinstance(dataset, models.GFRStudy):
+    date_of_birth = dt(dataset.PatientBirthDate)
 
   diff = today - date_of_birth
 
@@ -433,7 +444,7 @@ def generate_QA_plot(
 
   fig.set_figheight(image_height)
   fig.set_figwidth(image_width)
-  
+
   # Left side - the plot
   ax[0].tick_params(labelsize=14) # Axis tick size
   ax[0].set_xlabel('Tid i minutter', fontsize=server_config.AXIS_FONT_SIZE)
@@ -449,7 +460,7 @@ def generate_QA_plot(
     time_of_examination = [delta_times[i], delta_times[i]]
     ax[0].plot(time_of_examination, points, color='black', linestyle='--', zorder=1)
     ax[0].scatter(delta_times[i], np.exp(slope * delta_times[i] + intercept), marker='o', color='red', zorder=2, s=25)
-  
+
   ax[0].plot(x, y, label = 'Regressionslinje', color='red', zorder=2)
   #ax[0].scatter(delta_times, log_tec99_cnt, marker = 'x', s=100, label='Datapunkter', zorder=3)
   ax[0].scatter(delta_times, tec99_cnt, marker = 'x', s=75, label='Datapunkter', zorder=3)
@@ -472,4 +483,3 @@ def generate_QA_plot(
 
   fig.canvas.draw()
   return fig.canvas.tostring_rgb()
-

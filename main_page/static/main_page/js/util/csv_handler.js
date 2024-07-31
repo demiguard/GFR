@@ -86,8 +86,8 @@ class CSVHandler {
     let alerter = this.alerter;
 
     // Check if time and date fields are correctly formatted
-    let study_time_field = $('#id_InjectionTime');
-    let study_date_field = $('#id_InjectionDate');
+    let sample_time_field = $('#id_NewSampleTime');
+    let study_date_field = $('#id_NewSampleDate');
 
     alerter.remove_alert('deviation')
     var deviation = 0;
@@ -109,22 +109,22 @@ class CSVHandler {
 
     // Check if time difference between injection time and test time is within a set threshold
 
-    const sampleDateValue = $('#id_SampleDate').val();
+    const sampleDateValue = $('#id_InjectionDate').val();
     console.log(sampleDateValue)
     let inj_date_val = helper.convert_danish_date_to_date_format(sampleDateValue);
-    let inj_time_val = $('#id_SampleTime').val();
+    let inj_time_val = $('#id_InjectionTime').val();
     let inj_datetime_str = inj_date_val + 'T' + inj_time_val + ':00';
 
     let time_of_inj = new Date(inj_datetime_str);
 
     let study_date_val = helper.convert_danish_date_to_date_format(study_date_field.val());
-    let study_time_val = study_time_field.val();
+    let study_time_val = sample_time_field.val();
     let study_datetime_str = study_date_val + 'T' + study_time_val + ':00';
 
     let time_of_study = new Date(study_datetime_str);
 
     let time_diff = time_of_study - time_of_inj;
-    console.log("time_diff: " + time_diff);
+    console.log("time_diff: " + time_diff, time_of_study, time_of_inj);
 
     // Check if study date was before injection date - this shouldn't be possible...
     alerter.remove_alert("inj_diff");
@@ -146,18 +146,18 @@ class CSVHandler {
 
     var lower = 0;
     var upper = 0;
-    if ($('input[name=study_type]:checked').val() == 1) {   // 'Et punkt barn'
+    if ($('input[name=Method]:checked').val() === "En blodprøve, Barn") {   // 'Et punkt barn'
       lower = 100 * 60 * 1000;  // 100 min.
       upper = 140 * 60 * 1000;  // 140 min.
     }
 
-    if ($('input[name=study_type]:checked').val() == 0) {   // 'Et punkt voksen'
+    if ($('input[name=Method]:checked').val() == "En blodprøve, Voksen") {   // 'Et punkt voksen'
       lower = 180 * 60 * 1000;  // 180 min.
       upper = 240 * 60 * 1000;  // 240 min.
     }
 
     // Perform difference check - not for multiple point tests
-    if ($('input[name=study_type]:checked').val() != 2) {
+    if ($('input[name=Method]:checked').val() != "Flere blodprøver") {
       if (!helper.within_bound(time_diff, lower, upper)) {
         let lower_min = lower / 60 / 1000;
         let upper_min = upper / 60 / 1000;
@@ -170,71 +170,80 @@ class CSVHandler {
       }
     }
 
+    const total_value = Number($('#id_form-TOTAL_FORMS').val())
+    const max_value = Number($('#id_form-MAX_NUM_FORMS').val())
+    const form_number = total_value + 1;
+
     // Generate DOM elements for study fields
-    var row_div = document.createElement('div');
+    const row_div = document.createElement('div');
     row_div.classList.add('form-row');
 
-    var date_field_div = document.createElement('div');
+    const date_field_div = document.createElement('div');
+
     date_field_div.classList.add('form-group');
     date_field_div.classList.add('col-md-2');
     date_field_div.classList.add('readonly-field');
 
-    var date_input = document.createElement('input');
+    const date_input = document.createElement('input');
+    date_input.id = `id_form-${this.test_count}-SampleDate`;
     date_input.type = 'text';
     date_input.classList.add('form-control');
-    date_input.name = 'sample_date';
+    date_input.name = `form-${this.test_count}-SampleDate`;
     date_input.value = study_date_field.val();
     date_input.readOnly = true;
     date_field_div.appendChild(date_input);
 
-    var time_field_div = document.createElement('div');
+    const time_field_div = document.createElement('div');
     time_field_div.classList.add('form-group');
     time_field_div.classList.add('col-md-2');
     time_field_div.classList.add('readonly-field');
 
-    var time_input = document.createElement('input');
+    const time_input = document.createElement('input');
     time_input.type = 'text';
+    time_input.id = `id_form-${this.test_count}-SampleTime`
     time_input.classList.add('form-control');
     time_input.classList.add('sample_time_field')
-    time_input.name = 'sample_time';
-    time_input.value = study_time_field.val();
+    time_input.name = `form-${this.test_count}-SampleTime`;
+    time_input.value = sample_time_field.val();
     time_input.readOnly = true;
     time_field_div.appendChild(time_input);
     helper.auto_char($(time_input),':',2)
 
-    var count_field_div = document.createElement('div');
+    const count_field_div = document.createElement('div');
     count_field_div.classList.add('form-group');
     count_field_div.classList.add('col-md-2');
     count_field_div.classList.add('readonly-field');
 
-    var count_input = document.createElement('input');
+    const count_input = document.createElement('input');
+    count_input.id = `id_form-${this.test_count}-CountPerMinutes`
     count_input.type = 'text';
     count_input.classList.add('form-control');
     count_input.classList.add('value-field');
     count_input.classList.add('sample_count_field')
-    count_input.name = 'sample_value';
+    count_input.name = `form-${this.test_count}-CountPerMinutes`;
     count_input.value = selected_avg_func();
     count_input.readOnly = true;
     count_field_div.appendChild(count_input);
 
-    var deviation_field_div = document.createElement('div');
+    const deviation_field_div = document.createElement('div');
     deviation_field_div.classList.add('form-group');
     deviation_field_div.classList.add('col-md-2');
     deviation_field_div.classList.add('readonly-field');
 
-    var deviation_input = document.createElement('input');
+    const deviation_input = document.createElement('input');
+    deviation_input.id = `id_form-${this.test_count}-DeviationPercentage`
     deviation_input.type = 'text';
     deviation_input.classList.add('form-control');
-    deviation_input.name = 'sample_deviation';
+    deviation_input.name = `form-${this.test_count}-DeviationPercentage`;
     deviation_input.value = deviation.toFixed(3);
     deviation_input.readOnly = true;
     deviation_field_div.appendChild(deviation_input);
 
-    var remove_btn_div = document.createElement('div');
+    const remove_btn_div = document.createElement('div');
     remove_btn_div.classList.add('form-group');
     remove_btn_div.classList.add('col-md-1');
 
-    var remove_btn = document.createElement('input');
+    const remove_btn = document.createElement('input');
     remove_btn.type = 'button';
     remove_btn.value = 'X';
     remove_btn.id = 'remove' + this.test_count.toString();
@@ -243,11 +252,11 @@ class CSVHandler {
     remove_btn.classList.add('row-remove-btn');
     remove_btn_div.appendChild(remove_btn);
 
-    var lock_btn_div = document.createElement('div');
+    const lock_btn_div = document.createElement('div');
     lock_btn_div.classList.add('form-group');
     lock_btn_div.classList.add('col-md-1');
 
-    var lock_btn = document.createElement('input');
+    const lock_btn = document.createElement('input');
     lock_btn.type = 'button';
     lock_btn.value = '🔒';
     lock_btn.id = 'lock' + this.test_count.toString();
@@ -265,12 +274,16 @@ class CSVHandler {
     $('#test-data-container .form-row').last().append(remove_btn_div);
     $('#test-data-container .form-row').last().append(lock_btn_div);
 
+    $('#id_form-TOTAL_FORMS').val(form_number);
+    $('#id_form-INITIAL_FORMS').val(form_number);
+    $('#id_form-MAX_NUM_FORMS').val(form_number);
+
     // Add lock and remove button on click events
     this.add_lock_functionality($('#lock' + this.test_count.toString()));
     this.add_remove_functionality($('#remove' + this.test_count.toString()));
 
     // Clear time field and selected rows
-    study_time_field.val('');
+    sample_time_field.val('');
     this.clear_selected_rows();
 
     // Check if buttons should be disabled
@@ -415,9 +428,10 @@ class CSVHandler {
   Determines wheter or not to display the button for adding more tests
   */
   check_test_count() {
-    let study_method = $('input[name=study_type]:checked').val();
+    let study_method = $('input[name=Method]:checked').val();
 
-    if (study_method <= 1) {          // 'Et punkt voksen' eller 'Et punkt voksen'
+    if (study_method === "En blodprøve, Voksen"
+        || study_method === "En blodprøve, Barn") {
       let test_count = $('#test-data-container .form-row').length;
       if (test_count >= 1) {
         this.disable_add_test();
@@ -426,7 +440,7 @@ class CSVHandler {
       } else {
         this.enable_add_test();
       }
-    } else if (study_method == 2) {   // 'Flere punkts prøve'
+    } else if (study_method === "Flere Flodprøver") {   // 'Flere punkts prøve'
       this.enable_add_test();
     }
   }
@@ -476,10 +490,10 @@ class CSVHandler {
     }
 
     let avg_tmp = parseInt(sum / row_count);
-    console.debug("--- Computing avg. of selected rows ---");
-    console.debug("Sum: " + sum);
-    console.debug("Count: " + row_count);
-    console.debug("avg.: " + avg_tmp);
+    //console.debug("--- Computing avg. of selected rows ---");
+    //console.debug("Sum: " + sum);
+    //console.debug("Count: " + row_count);
+    //console.debug("avg.: " + avg_tmp);
 
     return avg_tmp;
   }

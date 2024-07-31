@@ -64,7 +64,7 @@
 
         <h5>Blodprøvedata</h5>
         <div class="form-row">
-          <div class="form-group col-md-2">PrøveDato</div>
+          <div class="form-group col-md-2">Prøvedato</div>
           <div class="form-group col-md-2">Prøvetidspunkt</div>
           <div class="form-group col-md-2">Tælletal</div>
           <div class="form-group col-md-2">Afvigelse</div>
@@ -96,18 +96,35 @@
             </div>
           </div>
         {% endfor %}
+
+        {{ sample_formset.management_form }}
+
+        {% for sample_form in sample_formset %}
+          <div class="form-row">
+            <div class="form-group col-md-2">{{ sample_form.SampleDate }}</div>
+            <div class="form-group col-md-2">{{ sample_form.SampleTime }}</div>
+            <div class="form-group col-md-2">{{ sample_form.CountPerMinutes }}</div>
+            <div class="form-group col-md-2">{{ sample_form.DeviationPercentage }}</div>
+            <div class="form-group col-md-1">
+              <input type="button" value="X" class="row-remove-btn btn btn-danger" id="remove{{ forloop.counter0 }}">
+            </div>
+            <div class="form-group col-md-1">
+              <input type="button" value="🔒" class="row-lock-btn btn btn-light" id="lock{{ forloop.counter0 }}">
+            </div>
+          </div>
+        {% endfor %}
         </div>
         <!-- Add test info -->
         <div id="add-test-container">
           <strong>Tilføj prøve:</strong>
           <div class="form-row" id="form-top">
             <div class="form-group col-md-4">
-              {{ sample_form.SampleDate.label }}
-              {{ sample_form.SampleDate }}
+              {{ sample_time_form.NewSampleDate.label }}
+              {{ sample_time_form.NewSampleDate }}
             </div>
             <div class="form-group col-md-4">
-              {{ sample_form.SampleTime.label }}
-              {{ sample_form.SampleTime }}
+              {{ sample_time_form.NewSampleTime.label }}
+              {{ sample_time_form.NewSampleTime }}
             </div>
           </div>
           <input type="button" value="Tilføj tælletal" id="add-test">

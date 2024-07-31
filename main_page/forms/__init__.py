@@ -3,40 +3,55 @@ from datetime import datetime
 from typing import Optional
 
 # Third party Packages
-from typing import Any, Mapping
 from django import forms
-from django.core.files.base import File
-from django.db.models.base import Model
 from django.utils.timezone import get_current_timezone
-from django.forms.utils import ErrorList
 
 # Clairvoyance Modules
 from main_page.forms.fields import DanishDateField, DanishFloatField, SecondLessTimeField
 from main_page.libs.enums import GENDER_NAMINGS
 from main_page.models import GFRStudy, GFRMethods, InjectionSample
 
+class SampleTimeForm(forms.Form):
+  NewSampleTime = SecondLessTimeField(label="Injektionstidspunkt (tt:mm)",
+                                  localize=True,
+                                  required=False)
+
+  NewSampleDate = DanishDateField(label="Injektionsdato",
+                                  localize=True,
+                                  required=False)
+
 class SampleForm(forms.ModelForm):
   class Meta:
     model = InjectionSample
     fields = [
-      'DateTime',
       'CountPerMinutes',
-      'DeviationPercentage'
+      'DeviationPercentage',
     ]
+    exclude = ['id']
 
-  SampleTime = SecondLessTimeField(label="Injektionstidspunkt (tt:mm)",
-                                  localize=True,
-                                  required=False)
+    field_classes = {
+      'CountPerMinutes' : DanishFloatField,
+      'DeviationPercentage' : DanishFloatField,
+    }
+  SampleTime = SecondLessTimeField(localize=True,
+                                   required=False)
 
-  SampleDate = DanishDateField(label="Injektionsdato",
-                                  localize=True,
-                                  required=False)
+  SampleDate = DanishDateField(localize=True,
+                               required=False)
 
   def __init__(self, *args, **kwargs) -> None:
+
     super().__init__(*args, **kwargs)
+    instance = kwargs.get('instance')
+
+    if isinstance(instance, InjectionSample):
+      if instance.DateTime is not None:
+        self.fields['SampleTime'].initial = instance.DateTime.astimezone(get_current_timezone()).time()
+        self.fields['SampleDate'].initial = instance.DateTime.date()
 
     for field in self.fields:
       self.fields[field].widget.attrs['class'] = 'form-control'
+      self.fields[field].widget.attrs['readonly'] = ''
 
 class GFRStudyForm(forms.ModelForm):
   class Meta:

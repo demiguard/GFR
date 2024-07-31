@@ -1,17 +1,20 @@
-from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
+# Python Standard Library
+
+# Third party
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView
 
-from typing import Type
-
+# Clairvoyance modules
+from constants import GFR_LOGGER_NAME
 from main_page.libs.query_wrappers import ris_query_wrapper as ris
 from main_page.libs import server_config
-from main_page import models
 from main_page import log_util
+from main_page.models import GFRStudy, StudyStatus, UserDepartmentAssignment
 
-logger = log_util.get_logger(__name__)
+logger = log_util.get_logger(GFR_LOGGER_NAME)
 
 
 class ListStudiesView(LoginRequiredMixin, TemplateView):
@@ -24,16 +27,21 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
     # Fetch all registered studies
     curr_department = request.user.department
     if curr_department == None:
-      UDA = models.UserDepartmentAssignment.objects.all()[0]
+      UDA = UserDepartmentAssignment.objects.all()[0]
       request.user.department = UDA.department
       request.user.save()
       curr_department = UDA.department
 
-    studies = [study for study in models.GFRStudy.objects.filter(
-      Department = curr_department
+    studies = [study for study in GFRStudy.objects.filter(
+      Department = curr_department,
+      StudyStatus__in=[
+        StudyStatus.INITIAL,
+        StudyStatus.PARTIAL_FILLED,
+        StudyStatus.CONTROL
+      ]
     )]
 
-    user_groups_assignment = models.UserDepartmentAssignment.objects.all().filter(user=request.user)
+    user_groups_assignment = UserDepartmentAssignment.objects.all().filter(user=request.user)
     user_groups = [(UDA.department.id, UDA.department.hospital.name) for UDA in user_groups_assignment]
     # Return rendered view
     context = {

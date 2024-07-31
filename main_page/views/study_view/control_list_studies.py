@@ -1,58 +1,40 @@
+# Python standard Library
+from logging import getLogger
+
+
+# Third party packages
 from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
-from django.template import loader
+from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 
-import shutil
-import os
-import datetime
-import logging
-import glob
-from pandas import DataFrame
-from typing import Type, List, Tuple, Union, Generator, Dict
 
-from main_page.libs.dirmanager import try_mkdir
-from main_page.libs.query_wrappers import pacs_query_wrapper as pacs
-from main_page.libs.query_wrappers import ris_query_wrapper as ris
-from main_page.libs import dicomio
-from main_page.libs import dataset_creator
+# Clairvoyance packages
+from constants import GFR_LOGGER_NAME
 from main_page.libs import server_config
-from main_page.libs import samba_handler
-from main_page.libs import formatting
-from main_page.libs import dicomlib
-from main_page.libs import enums
-from main_page import models
-from main_page import log_util
+from main_page.models import User, Department, GFRStudy, StudyStatus
 
-logger = log_util.get_logger(__name__)
+logger = getLogger(GFR_LOGGER_NAME)
 
 class ControlListView(LoginRequiredMixin, TemplateView):
   template_name = "main_page/control_list_studies.html"
-  
-  def get(self, request: Type[WSGIRequest]) -> HttpResponse:
+
+  def get(self, request: WSGIRequest) -> HttpResponse:
     """
     List all studies that shall be send to Pacs
-    """  
-    current_hospital = request.user.department.hospital.short_name
+    """
+    user: User = request.user
 
-    hospital_dir = f'{server_config.CONTROL_STUDIES_DIR}{current_hospital}/'
-    try_mkdir(hospital_dir, mk_parents=True)
-    datasets = dicomio.get_studies(hospital_dir)
-
-    datasets = ris.sort_datasets_by_date(datasets)
-    #Note that failed dataset should not be able to come here, so we do not need to check if they have failed
-    datasets , _ = ris.extract_list_info(datasets)
+    studies = [study for study in GFRStudy.objects.filter(
+      Department=user.department,
+      StudyStatus=StudyStatus.CONTROL
+    )]
 
     context = {
       "title"               : server_config.SERVER_NAME,
       "version"             : server_config.SERVER_VERSION,
-      "registered_studies"  : datasets
+      "registered_studies"  : studies
     }
 
     return render(request, self.template_name, context)
-
-
-  

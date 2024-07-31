@@ -1,7 +1,7 @@
 # Python Standard Module
 import datetime
 from datetime import date
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 # Third party modules
 from pydicom import Dataset
@@ -11,8 +11,9 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # GFR modules
-
+from main_page.libs.enums import StudyType, Gender
 from main_page.libs import server_config, classproperty
+from main_page.libs.clearance_math.clearance_math import surface_area, calc_clearance, dosis, kidney_function
 
 class Hospital(models.Model):
   id = models.AutoField(primary_key=True)
@@ -139,6 +140,7 @@ class StudyStatus(models.IntegerChoices):
   READY = 2
   CONTROL = 3
   DELETED = 4
+  HISTORIC = 5
 
 class GFROptions(models.TextChoices):
   NORMAL = "Normal"
@@ -176,6 +178,7 @@ class GFRStudy(models.Model):
   GFRVersion = models.CharField(max_length=20, default=f"GFRcalc - {server_config.SERVER_VERSION}")
   # Optional fields
   GFR = models.TextField(choices=GFROptions.choices, blank=True, default=None, null=True)
+  Index_GFR = models.FloatField(default=None, blank=True, null=True)
   GFRMethod = models.TextField(choices=GFRMethods.choices, default=None, null=True, blank=True)
   BodySurfaceMethod=models.TextField(choices=BodySurfaceMethods.choices, default=None, null=True, blank=True)
   PatientSex = models.BooleanField(default=None, null=True)
@@ -289,6 +292,66 @@ class GFRStudy(models.Model):
       self.StudyStatus = self.calculate_status()
     self.save()
 
+  def derive(self, samples: List['InjectionSample']):
+    if self.PatientHeightCM is None       or \
+       self.PatientWeightKg is None       or \
+       len(samples) == 0                  or \
+       self.InjectionWeightBefore is None or \
+       self.InjectionWeightBefore is None or \
+       self.ThinningFactor is None        or \
+       self.Standard is None              or \
+       self.InjectionDateTime is None     or \
+       self.GFRMethod is None            or \
+       self.PatientBirthDate is None or \
+       self.PatientSex is None:
+
+      raise ValueError
+
+    body_surface_area = surface_area(self.PatientHeightCM, self.PatientWeightKg)
+
+    samples_times = [sample.DateTime for sample in samples]
+    samples_counts = [sample.CountPerMinutes for sample in samples]
+
+    injection_dosage = dosis(
+      self.InjectionWeightBefore - self.InjectionWeightAfter,
+      self.ThinningFactor,
+      self.Standard
+    )
+
+    if self.GFRMethod == GFRMethods.SINGLE:
+      study_type = StudyType.ONE_SAMPLE_ADULT
+    elif self.GFRMethod == GFRMethods.CHILD:
+      study_type = StudyType.ONE_SAMPLE_CHILD
+    else:
+      study_type = StudyType.MULTI_SAMPLE
+
+    self.Clearance, self.ClearanceNormalized = calc_clearance(
+      self.InjectionDateTime,
+      samples_times,
+      samples_counts,
+      body_surface_area,
+      injection_dosage,
+      study_type
+    )
+
+    if self.PatientSex:
+      gender = Gender.FEMALE
+    else:
+      gender = Gender.MALE
+
+    GFR_string, self.Index_GFR = kidney_function(
+      self.ClearanceNormalized,
+      self.PatientBirthDate,
+      gender
+    )
+    self.GFR = GFROptions(GFR_string)
+
+    self.save()
+
+class HistoricStudy(models.Model):
+  id = models.BigAutoField(primary_key=True)
+  active_study = models.ForeignKey(GFRStudy, related_name="origin", on_delete=models.CASCADE)
+  historic_study = models.ForeignKey(GFRStudy, related_name="historic", on_delete=models.CASCADE)
 
 class InjectionSample(models.Model):
   id = models.BigAutoField(primary_key=True)
