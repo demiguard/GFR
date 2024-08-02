@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import List, Tuple, Union, Generator, Dict
 
 # Third party packages
+from django.forms import formset_factory
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
@@ -14,6 +15,7 @@ from django.views.generic import TemplateView
 
 # Clairvoyance packages
 from constants import GFR_LOGGER_NAME
+from main_page.forms import ConfirmSampleForm
 from main_page.forms.base_forms import GrandControlPatient
 from main_page.libs import server_config
 from main_page.libs.image_generation import get_standard_plot_path
@@ -43,8 +45,6 @@ class ControlView(LoginRequiredMixin, TemplateView):
 
     if study.StudyStatus != StudyStatus.CONTROL:
       return redirect('main_page:fill_study', accession_number=AccessionNumber)
-
-    print(study.PatientSex)
 
     file_path, _ = get_standard_plot_path(study)
     samples = [

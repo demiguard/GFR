@@ -16,12 +16,10 @@ try:
 except ImportError:
     SECRET_KEY = "0"
 
-import environ
 from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
 import ldap
 
-env = environ.Env()
-environ.Env.read_env()
+from clairvoyance import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,15 +29,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'main_page.User'
-AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
-    'main_page.backends.SimpleBackend'
-]
+
+if DEBUG:
+    AUTHENTICATION_BACKENDS = [
+        'django_auth_ldap.backend.LDAPBackend',
+        'main_page.backends.SimpleBackend'
+    ]
+else:
+    AUTHENTICATION_BACKENDS = [
+        'main_page.backends.SimpleBackend'
+    ]
 
 AUTH_LDAP_SERVER_URI = 'ldap://regionh.top.local'
 AUTH_LDAP_START_TLS  = True                  # Ensures Encryption
@@ -53,18 +57,16 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
 
 # AUTH LOGIN
 AUTH_LDAP_BIND_DN = "REGIONH\RGH-S-GFRLDAP"
-AUTH_LDAP_BIND_PASSWORD = LDAP_PASSWORD
+AUTH_LDAP_BIND_PASSWORD = ""
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
     LDAPSearch("OU=Region Hovedstaden,dc=regionh,dc=top,dc=local", ldap.SCOPE_SUBTREE, "(cn=%(user)s)")
 )
 
-AUTH_LDAP_CONNECTION_OPTIONS = {
+sAUTH_LDAP_CONNECTION_OPTIONS = {
     ldap.OPT_DEBUG_LEVEL: 1, # 0 to 255
     ldap.OPT_REFERRALS: 0, # For Active Directory
 }
-
-
 
 LOGGING = {
     "version": 1,
@@ -73,14 +75,12 @@ LOGGING = {
     "loggers": {"django_auth_ldap": {"level": "DEBUG", "handlers": ["console"]}},
 }
 
-
 LOGIN_URL = '/'
 
 # Application definition
 
 INSTALLED_APPS = [
     'main_page',
-    'bootstrap4',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -123,10 +123,10 @@ WSGI_APPLICATION = 'clairvoyance.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-GFR_DATABASE_NAME = env("GFR_DATABASE_NAME")
-GFR_DATABASE_USER = env("GFR_DATABASE_USER")
-GFR_DATABASE_PW   = env("GFR_DATABASE_PW")
-GFR_DATABASE_HOST = env("GFR_DATABASE_HOST")
+GFR_DATABASE_NAME = config.get_config("GFR_DATABASE_NAME")
+GFR_DATABASE_USER = config.get_config("GFR_DATABASE_USER")
+GFR_DATABASE_PW   = config.get_config("GFR_DATABASE_PW")
+GFR_DATABASE_HOST = config.get_config("GFR_DATABASE_HOST")
 
 DATABASES = {
     'default': {
@@ -171,7 +171,7 @@ TIME_ZONE = 'CET'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 
@@ -183,9 +183,9 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "main_page/static/")
 
-GFR_LOGGER_PATH = env("GFR_LOG_PATH")
-RIS_THREAD_LOG_PATH = env("RIS_THREAD_LOG_PATH")
-DJANGO_AUTH_LDAP_PATH = env("DJANGO_AUTH_LDAP_PATH")
+GFR_LOGGER_PATH       = config.get_config("GFR_LOG_PATH")
+RIS_THREAD_LOG_PATH   = config.get_config("RIS_THREAD_LOG_PATH")
+DJANGO_AUTH_LDAP_PATH = config.get_config("DJANGO_AUTH_LDAP_PATH")
 
 LOGGING = {
     'version': 1,
@@ -256,3 +256,10 @@ LOGGING = {
         },
     },
 }
+
+DATE_INPUT_FORMATS = [
+    "%d-%m-%Y",
+    "%d/%m/%Y",
+    "%Y-%m-%d",
+    "%Y/%m/%d",
+]

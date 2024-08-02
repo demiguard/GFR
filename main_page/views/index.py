@@ -64,8 +64,10 @@ class IndexView(TemplateView):
 
 
   def post(self, request):
-    signed_in = False
+    user_agent = request.META['HTTP_USER_AGENT']
+    browser_support = is_browser_supported(user_agent)
 
+    signed_in = False
     login_form = base_forms.LoginForm(data=request.POST)
     if login_form.is_valid():
       # Authtication is using the ldap backend
@@ -131,19 +133,18 @@ class IndexView(TemplateView):
         login(request, user) # Login the user aka set some tokens and cookies
         logger.info(f'User: {request.user.username} logged in successful')
 
-        signed_in = True
+        return redirect('main_page:list_studies')
       else:
+        print(login_form.errors)
         logger.warning(f"User: {request.POST['username']} Failed to log in, from IP address: {request.META.get('REMOTE_ADDR')}")
+    # Form wasn't valid or login failed!
 
-    data = {
-      'signed_in': signed_in,
-      "no_permissions" : False,
+    context = {
+      'title'     : server_config.SERVER_NAME,
+      'version'   : server_config.SERVER_VERSION,
+      'browser_supported': browser_support,
+      'login_form': login_form,
+      'login_failed' : True
     }
-    resp = JsonResponse(data)
 
-    if not signed_in:
-      resp.status_code = 403
-    else:
-      return redirect('main_page:list_studies')
-
-    return resp
+    return render(request, self.template_name, context)

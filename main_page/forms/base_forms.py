@@ -4,8 +4,12 @@ from main_page import models
 from main_page.libs.enums import GENDER_NAMINGS
 
 class LoginForm(forms.Form):
-  username = forms.CharField()
-  password = forms.CharField(widget=forms.PasswordInput())
+  username = forms.CharField(widget=forms.TextInput(attrs={
+    'class' : 'form-control'
+  }))
+  password = forms.CharField(widget=forms.PasswordInput(attrs={
+    'class' : 'form-control'
+  }))
 
 class NewStudy(forms.Form):
   cpr = forms.CharField(label='Cpr-nr.')
@@ -16,14 +20,6 @@ class NewStudy(forms.Form):
   rigs_nr = forms.CharField(label='Accession nr.')
 
 class GrandControlPatient(forms.Form):
-  #Init
-  sex_options = [(i, gender) for i, gender in enumerate(GENDER_NAMINGS)]
-  types = [
-    (0, 'En blodprøve, voksen'),
-    (1, 'En blodprøve, barn'),
-    (2, 'Flere blodprøver')
-  ]
-
   #Standard fields
   bamID = forms.CharField(label='Bam ID', max_length=8, required=False, widget=forms.TextInput(attrs={'class' : "col-md-3"}))
 
@@ -41,10 +37,6 @@ class GrandControlPatient(forms.Form):
   thin_fac_confirm            = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   study_type_confirm          = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
   stdCnt_confirm              = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class' : "confirm-checkbox"}), label="")
-
-  #Startup
-  def __init__(self, *args, **kwargs):
-    super(GrandControlPatient, self).__init__(*args, **kwargs)
 
 
 class ControlPatient6(forms.Form):

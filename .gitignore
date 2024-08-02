@@ -57,6 +57,8 @@ log/
 .vscode/
 .env
 
+clairvoyance_config.json
+
 # Test webdrivers
 main_page/tests/selenium_drivers/
 

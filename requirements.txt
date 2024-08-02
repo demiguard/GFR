@@ -4,7 +4,6 @@ coverage
 cycler
 Django
 django-auth-ldap
-django-bootstrap4
 kiwisolver
 matplotlib
 mysqlclient
@@ -21,7 +20,6 @@ python-dateutil
 python-ldap
 pytz
 scipy
-selenium
 six
 soupsieve
 sqlparse

@@ -160,3 +160,6 @@ class GFRStudyForm(forms.ModelForm):
     if commit:
       study.save()
     return study
+
+class ConfirmSampleForm(forms.BaseForm):
+  pass

@@ -1,3 +1,5 @@
+from math import floor
+
 from django import template
 from django.template.defaultfilters import stringfilter
 
@@ -18,4 +20,10 @@ def danish_number(value):
       return f"{value_int}"
     else:
       return f"{value}".replace('.', ',')
+  return value
+
+@register.filter(name="to_integer")
+def to_integer(value):
+  if isinstance(value, float):
+    return int(floor(value))
   return value

@@ -2,15 +2,15 @@ html, body {
   height: 100%;
 }
 
-.full-height { 
+.full-height {
   min-height: 100% !important;
 }
 
 /* Remove all form field spinners */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .sidebar {
@@ -44,4 +44,9 @@ input[type=number]::-webkit-outer-spin-button {
 .content-container {
   padding: 3%;
 }
- 
+
+.error {
+  text-align: center;
+  color: #EE4444;
+  margin-bottom: 1em;
+}

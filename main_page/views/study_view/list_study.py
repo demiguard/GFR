@@ -37,7 +37,7 @@ class ListStudiesView(LoginRequiredMixin, TemplateView):
       StudyStatus__in=[
         StudyStatus.INITIAL,
         StudyStatus.PARTIAL_FILLED,
-        StudyStatus.CONTROL
+        StudyStatus.READY
       ]
     )]
 

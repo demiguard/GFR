@@ -1,10 +1,5 @@
-
-import environ
-
 from django.conf import settings
 
-env = environ.Env()
-environ.Env.read_env()
 
 ENV_VAR_CONTROL_STUDIES_PATH = "GFR_CONTROL_STUDY_PATH"
 ENV_VAR_DELETE_PATH          = "GFR_DELETE_PATH"
@@ -78,13 +73,10 @@ HOSPITALS = {
   'HVH': 'Hvidovre hospital',
 }
 
-
 # --- SCP Server --- #
-#SERVER_AE_TITLE = 'HVHFBERGHK7'
-#STATION_NAMES = ['RH_EDTA', 'GLO_EDTA', 'HEHKFARGHOTR05', 'HVHFBERGHK7', 'BFHKFNMGFR1', 'HIKFARGFR13']
 
 SERVER_NAME    = 'GFRCalc'
-SERVER_VERSION = 'v1.4'
+SERVER_VERSION = 'v1.5'
 
 
 # --- ris_thread --- #

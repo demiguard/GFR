@@ -21,67 +21,67 @@
         <table class="study_table col-md-12">
           <tbody>
             <tr>
-              <td></td>
+              <td>{{ check_form.cpr_confirm }}</td>
               <td>CPR:</td>
               <td>{{ study.PatientID|format_cpr }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.name_confirm }}</td>
               <td>Navn: </td>
               <td>{{ study.PatientName }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.sex_confirm }}</td>
               <td>Køn: </td>
               <td>{{ study.PatientSex }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.height_confirm }}</td>
               <td>Højde: </td>
               <td>{{ study.PatientHeightCM|danish_number }} cm</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.weight_confirm }}</td>
               <td>Vægt: </td>
               <td>{{ study.PatientWeightKg|danish_number }} kg</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.vial_number_confirm }}</td>
               <td>Sprøjte nr.:</td>
               <td>{{ study.VialNumber }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.vial_weight_before_confirm }}</td>
               <td>Sprøjtevægt før inj:</td>
               <td>{{ study.InjectionWeightBefore|danish_number }} g</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.vial_weight_after_confirm }}</td>
               <td>Sprøjtevægt efter inj: </td>
               <td>{{ study.InjectionWeightAfter|danish_number }} g</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.injection_time_confirm }}</td>
               <td>Injektion Tidspunkt:</td>
               <td>{{ study.InjectionDateTime|time:"H:i" }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.injection_date_confirm }}</td>
               <td>Injektion Dato: </td>
               <td>{{ study.InjectionDateTime|date  }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.thin_fac_confirm }}</td>
               <td>Fortyndingsfaktor: </td>
               <td>{{ study.ThinningFactor|danish_number }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.study_type_confirm }}</td>
               <td>Standardtælletal: </td>
               <td>{{ study.Standard|danish_number }}</td>
             </tr>
             <tr>
-              <td></td>
+              <td>{{ check_form.stdCnt_confirm }}</td>
               <td>Undersøgelses type: </td>
               <td>{{ study.GFRMethod }}</td>
             </tr>
@@ -101,15 +101,21 @@
         <h5>Blodprøvedata</h5>
         <div id="test-data-container">
           <div class="form-row">
-            <div class="form-group col-md-2">PrøveDato</div>
+            <div class="form-group col-md-2">Prøvedato</div>
             <div class="form-group col-md-2">Prøvetidspunkt</div>
             <div class="form-group col-md-2">Tælletal</div>
             <div class="form-group col-md-2">Afvigelse</div>
+            <div class="form-group col-md-2"></div>
           </div>
           <!-- Place where JS inserts new test data -->
-          {% for sample in samples %}
+          {% for sample in zip(samples) %}
           <div class="form-group">
             <div class="form-row">
+              <div class="form-group col-md-2">{{ sample.DateTime | date }}</div>
+              <div class="form-group col-md-2">{{ sample.DateTime | time:"H:i" }}</div>
+              <div class="form-group col-md-2">{{ sample.CountPerMinutes|to_integer }}</div>
+              <div class="form-group col-md-2">{{ sample.DeviationPercentage | danish_number }}%</div>
+              <div class="form-group col-md-2">{{}}</div>
             </div>
           </div>
           {% endfor %}
