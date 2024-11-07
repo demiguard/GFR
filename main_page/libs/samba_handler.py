@@ -48,7 +48,7 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
   with file_path.open('rb') as file:
     sample = file.read(64)
 
-  encoding = chardet.detect(sample)
+  encoding = (chardet.detect(sample))['encoding']
 
   try:
     pandas_ds = pd.read_csv(file_path, encoding=encoding)
