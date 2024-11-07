@@ -6,6 +6,7 @@ from typing import Tuple
 import tempfile
 from tempfile import NamedTemporaryFile
 import logging
+import chardet
 import pandas as pd
 from pandas.errors import ParserError
 from typing import List, Union
@@ -43,14 +44,20 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
   Returns
     pandas File
   """
+
+  with file_path.open('rb') as file:
+    sample = file.read(64)
+
+  encoding = chardet.detect(sample)
+
   try:
-    pandas_ds = pd.read_csv(file_path)
+    pandas_ds = pd.read_csv(file_path, encoding=encoding)
     protocol = pandas_ds['Protocol name'][0]
     datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
   except ParserError:
     # Hidex file
     try:
-      pandas_ds = pd.read_csv(file_path, skiprows=[0,1,2,3])
+      pandas_ds = pd.read_csv(file_path, skiprows=[0,1,2,3], encoding=encoding)
       pandas_ds = pandas_ds.rename(
         columns={
           'Time'                    : 'Measurement date & time',
@@ -61,7 +68,7 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
       )
       protocol = "Tc-99, Clearance"
     except ParserError:
-      pandas_ds = pd.read_csv(file_path, sep=';')
+      pandas_ds = pd.read_csv(file_path, sep=';', encoding=encoding)
       protocol = pandas_ds["Protocol name"][0]
 
     # Because Hidex is in american format, we change the data column to the ONLY CORRECT format
@@ -211,10 +218,7 @@ def smb_get_all_csv(hospital:str, model_server_config, timeout: int = 60):
   error_messages = []
 
   now = datetime.now()
-  logger.info(sample_dir)
-  logger.info([p for p in sample_dir.glob("*")])
   for path in sample_dir.glob("*"):
-
     if not path.is_file():
       continue
 
@@ -227,12 +231,14 @@ def smb_get_all_csv(hospital:str, model_server_config, timeout: int = 60):
     correct_filename = (datestring + protocol + '.csv').replace(' ', '').replace(':','').replace('-','').replace('+','')
     if path.name != correct_filename:
       target_path = sample_dir / correct_filename
+      logger.info(f"moving {path} to {target_path}")
       path = path.rename(target_path)
 
     dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
     if valid_dataset(pandas_ds):
       if (now - dt_examination).days > 0:
         backup_path = backup_dir / correct_filename
+        logger.info(f"moving {path} to {backup_path}")
         path = path.rename(backup_path)
       else:
         return_array.append(pandas_ds)
