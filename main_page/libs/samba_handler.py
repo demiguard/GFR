@@ -211,9 +211,10 @@ def smb_get_all_csv(hospital:str, model_server_config, timeout: int = 60):
   error_messages = []
 
   now = datetime.now()
-
+  logger.info(sample_dir)
   for path in sample_dir.glob("*"):
-    if not path.is_file:
+
+    if not path.is_file():
       continue
 
     try:
