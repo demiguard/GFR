@@ -49,11 +49,19 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
     sample = file.read(64)
 
   encoding = (chardet.detect(sample))['encoding']
+  encoding = 'latin' if encoding == "undefined" else encoding
+
+  if file.name.endswith('.xlsm') or file.name.endswith('.xlsx'):
+    pandas_ds = pd.read_excel(file_path, encoding=encoding)
+    protocol = pandas_ds['Protocol name'][0]
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+    return pandas_ds, date_string, protocol
+
 
   try:
     pandas_ds = pd.read_csv(file_path, encoding=encoding)
     protocol = pandas_ds['Protocol name'][0]
-    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
   except ParserError:
     # Hidex file
     try:
@@ -74,7 +82,7 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
     # Because Hidex is in american format, we change the data column to the ONLY CORRECT format
     pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
 
-    datestring = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
 
     #with file_path.open() as file:
     #  protocol = file.readline()
@@ -91,7 +99,7 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
       protocol = protocol.replace("\r", "")
       protocol = protocol.replace("\"", "")
 
-  return pandas_ds, datestring, protocol
+  return pandas_ds, date_string, protocol
 
 def open_csv_file(temp_file: NamedTemporaryFile):
   """
