@@ -15,7 +15,7 @@ from smb.SMBConnection import SMBConnection
 from smb.base import OperationFailure, NotConnectedError
 from . import formatting
 
-f
+
 from main_page import log_util
 
 logger = log_util.get_logger(__name__)
