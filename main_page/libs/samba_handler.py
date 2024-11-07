@@ -52,7 +52,7 @@ def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
   encoding = 'latin' if encoding == "undefined" else encoding
 
   if file.name.endswith('.xlsm') or file.name.endswith('.xlsx'):
-    pandas_ds = pd.read_excel(file_path, encoding=encoding)
+    pandas_ds = pd.read_excel(file_path)
     protocol = pandas_ds['Protocol name'][0]
     date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
     return pandas_ds, date_string, protocol
