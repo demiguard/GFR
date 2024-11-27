@@ -63,9 +63,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
     if dataset == None or not('GFR' in dataset):
       #Query Failed!
-      logger.warning(f"""
-      Examination unknown to GFR Calc
-      """)
+      logger.warning(f"""Examination unknown to GFR Calc""")
       error_template = loader.get_template('main_page/present_old_study_error.html')
       error_context  = {
         'AccessionNumber' : accession_number
@@ -140,7 +138,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
     if dataset.GFRMethod == enums.STUDY_TYPE_NAMES[2]:  # "Flere blodprøver"
       #Generate QA plot for Study
       # Get injection time
-      qa_inj_time = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M') 
+      qa_inj_time = datetime.datetime.strptime(dataset.injTime, '%Y%m%d%H%M')
 
       # Get Thining Factor
       thin_fact = dataset.thiningfactor
@@ -154,7 +152,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
       qa_image.save(f'{qa_plot_path}')
       qa_plot_path = f"main_page/images/{hospital}/QA_{accession_number}.png"
 
-    #These will be displayed at inorder 
+    #These will be displayed at inorder
     study_data = [
       ('CPR:', formatting.format_cpr(dataset.PatientID)),
       ('Navn:', formatting.person_name_to_name(str(dataset.PatientName))),
@@ -239,7 +237,7 @@ class PresentOldStudyView(LoginRequiredMixin, TemplateView):
 
       Returns:
         Redirects to fill_study for matching accession Number
-    """ 
+    """
     logger.info(f"Recreating {accession_number}")
     current_user = request.user
     hospital_sn  = current_user.department.hospital.short_name
