@@ -1,11 +1,11 @@
-// Make search fields readonly 
+// Make search fields readonly
 let disable_search_fields = function() {
   $('#id_name').attr('readonly', true);
   $('#id_cpr').attr('readonly', true);
   $('#id_accession_number').attr('readonly', true);
   $('#id_from_date').attr('readonly', true);
   $('#id_to_date').attr('readonly', true);
-  
+
   $('#search-btn').prop('disabled', true);
 }
 
@@ -120,7 +120,7 @@ let ajax_search = function() {
         create_new_span.classList.add("oi-document"); // Choose which icon to use for the button
         create_new_span.setAttribute("aria-hidden", "true");
         create_new_span.setAttribute("title", "Ny undersøgelse fra historisk");
-        
+
         create_new_btn.appendChild(create_new_span);
         */
 
@@ -223,7 +223,7 @@ let init_search_fields = function() {
     wmonth = "0" + wmonth;
   }
   let wyear = week_ago.getFullYear();
-  
+
   let week_ago_str = wday + '-' + wmonth + '-' + wyear;
 
   $('#id_from_date').val(week_ago_str);
@@ -248,11 +248,10 @@ $(function() {
   init_datepickers();
 
   // hide_loading();
-  show_loading();
+  //show_loading();
 
   // Perform initial search
   init_search_fields();
-  ajax_search();
 
   // Register each form field and search button to perform search
   $('#id_name').on('keypress', search_field_enter);
