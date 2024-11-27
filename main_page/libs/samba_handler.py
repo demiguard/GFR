@@ -1,16 +1,17 @@
 import glob
 import os
+from pathlib import Path
 from datetime import datetime, date
+from typing import Tuple
 import tempfile
 from tempfile import NamedTemporaryFile
 import logging
+import chardet
 import pandas as pd
 from pandas.errors import ParserError
 from typing import List, Union
 
 from . import server_config
-from smb.SMBConnection import SMBConnection
-from smb.base import OperationFailure, NotConnectedError
 from . import formatting
 
 
@@ -30,6 +31,73 @@ def valid_dataset(pandas_ds):
 
   return True
 
+
+def open_csv_file_local(file_path: Path) -> Tuple[pd.DataFrame, str, str]:
+  """
+  Opens a CSV file
+
+  Args:
+    temp_file an already opened file
+
+  Returns
+    pandas File
+  """
+
+  with file_path.open('rb') as file:
+    sample = file.read(64)
+
+  encoding = (chardet.detect(sample))['encoding']
+  encoding = 'latin' if encoding == "undefined" else encoding
+
+  if file.name.endswith('.xlsm') or file.name.endswith('.xlsx'):
+    pandas_ds = pd.read_excel(file_path)
+    protocol = pandas_ds['Protocol name'][0]
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+    return pandas_ds, date_string, protocol
+
+
+  try:
+    pandas_ds = pd.read_csv(file_path, encoding=encoding)
+    protocol = pandas_ds['Protocol name'][0]
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+  except ParserError:
+    # Hidex file
+    try:
+      pandas_ds = pd.read_csv(file_path, skiprows=[0,1,2,3], encoding=encoding)
+      pandas_ds = pandas_ds.rename(
+        columns={
+          'Time'                    : 'Measurement date & time',
+          'Vial'                    : 'Pos',
+          'Normalized Tc-99m (CPM)' : 'Tc-99m CPM',
+          'Tc-99m (counts)'         : 'Tc-99m Counts'
+        }
+      )
+      protocol = "Tc-99, Clearance"
+    except ParserError:
+      pandas_ds = pd.read_csv(file_path, sep=';', encoding=encoding)
+      protocol = pandas_ds["Protocol name"][0]
+
+    # Because Hidex is in american format, we change the data column to the ONLY CORRECT format
+    pandas_ds['Measurement date & time'] = pandas_ds['Measurement date & time'].apply(formatting.convert_american_date_to_reasonable_date_format)
+
+    date_string = pandas_ds['Measurement date & time'][0].replace('-','').replace(' ','').replace(':','')
+
+    #with file_path.open() as file:
+    #  protocol = file.readline()
+
+    # Get protocol
+
+    # Hidex might store these as bytes - convert them to str
+    #logger.debug(f"Type protocol: {type(protocol)} with value: {protocol}")
+
+    if isinstance(protocol, bytes):
+      #logger.debug(f"Converting bytes protocol to string.")
+      protocol = protocol.decode()
+      protocol = protocol.replace("\n", "")
+      protocol = protocol.replace("\r", "")
+      protocol = protocol.replace("\"", "")
+
+  return pandas_ds, date_string, protocol
 
 def open_csv_file(temp_file: NamedTemporaryFile):
   """
@@ -130,185 +198,72 @@ def move_to_backup(smb_conn, temp_file, hospital: str, fullpath: str, filename: 
 
   #logger.info(f"Moved file; '{fullpath}' , to back up")
 
-
-def smb_get_all_csv(hospital: str, model_server_config, timeout: int=60 ) -> (List[pd.DataFrame], List[str]):
-  """
-  Retrieves file contents of all files presented as pandas DataFrames, for each
-  file in a specific hospitals directory on the Samba Share
-
-  Args:
-    hospital: short name for the hospital
-
-  Kwargs:
-    timeout: how long the connection can be kept alive
-
-  Returns:
-    list of pandas.DataFrame objects, containing file contents
-  """
-  now = datetime.now()
-
-  returnarray = []
-  error_messages = []
-
-  conn = SMBConnection(
-    model_server_config.samba_user,
-    model_server_config.samba_pass,
-    model_server_config.samba_pc,
-    model_server_config.samba_name,
-  )
-
-  is_connected = conn.connect(model_server_config.samba_ip, timeout=timeout)
-
-  #logger.info(f'Samba Connection was succesful: {is_connected}')
-  #logger.debug(f'/{server_config.samba_Sample}/{hospital}/')
-
-  hospital_sample_folder = f'/{server_config.samba_Sample}/{hospital}/'
-
-  #logger.debug(f'Searching Share: {model_server_config.samba_share}, at: {hospital_sample_folder}')
-  samba_files = conn.listPath(model_server_config.samba_share, hospital_sample_folder)
-  #logger.debug(f'Got Files:{len(samba_files)}')
-
-  for samba_file in samba_files:
-    if samba_file.filename in ['.', '..']:
-      continue
-    temp_file = tempfile.NamedTemporaryFile()
-
-    fullpath =  hospital_sample_folder + samba_file.filename
-    #logger.info(f'Opening File:{samba_file.filename} at {fullpath}')
-    try:
-      conn.retrieveFile(model_server_config.samba_share, fullpath, temp_file)
-    except Exception as E:
-      logger.error(f"Could not retrieve file {fullpath}")
-      temp_file.close()
-      continue
-
-    temp_file.seek(0)
-    try:
-      pandas_ds, datestring, protocol = open_csv_file(temp_file)
-    except Exception as error_message:
-      #logger.error(f"Encountered {error_message} at file: {fullpath}")
-      temp_file.close()
-      continue
-
-    # File Cleanup
-    #logger.debug(datestring)
-    #logger.debug(protocol)
-
-    correct_filename = (datestring + protocol + '.csv').replace(' ', '').replace(':','').replace('-','').replace('+','')
-
-    if not samba_file.filename == correct_filename and not samba_file.isReadOnly:
-      #Rename
-      #logger.info(f'Attempting to Rename {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
-      try:
-        conn.rename(model_server_config.samba_share, hospital_sample_folder + samba_file.filename, hospital_sample_folder + correct_filename)
-        #logger.info(f'succesfully moved {hospital_sample_folder + samba_file.filename} into {hospital_sample_folder + correct_filename}')
-      except:
-        conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + samba_file.filename)
-        #logger.info(f'Deleted File: {hospital_sample_folder + samba_file.filename}')
-
-    dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
-    if valid_dataset(pandas_ds):
-
-      if (now - dt_examination).days > 0:
-        #logger.debug(f'Moving File {hospital_sample_folder+correct_filename} to backup')
-        move_to_backup(conn,temp_file, hospital, hospital_sample_folder + correct_filename, correct_filename, model_server_config)
-      else:
-        returnarray.append(pandas_ds)
-    else:
-      #logger.error(f'Invalid Data format')
-      try:
-        conn.deleteFiles(model_server_config.samba_share, hospital_sample_folder + correct_filename)
-      except Exception as E:
-        #logger.error(f"Unknown Exception : {E}")
-        error_messages.append(f"Der er ukendt tælling. Check om det Wizarden er konfiguret til Tc-99")
-
-    temp_file.close()
-
-  conn.close()
-  
-  # Sort based on date and time
-  sorted_array = sorted(returnarray, key=lambda x: x['Measurement date & time'][0], reverse=True)
-
-  return sorted_array, error_messages
-
-
 def get_backup_file(
-    date: Union[datetime, date], 
-    hospital: str, 
-    model_server_config,
-    timeout: int=30,
-  ) -> List[pd.DataFrame]:
+  date: Union[datetime, date],
+  hospital: str,
+  model_server_config,
+  timeout: int=30) -> List[pd.DataFrame]:
   """
   Retreives a backup file from the Samba Share
 
   Args:
     date: datetime or date object, used to query for backup files with
     hospital: short_name of hospital to specify which directory to get files from
-  
+
   Kwargs:
     timeout: how long the connection can be kept alive
 
   Returns:
     list of pandas.DataFrame objects, containing file contents
   """
-  # Format date
+
+  return_array = []
+
   date_str = date.strftime('%Y%m%d')
   date_str_len = len(date_str)
+  backup_dir = Path(f'/media/samba/{server_config.samba_backup}/{hospital}')
 
-  # Establish Samba Share connection
-  conn = SMBConnection(
-    model_server_config.samba_user,
-    model_server_config.samba_pass,
-    model_server_config.samba_pc,
-    model_server_config.samba_name
-  )
+  for path in backup_dir.glob(f'{date_str}*'):
+    df, _, _ = open_csv_file_local(path)
+    return_array.append(df)
 
-  conn.connect(model_server_config.samba_ip)
+  return return_array
 
-  # Check if each file in hospital sub directory has the specified date
-  # if it does append the file contents as a pandas.DataFrame to the return list
-  share_name = model_server_config.samba_share
-  backup_folder = f"/{server_config.samba_backup}/{hospital}"
-  samba_files = conn.listPath(share_name, backup_folder)
-  
-  #logger.debug(f'Looking for files in samba share folder: {backup_folder}')
-  #logger.debug(f'Found samba_files: f{samba_files}')
+def smb_get_all_csv(hospital:str, model_server_config, timeout: int = 60):
+  sample_dir = Path(f'/media/samba/{server_config.samba_Sample}/{hospital}')
+  backup_dir = Path(f'/media/samba/{server_config.samba_backup}/{hospital}')
 
-  file_contents = [ ]
+  return_array = []
+  error_messages = []
 
-  for samba_file in samba_files:
-    curr_filename = samba_file.filename
-    #logger.debug(f'Processing samba file: {curr_filename}')
+  now = datetime.now()
+  for path in sample_dir.glob("*"):
+    if not path.is_file():
+      continue
 
-    if date_str == curr_filename[:date_str_len]:
-      temp_file = tempfile.NamedTemporaryFile()
+    try:
+      pandas_ds, datestring, protocol = open_csv_file_local(path)
+    except Exception as E:
+      logger.error(f"Encountered {E} at file: {path}")
+      continue
 
-      fullpath = f"{backup_folder}/{curr_filename}"
+    correct_filename = (datestring + protocol + '.csv').replace(' ', '').replace(':','').replace('-','').replace('+','')
+    if path.name != correct_filename:
+      target_path = sample_dir / correct_filename
+      logger.info(f"moving {path} to {target_path}")
+      path = path.rename(target_path)
 
-      try:
-        conn.retrieveFile(share_name, fullpath, temp_file, timeout=timeout)
-        #logger.debug(f'Successfully retrieved file')
-      except OperationFailure: # File couldn't be found, skip it
-        #logger.debug(f'Failed to find file: {curr_filename}, skipping file.')
-        temp_file.close()
-        continue
-
-      temp_file.seek(0)
-      try:
-        df, _, _ = open_csv_file(temp_file)
-        file_contents.append(df)
-      except ParserError:
-        temp_file.close()
-        continue
-
-      temp_file.close()
+    dt_examination = datetime.strptime(datestring, '%Y%m%d%H%M%S')
+    if valid_dataset(pandas_ds):
+      if (now - dt_examination).days > 0:
+        backup_path = backup_dir / correct_filename
+        logger.info(f"moving {path} to {backup_path}")
+        path = path.rename(backup_path)
+      else:
+        return_array.append(pandas_ds)
     else:
-      pass
-      #logger.debug(f"first {date_str_len} chars of filename does not match date: '{date_str}'. Skipping file.")
+      error_messages.append(f"Der er ukendt tælling. Check om det Wizarden er konfiguret til Tc-99")
 
-    #logger.debug(f'Done processing samba file: {curr_filename}')
+  sorted_array = sorted(return_array, key=lambda x: x['Measurement date & time'][0], reverse=True)
 
-  conn.close()
-
-  return file_contents
-
+  return sorted_array, error_messages
