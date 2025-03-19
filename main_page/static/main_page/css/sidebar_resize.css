@@ -1,0 +1,21 @@
+/* Default styles for larger screens */
+#content-container {
+    flex: 10; 
+  }
+  
+#sidebar,
+#sidebar-inner {
+  flex: 2; 
+}
+  
+/* Styles for smaller screens */
+@media (max-width: 1299px) {
+  #content-container {
+    flex: 9; 
+  }
+
+  #sidebar,
+  #sidebar-inner {
+    flex: 3; 
+  }
+}

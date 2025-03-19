@@ -9,6 +9,12 @@
     {% else %}
     <title>GFRcalc</title>
     {% endif %}
+    <!-- HTMX library-->
+    {% if debug %}
+      <script src="https://unpkg.com/htmx.org"></script>
+    {% else %}
+      <script src="{% static 'Packages/htmx.min.js' %}"></script>
+    {% endif %}
 
     <!-- Favicon -->
     <link rel="icon" href="{% static 'main_page/images/GFR-favicon.png' %}">
@@ -19,14 +25,17 @@
 
     <!-- Load base css -->
     <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/base.css' %}">
+    <!-- Sidebar resize css -->
+    <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/sidebar_resize.css' %}">
 
     {% block head %}{% endblock %}
   </head>
   <body>
-    <div class="container-fluid h-100">
-      <div class="row full-height">
-        <div id="sidebar" class="sidebar col-2">
-          <div id="sidebar-inner" class= "col-2 position-fixed">
+    <div class="container-fluid h-100 d-flex">
+      <div class="row full-height d-flex w-100">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar">
+          <div id="sidebar-inner" class="position-fixed">
             <img id="logo" src="{% static 'main_page/images/regionh.png' %}">
             <h3 id="sidebar-title">
               <a href="{% url 'main_page:index' %}">
