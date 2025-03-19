@@ -25,7 +25,7 @@ class AddUserForm(forms.ModelForm):
   hosp_depart = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
 
   # List available user groups
-  user_group = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.UserGroup.objects.all())
+  user_group = forms.ChoiceField(required=True, widget=forms.Select, choices=models.UserGroup.choices)
 
 
 class AddHospitalForm(forms.ModelForm):

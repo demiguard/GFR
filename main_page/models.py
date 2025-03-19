@@ -80,13 +80,16 @@ class Department(models.Model):
     return f"{self.hospital.name} - {self.name}"
 
 # Defines user permissions
-class UserGroup(models.Model):
-  id = models.AutoField(primary_key=True)
-  name = models.CharField(max_length=200)
+#class UserGroup(models.Model):
+#  id = models.AutoField(primary_key=True)
+#  name = models.CharField(max_length=200)
+#
+#  def __str__(self):
+#    return self.name
 
-  def __str__(self):
-    return self.name
-
+class UserGroup(models.IntegerChoices):
+  ADMIN = 1
+  USER = 2
 
 class User(AbstractBaseUser):
   id = models.AutoField(primary_key=True)
@@ -94,10 +97,10 @@ class User(AbstractBaseUser):
   password = models.CharField(max_length=120)
   department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
-  user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True)
+  user_group = models.IntegerField(choices=UserGroup.choices, default=UserGroup.USER)
 
   USERNAME_FIELD = 'username'
-  REQUIRED_FIELDS = ['password', 'hospital']
+  REQUIRED_FIELDS = ['password', 'department']
 
   def __str__(self):
     return self.username
@@ -192,7 +195,7 @@ class GFRStudy(models.Model):
   InjectionWeightAfter = models.FloatField(default=None, null=True, blank=True)
   Standard=models.FloatField(default=None, null=True, blank=True)
   ThinningFactor=models.FloatField(default=None, null=True, blank=True)
-  Comment=models.CharField(max_length=250, default=None, null=None, blank=True)
+  Comment=models.CharField(max_length=250, default="", null=None, blank=True)
 
   class Meta:
     indexes = [

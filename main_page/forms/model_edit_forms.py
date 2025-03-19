@@ -23,7 +23,7 @@ class EditUserForm(forms.ModelForm):
 
   # List available hospital choices from the database
   department   = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
-  user_group   = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.UserGroup.objects.all())
+  user_group   = forms.ChoiceField(required=True, widget=forms.Select, choices=models.UserGroup)
 
 # Custom choice field to change the displayed labels for the hospitals
 class HospitalChoiceField(forms.ModelChoiceField):
