@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 
 from main_page import log_util
+from main_page.models import UserGroup
 
 
 # TODO: Add logging to check who attempted to access
@@ -11,7 +12,7 @@ class AdminRequiredMixin:
     curr_user = request.user
 
     if curr_user:
-      if curr_user.user_group.name == 'admin':
+      if curr_user and hasattr(curr_user, 'user_group') and curr_user.user_group == UserGroup.ADMIN:
         return super().dispatch(request, *args, **kwargs)
     
     raise PermissionDenied
