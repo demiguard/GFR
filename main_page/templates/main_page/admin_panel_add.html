@@ -2,25 +2,25 @@
 
 {% load static %}
 
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'main_page/css/admin_panel.css' %}">
+{% endblock head %}
+
 {% block content %}
-  <h2>Admin panel - add {{ model_name }}</h2>
+  <h2>Admin panel – tilføj {{ model_name }}</h2>
 
-  <div class="row">
-    <div class="col-md-3">
-      <form>
-        {% bootstrap_form add_form %}
+  <div style="max-width: 400px;">
+    <form id="add-form" method="POST">
+      {% csrf_token %}
+      {{ add_form.as_p }}
 
-        <input type="button" id="create-btn" value="Tilføj">
-      </form>
+      <input type="submit" id="create-btn" value="Tilføj">
+    </form>
 
-      <br>
+    <br>
 
-      <div id="error-msg-container">
-
-      </div>
-    </div>
+    <div id="error-msg-container"></div>
   </div>
-
 {% endblock %}
 
 {% block javascript %}
