@@ -1,4 +1,4 @@
-// TODO: This should really be done in pure CSS (possibly responsive bootstrap code?)
+// No longer used, functionality moved to CSS
 // Resize sidebar for square monitors
 let try_resize_menu = function() {
   if ($(window).width() < 1300) {
