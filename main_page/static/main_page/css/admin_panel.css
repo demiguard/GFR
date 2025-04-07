@@ -1,3 +1,36 @@
+form p {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+form p label {
+  margin: 0;
+}
+
+form p input,
+form p select,
+form p textarea {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+input[type="submit"] {
+  padding: 8px 16px;
+  background-color: #3d7eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #275ecf;
+}
+
+
 .delete-btn {
   color: lightcoral;
 }
