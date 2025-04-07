@@ -20,3 +20,65 @@
 #nuke-form {
   float: right;
 }
+
+/* ===============================
+   Modal Styles for Nuke form
+   =============================== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 40%;
+  text-align: center;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.close {
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+}
+
+.danger-btn {
+  background-color: red;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+button {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #f0f0f0;
+}
