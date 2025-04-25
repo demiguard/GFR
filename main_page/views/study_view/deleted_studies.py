@@ -27,6 +27,7 @@ from main_page.libs import enums
 from main_page import models
 
 from main_page import log_util
+from clairvoyance.settings import DEBUG #Might remove later
 
 logger = log_util.get_logger(__name__)
 
@@ -43,10 +44,15 @@ class DeletedStudiesView(LoginRequiredMixin, TemplateView):
   def get(self, request: Type[WSGIRequest]) -> HttpResponse:
     hospital_shortname = request.user.department.hospital.short_name
 
+    if(not DEBUG) :
     # Fetch all deleted studies
-    deleted_studies = ris.get_studies(
+      deleted_studies = ris.get_studies(
       f"{server_config.DELETED_STUDIES_DIR}{hospital_shortname}"
-    )
+      )
+    else:
+      deleted_studies = list() #give dummy studies for testing.
+    
+    
 
     # Permantly delete any old studies
     deleted_studies, _ = ris.check_if_old(
