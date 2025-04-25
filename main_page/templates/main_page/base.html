@@ -11,9 +11,9 @@
     {% endif %}
     <!-- HTMX library-->
     {% if debug %}
-      <script src="https://unpkg.com/htmx.org"></script>
+      <script src="https://unpkg.com/htmx.org@1.9.2" defer></script>
     {% else %}
-      <script src="{% static 'Packages/htmx.min.js' %}"></script>
+      <script src="{% static 'main_page/js/libs/htmx.min.js' %}" defer></script>
     {% endif %}
 
     <!-- Favicon -->

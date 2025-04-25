@@ -1,0 +1,18 @@
+<div class="modal" style="display: block;">
+    <div class="modal-content">
+      <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+      <h3>Tilføj {{ model_name|title }}</h3>
+  
+      <form 
+        method="POST"
+        hx-post="/admin_panel/add/"
+        hx-target="#modal-container"
+        hx-swap="outerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="model" value="{{ model_name }}">
+        {{ add_form.as_p }}
+        <input type="submit" value="Tilføj">
+      </form>
+    </div>
+  </div>
+  
