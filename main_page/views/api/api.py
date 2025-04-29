@@ -394,7 +394,14 @@ class StudyEndpoint(LoginRequiredMixin, View):
           f"Unable to find dicom object for study to move to trash: '{move_src}'"
         )
         resp.status_code = HTTP_STATUS_NO_CONTENT
-
+        #Set the study's status as 'deleted'
+      try:
+        study = models.GFRStudy.objects.get(AccessionNumber=accession_number)
+        study.StudyStatus = models.StudyStatus.DELETED
+        study.save()
+        logger.info(f"Marked study {accession_number} as DELETED in database")
+      except models.GFRStudy.DoesNotExist:
+        logger.warning(f"No study found in DB with accession_number: {accession_number}")
     return resp
 
 

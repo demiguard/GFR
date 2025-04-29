@@ -1,5 +1,8 @@
 from django.conf import settings
 
+import os
+from pathlib import Path
+
 
 ENV_VAR_CONTROL_STUDIES_PATH = "GFR_CONTROL_STUDY_PATH"
 ENV_VAR_DELETE_PATH          = "GFR_DELETE_PATH"
@@ -20,6 +23,11 @@ STATIC_DIR = f"{settings.STATIC_ROOT}/main_page/"
 IMG_RESPONS_DIR = f"{STATIC_DIR}images/"
 CSV_DIR = f"{STATIC_DIR}csv/"
 
+# Read deleted studies directory from environment
+DELETED_STUDIES_DIR = Path(
+    os.environ.get(ENV_VAR_DELETE_PATH, "/tmp/gfr_deleted_studies") #Last part is a dev option, might remove later
+)
+FIND_RESPONS_DIR = os.environ.get(ENV_VAR_FIND_RESPONSE_PATH, f"{STATIC_DIR}find_response/")
 # Private Dicom tag definitions
 new_dict_items = {
   0x00231001 : ('LO', '1', 'GFR', '', 'GFR'), # Normal, Moderat Nedsat, Svært nedsat
