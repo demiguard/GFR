@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'main_page.User'
 
-if DEBUG:
+if not DEBUG:
     AUTHENTICATION_BACKENDS = [
         'django_auth_ldap.backend.LDAPBackend',
         'main_page.backends.SimpleBackend'
@@ -77,6 +77,7 @@ LOGGING = {
 
 LOGIN_URL = '/'
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -112,6 +113,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main_page.context_processors.usergroup_constants',
             ],
         },
     },
