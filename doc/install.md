@@ -105,6 +105,28 @@ which can then be loaded into the new database by
 > mysql -u gfr -p gfrdb < dbdump.sql
 ```
 
+#### Manual Table setup
+If you aren't using a snapshot there are a couple tables you need for the application (THIS SHOULD ONLY BE DONE IN DEBUG LOCALLY)
+
+update the database using:
+```
+python manage.py makemigrations
+python manage.py migrate
+```
+Then enter shell in terminal
+```
+python manage.py shell
+```
+once in shell:
+```
+>>from main_page import models '
+```
+now create the following: config, serverConfig, User, Hospital, Department, and UserDepartmentAssignment. 
+Make sure that they correctly refer to each other when needed: 
+- Department -> config & Hospital
+- User -> Department 
+- UserDepartmentAssignment -> Department & User
+
 ### MariaDB specifics
 If MariaDB is being used instead of MySQL, e.g. for development purposes, then the SQL dump file might have be modified:
 1. Open the SQL dump file and replace all occurrences of ```utf8mb4_0900_ai_ci``` with ```utf8mb4_general_ci```.
@@ -125,6 +147,12 @@ To allow hosts on the local network to access the debug test site, run the comma
 ```
 
 Now the site should be accessible via.: http://<YOUR_IP_ADDRESS>:8000
+
+Before running this comman make sure to not ping the server:
+- remove/change AUTH_LDAP_BIND_DN in settings.py & ldap_username in ldap_queries.py (Keep these changes local)
+- Change evironment paths in config.py to match your local system (Keep these changes local)
+
+You might need to create a log folder, as this is needed but not pushed to the repository
 
 ## Deploying with nginx
 The following steps is a minor rewrite of https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html, if any problems occur this tutorial can possibly be of help.
