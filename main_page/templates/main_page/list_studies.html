@@ -13,18 +13,20 @@
     </div>
     <div class="col-md-4">
       <br>
-      <form class="form-row">
-        <div class="form-group col-md-3">
-          <a href="{% url 'main_page:new_study' %}" class="btn btn-sm btn-primary" role="button">Nødoprettelse</a>
+      <form class="d-flex flex-wrap gap-2">
+        <div class="flex-grow-1 flex-md-grow-0">
+          <a href="{% url 'main_page:new_study' %}" class="btn btn-sm btn-primary w-100 w-md-auto" role="button">
+            Nødoprettelse
+          </a>
         </div>
-        <div class="form-group col-md-5">
-          <button type="button" id="del-day-olds-btn" class="del-day-olds btn btn-sm btn-danger">
+        <div class="flex-grow-1 flex-md-grow-0">
+          <button type="button" id="del-day-olds-btn" class="del-day-olds btn btn-sm btn-danger w-100 w-md-auto">
             Fjern gamle undersøgelser
           </button>
         </div>
         {% if user_groups %}
-        <div class ="form-group col-md-4">
-          <select id="ChangeUserGroup" class="form-select">
+        <div class="flex-grow-1 flex-md-grow-0">
+          <select id="ChangeUserGroup" class="form-select w-100 w-md-auto">
             {% for dep in user_groups %}
               {% if user.department.id == dep.0 %}
                 <option value="{{ dep.0 }}" selected>{{ dep.1 }}</option>
@@ -35,7 +37,7 @@
           </select>
         </div>
         {% endif %}
-    </form>
+      </form>
     </div>
   </div>
   {% if error_message %}
