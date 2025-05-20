@@ -18,7 +18,8 @@ class JSONSerializer:
       models.FloatField: self.__serialize_FloatField,
       models.DateTimeField: self.__serialize_DateTimeField,
       models.DateField: self.__serialize_DateField,
-      models.BooleanField: self.__serialize_BooleanField
+      models.BooleanField: self.__serialize_BooleanField,
+      models.IntegerField: self.__serialize_IntegerField
     }
 
   # TODO: Make the below serializer functions more generic
@@ -46,6 +47,9 @@ class JSONSerializer:
     return getattr(obj, field.name)
 
   def __serialize_BooleanField(self, obj: Type[models.Model], field: Type[models.BooleanField]) -> str:
+    return getattr(obj, field.name)
+  
+  def __serialize_IntegerField(self, obj: Type[models.Model], field: Type[models.IntegerField]) -> str:
     return getattr(obj, field.name)
 
 
