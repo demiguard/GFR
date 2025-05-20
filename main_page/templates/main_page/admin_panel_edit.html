@@ -8,9 +8,9 @@
   <div class="row">
     <div class="col-md-3">
       <form>
-        {% bootstrap_form edit_form %}
+        {{ edit_form.as_p }}
 
-        <input type="button" id="save-btn" value="Gem">
+        <button type="button" id="save-btn">Gem</button>
       </form>
 
       <br>
