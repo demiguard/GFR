@@ -7,6 +7,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from typing import Type, Union
 
 from main_page.views.api.serializers import JSONSerializer
+import json
 
 
 class GetEndpoint(View):
@@ -166,18 +167,24 @@ class PatchEndpoint(View):
       return HttpResponseNotFound()
 
     # Update model instance
-    patch = QueryDict(request.body)
-    for key, value in patch.items():
-      # Retreive foreign object if model specifies it
-      if value != '':
-        if 'foreign_fields' in dir(self):
-          if key in self.foreign_fields:
-            foreign_model = self.foreign_fields[key]
-            value = foreign_model.objects.get(pk=int(value))
-      else:
-        value = None
+    if request.content_type == 'application/json':
+        try:
+            patch_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    else:
+        patch_data = request.POST or QueryDict(request.body)
 
-      setattr(obj, key, value)
+    # Update model instance
+    for key, value in patch_data.items():
+        if value != '':
+            if hasattr(self, 'foreign_fields') and key in self.foreign_fields:
+                foreign_model = self.foreign_fields[key]
+                value = foreign_model.objects.get(pk=int(value))
+        else:
+          value = None
+
+        setattr(obj, key, value)
 
     obj.save()
 

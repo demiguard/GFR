@@ -1,4 +1,4 @@
-// TODO: Only send keys and values for the fields which have actually been changed
+// LEGACY CODE, this functionality is now handled by htmx TODO: Delete this file
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);

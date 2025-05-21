@@ -1,4 +1,4 @@
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.views.generic import TemplateView
@@ -83,9 +83,34 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
       'version'   : server_config.SERVER_VERSION,
       'model_name': model_name,
       'edit_form': edit_form,
+      'obj_id': obj_id
     }
 
     return render(request, self.template_name, context)
+  
+  def post(self, request, model_name, obj_id):
+        model = self.MODEL_NAME_MAPPINGS.get(model_name)
+        if not model:
+            return HttpResponseNotFound(f"Model '{model_name}' not found.")
+        try:
+            obj_instance = model.objects.get(pk=obj_id)
+        except ObjectDoesNotExist:
+            return HttpResponseNotFound(f"Object with ID '{obj_id}' not found.")
+        form_class = self.EDIT_FORM_MAPPINGS.get(model_name)
+        if not form_class:
+            return HttpResponseNotFound(f"No form for model '{model_name}'.")
+
+        form = form_class(request.POST, instance=obj_instance)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("Ændringer gemt!", status=200)
+        else:
+            # Return the rendered form again with validation errors
+            return render(request, self.template_name, {
+                'model_name': model_name,
+                'edit_form': form,
+                'obj_id': obj_id
+            }, status=400)
 
 
 class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
