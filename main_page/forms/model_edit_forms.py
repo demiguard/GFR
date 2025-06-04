@@ -10,6 +10,18 @@ class EditUserForm(forms.ModelForm):
       "username"
     ]
 
+    department = forms.ModelChoiceField(
+        required=True,
+        widget=forms.Select,
+        queryset=models.Department.objects.all()
+    )
+
+    user_group = forms.ChoiceField(
+        required=True,
+        widget=forms.Select,
+        choices=models.UserGroup
+    )
+
   def __init__(self, *args, **kwargs):
     # Call the base class to allow the form to be constructed using templating
     # This allows for access to self.fields
@@ -21,6 +33,14 @@ class EditUserForm(forms.ModelForm):
     self.initial['department'] = obj_instance.department
     self.initial['user_group'] = obj_instance.user_group
 
+  def save(self, commit=True):
+      user = super().save(commit=False)
+      user.department = self.cleaned_data['department']
+      user.user_group = self.cleaned_data['user_group']
+      if commit:
+          user.save()
+      return user
+  
   # List available hospital choices from the database
   department   = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
   user_group   = forms.ChoiceField(required=True, widget=forms.Select, choices=models.UserGroup)
