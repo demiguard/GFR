@@ -76,6 +76,13 @@ class GFRStudyForm(forms.ModelForm):
       'InjectionWeightAfter',
       'PatientBirthDate',
     ]
+    widgets = {
+      'Comment': forms.Textarea(attrs={
+        'class': 'form-control comment-textarea',
+        'rows': 2, 
+        'style': 'overflow-y: auto;' 
+      }),
+    }
     labels = {
       'PatientID' : "CPR",
       'PatientName' : "Navn",

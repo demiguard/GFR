@@ -45,6 +45,7 @@
         <div>
           {{ grand_form.Method.label_tag }}{{ grand_form.Method }}
         </div>
+        <div class="form-group">{{ grand_form.Comment.errors }}{{ grand_form.Comment.label_tag }}{{ grand_form.Comment }}</div>
       </div>
     </div>
 
@@ -129,10 +130,6 @@
           </div>
           <input type="button" value="Tilføj tælletal" id="add-test">
           <input type="button" value="Nulstil valgte prøver" id="reset-selected">
-        </div>
-
-        <div class="form-group">
-          {{ grand_form.comment_field.label_tag }} {{ grand_form.comment_field }}
         </div>
 
         <input type="submit" name="calculate" value="Beregn" id="calculate">

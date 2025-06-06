@@ -56,6 +56,7 @@ class NewStudyView(LoginRequiredMixin, TemplateView):
         StudyDateTime=new_study_form.cleaned_data['study_date'],
         StudyDescription='GFR NØDOPRETTET',
         Department=user.department,
+        Comment=new_study_form.cleaned_data['comment_field'],
       )
       return redirect('main_page:fill_study', accession_number=new_study_form.cleaned_data['rigs_nr'])
     else:
