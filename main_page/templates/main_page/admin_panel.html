@@ -8,7 +8,7 @@
 
 {% block content %}
   <h2>Admin panel</h2>
-
+  
   <div class="row">
     <div class="col-md-3">
       <form>
@@ -27,11 +27,9 @@
     </div>
 
     <div class="col-md-3">
-      <form>
-        <button type="button" id="add-btn" class="add-btn btn btn-primary">
-          <span title="Tilføj" class="oi oi-plus" aria-hidden="true"></span>
-        </button>
-      </form>
+      <a id="add-link" class="btn btn-primary" href="/admin_panel/add/user/">
+        <span title="Tilføj" class="oi oi-plus" aria-hidden="true"></span>
+      </a>
     </div>
 
     <!-- Remove everything buttons -->
@@ -111,6 +109,19 @@
 {% endblock %}
 
 {% block javascript %}
+<script>
+  document.getElementById("add-btn").addEventListener("click", function () {
+  const selector = document.getElementById("model-selector");
+  const selectedKey = selector.value;
+
+  // Use SELECTED_MODEL_NAMES to get the singular model name
+  const modelName = SELECTED_MODEL_NAMES[selectedKey];
+
+  // Redirect to the add form URL using singular model name
+  window.location.href = `/admin_panel/add/${modelName}/`;
+});
+</script>
+
   <script src="{% static 'main_page/js/util/csrf.js' %}"></script>
   <script src="{% static 'main_page/js/sort_table.js' %}"></script>
   <script src="{% static 'main_page/js/util/alerter.js' %}"></script>

@@ -29,7 +29,7 @@ urlpatterns = [
   # Admin panel
   path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),
   path('admin_panel/edit/<str:model_name>/<slug:obj_id>', views.AdminPanelEditView.as_view(), name='admin_panel_edit'),
-  path('admin_panel/add/<str:model_name>', views.AdminPanelAddView.as_view(), name='admin_panel_add'),  
+  path('admin_panel/add/<str:model_name>/', views.AdminPanelAddView.as_view(), name='admin_panel_add'),  
   
   # Async ajax urls
   # TODO: Make all these conform to the new RESTful api design

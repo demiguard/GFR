@@ -155,3 +155,19 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
     }
 
     return render(request, self.template_name, context)
+  
+  def post(self, request, model_name):
+      form_class = self.ADD_FORM_MAPPINGS.get(model_name)
+      if not form_class:
+          return HttpResponseNotFound("Model not found")
+
+      form = form_class(request.POST)
+      if form.is_valid():
+          form.save()
+          return HttpResponse("<div class='alert alert-success'>Oprettet!</div>")
+      else:
+          # Return the form again with errors
+          return render(request, "main_page/partials/admin_add_form.html", {
+              "add_form": form,
+              "model_name": model_name,
+          }, status=400)
