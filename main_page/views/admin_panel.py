@@ -1,8 +1,9 @@
 from django.http import HttpResponseNotFound, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
 from main_page.libs import server_config
 from main_page.views.mixins import AdminRequiredMixin
@@ -164,7 +165,8 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
       form = form_class(request.POST)
       if form.is_valid():
           form.save()
-          return HttpResponse("<div class='alert alert-success'>Oprettet!</div>")
+          messages.success(self.request, "Objektet blev oprettet!")
+          return redirect('main_page:admin_panel')
       else:
           # Return the form again with errors
           return render(request, "main_page/partials/admin_add_form.html", {
