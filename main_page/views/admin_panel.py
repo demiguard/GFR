@@ -169,7 +169,7 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
           return redirect('main_page:admin_panel')
       else:
           # Return the form again with errors
-          return render(request, "main_page/partials/admin_add_form.html", {
+          return render(request, "main_page/admin_panel_add.html", {
               "add_form": form,
               "model_name": model_name,
           }, status=400)

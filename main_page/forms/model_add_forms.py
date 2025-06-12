@@ -27,6 +27,16 @@ class AddUserForm(forms.ModelForm):
   # List available user groups
   user_group = forms.ChoiceField(required=True, widget=forms.Select, choices=models.UserGroup.choices)
 
+  def clean(self):
+    cleaned_data = super().clean()
+    password = cleaned_data.get('password')
+    confirm_pass = cleaned_data.get('confirm_pass')
+
+    if password and confirm_pass and password != confirm_pass:
+      self.add_error('confirm_pass', "Adgangskoderne matcher ikke.")
+
+    return cleaned_data
+
 
 class AddHospitalForm(forms.ModelForm):
   class Meta:
