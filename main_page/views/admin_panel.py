@@ -104,7 +104,9 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
         form = form_class(request.POST, instance=obj_instance)
         if form.is_valid():
             form.save()
-            return HttpResponse("Ændringer gemt!", status=200)
+            messages.success(self.request, "Ændringer gemt!")
+            return redirect('main_page:admin_panel')
+
         else:
             # Return the rendered form again with validation errors
             return render(request, self.template_name, {
