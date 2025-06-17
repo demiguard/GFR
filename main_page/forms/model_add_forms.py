@@ -36,6 +36,22 @@ class AddUserForm(forms.ModelForm):
       self.add_error('confirm_pass', "Adgangskoderne matcher ikke.")
 
     return cleaned_data
+  
+  def save(self, commit=True):
+    user = super().save(commit=False)
+
+    # Handle additional fields
+    department = self.cleaned_data['hosp_depart']
+    group = self.cleaned_data['user_group']
+
+    user.department = department
+    user.user_group = group
+
+    if commit:
+        user.save()
+        
+    return user
+
 
 
 class AddHospitalForm(forms.ModelForm):
@@ -77,6 +93,21 @@ class AddDepartmentForm(forms.ModelForm):
   hospital = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Hospital.objects.all())
   config = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Config.objects.all())
 
+  def save(self, commit=True):
+    department = super().save(commit=False)
+
+    hospital = self.cleaned_data['hospital']
+    config = self.cleaned_data['config']
+
+    # Handle additional fields
+    department.hospital = hospital 
+    department.config = config
+
+    if commit:
+      department.save()
+
+    return department
+
 
 class AddProcedureForm(forms.ModelForm):
   class Meta:
@@ -101,6 +132,21 @@ class AddConfigForm(forms.ModelForm):
   ris  = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Address.objects.all())
   pacs = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Address.objects.all())
 
+  def save(self, commit=True):
+    config = super().save(commit=False)
+
+    ris = self.cleaned_data['ris']
+    pacs = self.cleaned_data['pcas']
+
+    # Handle additional fields
+    config.ris = ris 
+    config.pacs = pacs
+
+    if commit:
+      config.save()
+
+    return config
+
 #Note that the datefield is added automatic
 class AddHandledExaminationsForm(forms.ModelForm):
   class Meta:
@@ -121,6 +167,22 @@ class AddProcedureMapping(forms.ModelForm):
 
   department = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.Department.objects.all())
   proceduretype_id = forms.ModelChoiceField(required=True, widget=forms.Select, queryset=models.ProcedureType.objects.all())
+
+  def save(self, commit=True):
+    procedure = super().save(commit=False)
+
+    department = self.cleaned_data['department']
+    typeId = self.cleaned_data['proceduretype_id']
+
+    # Handle additional fields
+    procedure.department = department 
+    procedure.proceduretype_id = typeId
+
+    if commit:
+      procedure.save()
+
+    return procedure
+  
 
 class AddAddressForm(forms.ModelForm):
   class Meta:
