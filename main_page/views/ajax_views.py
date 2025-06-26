@@ -4,6 +4,7 @@ from ldap import FILTER_ERROR
 
 # Third party packages
 from django.views.generic import TemplateView
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -144,3 +145,10 @@ class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
     request.user.department.save()
 
     return JsonResponse({})
+
+@require_POST
+def admin_add_redirect(request):
+  model = request.POST.get("model")
+  if model:
+    return redirect("main_page:admin_panel_add", model_name=model)
+  return redirect("main_page:admin_panel") #fallback
