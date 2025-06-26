@@ -119,16 +119,16 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
 class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   template_name = "main_page/admin_panel_add.html"
 
-  MODEL_NAME_MAPPINGS = {
-    'user'                : models.User,
-    'department'          : models.Department,
-    'config'              : models.Config,
-    'hospital'            : models.Hospital,
-    'handled_examination' : models.HandledExaminations,
-    'proceduretype'       : models.ProcedureType,
-    'procedure_mapping'   : models.Config.accepted_procedures.through,
-    'address'             : models.Address,
-    'server_config'       : models.ServerConfiguration
+  MODEL_NAME_LABELS = {
+    'user'                : 'bruger',
+    'department'          : 'afdeling',
+    'config'              : 'konfiguration',
+    'hospital'            : 'hospital',
+    'handled_examination' : 'behandlede undersøgelse',
+    'proceduretype'       : 'proceduretype',
+    'procedure_mapping'   : 'procedure filter',
+    'address'             : 'adresse',
+    'server_config'       : 'server konfiguration'
   }
 
   ADD_FORM_MAPPINGS = {
@@ -154,6 +154,7 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'model_name': model_name,
+      'model_label': self.MODEL_NAME_LABELS.get(model_name, model_name),
       'add_form'  : add_form,
     }
 
@@ -173,5 +174,6 @@ class AdminPanelAddView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
           # Return the form again with errors
           return render(request, "main_page/admin_panel_add.html", {
               "add_form": form,
-              "model_name": model_name,
+              "model_name": self.MODEL_NAME_MAPPINGS.get(model_name),
+              'model_label': self.MODEL_NAME_LABELS.get(model_name, model_name),
           }, status=400)
