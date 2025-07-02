@@ -74,43 +74,51 @@
     </div>
   </div>
 
-<!-- nuke list studies modal -->
-<div id="nukeLSModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5>Fjern alle åbne undersøgelser</h5>
-      <span class="close" onclick="closeModal('nukeLSModal')">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p><strong>ADVARSEL:</strong> Du er ved at permanent fjerne alle åbne undersøgelser, inkluderende alt indtastede information!</p>
-      <p>Undersøgelser som stadig er ankomst registeret ville blive hentet ned igen. (kan tage op til 15 min.)</p>
-      <form id="nukeListForm">
-        {{ nuke_list_form.as_p }}
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button type="button" onclick="closeModal('nukeLSModal')">Afbryd</button>
-      <button id="nukeLS-modal-accept" class="danger-btn">Fjern</button>
+<!-- Nuke List Studies Modal -->
+<div class="modal fade" id="nukeLSModal" tabindex="-1" role="dialog" aria-labelledby="nukeLSModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="nukeLSModalLabel">Fjern alle åbne undersøgelser</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Luk">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ADVARSEL:</strong> Du er ved at permanent fjerne alle åbne undersøgelser!</p>
+        <p>Undersøgelser som stadig er ankomst registeret vil blive hentet ned igen. (kan tage op til 15 min.)</p>
+        <form id="nukeListForm">
+          {{ nuke_list_form.as_p }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
+        <button id="nukeLS-modal-accept" class="btn btn-danger">Fjern</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- nuke deleted studies modal -->
-<div id="nukeDSModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5>Fjern alle slettede undersøgelser</h5>
-      <span class="close" onclick="closeModal('nukeDSModal')">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p><strong>ADVARSEL:</strong> Du er ved at permanent fjerne alle slettede undersøgelser, inkluderende alt indtastede information!</p>
-      <form id="nukeDeletedForm">
-        {{ nuke_deleted_form.as_p }}
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button type="button" onclick="closeModal('nukeDSModal')">Afbryd</button>
-      <button id="nukeDS-modal-accept" class="danger-btn">Fjern</button>
+<!-- Nuke Deleted Studies Modal -->
+<div class="modal fade" id="nukeDSModal" tabindex="-1" role="dialog" aria-labelledby="nukeDSModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="nukeDSModalLabel">Fjern alle slettede undersøgelser</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Luk">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ADVARSEL:</strong> Du er ved at permanent fjerne alle slettede undersøgelser!</p>
+        <form id="nukeDeletedForm">
+          {{ nuke_deleted_form.as_p }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Afbryd</button>
+        <button id="nukeDS-modal-accept" class="btn btn-danger">Fjern</button>
+      </div>
     </div>
   </div>
 </div>
@@ -121,5 +129,4 @@
   <script src="{% static 'main_page/js/sort_table.js' %}"></script>
   <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
   <script src="{% static 'main_page/js/admin_panel.js' %}"></script>
-  <script src="{% static 'main_page/js/admin_panel_modal.js' %}"></script>
 {% endblock %}
