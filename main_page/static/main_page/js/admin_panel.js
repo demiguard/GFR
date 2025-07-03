@@ -298,15 +298,6 @@ $(function() {
 
   $('#model-selector').on('change', show_model);
 
-  $('#add-btn').on('click', function() {
-    // Determine which model is being added, so the correct api endpoint can be reached 
-    let selected_model_value = $('#model-selector').val();
-    let selected_model_name = SELECTED_MODEL_NAMES[selected_model_value];
-
-    let add_url = "/admin_panel/add/" + selected_model_name;
-    window.location.href = add_url;
-  });
-
   /* Event listeners for remove all studies buttons */
   $('#nukeLS-modal-accept').attr('disabled', true);
   $('#nukeDS-modal-accept').attr('disabled', true);

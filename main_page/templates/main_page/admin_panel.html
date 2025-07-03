@@ -15,29 +15,29 @@
       {% endfor %}
     </ul>
   {% endif %}
-  <form action="{% url 'main_page:admin_add_redirect' %}" method="post" hx-boost="true">
+<form action="{% url 'main_page:admin_add_redirect' %}" method="post" hx-boost="true">
   {% csrf_token %}
   <div class="row">
-      <div class="col-md-3">
-          <select class="form-control" id="model-selector">
-            <option value="users">Brugere</option>
-            <option value="hospitals">Hospitaler</option>
-            <option value="departments">Afdelinger</option>
-            <option value="configs">Konfigurationer</option>
-            <option value="handled_examinations">Behandlede undersøgelser</option>
-            <option value="procedures">Procedurer</option>
-            <option value="procedure_mapping">Procedure filter</option>
-            <option value="address">Addresser</option>
-            <option value="server_config">Server Konfiguration</option>
-          </select>
-      </div>
+    <div class="col-md-3">
+      <select class="form-control" id="model-selector" name="model">
+        <option value="users">Brugere</option>
+        <option value="hospitals">Hospitaler</option>
+        <option value="departments">Afdelinger</option>
+        <option value="configs">Konfigurationer</option>
+        <option value="handled_examinations">Behandlede undersøgelser</option>
+        <option value="procedures">Procedurer</option>
+        <option value="procedure_mapping">Procedure filter</option>
+        <option value="address">Addresser</option>
+        <option value="server_config">Server Konfiguration</option>
+      </select>
+    </div>
 
-      <div class="col-md-3">
-        <button id="add-btn" class="oi-oi-plus-btn" type="button">
-          <span title="Tilføj" class="oi oi-plus" aria-hidden="true"></span>
-        </button>
-      </div>
-  </form>
+    <div class="col-md-3">
+      <button id="add-btn" class="oi-oi-plus-btn btn btn-primary" type="submit">
+        <span title="Tilføj" class="oi oi-plus" aria-hidden="true"></span>
+      </button>
+    </div>
+</form>
 
 
     <!-- Remove everything buttons -->

@@ -6,6 +6,7 @@ from ldap import FILTER_ERROR
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
@@ -148,7 +149,21 @@ class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
 
 @require_POST
 def admin_add_redirect(request):
-  model = request.POST.get("model")
-  if model:
-    return redirect("main_page:admin_panel_add", model_name=model)
-  return redirect("main_page:admin_panel") #fallback
+  model = request.POST.get("model")  # was POST
+  model_map = {
+      'users': 'user',
+      'hospitals': 'hospital',
+      'departments': 'department',
+      'handled_examinations': 'handled_examination',
+      'configs': 'config',
+      'procedures': 'proceduretype',
+      'procedure_mapping': 'procedure_mapping',
+      'address': 'address',
+      'server_config': 'server_config'
+  }
+
+  if model in model_map:
+      return redirect(f'/admin_panel/add/{model_map[model]}')
+  else:
+      messages.error(request, "Ukendt model valgt.")
+      return redirect('main_page:admin_panel')
