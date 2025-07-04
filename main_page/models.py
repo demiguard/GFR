@@ -102,6 +102,10 @@ class User(AbstractBaseUser):
   USERNAME_FIELD = 'username'
   REQUIRED_FIELDS = ['password', 'department']
 
+  @property
+  def is_staff(self):
+      return self.user_group == UserGroup.ADMIN
+
   def __str__(self):
     return self.username
 

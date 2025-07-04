@@ -17,6 +17,7 @@ from main_page import models
 from main_page.models import UserGroup, Department, UserDepartmentAssignment
 from main_page.libs.status_codes import *
 from main_page.forms import base_forms
+from main_page.views.api import api
 
 
 from main_page import log_util
@@ -152,7 +153,7 @@ class AjaxUpdateThiningFactor(LoginRequiredMixin, TemplateView):
 
 @require_POST
 def admin_add_redirect(request):
-  model = request.POST.get("model")  # was POST
+  model = request.POST.get("model")
   model_map = {
       'users': 'user',
       'hospitals': 'hospital',
@@ -176,26 +177,27 @@ def admin_add_redirect(request):
 def load_model_items(request):
     model_name = request.GET.get('model')
 
-    # Reuse mappings you already have
-    model_mapping = {
-        'users': models.User,
-        'hospitals': models.Hospital,
-        'departments': models.Department,
-        'configs': models.Config,
-        'handled_examinations': models.HandledExaminations,
-        'procedures': models.ProcedureType,
-        'procedure_mapping': models.Config.accepted_procedures.through,
-        'address': models.Address,
-        'server_config': models.ServerConfiguration,
+    ENDPOINT_CLASSES = {
+    'users': api.UserEndpoint,
+    'hospitals': api.HospitalEndpoint,
+    'departments': api.DepartmentEndpoint,
+    'proceduretypes': api.ProcedureEndpoint,
+    'configs': api.ConfigEndpoint,
+    'handled_examinations': api.HandledExaminationsEndpoint,
+    'addresses': api.AddressEndpoint,
+    'server_configurations': api.ServerConfigurationEndpoint,
+    'procedure_mapping': api.ProcedureMappingsEndpoint,
     }
 
-    model = model_mapping.get(model_name)
-    if not model:
+    endpoint_cls = ENDPOINT_CLASSES.get(model_name)
+    if not endpoint_cls:
         messages.error(request, "Ukendt model valgt.")
         return redirect('main_page:admin_panel')
 
+    model = endpoint_cls.model
+    fields = endpoint_cls.fields
+
     objects = model.objects.all()
-    fields = [field.name for field in model._meta.fields]
 
     context = {
         'objects': objects,

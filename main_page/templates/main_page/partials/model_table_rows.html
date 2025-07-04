@@ -11,7 +11,9 @@
   {% for obj in objects %}
     <tr>
       {% for field in fields %}
-        <td>{{ obj|attr:field }}</td>
+        <td>
+          {{ obj|attr:field }}
+        </td>
       {% endfor %}
       <td>
         {% if model_name != 'procedure_mapping' %}
