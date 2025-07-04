@@ -19,7 +19,13 @@
   {% csrf_token %}
   <div class="row">
     <div class="col-md-3">
-      <select class="form-control" id="model-selector" name="model">
+      <select class="form-control"
+        id="model-selector"
+        name="model"
+        hx-get="{% url 'main_page:load_model_items' %}"
+        hx-target="#admin-table-body"
+        hx-include="[name='model']"
+        hx-trigger="change">
         <option value="users">Brugere</option>
         <option value="hospitals">Hospitaler</option>
         <option value="departments">Afdelinger</option>
@@ -43,7 +49,7 @@
     <!-- Remove everything buttons -->
     <div class="col-md-6">
       <form id="nuke-form">
-        <button type="button" id="nuke-list-studies" class="nuke-btn btn btn-sm btn-danger">
+        <button type="7button" id="nuke-list-studies" class="nuke-btn btn btn-sm btn-danger">
           Ryd undersøgelser
         </button>
         <button type="button" id="nuke-deleted-studies" class="nuke-btn btn btn-sm btn-danger">
@@ -128,5 +134,5 @@
   <script src="{% static 'main_page/js/util/csrf.js' %}"></script>
   <script src="{% static 'main_page/js/sort_table.js' %}"></script>
   <script src="{% static 'main_page/js/util/alerter.js' %}"></script>
-  <script src="{% static 'main_page/js/admin_panel.js' %}"></script>
+  <!--<script src="{% static 'main_page/js/admin_panel.js' %}"></script>-->
 {% endblock %}

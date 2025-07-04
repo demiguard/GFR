@@ -27,3 +27,8 @@ def to_integer(value):
   if isinstance(value, float):
     return int(floor(value))
   return value
+
+@register.filter
+def attr(obj, attr_name):
+    return getattr(obj, attr_name)
+

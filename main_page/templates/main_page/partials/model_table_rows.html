@@ -1,0 +1,30 @@
+{% load gfr_tags %}
+<thead>
+  <tr>
+    {% for field in fields %}
+      <th>{{ field|capfirst }}</th>
+    {% endfor %}
+    <th>Handling</th>
+  </tr>
+</thead>
+<tbody>
+  {% for obj in objects %}
+    <tr>
+      {% for field in fields %}
+        <td>{{ obj|attr:field }}</td>
+      {% endfor %}
+      <td>
+        {% if model_name != 'procedure_mapping' %}
+          <button class="btn btn-link edit-btn" data-id="{{ obj.id }}">
+            <span title="Rediger" class="oi oi-pencil"></span>
+          </button>
+        {% endif %}
+        <div class="divider"></div>
+        <button class="btn btn-link delete-btn" data-id="{{ obj.id }}">
+          <span title="Slet" class="oi oi-trash"></span>
+        </button>
+      </td>
+    </tr>
+  {% endfor %}
+</tbody>
+

@@ -4,7 +4,7 @@ from django.conf.urls import (handler400, handler403, handler404, handler500)
 #Sooo WhY do we not just import api at this point?
 from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint, ListEndpoint, AddressEndpoint, ServerConfigurationEndpoint, ChangeDepartmentEndpoint
 import main_page.views.views as views
-from main_page.views.ajax_views import admin_add_redirect
+from main_page.views.ajax_views import admin_add_redirect, load_model_items
 
 app_name = 'main_page'
 
@@ -29,8 +29,9 @@ urlpatterns = [
   # Admin panel
   path('admin_panel', views.AdminPanelView.as_view(), name='admin_panel'),
   path('admin_panel/edit/<str:model_name>/<slug:obj_id>', views.AdminPanelEditView.as_view(), name='admin_panel_edit'),
-  path('admin/add/', admin_add_redirect, name='admin_add_redirect'),
-  path('admin_panel/add/<str:model_name>/', views.AdminPanelAddView.as_view(), name='admin_panel_add'),  
+  path('admin_panel/add/', admin_add_redirect, name='admin_add_redirect'),
+  path('admin_panel/add/<str:model_name>/', views.AdminPanelAddView.as_view(), name='admin_panel_add'),
+  path('admin_panel/load_model_items/', load_model_items, name='load_model_items'),
   
   # Async ajax urls
   # TODO: Make all these conform to the new RESTful api design

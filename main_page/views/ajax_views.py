@@ -4,13 +4,16 @@ from ldap import FILTER_ERROR
 
 # Third party packages
 from django.views.generic import TemplateView
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
+from django.template.loader import render_to_string
 
+
+from main_page import models
 from main_page.models import UserGroup, Department, UserDepartmentAssignment
 from main_page.libs.status_codes import *
 from main_page.forms import base_forms
@@ -167,3 +170,38 @@ def admin_add_redirect(request):
   else:
       messages.error(request, "Ukendt model valgt.")
       return redirect('main_page:admin_panel')
+  
+
+@require_GET
+def load_model_items(request):
+    model_name = request.GET.get('model')
+
+    # Reuse mappings you already have
+    model_mapping = {
+        'users': models.User,
+        'hospitals': models.Hospital,
+        'departments': models.Department,
+        'configs': models.Config,
+        'handled_examinations': models.HandledExaminations,
+        'procedures': models.ProcedureType,
+        'procedure_mapping': models.Config.accepted_procedures.through,
+        'address': models.Address,
+        'server_config': models.ServerConfiguration,
+    }
+
+    model = model_mapping.get(model_name)
+    if not model:
+        messages.error(request, "Ukendt model valgt.")
+        return redirect('main_page:admin_panel')
+
+    objects = model.objects.all()
+    fields = [field.name for field in model._meta.fields]
+
+    context = {
+        'objects': objects,
+        'fields': fields,
+        'model_name': model_name
+    }
+
+    html = render_to_string("main_page/partials/model_table_rows.html", context)
+    return HttpResponse(html)
