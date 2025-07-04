@@ -18,6 +18,13 @@ class NewStudy(forms.Form):
     input_formats=['%d-%m-%Y'],
     label='Dato')
   rigs_nr = forms.CharField(label='Accession nr.')
+  comment_field       = forms.CharField(label="Kommentar",
+                                        required=False,
+                                        widget=forms.Textarea(attrs={
+                                          "style": "height:75px;",
+                                          "class": "col-md-8"
+                                          })
+                                        )
 
 class GrandControlPatient(forms.Form):
   #Standard fields
