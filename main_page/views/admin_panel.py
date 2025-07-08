@@ -35,26 +35,26 @@ class AdminPanelEditView(AdminRequiredMixin, LoginRequiredMixin, TemplateView):
   template_name = "main_page/admin_panel_edit.html"
 
   MODEL_NAME_MAPPINGS = {
-    'user': models.User,
-    'department': models.Department,
-    'config': models.Config,
-    'hospital': models.Hospital,
-    'handled_examination': models.HandledExaminations,
-    'proceduretype': models.ProcedureType,
-    'procedure_mapping': models.Config.accepted_procedures.through,
+    'users': models.User,
+    'departments': models.Department,
+    'configs': models.Config,
+    'hospitals': models.Hospital,
+    'handled_examinations': models.HandledExaminations,
+    'proceduretypes': models.ProcedureType,
+    'procedure_mappings': models.Config.accepted_procedures.through,
     'address': models.Address,
-    'server_config': models.ServerConfiguration
+    'server_configs': models.ServerConfiguration
   }
 
   EDIT_FORM_MAPPINGS = {
-    'user': model_edit_forms.EditUserForm,
-    'department': model_edit_forms.EditDepartmentForm,
-    'config': model_edit_forms.EditConfigForm,
-    'hospital': model_edit_forms.EditHospitalForm,
-    'handled_examination': model_edit_forms.EditHandledExaminationsForm,
-    'proceduretype' : model_edit_forms.EditProcedureForm,
+    'users': model_edit_forms.EditUserForm,
+    'departments': model_edit_forms.EditDepartmentForm,
+    'configs': model_edit_forms.EditConfigForm,
+    'hospitals': model_edit_forms.EditHospitalForm,
+    'handled_examinations': model_edit_forms.EditHandledExaminationsForm,
+    'proceduretypes' : model_edit_forms.EditProcedureForm,
     'address': model_edit_forms.EditAddressForm,
-    'server_config': model_edit_forms.EditServerConfigurationForm
+    'server_configs': model_edit_forms.EditServerConfigurationForm
   }
 
   def get(self, request, model_name, obj_id):

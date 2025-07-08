@@ -163,13 +163,13 @@ def admin_add_redirect(request):
       'procedures': 'proceduretype',
       'procedure_mapping': 'procedure_mapping',
       'address': 'address',
-      'server_config': 'server_config'
+      'server_config': 'server_configs'
   }
 
   if model in model_map:
       return redirect(f'/admin_panel/add/{model_map[model]}')
   else:
-      messages.error(request, "Ukendt model valgt.")
+      messages.error(request, f"Ukendt model valgt: {model}")
       return redirect('main_page:admin_panel')
   
 
@@ -181,17 +181,17 @@ def load_model_items(request):
     'users': api.UserEndpoint,
     'hospitals': api.HospitalEndpoint,
     'departments': api.DepartmentEndpoint,
-    'proceduretypes': api.ProcedureEndpoint,
+    'procedures': api.ProcedureEndpoint,
     'configs': api.ConfigEndpoint,
     'handled_examinations': api.HandledExaminationsEndpoint,
-    'addresses': api.AddressEndpoint,
-    'server_configurations': api.ServerConfigurationEndpoint,
+    'address': api.AddressEndpoint,
+    'server_config': api.ServerConfigurationEndpoint,
     'procedure_mapping': api.ProcedureMappingsEndpoint,
     }
 
     endpoint_cls = ENDPOINT_CLASSES.get(model_name)
     if not endpoint_cls:
-        messages.error(request, "Ukendt model valgt.")
+        messages.error(request, f"Ukendt model valgt: {model_name}")
         return redirect('main_page:admin_panel')
 
     model = endpoint_cls.model

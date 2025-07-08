@@ -294,7 +294,7 @@ $(function() {
   // Site loaded
   alerter.init_alerter($('#error-container'));
 
-  show_model();
+  //show_model();
 
   $('#model-selector').on('change', show_model);
 
