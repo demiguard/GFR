@@ -29,6 +29,8 @@ def to_integer(value):
   return value
 
 @register.filter
-def attr(obj, attr_name):
-    return getattr(obj, attr_name)
+def attr(obj, attr_path):
+    for part in attr_path.split('.'):
+        obj = getattr(obj, part)
+    return obj
 
