@@ -62,7 +62,16 @@ class DeleteEndpoint(View):
   by a given object id.
   """
 
+  """
+  Set up to both accept delete from regular js or post from htmx
+  """
   def delete(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
+    return self._delete_object(request, obj_id)
+
+  def post(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
+    return self._delete_object(request, obj_id)
+
+  def _delete_object(self, request: Type[WSGIRequest], obj_id: Union[str, int]) -> HttpResponse:
     """
     Handles incoming DELETE requests to the endpoint
 
@@ -81,6 +90,10 @@ class DeleteEndpoint(View):
 
     obj.delete()
 
+
+    # Sending response based on header
+    if self.request.headers.get("HX-Request"):
+        return HttpResponse(status=204)  # HTMX-friendly
     return JsonResponse({'action': 'success'})
 
 

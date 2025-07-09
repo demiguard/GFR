@@ -4,7 +4,7 @@ from django.conf.urls import (handler400, handler403, handler404, handler500)
 #Sooo WhY do we not just import api at this point?
 from main_page.views.api.api import UserEndpoint, HospitalEndpoint, DepartmentEndpoint, ConfigEndpoint, HandledExaminationsEndpoint, SambaBackupEndpoint, ProcedureEndpoint, ProcedureMappingsEndpoint, StudyEndpoint, CsvEndpoint, SearchEndpoint, ListEndpoint, AddressEndpoint, ServerConfigurationEndpoint, ChangeDepartmentEndpoint
 import main_page.views.views as views
-from main_page.views.ajax_views import admin_add_redirect, load_model_items
+from main_page.views.ajax_views import GenericRESTEndpointDelete, admin_add_redirect, load_model_items
 
 app_name = 'main_page'
 
@@ -39,6 +39,10 @@ urlpatterns = [
   path('ajax/update_thining_factor', views.AjaxUpdateThiningFactor.as_view(), name='ajax_update_thining_factor'),
   
   # New RESTful api design
+  
+  # Generic Rest delete
+  path('admin_panel/delete/<str:model_name>/<slug:obj_id>', GenericRESTEndpointDelete.as_view(), name='generic_delete'),
+
   path('api/search', SearchEndpoint.as_view(), name='search_api'),
 
   path('api/user', UserEndpoint.as_view(), name='user'),

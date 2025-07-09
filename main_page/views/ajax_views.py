@@ -4,13 +4,15 @@ from ldap import FILTER_ERROR
 
 # Third party packages
 from django.views.generic import TemplateView
+from django.views import View
 from django.views.decorators.http import require_POST, require_GET
-from django.http import JsonResponse, HttpResponseServerError, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.template.context_processors import csrf
 
 
 from main_page import models
@@ -24,7 +26,17 @@ from main_page import log_util
 from main_page.libs import ldap_queries
 logger = log_util.get_logger(__name__)
 
-
+ENDPOINT_CLASSES = {
+    'users': api.UserEndpoint,
+    'hospitals': api.HospitalEndpoint,
+    'departments': api.DepartmentEndpoint,
+    'procedures': api.ProcedureEndpoint,
+    'configs': api.ConfigEndpoint,
+    'handled_examinations': api.HandledExaminationsEndpoint,
+    'address': api.AddressEndpoint,
+    'server_config': api.ServerConfigurationEndpoint,
+    'procedure_mapping': api.ProcedureMappingsEndpoint,
+}
 
 class AjaxLogin(TemplateView):
   """
@@ -177,18 +189,6 @@ def admin_add_redirect(request):
 def load_model_items(request):
     model_name = request.GET.get('model')
 
-    ENDPOINT_CLASSES = {
-    'users': api.UserEndpoint,
-    'hospitals': api.HospitalEndpoint,
-    'departments': api.DepartmentEndpoint,
-    'procedures': api.ProcedureEndpoint,
-    'configs': api.ConfigEndpoint,
-    'handled_examinations': api.HandledExaminationsEndpoint,
-    'address': api.AddressEndpoint,
-    'server_config': api.ServerConfigurationEndpoint,
-    'procedure_mapping': api.ProcedureMappingsEndpoint,
-    }
-
     endpoint_cls = ENDPOINT_CLASSES.get(model_name)
     if not endpoint_cls:
         messages.error(request, f"Ukendt model valgt: {model_name}")
@@ -205,5 +205,17 @@ def load_model_items(request):
         'model_name': model_name
     }
 
+    context.update(csrf(request))
+
     html = render_to_string("main_page/partials/model_table_rows.html", context)
     return HttpResponse(html)
+
+class GenericRESTEndpointDelete(View):
+  def dispatch(self, request, model_name, obj_id, *args, **kwargs):
+      endpoint_class = ENDPOINT_CLASSES.get(model_name)
+      if not endpoint_class:
+          return HttpResponseNotFound(f"Unknown model: {model_name}")
+        
+      view_instance = endpoint_class()
+      view_instance.request = request  # Attach request manually
+      return view_instance.delete(request, obj_id)
