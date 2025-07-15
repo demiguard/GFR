@@ -23,7 +23,7 @@
         id="model-selector"
         name="model"
         hx-get="{% url 'main_page:load_model_items' %}"
-        hx-target="#admin-table-body"
+        hx-target="#admin-table"
         hx-include="[name='model']"
         hx-trigger="change">
         <option disabled selected value> -- Vælg en model -- </option>
@@ -65,18 +65,8 @@
   <div class="row">
     <div class="col-md-12">
       <div id="error-container">
-
       </div>
-
       <table class="table table-hover" id="admin-table">
-        <thead>
-          <tr id="admin-table-head">
-
-          </tr>
-        </thead>
-        <tbody id="admin-table-body">
-
-        </tbody>
       </table>
     </div>
   </div>

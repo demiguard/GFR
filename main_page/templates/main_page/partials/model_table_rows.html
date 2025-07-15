@@ -25,7 +25,7 @@
             <span class="oi oi-pencil"></span>
           </a>
         {% endif %}
-        <div class="divider"></div>
+        <div class="divider">
         <form 
           method="POST"
           hx-post="{% url 'main_page:generic_delete' model_name=model_name obj_id=obj.pk %}"
@@ -35,10 +35,11 @@
           hx-on::after-request="htmx.ajax('GET', '/admin_panel/load_model_items/?model={{ model_name }}', {target: '#admin-table-body', swap: 'outerHTML'})"
         >
           {% csrf_token %}
-          <button class="btn btn-link">
+          <button class="btn delete-btn">
             <span title="Slet" class="oi oi-trash"></span>
           </button>
         </form>
+        </div>
       </td>
     </tr>
   {% endfor %}
