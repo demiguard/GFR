@@ -147,6 +147,10 @@ class ControlView(LoginRequiredMixin, TemplateView):
     if image_comments == None:
       image_comments = dataset.get("ImageComments")
 
+    sample_sequence = dataset.get("ClearTest")
+
+    show_QA_Button = len(sample_sequence) > 1 if sample_sequence else False
+
     InfoDir = {
       'cpr'                 : formatting.format_cpr(dataset.PatientID),
       'name'                : formatting.person_name_to_name(str(dataset.PatientName)),
@@ -170,6 +174,7 @@ class ControlView(LoginRequiredMixin, TemplateView):
       'info'    : InfoDir,
       'AccessionNumber' : AccessionNumber,
       'static_path' : static_path,
+      'show_QA_button' : show_QA_Button
     }
     context.update(self.init_forms(dataset))
 

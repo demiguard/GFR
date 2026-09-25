@@ -7,6 +7,8 @@ from django.http import HttpResponse
 import datetime
 import PIL
 import logging
+import pathlib
+from pathlib import Path
 
 from main_page.libs import server_config
 from main_page.libs import dicomlib
@@ -16,6 +18,18 @@ from main_page import log_util
 
 logger = log_util.get_logger(__name__)
 
+def get_dicom(request, accession_number):
+  find_path = Path(server_config.FIND_RESPONS_DIR) / request.user.department.hospital.short_name / accession_number / f'{accession_number}.dcm'
+
+  if find_path.exists():
+    return dicomlib.dcmread_wrapper(str(find_path))
+
+  control_path = Path(server_config.CONTROL_STUDIES_DIR) / request.user.department.hospital.short_name / accession_number / f'{accession_number}.dcm'
+
+  if control_path.exists():
+    return dicomlib.dcmread_wrapper(str(control_path))
+
+  raise FileNotFoundError
 
 class QAView(LoginRequiredMixin, TemplateView):
   """
@@ -26,11 +40,14 @@ class QAView(LoginRequiredMixin, TemplateView):
   def get(self, request, accession_number):
     try:
       logger.debug(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
-      dicom_obj = dicomlib.dcmread_wrapper(f"{server_config.FIND_RESPONS_DIR}{request.user.department.hospital.short_name}/{accession_number}/{accession_number}.dcm")
+      dicom_obj = get_dicom(request, accession_number)
       sample_times = []
       tch99_cnt = []
 
       logger.debug(f'loaded dicom object:\n {dicom_obj}')
+
+      find_path = Path(server_config.FIND_RESPONS_DIR) / request.user.department.hospital.short_name / accession_number / f'{accession_number}.dcm'
+      find_path_exists = find_path.exists()
 
       # Use a for loop to get tch count from file 
       for test in dicom_obj.ClearTest:
@@ -67,7 +84,8 @@ class QAView(LoginRequiredMixin, TemplateView):
       'title'     : server_config.SERVER_NAME,
       'version'   : server_config.SERVER_VERSION,
       'accession_number' : dicom_obj.AccessionNumber,
-      'image_path' : image_path
+      'image_path' : image_path,
+      'find_path_exists' : find_path_exists
     }
 
     return render(request, self.template_name, context=context)

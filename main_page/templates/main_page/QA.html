@@ -5,5 +5,11 @@
 
 {% block content %}
 <img width="100%" src="{% static image_path %}">
+
+{% if find_path_exists %}
 <input type="button" onclick="document.location='{% url "main_page:present_study" accession_number %}'" value="Tilbage">
+{% else %}
+<input type="button" onclick="document.location='{% url "main_page:control_study" accession_number %}'" value="Tilbage">
+{% endif %}
+
 {% endblock content %}

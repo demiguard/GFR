@@ -119,8 +119,8 @@ class ServerConfiguration(models.Model):
   samba_name  = models.CharField(max_length=30)
   samba_user  = models.CharField(max_length=30)
   samba_pass  = models.CharField(max_length=30)
-  samba_pc    = models.CharField(max_length=30)
-  samba_share = models.CharField(max_length=30)
+  samba_pc    = models.CharField(max_length=120)
+  samba_share = models.CharField(max_length=120)
 
   AE_title    = models.CharField(max_length=30)
 

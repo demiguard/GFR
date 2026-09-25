@@ -21,9 +21,9 @@ from main_page.models import ServerConfiguration
 from main_page.libs import server_config
 from main_page.libs import dicomlib
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GFRLogger")
 
-
+logger.info("starting StoreSCU server!")
 
 
 def logEvent(event):
@@ -34,7 +34,8 @@ def on_C_STORE(event):
     try:
       retrieved_dataset           = event.dataset
       retrieved_dataset.file_meta = event.file_meta
-    except:
+    except Exception as e:
+      logger.info(f"Got exception: {e}")
       return_dataset = Dataset()
       return_dataset.Status = 0xC123
       return_dataset.add_new(0x00000902, 'LO', 'Could not load retrieve Dataset')
@@ -43,14 +44,18 @@ def on_C_STORE(event):
     #logger.info(f'Dataset:\n {retrieved_dataset}')
 
     if 'AccessionNumber' in retrieved_dataset:
-      if 0x00230010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
+      if 0x0023_0010 in retrieved_dataset and retrieved_dataset.Modality == 'OT':
         filename = f'{retrieved_dataset.AccessionNumber}.dcm'
         fullpath = server_config.SEARCH_DIR + filename
         dicomlib.save_dicom(fullpath, retrieved_dataset)
+        logger.info(f"Saved Dataset at {fullpath}")
+      else:
+        logger.info(f"Unable to save dataset: {dataset.SeriesDescription}")
 
       return 0x0000
 
     else:
+      logger.info(f"Accession Number is not in retrieved dataset")
       return_dataset = Dataset()
       return_dataset.Status = 0xCAFE
       return_dataset.add_new(0x00000902, 'LO', 'This service cannot store DICOM objects without AccessionNumber') 

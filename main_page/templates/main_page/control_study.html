@@ -132,6 +132,10 @@
           <input type="submit" name="control" value="Godkend og send til PACS" id="confirm">
           <input type="submit" name="control" value="Afvis og rediger" id="deny">
           <input type="submit" name="control" value="Annuller" id="cancel">
+          {% if show_QA_button %}
+            <input type="button" value="QA plot" onclick="document.location='{% url "main_page:QA" AccessionNumber %}'">
+          {% endif%}
+         
         {% endbuttons %}
 
         <!-- Container for error/alert messages -->
