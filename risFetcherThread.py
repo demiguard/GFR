@@ -1,3 +1,5 @@
+
+from typing import List
 import logging
 import os
 import django
@@ -28,7 +30,7 @@ from main_page.models import ServerConfiguration, Department, HandledExamination
 from main_page.libs.dirmanager import try_mkdir
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 
-from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind 
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind
 
 # Create a logger just for the ris_thread
 logger = logging.getLogger("RisThread")
@@ -173,7 +175,7 @@ class RisFetcher():
     else:
       logger.error(f"Historic dataset not found for Accession Number: {historic_dataset.AccessionNumber}")
 
-  def get_historic_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
+  def c_move_for_history_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
     response = self.pacs_move_assoc.send_c_move(historic_dataset, self.sc.AE_title, StudyRootQueryRetrieveInformationModelMove)
     for status, identifier in response:
       if 'Status' in status:
@@ -188,21 +190,61 @@ class RisFetcher():
 
 
   def fetch_history(self, dataset: Dataset, dataset_dir : Path) -> None:
-    history_queryDataset = dataset_creator.create_search_dataset('',dataset.PatientID, '','', '')
+    """Fetches the history using the following steps:
+
+    1) Study Level C FIND - Filtering for OT studies
+    2) Series Level C FIND - Filtering for Clearance* in study description
+    3) Series Level C MOVE - Results from the Second query
+
+    Args:
+        dataset (Dataset): Worklist directory Dataset
+        dataset_dir (Path): _description_
+    """
+    if self.pacs_find_assoc is None or self.pacs_move_assoc is None:
+      logger.error("PACS Association are not initialized!")
+      return
+
+    history_queryDataset = dataset_creator.create_pacs_study_level_search_dataset(dataset.PatientID)
+
     response = self.pacs_find_assoc.send_c_find(history_queryDataset, StudyRootQueryRetrieveInformationModelFind)
-    logger.debug("Fetching history")
-    for status, historic_dataset in response:
+
+    study_find_responses: List[Dataset] = []
+
+    logger.info(f"Fetching history for {dataset.PatientID}")
+    for status, historic_study_dataset in response:
       if 'Status' in status:
-        if status.Status == DATASET_AVAILABLE:
-          if 'SeriesDescription' in historic_dataset and historic_dataset.SeriesDescription.startswith('Clearance'):
-            self.get_historic_dataset(historic_dataset, dataset_dir)
+        if status.Status == DATASET_AVAILABLE and historic_study_dataset is not None:
+          study_find_responses.append(historic_study_dataset)
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
           self.log_dicom_message_error('Query Historic ', status, history_queryDataset)
-
       else:
         logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
+
+    studies_to_retrieve = []
+
+    for study_dataset in study_find_responses:
+      series_level_query_dataset = dataset_creator.create_pacs_series_level_search_dataset(study_dataset.StudyInstanceUID)
+
+      for status, series_dataset in self.pacs_find_assoc.send_c_find(series_level_query_dataset, StudyRootQueryRetrieveInformationModelFind):
+        if status.Status == DATASET_AVAILABLE and series_dataset is not None:
+          if series_dataset.SeriesDescription.starts_with("Clearance"):
+            studies_to_retrieve.append(series_dataset)
+        elif status.Status == TRANSFER_COMPLETE:
+          pass
+        else:
+          self.log_dicom_message_error("Fetch Historic ", status, series_dataset)
+
+    for study_to_retrieve in studies_to_retrieve:
+      c_move_query_dataset = dataset_creator.create_pacs_series_level_move_dataset(
+        studyInstanceUID=study_to_retrieve.StudyInstanceUID,
+        seriesInstanceUID=study_to_retrieve.SeriesInstanceUID
+      )
+
+      self.c_move_for_history_dataset(c_move_query_dataset, dataset_dir)
+
+    logger.info(f"Retrieved {len(studies_to_retrieve)} for {dataset.AccessionNumber}")
 
 
   def handle_ris_dataset(self, dataset : Dataset, department : Department) -> None:
@@ -259,13 +301,17 @@ class RisFetcher():
         # Create associations
         if not self.associate(department): # This function set self.ris_assoc, self.pacs_find_assoc, self.pacs_move_assoc
           continue
+
+        if self.ris_assoc is None:
+          logger.error("Unable to establish communication to RIS")
+          continue
         # Do the pull request
         query_dataset = dataset_creator.generate_ris_query_dataset(department.config.ris_calling)
 
         response = self.ris_assoc.send_c_find(query_dataset, ModalityWorklistInformationFind)
         for status, dataset in response:
           if 'Status' in status:
-            if status.Status == DATASET_AVAILABLE:
+            if status.Status == DATASET_AVAILABLE and dataset is not None:
               self.handle_ris_dataset(dataset, department)
             elif status.Status == TRANSFER_COMPLETE:
               logger.debug(f"Handled response to {department}")

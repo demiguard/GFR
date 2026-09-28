@@ -33,7 +33,7 @@ def none_check(func, kwargs_check=False):
   """
   def wrapper(*args, **kwargs):
     arg_spec = inspect.getfullargspec(func).args
-    
+
     # Check if any arg is None
     for i, arg in enumerate(args):
       if arg == None:
@@ -51,7 +51,7 @@ def none_check(func, kwargs_check=False):
 
 
 @none_check
-def create_empty_dataset(accession_number: str) -> Type[Dataset]:
+def create_empty_dataset(accession_number: str) -> Dataset:
   """
   Constructs an empty pydicom dataset only with meta data filled out
 
@@ -74,7 +74,7 @@ def create_empty_dataset(accession_number: str) -> Type[Dataset]:
 
   # Move meta data into actual file_meta dataset
   ds.fix_meta_info()
-  
+
   return ds
 
 
@@ -85,7 +85,7 @@ def get_blank(
     study_date: str,
     accession_number: str,
     hospital_ae_title: str
-  ) -> Type[Dataset]:
+  ) -> Dataset:
   """
   Generates a dataset with the minimum required information for performing
   a study. This function is to be used when users manually generate examinations
@@ -107,14 +107,14 @@ def get_blank(
   ds = create_empty_dataset(accession_number)
   method_str = 'Nødoprettet, GFR, Tc-99m-DTPA'
   ds.RequestedProcedureDescription = method_str
-  # Fill out required examination data to allow the site to propperly use the dataset 
-  
+  # Fill out required examination data to allow the site to propperly use the dataset
+
   study_instance_uid = uid.generate_uid(
     prefix='1.3.',
     entropy_srcs=[accession_number, 'Study']
   )
   ds.add_new(0x0020000d, 'UI', study_instance_uid)
-  
+
   ds.add_new(0x0032000a, 'CS', 'STARTED')
   ds.add_new(0x00321060, 'LO',  method_str)
 
@@ -144,7 +144,7 @@ def get_blank(
   return ds
 
 
-def generate_ris_query_dataset(ris_calling: str='') -> Type[Dataset]:
+def generate_ris_query_dataset(ris_calling: str='') -> Dataset:
   """
   Generates a dataset for quering RIS
 
@@ -156,7 +156,7 @@ def generate_ris_query_dataset(ris_calling: str='') -> Type[Dataset]:
   """
   # Create new dataset
   ds = Dataset()
-  
+
   # Fill required tags, empty tags will be filled out by RIS
   # Non-empty tags with be used as search parameters
   ds.add_new(0x00080016, 'UI', '')      # SOPClassUID These values may be discarded
@@ -173,8 +173,8 @@ def generate_ris_query_dataset(ris_calling: str='') -> Type[Dataset]:
   ds.add_new(0x00321060, 'LO', '')      # RequestedProcedureDescription
 
   # Create ScheduledProcedureStepSequence
-  Sequenceset = Dataset() 
-  
+  Sequenceset = Dataset()
+
   Sequenceset.add_new(0x00080060, 'CS', '')           # Modality
   Sequenceset.add_new(0x00400001, 'AE', ris_calling) # ScheduledStationAETitle
   Sequenceset.add_new(0x00400002, 'DA', '-' +date.today().strftime("%Y%m%d"))           # ScheduledProcedureStepStartDate
@@ -195,7 +195,7 @@ def create_search_dataset(
     date_from: str,
     date_to: str,
     accession_number: str
-  ) -> Type[Dataset]:
+  ) -> Dataset:
   """
   Creates a dataset for querying PACS
 
@@ -215,7 +215,7 @@ def create_search_dataset(
   # Correctly format the date search string
   date_from = date_from.replace('-','')
   date_to = date_to.replace('-','')
-  
+
   if date_from != '' or date_to != '':
     ds.StudyDate = f"{date_from}-{date_to}"
   else:
@@ -232,5 +232,31 @@ def create_search_dataset(
   ds.SeriesInstanceUID = ''
   ds.StudyInstanceUID = ''
   ds.SeriesDescription = None
+
+  return ds
+
+def create_pacs_study_level_search_dataset(patientID):
+  ds = Dataset()
+  ds.PatientID = patientID
+  ds.Modality = 'OT'
+  ds.QueryRetrieveLevel = "STUDY"
+  ds.StudyInstanceUID = None
+
+  return ds
+
+def create_pacs_series_level_search_dataset(studyInstanceUID):
+  ds = Dataset()
+  ds.QueryRetrieveLevel = "SERIES"
+  ds.StudyInstanceUID = studyInstanceUID
+  ds.SeriesDescription = None # Sectra doesn't support matching
+  ds.SeriesInstanceUID = None # value we want
+
+  return ds
+
+def create_pacs_series_level_move_dataset(studyInstanceUID, seriesInstanceUID):
+  ds = Dataset()
+  ds.QueryRetrieveLevel = "SERIES"
+  ds.StudyInstanceUID = studyInstanceUID
+  ds.SeriesInstanceUID = seriesInstanceUID
 
   return ds
