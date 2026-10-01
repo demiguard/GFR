@@ -14,6 +14,7 @@ if __name__ == "__main__":
 from datetime import date
 from pathlib import Path
 from pydicom import Dataset
+import traceback
 
 import random
 import shutil
@@ -326,8 +327,10 @@ class RisFetcher():
               try:
                 self.fetch_history(dataset, dataset_dir)
                 break
-              except:
+              except Exception as exp:
                 logger.error(f"Failed to retrieve history for {dataset.AccessionNumber}")
+                logger.error(exp)
+                logger.error(traceback.format_exc())
                 time.sleep(1)
             attempts += 1
 
