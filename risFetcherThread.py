@@ -274,8 +274,10 @@ class RisFetcher():
     if self.get_history: # Fetches the history of datasets
       try:
         self.fetch_history(dataset, dataset_dir)
-      except:
-        logger.error(f"Failed to fetch history from {dataset.AccessionNumber}")
+      except Exception as exp:
+        logger.error(f"Failed to retrieve history for {dataset.AccessionNumber}")
+        logger.error(exp)
+        logger.error(traceback.format_exc())
         self.failed_datasets[dataset.AccessionNumber] = (dataset, dataset_dir)
     else:
       logger.info("Skipping fetching history")
