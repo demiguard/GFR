@@ -241,6 +241,7 @@ def create_pacs_study_level_search_dataset(patientID):
   ds.Modality = 'OT'
   ds.QueryRetrieveLevel = "STUDY"
   ds.StudyInstanceUID = None
+  ds.StudyDescription = None
 
   return ds
 
