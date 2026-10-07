@@ -230,7 +230,7 @@ class RisFetcher():
 
       for status, series_dataset in self.pacs_find_assoc.send_c_find(series_level_query_dataset, StudyRootQueryRetrieveInformationModelFind):
         if status.Status == DATASET_AVAILABLE and series_dataset is not None:
-          if series_dataset.SeriesDescription.starts_with("Clearance"):
+          if series_dataset.SeriesDescription.startswith("Clearance"):
             studies_to_retrieve.append(series_dataset)
         elif status.Status == TRANSFER_COMPLETE:
           pass
