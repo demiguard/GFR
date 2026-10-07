@@ -211,7 +211,7 @@ class RisFetcher():
 
     study_find_responses: List[Dataset] = []
 
-    logger.info(f"Fetching history for {dataset.PatientID}")
+    logger.info(f"Fetching history with {dataset}")
 
     for status, historic_study_dataset in response:
       if 'Status' in status:
