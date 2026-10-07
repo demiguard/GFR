@@ -228,6 +228,7 @@ class RisFetcher():
     logger.info(f"Considering {' '.join(study_descriptions)} Studies")
     if len(study_find_responses) == 0:
       return
+
     studies_to_retrieve = []
 
     for study_dataset in study_find_responses:
