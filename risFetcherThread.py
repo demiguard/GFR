@@ -212,6 +212,7 @@ class RisFetcher():
     study_find_responses: List[Dataset] = []
 
     logger.info(f"Fetching history for {dataset.PatientID}")
+
     for status, historic_study_dataset in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE and historic_study_dataset is not None:
@@ -223,6 +224,10 @@ class RisFetcher():
       else:
         logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
 
+    study_descriptions = map(lambda ds : ds.StudyDescription, study_find_responses)
+    logger.info(f"Considering {' '.join(study_descriptions)} Studies")
+    if len(study_find_responses) == 0:
+      return
     studies_to_retrieve = []
 
     for study_dataset in study_find_responses:
