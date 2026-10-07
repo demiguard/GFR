@@ -4,7 +4,7 @@ from pydicom import Dataset
 import logging
 from typing import Type, Union, Callable
 from pynetdicom import AE
-from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind 
+from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelFind, StudyRootQueryRetrieveInformationModelMove, ModalityWorklistInformationFind
 from main_page.libs.status_codes import DATASET_AVAILABLE, TRANSFER_COMPLETE
 from main_page.libs.dirmanager import try_mkdir
 
@@ -56,6 +56,13 @@ def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger: l
       """)
     return None
 
+  logger.info(
+    f"""Could established connection to
+          IP:     {ip}
+          Port:   {port}
+          my aet: {AE.ae_title}
+          Ris ae: {aet}
+    """)
   return assoc
 
 
