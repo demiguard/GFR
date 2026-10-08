@@ -56,13 +56,13 @@ def establish_assoc(AE : AE, ip: str, port: Union[int, str], aet: str, logger: l
       """)
     return None
 
-  logger.info(
-    f"""Could established connection to
-          IP:     {ip}
-          Port:   {port}
-          my aet: {AE.ae_title}
-          Ris ae: {aet}
-    """)
+  #logger.info(
+  #  f"""established connection to
+  #        IP:     {ip}
+  #        Port:   {port}
+  #        my aet: {AE.ae_title}
+  #        Ris ae: {aet}
+  #  """)
   return assoc
 
 

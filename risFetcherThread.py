@@ -272,6 +272,7 @@ class RisFetcher():
     file_path = f"{dataset_dir}/{dataset.AccessionNumber}.dcm"
     try:
       dicomlib.save_dicom(file_path, dataset)
+      logger.info(f"Created a study: {dataset.AccessionNumber}")
     except ValueError as e:
       logger.error(f"Failed to save dicom file at {file_path}, got exception {e}")
       shutil.rmtree(dataset_dir)
