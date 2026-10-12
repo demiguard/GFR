@@ -222,7 +222,13 @@ class RisFetcher():
         else:
           self.log_dicom_message_error('Query Historic ', status, history_queryDataset)
       else:
-        logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
+        if 'AccessionNumber' in dataset:
+          logger.error(f"Failed finding historic dataset with Accession Number: {dataset.AccessionNumber}")
+        elif 'StudyDescription' in dataset:
+          logger.error(f"Failed finding historic dataset with Study Description: {dataset.StudyDescription}")
+        else:
+          logger.error(f"Failed Finding historic dataset - {dataset}")
+
 
     study_descriptions = map(lambda ds : ds.StudyDescription, study_find_responses)
     logger.info(f"Considering {' '.join(study_descriptions)} Studies")

@@ -251,6 +251,7 @@ def create_pacs_series_level_search_dataset(studyInstanceUID):
   ds.StudyInstanceUID = studyInstanceUID
   ds.SeriesDescription = None # Sectra doesn't support matching
   ds.SeriesInstanceUID = None # value we want
+  ds.AccessionNumber = None
 
   return ds
 
@@ -259,5 +260,6 @@ def create_pacs_series_level_move_dataset(studyInstanceUID, seriesInstanceUID):
   ds.QueryRetrieveLevel = "SERIES"
   ds.StudyInstanceUID = studyInstanceUID
   ds.SeriesInstanceUID = seriesInstanceUID
+  ds.AccessionNumber = None
 
   return ds
