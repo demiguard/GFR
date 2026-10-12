@@ -167,23 +167,23 @@ class RisFetcher():
 
     return fully_connected
 
-  def move_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
-    target_file = Path(f"{server_config.SEARCH_DIR}{historic_dataset.AccessionNumber}.dcm")
-    destination = dataset_dir / f"{historic_dataset.AccessionNumber}.dcm"
+  def move_dataset(self, historic_dataset : Dataset, dataset_dir : Path, accession_number):
+    target_file = Path(f"{server_config.SEARCH_DIR}{accession_number}.dcm")
+    destination = dataset_dir / f"{accession_number}.dcm"
 
     if target_file.exists():
       shutil.move(target_file, destination)
     else:
-      logger.error(f"Historic dataset not found for Accession Number: {historic_dataset.AccessionNumber}")
+      logger.error(f"Historic dataset not found for Accession Number: {accession_number}")
 
-  def c_move_for_history_dataset(self, historic_dataset : Dataset, dataset_dir : Path):
+  def c_move_for_history_dataset(self, historic_dataset : Dataset, dataset_dir : Path, accession_number):
     response = self.pacs_move_assoc.send_c_move(historic_dataset, self.sc.AE_title, StudyRootQueryRetrieveInformationModelMove)
     for status, identifier in response:
       if 'Status' in status:
         if status.Status == DATASET_AVAILABLE:
           pass
         elif status.Status == TRANSFER_COMPLETE:
-          self.move_dataset(historic_dataset, dataset_dir)
+          self.move_dataset(historic_dataset, dataset_dir, accession_number)
         else:
           self.log_dicom_message_error('Query Historic ', status, historic_dataset)
       else:
@@ -244,6 +244,10 @@ class RisFetcher():
         if status.Status == DATASET_AVAILABLE and series_dataset is not None:
           if series_dataset.SeriesDescription.startswith("Clearance"):
             studies_to_retrieve.append(series_dataset)
+            logger.info(f"Found Clearance Series for {dataset.get("AccessionNumber", "Missing AccessionNumber!")}")
+          else:
+            logger.info(f"Skipping Historic Series it's not a Clearance Series description: {dataset.SeriesDescription}")
+
         elif status.Status == TRANSFER_COMPLETE:
           pass
         else:
@@ -255,7 +259,10 @@ class RisFetcher():
         seriesInstanceUID=study_to_retrieve.SeriesInstanceUID
       )
 
-      self.c_move_for_history_dataset(c_move_query_dataset, dataset_dir)
+      if 'AccessionNumber' in study_to_retrieve and study_to_retrieve.AccessionNumber:
+        self.c_move_for_history_dataset(c_move_query_dataset, dataset_dir, study_to_retrieve.AccessionNumber)
+      else:
+        logger.info(f"Unable fetch history from {dataset} because its missing accession number ")
 
     logger.info(f"Retrieved {len(studies_to_retrieve)} for {dataset.AccessionNumber}")
 

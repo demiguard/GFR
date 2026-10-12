@@ -260,6 +260,7 @@ def create_pacs_series_level_move_dataset(studyInstanceUID, seriesInstanceUID):
   ds.QueryRetrieveLevel = "SERIES"
   ds.StudyInstanceUID = studyInstanceUID
   ds.SeriesInstanceUID = seriesInstanceUID
-  ds.AccessionNumber = None
+  # Accession Numbers are not available in series level queries - We'll have to
+  # augment them afterwards
 
   return ds
