@@ -211,7 +211,7 @@ class RisFetcher():
 
     study_find_responses: List[Dataset] = []
 
-    logger.info(f"Fetching history with {dataset}")
+    logger.info(f"Fetching history with {dataset.AccessionNumber}")
 
     for status, historic_study_dataset in response:
       if 'Status' in status:
@@ -244,7 +244,7 @@ class RisFetcher():
         if status.Status == DATASET_AVAILABLE and series_dataset is not None:
           if series_dataset.SeriesDescription.startswith("Clearance"):
             studies_to_retrieve.append(series_dataset)
-            logger.info(f"Found Clearance Series for {dataset.get("AccessionNumber", "Missing AccessionNumber!")}")
+            logger.info(f"Found Clearance Series for {dataset.AccessionNumber}")
           else:
             logger.info(f"Skipping Historic Series it's not a Clearance Series description: {dataset.SeriesDescription}")
 
