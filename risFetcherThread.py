@@ -246,7 +246,7 @@ class RisFetcher():
             studies_to_retrieve.append(series_dataset)
             logger.info(f"Found Clearance Series for {dataset.AccessionNumber}")
           else:
-            logger.info(f"Skipping Historic Series it's not a Clearance Series description: {dataset.SeriesDescription}")
+            logger.info(f"Skipping Historic Series it's not a Clearance Series description: {series_dataset.SeriesDescription}")
 
         elif status.Status == TRANSFER_COMPLETE:
           pass
